@@ -3,8 +3,8 @@ package dev.slne.surf.roleplay.api.common.license
 import dev.slne.surf.api.core.messages.adventure.buildText
 import dev.slne.surf.api.core.messages.builder.SurfComponentBuilder
 import dev.slne.surf.api.core.util.mutableObject2BooleanMapOf
+import dev.slne.surf.roleplay.api.common.identity.RoleplayIdentity
 import dev.slne.surf.roleplay.api.common.license.requirement.LicenseRequirement
-import dev.slne.surf.roleplay.api.common.user.RoleplayUser
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap
 import it.unimi.dsi.fastutil.objects.ObjectList
 import net.kyori.adventure.key.Key
@@ -22,11 +22,17 @@ abstract class License(
         return displayName
     }
 
-    fun calculateRequirements(user: RoleplayUser): LicenseRequirementsCalculationResult {
+    /**
+     * Evaluates every requirement of this license against [identity].
+     *
+     * @param identity the identity the license would be granted to
+     * @return the overall outcome together with the result of each individual requirement
+     */
+    fun calculateRequirements(identity: RoleplayIdentity): LicenseRequirementsCalculationResult {
         val results = mutableObject2BooleanMapOf<LicenseRequirement>()
 
         for (requirement in requirements) {
-            val result = requirement.isMet(user)
+            val result = requirement.isMet(identity)
 
             results[requirement] = result
         }

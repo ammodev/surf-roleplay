@@ -2,7 +2,6 @@ package dev.slne.surf.roleplay.api.common.license.licenses
 
 import dev.slne.surf.roleplay.api.common.identity.RoleplayIdentity
 import dev.slne.surf.roleplay.api.common.license.user.UserLicense
-import dev.slne.surf.roleplay.api.common.user.RoleplayUser
 import io.mockk.every
 import io.mockk.mockk
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -16,32 +15,32 @@ import kotlin.test.assertTrue
  */
 class TruckLicenseRequirementTest {
 
-    private fun userWithActiveIdentity(vararg userLicenses: UserLicense): RoleplayUser {
+    /**
+     * Builds an identity fake that holds exactly [userLicenses].
+     */
+    private fun identityWith(vararg userLicenses: UserLicense): RoleplayIdentity {
         val identity = mockk<RoleplayIdentity>(relaxed = true)
         every { identity.licenses } returns ObjectOpenHashSet(userLicenses.toList())
         every { identity.hasLicense(any()) } answers { callOriginal() }
-
-        val user = mockk<RoleplayUser>(relaxed = true)
-        every { user.activeIdentity } returns identity
-        return user
+        return identity
     }
 
     @Test
-    fun `requirement is met when the active identity holds the car license`() {
-        val user = userWithActiveIdentity(
+    fun `requirement is met when the identity holds the car license`() {
+        val identity = identityWith(
             UserLicense(licenseKey = CarLicense.key, acquiredAt = OffsetDateTime.now())
         )
 
-        val result = TruckLicense.calculateRequirements(user)
+        val result = TruckLicense.calculateRequirements(identity)
 
         assertTrue(result.isMet)
     }
 
     @Test
-    fun `requirement is not met when the active identity lacks the car license`() {
-        val user = userWithActiveIdentity()
+    fun `requirement is not met when the identity lacks the car license`() {
+        val identity = identityWith()
 
-        val result = TruckLicense.calculateRequirements(user)
+        val result = TruckLicense.calculateRequirements(identity)
 
         assertFalse(result.isMet)
     }
