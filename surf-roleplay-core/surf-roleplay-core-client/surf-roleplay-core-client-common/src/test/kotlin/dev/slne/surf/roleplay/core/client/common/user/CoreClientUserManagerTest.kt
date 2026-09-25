@@ -9,13 +9,14 @@ import kotlinx.coroutines.runBlocking
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
 /**
- * Tests for loading, caching and evicting users in [CoreClientUserManager].
+ * Tests for loading, holding, releasing and evicting users in [CoreClientUserManager].
  */
 class CoreClientUserManagerTest {
 
@@ -40,10 +41,52 @@ class CoreClientUserManagerTest {
     }
 
     @Test
-    fun `loadAndCache keeps the instance already cached`() = runBlocking {
+    fun `loadAndCache reuses the cached instance without loading again`() = runBlocking {
         val first = manager.loadAndCache(uuid)
 
         assertSame(first, manager.loadAndCache(uuid))
+        coVerify(exactly = 1) { service.findOrCreateByUuid(uuid) }
+    }
+
+    @Test
+    fun `release after two acquires keeps the user cached`() = runBlocking {
+        val cached = manager.loadAndCache(uuid)
+        manager.loadAndCache(uuid)
+
+        manager.release(uuid)
+
+        assertSame(cached, manager.findByUuid(uuid))
+        coVerify(exactly = 0) { service.findByUuid(any()) }
+    }
+
+    @Test
+    fun `second release after two acquires evicts the user`() = runBlocking {
+        val cached = manager.loadAndCache(uuid)
+        manager.loadAndCache(uuid)
+
+        manager.release(uuid)
+        manager.release(uuid)
+
+        assertNotSame(cached, manager.findByUuid(uuid))
+        coVerify(exactly = 1) { service.findByUuid(uuid) }
+    }
+
+    @Test
+    fun `release of a user that is not cached does nothing`() = runBlocking {
+        manager.release(uuid)
+        val cached = manager.loadAndCache(uuid)
+
+        assertSame(cached, manager.findByUuid(uuid))
+    }
+
+    @Test
+    fun `failed load acquires no hold`() = runBlocking {
+        coEvery { service.findOrCreateByUuid(uuid) } throws IllegalStateException("unavailable")
+
+        assertFailsWith<IllegalStateException> { manager.loadAndCache(uuid) }
+
+        assertNotNull(manager.findByUuid(uuid))
+        coVerify(exactly = 1) { service.findByUuid(uuid) }
     }
 
     @Test
@@ -73,8 +116,9 @@ class CoreClientUserManagerTest {
     }
 
     @Test
-    fun `evict removes the cached user`() = runBlocking {
+    fun `evict removes the cached user regardless of remaining holds`() = runBlocking {
         val cached = manager.loadAndCache(uuid)
+        manager.loadAndCache(uuid)
 
         manager.evict(uuid)
 
