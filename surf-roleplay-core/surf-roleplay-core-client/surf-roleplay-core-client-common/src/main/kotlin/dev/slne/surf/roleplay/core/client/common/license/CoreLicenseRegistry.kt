@@ -1,4 +1,4 @@
-package dev.slne.surf.roleplay.core.common.license
+package dev.slne.surf.roleplay.core.client.common.license
 
 import com.google.auto.service.AutoService
 import dev.slne.surf.roleplay.api.common.license.License

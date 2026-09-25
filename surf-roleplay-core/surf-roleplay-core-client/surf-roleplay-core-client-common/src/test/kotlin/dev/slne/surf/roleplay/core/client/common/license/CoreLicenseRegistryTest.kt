@@ -1,4 +1,4 @@
-package dev.slne.surf.roleplay.core.common.license
+package dev.slne.surf.roleplay.core.client.common.license
 
 import dev.slne.surf.api.core.messages.adventure.key
 import dev.slne.surf.api.core.util.objectListOf
