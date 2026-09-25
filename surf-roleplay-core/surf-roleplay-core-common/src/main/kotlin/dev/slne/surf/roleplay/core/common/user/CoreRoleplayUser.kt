@@ -131,10 +131,13 @@ class CoreRoleplayUser(
     /**
      * Makes the owned identity with the UUID of [identity] the active identity of this user.
      *
+     * The owned identity is looked up and activated while holding this user's write lock, so a
+     * concurrent write operation cannot remove it in between.
+     *
      * @param identity the identity to activate
      * @throws UnknownIdentityException if this user owns no identity with the UUID of [identity]
      */
-    override suspend fun setActiveIdentity(identity: RoleplayIdentity) {
+    override suspend fun setActiveIdentity(identity: RoleplayIdentity): Unit = write {
         _activeIdentity = _identities.firstOrNull { it.uuid == identity.uuid }
             ?: throw UnknownIdentityException(uuid, identity.uuid)
     }
