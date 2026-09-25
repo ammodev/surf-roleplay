@@ -19,6 +19,7 @@ import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -170,7 +171,7 @@ class RoleplayDtoMapperTest {
             revokedAt = revokedAt
         )
 
-        val license = dto.toDomain()
+        val license = assertNotNull(dto.toDomain())
 
         assertEquals(TruckLicense.key, license.licenseKey)
         assertEquals(acquiredAt, license.acquiredAt)
@@ -179,5 +180,34 @@ class RoleplayDtoMapperTest {
         assertEquals(LicenseRevokedReason.CRIMINAL, license.revokedReason)
         assertEquals(revokedAt, license.revokedAt)
         assertTrue(license.isRevoked)
+    }
+
+    @Test
+    fun `unknown revocation reason maps to null while the license stays revoked`() {
+        val dto = UserLicenseDto(
+            licenseKey = CarLicense.key.asString(),
+            acquiredAt = now().minusDays(1),
+            grantedByUuid = null,
+            revokedByUuid = UUID.randomUUID(),
+            revokedReason = "NO_SUCH_REASON",
+            revokedAt = now()
+        )
+
+        val license = assertNotNull(dto.toDomain())
+
+        assertNull(license.revokedReason)
+        assertTrue(license.isRevoked)
+    }
+
+    @Test
+    fun `licenses with a malformed key are dropped`() {
+        val valid = UserLicenseDto(CarLicense.key.asString(), now(), null, null, null, null)
+        val malformed = UserLicenseDto("Not A Valid Key!", now(), null, null, null, null)
+        val dto = identityDto(IdentityType.CIVILIAN.name, licenses = listOf(malformed, valid))
+
+        val identity = assertIs<CoreCivilianIdentity>(dto.toDomain(userUuid, service))
+
+        assertNull(malformed.toDomain())
+        assertEquals(listOf(CarLicense.key), identity.licenses.map { it.licenseKey })
     }
 }
