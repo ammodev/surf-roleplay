@@ -8,10 +8,26 @@ import dev.slne.surf.transaction.api.transactional.Transactional
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import java.util.*
 
+/**
+ * A single roleplay persona owned by a user.
+ *
+ * An identity holds its own transactional account, licenses and organisation
+ * membership, independent of every other identity the same user may own.
+ */
 interface RoleplayIdentity : Transactional {
+    /**
+     * The unique identifier of this identity.
+     */
     val uuid: UUID
-    val name: String
 
+    /**
+     * The organisation this identity belongs to.
+     */
+    val type: IdentityType
+
+    /**
+     * The licenses currently or formerly held by this identity.
+     */
     val licenses: ObjectSet<UserLicense>
 
     /**
