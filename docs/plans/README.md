@@ -12,3 +12,4 @@ Create the next plan with `/surf:new-plan`.
 
 | Plan | Title | Date | Status |
 | ---- | ----- | ---- | ------ |
+| [0001](0001-roleplay-data-layer.md) | Roleplay data layer | 2026-09-25 | In progress |
