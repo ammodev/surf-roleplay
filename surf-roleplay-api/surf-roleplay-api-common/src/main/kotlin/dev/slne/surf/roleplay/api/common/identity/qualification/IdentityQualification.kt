@@ -4,7 +4,10 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 
-data class IdentityQualification(
+/**
+ * A qualification an organisation can grant its members, independent of rank.
+ */
+abstract class IdentityQualification(
     val key: Key,
     val displayName: Component
 ) : ComponentLike {
