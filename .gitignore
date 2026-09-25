@@ -10,3 +10,8 @@ bin/
 
 *.log
 *.hprof
+
+# surf conventions
+.superpowers/
+.worktrees/
+.claude/settings.local.json
