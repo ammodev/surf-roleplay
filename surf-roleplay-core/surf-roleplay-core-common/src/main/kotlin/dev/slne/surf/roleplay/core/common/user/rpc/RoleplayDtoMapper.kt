@@ -36,7 +36,8 @@ fun RoleplayUserDto.toDomain(service: UserService): CoreRoleplayUser = CoreRolep
  *
  * A missing, unknown or malformed rank key resolves to the lowest rank of the identity's
  * organisation.
- * Unknown or malformed qualification keys are left out.
+ * Unknown or malformed qualification keys are left out, and so are licenses whose key is
+ * malformed.
  *
  * @param userUuid the UUID of the player who owns the identity
  * @param service the remote user service the identity sends write operations to
@@ -44,7 +45,7 @@ fun RoleplayUserDto.toDomain(service: UserService): CoreRoleplayUser = CoreRolep
  */
 fun RoleplayIdentityDto.toDomain(userUuid: UUID, service: UserService): CoreRoleplayIdentity? {
     val identityType = IdentityType.entries.firstOrNull { it.name == type } ?: return null
-    val userLicenses = licenses.map { it.toDomain() }
+    val userLicenses = licenses.mapNotNull { it.toDomain() }
 
     return when (identityType) {
         IdentityType.CIVILIAN -> CoreCivilianIdentity(
@@ -83,16 +84,21 @@ fun RoleplayIdentityDto.toDomain(userUuid: UUID, service: UserService): CoreRole
  * A revocation reason that names no known [LicenseRevokedReason] resolves to `null`; the license
  * still counts as revoked when [UserLicenseDto.revokedAt] is set.
  *
- * @return the held license with every field of this DTO
+ * @return the held license with every field of this DTO, or `null` if
+ *         [UserLicenseDto.licenseKey] is not a valid key
  */
-fun UserLicenseDto.toDomain(): UserLicense = UserLicense(
-    licenseKey = Key.key(licenseKey),
-    acquiredAt = acquiredAt,
-    grantedByUuid = grantedByUuid,
-    revokedByUuid = revokedByUuid,
-    revokedReason = revokedReason?.let { name -> LicenseRevokedReason.entries.firstOrNull { it.name == name } },
-    revokedAt = revokedAt
-)
+fun UserLicenseDto.toDomain(): UserLicense? {
+    val key = licenseKey.toKeyOrNull() ?: return null
+
+    return UserLicense(
+        licenseKey = key,
+        acquiredAt = acquiredAt,
+        grantedByUuid = grantedByUuid,
+        revokedByUuid = revokedByUuid,
+        revokedReason = revokedReason?.let { name -> LicenseRevokedReason.entries.firstOrNull { it.name == name } },
+        revokedAt = revokedAt
+    )
+}
 
 /**
  * Parses this string as an Adventure [Key].
