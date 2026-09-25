@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.core.common.user
 
 import dev.slne.surf.api.core.util.freeze
 import dev.slne.surf.api.core.util.mutableObjectListOf
+import dev.slne.surf.roleplay.api.common.identity.IdentityType
 import dev.slne.surf.roleplay.api.common.identity.RoleplayIdentity
 import dev.slne.surf.roleplay.api.common.identity.exceptions.NoActiveIdentityException
 import dev.slne.surf.roleplay.api.common.user.RoleplayUser
@@ -28,15 +29,36 @@ class CoreRoleplayUser(
     private var _activeIdentity: RoleplayIdentity? = null
     override val activeIdentity get() = _activeIdentity
 
-    override suspend fun createIdentity(identity: RoleplayIdentity) {
-        _identities.add(identity)
-
+    /**
+     * Creates a new identity of [type] for this user.
+     *
+     * Not yet functional; always throws [NotImplementedError].
+     */
+    override suspend fun createIdentity(type: IdentityType): RoleplayIdentity {
         TODO("Implement")
     }
 
     override suspend fun setActiveIdentity(identity: RoleplayIdentity) {
         _activeIdentity = identity
 
+        TODO("Implement")
+    }
+
+    /**
+     * Deactivates the active identity.
+     *
+     * Not yet functional; always throws [NotImplementedError].
+     */
+    override fun clearActiveIdentity() {
+        TODO("Implement")
+    }
+
+    /**
+     * Permanently deletes [identity] from this user.
+     *
+     * Not yet functional; always throws [NotImplementedError].
+     */
+    override suspend fun deleteIdentity(identity: RoleplayIdentity) {
         TODO("Implement")
     }
 
