@@ -8,6 +8,9 @@ import it.unimi.dsi.fastutil.objects.ObjectSet
  * A roleplay identity that belongs to the search-and-rescue service.
  */
 interface SarIdentity : RoleplayIdentity {
+    /**
+     * The identity type of every search-and-rescue identity, [IdentityType.SAR].
+     */
     override val type: IdentityType get() = IdentityType.SAR
 
     /**

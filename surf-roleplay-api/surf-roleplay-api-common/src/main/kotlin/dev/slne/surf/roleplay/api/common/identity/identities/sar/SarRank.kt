@@ -68,6 +68,9 @@ sealed class SarRank(
         6
     )
 
+    /**
+     * Lists all search-and-rescue ranks and resolves them by key.
+     */
     companion object {
         /**
          * All search-and-rescue ranks, in ascending order of seniority.
@@ -83,6 +86,9 @@ sealed class SarRank(
             )
         }
 
+        /**
+         * All search-and-rescue ranks, by key.
+         */
         private val byKey: Map<Key, SarRank> by lazy {
             entries.associateBy { it.key }
         }

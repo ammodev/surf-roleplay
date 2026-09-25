@@ -51,6 +51,9 @@ class VelocityMain @Inject constructor(
         ClientInstance.INSTANCE.onDisable()
     }
 
+    /**
+     * Holds the loaded instance of this plugin.
+     */
     companion object {
         /**
          * The loaded instance of this plugin.

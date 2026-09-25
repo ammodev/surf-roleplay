@@ -131,6 +131,9 @@ sealed class PoliceRank(
         13
     )
 
+    /**
+     * Lists all police ranks and resolves them by key.
+     */
     companion object {
         /**
          * All police ranks, in ascending order of seniority.
@@ -153,6 +156,9 @@ sealed class PoliceRank(
             )
         }
 
+        /**
+         * All police ranks, by key.
+         */
         private val byKey: Map<Key, PoliceRank> by lazy {
             entries.associateBy { it.key }
         }

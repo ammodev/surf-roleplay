@@ -53,6 +53,9 @@ sealed class PoliceQualification(
         Component.text("Hubschrauberpilot")
     )
 
+    /**
+     * Lists all police qualifications and resolves them by key.
+     */
     companion object {
         /**
          * All police qualifications.
@@ -67,6 +70,9 @@ sealed class PoliceQualification(
             )
         }
 
+        /**
+         * All police qualifications, by key.
+         */
         private val byKey: Map<Key, PoliceQualification> by lazy {
             entries.associateBy { it.key }
         }

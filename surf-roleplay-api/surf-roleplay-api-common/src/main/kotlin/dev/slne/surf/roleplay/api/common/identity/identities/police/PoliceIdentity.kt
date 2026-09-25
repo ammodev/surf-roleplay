@@ -8,6 +8,9 @@ import it.unimi.dsi.fastutil.objects.ObjectSet
  * A roleplay identity that belongs to the police force.
  */
 interface PoliceIdentity : RoleplayIdentity {
+    /**
+     * The identity type of every police identity, [IdentityType.POLICE].
+     */
     override val type: IdentityType get() = IdentityType.POLICE
 
     /**

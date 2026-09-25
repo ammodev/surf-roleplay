@@ -45,6 +45,9 @@ sealed class SarQualification(
         Component.text("Luftrettung")
     )
 
+    /**
+     * Lists all search-and-rescue qualifications and resolves them by key.
+     */
     companion object {
         /**
          * All search-and-rescue qualifications.
@@ -58,6 +61,9 @@ sealed class SarQualification(
             )
         }
 
+        /**
+         * All search-and-rescue qualifications, by key.
+         */
         private val byKey: Map<Key, SarQualification> by lazy {
             entries.associateBy { it.key }
         }

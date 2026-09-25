@@ -42,6 +42,9 @@ abstract class ClientInstance {
         rabbitApi.disconnect()
     }
 
+    /**
+     * Provides access to the single registered [ClientInstance] service.
+     */
     companion object {
         /**
          * The single registered [ClientInstance] service instance.
