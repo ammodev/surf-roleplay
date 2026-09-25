@@ -23,3 +23,4 @@ Create the next record with `/surf:new-adr`.
 | [0008](0008-player-facing-text-is-german.md) | Player-facing text is German | Accepted | 2026-09-25 |
 | [0009](0009-license-grants-enforce-requirements-unless-forced.md) | License grants enforce requirements unless forced | Accepted | 2026-09-25 |
 | [0010](0010-ranks-and-qualifications-use-english-identifiers.md) | Ranks and qualifications use English identifiers | Accepted | 2026-09-25 |
+| [0011](0011-the-license-registry-lives-in-core-client-common.md) | The license registry lives in core-client-common | Accepted | 2026-09-25 |
