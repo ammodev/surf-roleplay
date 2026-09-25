@@ -14,9 +14,12 @@ interface RoleplayIdentity : Transactional {
 
     val licenses: ObjectSet<UserLicense>
 
+    /**
+     * Checks whether this identity currently holds [license].
+     *
+     * A revoked license is never considered held, even if it was granted at some point.
+     */
     fun hasLicense(license: License): Boolean = licenses.any { userLicense ->
-        val otherLicense = userLicense.license() ?: return@any false
-
-        otherLicense.key == license.key
+        !userLicense.isRevoked && userLicense.licenseKey == license.key
     }
 }
