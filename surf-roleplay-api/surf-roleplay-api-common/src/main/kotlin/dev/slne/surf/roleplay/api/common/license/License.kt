@@ -11,13 +11,25 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 
+/**
+ * A definition of a license an identity can be granted, revoked and checked for.
+ *
+ * @property key the identifier this license is stored and looked up under
+ * @property requirements the requirements an identity must meet to be granted this license
+ */
 abstract class License(
     val key: Key,
     displayName: SurfComponentBuilder.() -> Unit,
     val requirements: ObjectList<LicenseRequirement>
 ) : ComponentLike {
+    /**
+     * The human-readable name of this license.
+     */
     val displayName: Component = SurfComponentBuilder.builder().apply(displayName).build()
 
+    /**
+     * Returns [displayName] as the component representation of this license.
+     */
     override fun asComponent(): Component {
         return displayName
     }
@@ -43,6 +55,12 @@ abstract class License(
         )
     }
 
+    /**
+     * The outcome of evaluating every requirement of a [License] against an identity.
+     *
+     * @property isMet whether every requirement was met
+     * @property results the outcome of each individual requirement
+     */
     class LicenseRequirementsCalculationResult(
         val isMet: Boolean,
         val results: Object2BooleanMap<LicenseRequirement>,
@@ -81,6 +99,9 @@ abstract class License(
             }
         }
 
+        /**
+         * Returns the rendered requirement breakdown as the component representation of this result.
+         */
         override fun asComponent(): Component = component
     }
 }

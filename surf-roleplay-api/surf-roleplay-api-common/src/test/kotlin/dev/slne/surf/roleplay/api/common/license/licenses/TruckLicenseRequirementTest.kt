@@ -25,6 +25,9 @@ class TruckLicenseRequirementTest {
         return identity
     }
 
+    /**
+     * Verifies that the requirement is met when the identity already holds the car license.
+     */
     @Test
     fun `requirement is met when the identity holds the car license`() {
         val identity = identityWith(
@@ -36,6 +39,9 @@ class TruckLicenseRequirementTest {
         assertTrue(result.isMet)
     }
 
+    /**
+     * Verifies that the requirement is not met when the identity lacks the car license.
+     */
     @Test
     fun `requirement is not met when the identity lacks the car license`() {
         val identity = identityWith()

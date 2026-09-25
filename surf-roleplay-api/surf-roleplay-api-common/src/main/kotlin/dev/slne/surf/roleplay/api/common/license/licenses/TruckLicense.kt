@@ -18,4 +18,4 @@ object TruckLicense : License(
     requirements = objectListOf(
         HasOtherLicenseRequirement(CarLicense)
     )
-) 
+)

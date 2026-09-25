@@ -17,6 +17,10 @@ import kotlin.test.assertTrue
  */
 class RoleplayIdentityHasLicenseTest {
 
+    /**
+     * Builds a mocked [RoleplayIdentity] whose [RoleplayIdentity.licenses] contains [userLicenses]
+     * and whose [RoleplayIdentity.hasLicense] runs the real implementation.
+     */
     private fun identityWith(vararg userLicenses: UserLicense): RoleplayIdentity {
         val identity = mockk<RoleplayIdentity>(relaxed = true)
         every { identity.licenses } returns ObjectOpenHashSet(userLicenses.toList())
@@ -24,6 +28,9 @@ class RoleplayIdentityHasLicenseTest {
         return identity
     }
 
+    /**
+     * Verifies that a held, non-revoked license is reported as held.
+     */
     @Test
     fun `hasLicense is true for a held, non-revoked license`() {
         val identity = identityWith(
@@ -33,6 +40,9 @@ class RoleplayIdentityHasLicenseTest {
         assertTrue(identity.hasLicense(CarLicense))
     }
 
+    /**
+     * Verifies that a revoked license is not reported as held.
+     */
     @Test
     fun `hasLicense is false for a revoked license`() {
         val identity = identityWith(
@@ -48,6 +58,9 @@ class RoleplayIdentityHasLicenseTest {
         assertFalse(identity.hasLicense(CarLicense))
     }
 
+    /**
+     * Verifies that a license the identity never held is not reported as held.
+     */
     @Test
     fun `hasLicense is false when the license was never held`() {
         val identity = identityWith()

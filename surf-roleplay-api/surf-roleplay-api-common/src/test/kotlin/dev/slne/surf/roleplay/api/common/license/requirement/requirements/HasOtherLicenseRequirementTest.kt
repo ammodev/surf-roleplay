@@ -30,6 +30,9 @@ class HasOtherLicenseRequirementTest {
         return identity
     }
 
+    /**
+     * Verifies that the requirement is met when the identity holds the prerequisite license.
+     */
     @Test
     fun `requirement is met when the identity holds the prerequisite license`() {
         val identity = identityWith(
@@ -39,6 +42,9 @@ class HasOtherLicenseRequirementTest {
         assertTrue(requirement.isMet(identity))
     }
 
+    /**
+     * Verifies that the requirement is not met when the identity lacks the prerequisite license.
+     */
     @Test
     fun `requirement is not met when the identity lacks the prerequisite license`() {
         val identity = identityWith()
@@ -46,6 +52,9 @@ class HasOtherLicenseRequirementTest {
         assertFalse(requirement.isMet(identity))
     }
 
+    /**
+     * Verifies that the requirement is not met when the prerequisite license has been revoked.
+     */
     @Test
     fun `requirement is not met when the prerequisite license is revoked`() {
         val identity = identityWith(

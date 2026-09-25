@@ -9,11 +9,17 @@ import kotlin.test.assertNull
  */
 class PoliceQualificationTest {
 
+    /**
+     * Verifies that the number of entries matches the expected count.
+     */
     @Test
     fun `entries has the size defined by the mapping table`() {
         assertEquals(5, PoliceQualification.entries.size)
     }
 
+    /**
+     * Verifies that every entry can be resolved back by its own key.
+     */
     @Test
     fun `byKey round-trips every entry`() {
         for (qualification in PoliceQualification.entries) {
@@ -21,11 +27,17 @@ class PoliceQualificationTest {
         }
     }
 
+    /**
+     * Verifies that resolving an unregistered key returns null.
+     */
     @Test
     fun `byKey returns null for an unknown key`() {
         assertNull(PoliceQualification.byKey(net.kyori.adventure.key.Key.key("roleplay", "unknown")))
     }
 
+    /**
+     * Verifies that no two entries share the same key.
+     */
     @Test
     fun `keys are unique`() {
         val keys = PoliceQualification.entries.map { it.key }

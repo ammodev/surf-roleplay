@@ -12,6 +12,10 @@ import kotlin.test.assertEquals
  */
 class RankAndQualificationKeysTest {
 
+    /**
+     * Verifies that no key is reused across the police and search-and-rescue rank and
+     * qualification hierarchies.
+     */
     @Test
     fun `keys are unique across all rank and qualification hierarchies`() {
         val keys = PoliceRank.entries.map { it.key } +

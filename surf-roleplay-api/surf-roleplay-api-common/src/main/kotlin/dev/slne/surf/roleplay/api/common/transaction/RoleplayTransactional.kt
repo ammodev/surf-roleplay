@@ -16,10 +16,25 @@ import java.math.BigDecimal
 import java.util.*
 import kotlin.time.Duration
 
+/**
+ * A [Transactional] that forwards every operation to a swappable [delegate].
+ *
+ * Calling an operation before a delegate is set throws [TransactionalDelegateNotSetException].
+ */
 interface RoleplayTransactional : Transactional {
+    /**
+     * The name this transactional is identified by in error messages.
+     */
     val delegateName: String
+
+    /**
+     * The transactional every operation is forwarded to, or `null` if none is set.
+     */
     val delegate: Transactional?
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun balance(
         account: Account,
         currency: Currency
@@ -28,6 +43,9 @@ interface RoleplayTransactional : Transactional {
             ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun beginDeposit(
         account: Account,
         initiator: UUID,
@@ -48,6 +66,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun beginTransfer(
         initiator: UUID,
         sender: Account,
@@ -74,6 +95,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun beginWithdrawal(
         account: Account,
         initiator: UUID,
@@ -94,6 +118,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun deposit(
         account: Account,
         initiator: UUID,
@@ -112,6 +139,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun transfer(
         initiator: UUID,
         sender: Account,
@@ -136,6 +166,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun <T> withPendingDeposit(
         account: Account,
         initiator: UUID,
@@ -160,6 +193,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun <T> withPendingDepositDecision(
         account: Account,
         initiator: UUID,
@@ -184,6 +220,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun <T> withPendingTransfer(
         initiator: UUID,
         sender: Account,
@@ -214,6 +253,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun <T> withPendingTransferDecision(
         initiator: UUID,
         sender: Account,
@@ -244,6 +286,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun <T> withPendingWithdrawal(
         account: Account,
         initiator: UUID,
@@ -268,6 +313,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun <T> withPendingWithdrawalDecision(
         account: Account,
         initiator: UUID,
@@ -292,6 +340,9 @@ interface RoleplayTransactional : Transactional {
         ) ?: throw TransactionalDelegateNotSetException(delegateName)
     }
 
+    /**
+     * Delegates to [delegate], throwing [TransactionalDelegateNotSetException] if none is set.
+     */
     override suspend fun withdraw(
         account: Account,
         initiator: UUID,

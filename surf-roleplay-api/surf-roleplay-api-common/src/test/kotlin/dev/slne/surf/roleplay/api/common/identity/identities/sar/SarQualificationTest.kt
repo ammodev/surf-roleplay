@@ -9,11 +9,17 @@ import kotlin.test.assertNull
  */
 class SarQualificationTest {
 
+    /**
+     * Verifies that the number of entries matches the expected count.
+     */
     @Test
     fun `entries has the size defined by the mapping table`() {
         assertEquals(4, SarQualification.entries.size)
     }
 
+    /**
+     * Verifies that every entry can be resolved back by its own key.
+     */
     @Test
     fun `byKey round-trips every entry`() {
         for (qualification in SarQualification.entries) {
@@ -21,11 +27,17 @@ class SarQualificationTest {
         }
     }
 
+    /**
+     * Verifies that resolving an unregistered key returns null.
+     */
     @Test
     fun `byKey returns null for an unknown key`() {
         assertNull(SarQualification.byKey(net.kyori.adventure.key.Key.key("roleplay", "unknown")))
     }
 
+    /**
+     * Verifies that no two entries share the same key.
+     */
     @Test
     fun `keys are unique`() {
         val keys = SarQualification.entries.map { it.key }
