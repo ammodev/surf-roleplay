@@ -5,6 +5,9 @@ import dev.slne.surf.roleplay.core.common.user.rpc.UserService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import java.util.*
 import kotlin.test.Test
@@ -46,6 +49,31 @@ class CoreClientUserManagerTest {
 
         assertSame(first, manager.loadAndCache(uuid))
         coVerify(exactly = 1) { service.findOrCreateByUuid(uuid) }
+    }
+
+    @Test
+    fun `loadAndCache racing a slower load shares one instance and holds it twice`() = runBlocking {
+        val gate = CompletableDeferred<Unit>()
+        var calls = 0
+        coEvery { service.findOrCreateByUuid(uuid) } coAnswers {
+            if (++calls == 1) gate.await()
+            RoleplayUserDto(uuid, emptyList())
+        }
+
+        val slow = async(start = CoroutineStart.UNDISPATCHED) { manager.loadAndCache(uuid) }
+        val fast = manager.loadAndCache(uuid)
+        gate.complete(Unit)
+
+        assertSame(fast, slow.await())
+        coVerify(exactly = 2) { service.findOrCreateByUuid(uuid) }
+
+        manager.release(uuid)
+        assertSame(fast, manager.findByUuid(uuid))
+        coVerify(exactly = 0) { service.findByUuid(any()) }
+
+        manager.release(uuid)
+        assertNotSame(fast, manager.findByUuid(uuid))
+        coVerify(exactly = 1) { service.findByUuid(uuid) }
     }
 
     @Test
