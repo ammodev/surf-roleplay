@@ -1,6 +1,6 @@
 # Plan 0001: Roleplay data layer
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-25
 - **Accepted proposal:** Finish the roleplay data layer: users, identities, ranks, qualifications, and licenses persisted in the microservice, synced to Paper on join and quit
 - **Decision records:** ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008, ADR-0009
