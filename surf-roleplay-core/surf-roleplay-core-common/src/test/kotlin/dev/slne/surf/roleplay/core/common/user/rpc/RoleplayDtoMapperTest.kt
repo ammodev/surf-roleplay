@@ -11,6 +11,7 @@ import dev.slne.surf.roleplay.api.common.license.revoke.LicenseRevokedReason
 import dev.slne.surf.roleplay.core.common.identity.CoreCivilianIdentity
 import dev.slne.surf.roleplay.core.common.identity.CorePoliceIdentity
 import dev.slne.surf.roleplay.core.common.identity.CoreSarIdentity
+import dev.slne.surf.roleplay.core.common.user.CoreRoleplayUser
 import io.mockk.mockk
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -30,6 +31,7 @@ class RoleplayDtoMapperTest {
 
     private val service = mockk<UserService>(relaxed = true)
     private val userUuid = UUID.randomUUID()
+    private val owner = CoreRoleplayUser(userUuid, service)
 
     /**
      * Builds an identity DTO of [type] with the given rank and qualification keys and licenses.
@@ -59,7 +61,7 @@ class RoleplayDtoMapperTest {
         val license = UserLicenseDto(CarLicense.key.asString(), now(), null, null, null, null)
         val dto = identityDto(IdentityType.CIVILIAN.name, licenses = listOf(license))
 
-        val identity = assertIs<CoreCivilianIdentity>(dto.toDomain(userUuid, service))
+        val identity = assertIs<CoreCivilianIdentity>(dto.toDomain(owner))
 
         assertEquals(dto.uuid, identity.uuid)
         assertEquals(userUuid, identity.userUuid)
@@ -79,7 +81,7 @@ class RoleplayDtoMapperTest {
             )
         )
 
-        val identity = assertIs<CorePoliceIdentity>(dto.toDomain(userUuid, service))
+        val identity = assertIs<CorePoliceIdentity>(dto.toDomain(owner))
 
         assertEquals(IdentityType.POLICE, identity.type)
         assertEquals(PoliceRank.ChiefInspector, identity.rank)
@@ -97,7 +99,7 @@ class RoleplayDtoMapperTest {
             qualificationKeys = listOf(SarQualification.WaterRescue.key.asString())
         )
 
-        val identity = assertIs<CoreSarIdentity>(dto.toDomain(userUuid, service))
+        val identity = assertIs<CoreSarIdentity>(dto.toDomain(owner))
 
         assertEquals(IdentityType.SAR, identity.type)
         assertEquals(SarRank.Paramedic, identity.rank)
@@ -109,8 +111,8 @@ class RoleplayDtoMapperTest {
         val police = identityDto(IdentityType.POLICE.name, rankKey = "roleplay:no_such_rank")
         val sar = identityDto(IdentityType.SAR.name, rankKey = "Not A Valid Key!")
 
-        assertEquals(PoliceRank.Cadet, assertIs<CorePoliceIdentity>(police.toDomain(userUuid, service)).rank)
-        assertEquals(SarRank.RescueAssistant, assertIs<CoreSarIdentity>(sar.toDomain(userUuid, service)).rank)
+        assertEquals(PoliceRank.Cadet, assertIs<CorePoliceIdentity>(police.toDomain(owner)).rank)
+        assertEquals(SarRank.RescueAssistant, assertIs<CoreSarIdentity>(sar.toDomain(owner)).rank)
     }
 
     @Test
@@ -118,8 +120,8 @@ class RoleplayDtoMapperTest {
         val police = identityDto(IdentityType.POLICE.name, rankKey = null)
         val sar = identityDto(IdentityType.SAR.name, rankKey = null)
 
-        assertEquals(PoliceRank.Cadet, assertIs<CorePoliceIdentity>(police.toDomain(userUuid, service)).rank)
-        assertEquals(SarRank.RescueAssistant, assertIs<CoreSarIdentity>(sar.toDomain(userUuid, service)).rank)
+        assertEquals(PoliceRank.Cadet, assertIs<CorePoliceIdentity>(police.toDomain(owner)).rank)
+        assertEquals(SarRank.RescueAssistant, assertIs<CoreSarIdentity>(sar.toDomain(owner)).rank)
     }
 
     @Test
@@ -138,9 +140,9 @@ class RoleplayDtoMapperTest {
 
         assertEquals(
             setOf(PoliceQualification.SpecialForces),
-            assertIs<CorePoliceIdentity>(police.toDomain(userUuid, service)).qualifications.toSet()
+            assertIs<CorePoliceIdentity>(police.toDomain(owner)).qualifications.toSet()
         )
-        assertTrue(assertIs<CoreSarIdentity>(sar.toDomain(userUuid, service)).qualifications.isEmpty())
+        assertTrue(assertIs<CoreSarIdentity>(sar.toDomain(owner)).qualifications.isEmpty())
     }
 
     @Test
@@ -152,7 +154,7 @@ class RoleplayDtoMapperTest {
 
         assertEquals(userUuid, domain.uuid)
         assertEquals(listOf(civilian.uuid), domain.identities.map { it.uuid })
-        assertNull(identityDto("FIRE_DEPARTMENT").toDomain(userUuid, service))
+        assertNull(identityDto("FIRE_DEPARTMENT").toDomain(owner))
         assertNull(domain.activeIdentity)
     }
 
@@ -205,7 +207,7 @@ class RoleplayDtoMapperTest {
         val malformed = UserLicenseDto("Not A Valid Key!", now(), null, null, null, null)
         val dto = identityDto(IdentityType.CIVILIAN.name, licenses = listOf(malformed, valid))
 
-        val identity = assertIs<CoreCivilianIdentity>(dto.toDomain(userUuid, service))
+        val identity = assertIs<CoreCivilianIdentity>(dto.toDomain(owner))
 
         assertNull(malformed.toDomain())
         assertEquals(listOf(CarLicense.key), identity.licenses.map { it.licenseKey })
