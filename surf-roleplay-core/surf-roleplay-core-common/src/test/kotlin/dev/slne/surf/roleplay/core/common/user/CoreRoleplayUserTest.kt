@@ -13,6 +13,7 @@ import dev.slne.surf.roleplay.core.common.user.rpc.RoleplayUserDto
 import dev.slne.surf.roleplay.core.common.user.rpc.UserLicenseDto
 import dev.slne.surf.roleplay.core.common.user.rpc.UserService
 import dev.slne.surf.transaction.api.account.Account
+import dev.slne.surf.transaction.api.account.result.AccountDeleteResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -30,7 +31,7 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 /**
- * Tests for identity creation, state application and active-identity handling of
+ * Tests for identity creation and deletion, state application and active-identity handling of
  * [CoreRoleplayUser].
  */
 class CoreRoleplayUserTest {
@@ -248,5 +249,87 @@ class CoreRoleplayUserTest {
         user.applyState(RoleplayUserDto(userUuid, listOf(kept)))
 
         assertNull(user.activeIdentity)
+    }
+
+    /**
+     * Builds a user owned by [userUuid] holding the identities described by [identities] whose
+     * account deletions are handled by [accountDeleter].
+     */
+    private fun userWithDeleter(
+        accountDeleter: suspend (UUID, UUID) -> AccountDeleteResult?,
+        vararg identities: RoleplayIdentityDto
+    ) = CoreRoleplayUser(userUuid, service, resolver, accountDeleter).also {
+        it.applyState(RoleplayUserDto(userUuid, identities.toList()))
+    }
+
+    /**
+     * Verifies that deleteIdentity removes the identity, clears it if it was active and deletes
+     * the account of the identity on behalf of the user.
+     */
+    @Test
+    fun `deleteIdentity removes the identity and deletes its account`() = runBlocking {
+        val kept = identityDto(IdentityType.CIVILIAN)
+        val deleted = identityDto(IdentityType.POLICE)
+        val deletions = mutableListOf<Pair<UUID, UUID>>()
+        val user = userWithDeleter({ owner, accountId ->
+            deletions += owner to accountId
+            AccountDeleteResult.SUCCESS
+        }, kept, deleted)
+        user.setActiveIdentity(user.identities.first { it.uuid == deleted.uuid })
+        coEvery { service.deleteIdentity(userUuid, deleted.uuid) } returns
+                RoleplayUserDto(userUuid, listOf(kept))
+
+        user.deleteIdentity(user.identities.first { it.uuid == deleted.uuid })
+
+        assertEquals(listOf(kept.uuid), user.identities.map { it.uuid })
+        assertNull(user.activeIdentity)
+        assertEquals(listOf(userUuid to deleted.accountId), deletions)
+    }
+
+    /**
+     * Verifies that an account deletion that throws, reports a failure or finds no account still
+     * leaves the identity deleted without failing the operation.
+     */
+    @Test
+    fun `deleteIdentity succeeds when the account deletion fails`() = runBlocking {
+        val deleters = listOf<suspend (UUID, UUID) -> AccountDeleteResult?>(
+            { _, _ -> error("transaction system unavailable") },
+            { _, _ -> AccountDeleteResult.DEFAULT_ACCOUNT_CANNOT_BE_DELETED },
+            { _, _ -> null }
+        )
+
+        for (deleter in deleters) {
+            val deleted = identityDto(IdentityType.SAR)
+            val user = userWithDeleter(deleter, deleted)
+            coEvery { service.deleteIdentity(userUuid, deleted.uuid) } returns
+                    RoleplayUserDto(userUuid, emptyList())
+
+            user.deleteIdentity(user.identities.single())
+
+            assertTrue(user.identities.isEmpty())
+        }
+    }
+
+    /**
+     * Verifies that deleteIdentity rejects an identity the user does not own without contacting
+     * the service or deleting an account.
+     */
+    @Test
+    fun `deleteIdentity rejects a foreign identity without sending`() {
+        var deletions = 0
+        val user = userWithDeleter({ _, _ ->
+            deletions++
+            AccountDeleteResult.SUCCESS
+        }, identityDto(IdentityType.CIVILIAN))
+        val foreign = user(identityDto(IdentityType.CIVILIAN)).identities.single()
+
+        val exception = assertFailsWith<UnknownIdentityException> {
+            runBlocking { user.deleteIdentity(foreign) }
+        }
+
+        assertEquals(foreign.uuid, exception.identityUuid)
+        assertEquals(1, user.identities.size)
+        assertEquals(0, deletions)
+        coVerify(exactly = 0) { service.deleteIdentity(any(), any()) }
     }
 }

@@ -36,11 +36,16 @@ private val log = logger()
  * @param service the remote user service write operations are sent to
  * @param accountResolver finds or creates the transaction account of each identity this user
  *        creates
+ * @param accountDeleter deletes the transaction account with the given identifier on behalf of
+ *        the given player, returning the result of the deletion or `null` if no such account
+ *        exists
  */
 class CoreRoleplayUser(
     override val uuid: UUID,
     internal val service: UserService,
-    private val accountResolver: IdentityAccountResolver = IdentityAccountResolver.transactionBacked()
+    private val accountResolver: IdentityAccountResolver = IdentityAccountResolver.transactionBacked(),
+    private val accountDeleter: suspend (owner: UUID, accountId: UUID) -> AccountDeleteResult? =
+        ::deleteTransactionAccount
 ) : RoleplayUser {
     private val writeMutex = Mutex()
 
@@ -153,28 +158,24 @@ class CoreRoleplayUser(
      * Permanently deletes the owned identity with the UUID of [identity] through the remote user
      * service, then deletes its transaction account.
      *
-     * The returned state is applied before the account is deleted, so the identity is no longer
-     * active afterwards. A missing account or a failed account deletion is logged as a warning
-     * and does not fail the operation.
+     * Both steps run while holding this user's write lock, so no other write operation of this
+     * user can start before the account is gone. The returned state is applied before the account
+     * is deleted, so the identity is no longer active afterwards. A missing account or a failed
+     * account deletion is logged as a warning and does not fail the operation.
      *
      * @param identity the identity to delete
      * @throws UnknownIdentityException if this user owns no identity with the UUID of [identity]
      */
-    override suspend fun deleteIdentity(identity: RoleplayIdentity) {
-        val deleted = write {
-            val owned = _identities.firstOrNull { it.uuid == identity.uuid }
-                ?: throw UnknownIdentityException(uuid, identity.uuid)
+    override suspend fun deleteIdentity(identity: RoleplayIdentity): Unit = write {
+        val owned = _identities.firstOrNull { it.uuid == identity.uuid }
+            ?: throw UnknownIdentityException(uuid, identity.uuid)
 
-            applyState(service.deleteIdentity(uuid, owned.uuid))
-            owned
-        }
-
-        deleteAccount(deleted)
+        applyState(service.deleteIdentity(uuid, owned.uuid))
+        deleteAccount(owned)
     }
 
     /**
-     * Deletes the transaction account of [identity] through the transaction user of this user's
-     * player.
+     * Deletes the transaction account of [identity] through the account deleter.
      *
      * A missing account, an unsuccessful deletion or an exception other than a cancellation is
      * logged as a warning instead of being thrown.
@@ -183,8 +184,8 @@ class CoreRoleplayUser(
      */
     private suspend fun deleteAccount(identity: RoleplayIdentity) {
         try {
-            val account = Account.byId(identity.accountId)
-            if (account == null) {
+            val result = accountDeleter(uuid, identity.accountId)
+            if (result == null) {
                 log.atWarning().log(
                     "Account %s of deleted identity %s of user %s does not exist",
                     identity.accountId, identity.uuid, uuid
@@ -192,7 +193,6 @@ class CoreRoleplayUser(
                 return
             }
 
-            val result = TransactionUser.byUuid(uuid).deleteAccount(account)
             if (result != AccountDeleteResult.SUCCESS) {
                 log.atWarning().log(
                     "Could not delete account %s of deleted identity %s of user %s: %s",
@@ -208,4 +208,16 @@ class CoreRoleplayUser(
             )
         }
     }
+}
+
+/**
+ * Deletes the transaction account with [accountId] through the transaction user of [owner].
+ *
+ * @param owner the UUID of the player on whose behalf the account is deleted
+ * @param accountId the identifier of the account to delete
+ * @return the result of the deletion, or `null` if no account with [accountId] exists
+ */
+private suspend fun deleteTransactionAccount(owner: UUID, accountId: UUID): AccountDeleteResult? {
+    val account = Account.byId(accountId) ?: return null
+    return TransactionUser.byUuid(owner).deleteAccount(account)
 }
