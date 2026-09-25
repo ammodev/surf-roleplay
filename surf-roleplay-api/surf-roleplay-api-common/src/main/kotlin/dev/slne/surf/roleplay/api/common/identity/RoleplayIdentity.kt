@@ -3,6 +3,8 @@
 package dev.slne.surf.roleplay.api.common.identity
 
 import dev.slne.surf.roleplay.api.common.license.License
+import dev.slne.surf.roleplay.api.common.license.LicenseGrantResult
+import dev.slne.surf.roleplay.api.common.license.revoke.LicenseRevokedReason
 import dev.slne.surf.roleplay.api.common.license.user.UserLicense
 import dev.slne.surf.transaction.api.account.Account
 import dev.slne.surf.transaction.api.currency.Currency
@@ -90,6 +92,44 @@ interface RoleplayIdentity : Transactional {
      */
     suspend fun transfer(amount: BigDecimal, currency: Currency, receiver: Account): TransactionResult =
         transfer(userUuid, account(), amount, currency, receiver)
+
+    /**
+     * Grants [license] to this identity.
+     *
+     * Unless [force] is `true`, the license's requirements are evaluated against this identity
+     * first and the license is only granted if all of them are met. An identity that already
+     * holds an unrevoked license with the same key is not granted it again.
+     *
+     * @param license the license to grant
+     * @param grantedBy the UUID of the player granting the license, or `null` to record no
+     *        granting player
+     * @param force whether to grant the license without evaluating its requirements
+     * @return [LicenseGrantResult.Granted] with the new license,
+     *         [LicenseGrantResult.AlreadyOwned] if the license is already held, or
+     *         [LicenseGrantResult.RequirementsNotMet] with the requirement breakdown
+     */
+    suspend fun grantLicense(
+        license: License,
+        grantedBy: UUID?,
+        force: Boolean = false
+    ): LicenseGrantResult
+
+    /**
+     * Revokes the unrevoked license with the key of [license] held by this identity.
+     *
+     * The revoked license stays in [licenses] with its revocation details recorded.
+     *
+     * @param license the license to revoke
+     * @param revokedBy the UUID of the player revoking the license
+     * @param reason why the license is revoked
+     * @return `true` if a license was revoked, `false` if this identity holds no unrevoked
+     *         license with the key of [license]
+     */
+    suspend fun revokeLicense(
+        license: License,
+        revokedBy: UUID,
+        reason: LicenseRevokedReason
+    ): Boolean
 
     /**
      * Checks whether this identity currently holds [license].

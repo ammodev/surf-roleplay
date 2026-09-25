@@ -14,6 +14,8 @@ import java.util.*
  *
  * @property licenseKey the key of the [License] definition this held license was granted for
  * @property acquiredAt the point in time the license was granted
+ * @property grantedByUuid the UUID of the player who granted the license, or `null` if no granting
+ *           player is recorded
  * @property revokedByUuid the UUID of the user who revoked the license, or `null` if it has not been revoked
  * @property revokedReason the reason the license was revoked, or `null` if it has not been revoked
  * @property revokedAt the point in time the license was revoked, or `null` if it has not been revoked
@@ -21,6 +23,7 @@ import java.util.*
 data class UserLicense(
     val licenseKey: Key,
     val acquiredAt: OffsetDateTime,
+    val grantedByUuid: UUID? = null,
 
     val revokedByUuid: UUID? = null,
     val revokedReason: LicenseRevokedReason? = null,
