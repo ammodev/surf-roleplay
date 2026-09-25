@@ -10,7 +10,6 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.coroutines.cancellation.CancellationException
 
 private val log = logger()
 
@@ -42,12 +41,12 @@ class UserConnectionListener(private val userManager: CoreClientUserManager) : L
      * Loads and acquires the user of the logging-in player, blocking the login thread until the
      * load completes.
      *
-     * Logins that are already refused are skipped. If the load fails, a warning is logged and the
-     * login is refused with a message.
+     * Logins that are already refused are skipped. If the load fails for any reason, including a
+     * cancelled or timed-out load, a warning is logged and the login is refused with a message.
+     * If the login thread is interrupted while waiting, the login is refused the same way and the
+     * thread's interrupt flag is set again.
      *
      * @param event the pre-login event of the player
-     * @throws InterruptedException if the login thread is interrupted while waiting for the load
-     * @throws CancellationException if the load is cancelled
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onAsyncPlayerPreLogin(event: AsyncPlayerPreLoginEvent) {
@@ -57,15 +56,25 @@ class UserConnectionListener(private val userManager: CoreClientUserManager) : L
             runBlocking { userManager.loadAndCache(event.uniqueId) }
             acquiredLogins.add(event)
         } catch (exception: InterruptedException) {
-            throw exception
-        } catch (exception: CancellationException) {
-            throw exception
+            refuseLogin(event, exception)
+            Thread.currentThread().interrupt()
         } catch (exception: Exception) {
-            log.atWarning().withCause(exception).log(
-                "Could not load roleplay user of %s (%s)", event.name, event.uniqueId
-            )
-            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, LOAD_FAILED_MESSAGE)
+            refuseLogin(event, exception)
         }
+    }
+
+    /**
+     * Logs that the user of the logging-in player could not be loaded and refuses the login with
+     * a message.
+     *
+     * @param event the pre-login event of the player
+     * @param cause the failure that prevented the load
+     */
+    private fun refuseLogin(event: AsyncPlayerPreLoginEvent, cause: Exception) {
+        log.atWarning().withCause(cause).log(
+            "Could not load roleplay user of %s (%s)", event.name, event.uniqueId
+        )
+        event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, LOAD_FAILED_MESSAGE)
     }
 
     /**
