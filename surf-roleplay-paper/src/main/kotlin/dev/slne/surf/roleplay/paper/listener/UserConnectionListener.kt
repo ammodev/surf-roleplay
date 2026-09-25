@@ -5,11 +5,11 @@ import dev.slne.surf.api.core.util.logger
 import dev.slne.surf.roleplay.core.client.common.user.CoreClientUserManager
 import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.cancellation.CancellationException
 
 private val log = logger()
@@ -24,16 +24,23 @@ private val LOAD_FAILED_MESSAGE =
 /**
  * Keeps the roleplay user of every connected player in memory.
  *
- * The user is loaded while the player logs in and removed from memory when the connection
- * closes. A login is refused if the user cannot be loaded.
+ * Every login whose user is loaded holds the user in the user manager until its connection
+ * closes, or until the login is refused after loading. A login is refused if the user cannot be
+ * loaded.
  *
- * @param userManager the user manager users are loaded into and evicted from
+ * @param userManager the user manager users are acquired from and released to
  */
 class UserConnectionListener(private val userManager: CoreClientUserManager) : Listener {
 
     /**
-     * Loads the user of the logging-in player and keeps it in memory, blocking the login thread
-     * until the load completes.
+     * The pre-login events whose user was loaded and acquired and whose final result has not been
+     * seen yet.
+     */
+    private val acquiredLogins = ConcurrentHashMap.newKeySet<AsyncPlayerPreLoginEvent>()
+
+    /**
+     * Loads and acquires the user of the logging-in player, blocking the login thread until the
+     * load completes.
      *
      * Logins that are already refused are skipped. If the load fails, a warning is logged and the
      * login is refused with a message.
@@ -48,6 +55,7 @@ class UserConnectionListener(private val userManager: CoreClientUserManager) : L
 
         try {
             runBlocking { userManager.loadAndCache(event.uniqueId) }
+            acquiredLogins.add(event)
         } catch (exception: InterruptedException) {
             throw exception
         } catch (exception: CancellationException) {
@@ -61,28 +69,26 @@ class UserConnectionListener(private val userManager: CoreClientUserManager) : L
     }
 
     /**
-     * Removes the user of the logging-in player from memory if the login was refused after the
+     * Releases the user acquired for the logging-in player if the login was refused after the
      * user was loaded, since no connection close follows a refused login.
-     *
-     * Nothing is removed while a player with the same UUID is still online on this server.
      *
      * @param event the pre-login event of the player, with its final result
      */
     @EventHandler(priority = EventPriority.MONITOR)
     fun onAsyncPlayerPreLoginResult(event: AsyncPlayerPreLoginEvent) {
-        if (event.loginResult == AsyncPlayerPreLoginEvent.Result.ALLOWED) return
-        if (Bukkit.getPlayer(event.uniqueId) != null) return
-
-        userManager.evict(event.uniqueId)
+        val acquired = acquiredLogins.remove(event)
+        if (acquired && event.loginResult != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+            userManager.release(event.uniqueId)
+        }
     }
 
     /**
-     * Removes the user of the disconnecting player from memory.
+     * Releases the user acquired for the disconnecting player's login.
      *
      * @param event the connection close event of the player
      */
     @EventHandler(priority = EventPriority.MONITOR)
     fun onPlayerConnectionClose(event: PlayerConnectionCloseEvent) {
-        userManager.evict(event.playerUniqueId)
+        userManager.release(event.playerUniqueId)
     }
 }
