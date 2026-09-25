@@ -113,7 +113,7 @@ class CoreClientUserManager internal constructor(
      *
      * @param uuid the UUID of the player
      */
-    fun evict(uuid: UUID) {
+    internal fun evict(uuid: UUID) {
         entries.remove(uuid)
     }
 
