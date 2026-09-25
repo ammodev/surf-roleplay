@@ -1,13 +1,22 @@
 package dev.slne.surf.roleplay.api.common.identity.identities.police
 
+import dev.slne.surf.roleplay.api.common.identity.IdentityType
 import dev.slne.surf.roleplay.api.common.identity.RoleplayIdentity
-import dev.slne.surf.roleplay.api.common.identity.qualification.IdentityQualification
-import dev.slne.surf.roleplay.api.common.identity.rank.IdentityRank
 import it.unimi.dsi.fastutil.objects.ObjectSet
 
+/**
+ * A roleplay identity that belongs to the police force.
+ */
 interface PoliceIdentity : RoleplayIdentity {
-    override val name: String get() = "police"
+    override val type: IdentityType get() = IdentityType.POLICE
 
-    val rank: IdentityRank
-    val qualifications: ObjectSet<IdentityQualification>
+    /**
+     * The rank this identity currently holds within the police force.
+     */
+    val rank: PoliceRank
+
+    /**
+     * The police qualifications this identity currently holds.
+     */
+    val qualifications: ObjectSet<PoliceQualification>
 }
