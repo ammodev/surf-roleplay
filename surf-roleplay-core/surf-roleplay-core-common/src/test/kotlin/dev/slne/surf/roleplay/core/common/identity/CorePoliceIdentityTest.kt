@@ -56,6 +56,9 @@ class CorePoliceIdentityTest {
         return user.identities.single() as CorePoliceIdentity
     }
 
+    /**
+     * Verifies that setting the currently held rank sends nothing to the remote user service.
+     */
     @Test
     fun `setRank to the held rank sends nothing`() = runBlocking {
         val police = identity(state(PoliceRank.Inspector))
@@ -65,6 +68,9 @@ class CorePoliceIdentityTest {
         coVerify(exactly = 0) { service.setRank(any(), any(), any()) }
     }
 
+    /**
+     * Verifies that a successful setRank call applies the rank returned by the remote user service.
+     */
     @Test
     fun `setRank applies the returned rank`() = runBlocking {
         val police = identity(state(PoliceRank.Cadet))
@@ -76,6 +82,9 @@ class CorePoliceIdentityTest {
         assertEquals(PoliceRank.Inspector, police.rank)
     }
 
+    /**
+     * Verifies that adding an already-held qualification returns false without sending anything.
+     */
     @Test
     fun `adding a held qualification returns false without sending`() = runBlocking {
         val police = identity(state(PoliceRank.Cadet, PoliceQualification.DogHandler))
@@ -84,6 +93,9 @@ class CorePoliceIdentityTest {
         coVerify(exactly = 0) { service.addQualification(any(), any(), any()) }
     }
 
+    /**
+     * Verifies that addQualification applies the qualifications returned by the remote user service.
+     */
     @Test
     fun `adding a qualification applies the returned state`() = runBlocking {
         val police = identity(state(PoliceRank.Cadet))
@@ -95,6 +107,9 @@ class CorePoliceIdentityTest {
         assertEquals(setOf(PoliceQualification.DogHandler), police.qualifications.toSet())
     }
 
+    /**
+     * Verifies that removing a qualification that is not held returns false without sending anything.
+     */
     @Test
     fun `removing a qualification that is not held returns false without sending`() = runBlocking {
         val police = identity(state(PoliceRank.Cadet))
@@ -103,6 +118,9 @@ class CorePoliceIdentityTest {
         coVerify(exactly = 0) { service.removeQualification(any(), any(), any()) }
     }
 
+    /**
+     * Verifies that removeQualification applies the qualifications returned by the remote user service.
+     */
     @Test
     fun `removing a held qualification applies the returned state`() = runBlocking {
         val police = identity(state(PoliceRank.Cadet, PoliceQualification.DogHandler))

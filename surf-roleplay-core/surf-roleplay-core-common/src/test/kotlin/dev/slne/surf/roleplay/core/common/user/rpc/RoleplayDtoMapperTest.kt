@@ -56,6 +56,9 @@ class RoleplayDtoMapperTest {
     private fun now(): OffsetDateTime =
         OffsetDateTime.now(ZoneId.systemDefault()).truncatedTo(ChronoUnit.SECONDS)
 
+    /**
+     * Verifies that a civilian identity DTO maps its identifiers and licenses to the domain identity.
+     */
     @Test
     fun `civilian identity maps its identifiers and licenses`() {
         val license = UserLicenseDto(CarLicense.key.asString(), now(), null, null, null, null)
@@ -70,6 +73,9 @@ class RoleplayDtoMapperTest {
         assertEquals(setOf(CarLicense.key), identity.licenses.map { it.licenseKey }.toSet())
     }
 
+    /**
+     * Verifies that a police identity DTO maps its rank and qualifications to the domain identity.
+     */
     @Test
     fun `police identity maps its rank and qualifications`() {
         val dto = identityDto(
@@ -91,6 +97,9 @@ class RoleplayDtoMapperTest {
         )
     }
 
+    /**
+     * Verifies that a search-and-rescue identity DTO maps its rank and qualifications to the domain identity.
+     */
     @Test
     fun `sar identity maps its rank and qualifications`() {
         val dto = identityDto(
@@ -106,6 +115,9 @@ class RoleplayDtoMapperTest {
         assertEquals(setOf(SarQualification.WaterRescue), identity.qualifications.toSet())
     }
 
+    /**
+     * Verifies that a rank key naming no known rank resolves to the lowest rank of the identity's organisation.
+     */
     @Test
     fun `unknown rank key resolves to the lowest rank`() {
         val police = identityDto(IdentityType.POLICE.name, rankKey = "roleplay:no_such_rank")
@@ -115,6 +127,9 @@ class RoleplayDtoMapperTest {
         assertEquals(SarRank.RescueAssistant, assertIs<CoreSarIdentity>(sar.toDomain(owner)).rank)
     }
 
+    /**
+     * Verifies that a missing rank key resolves to the lowest rank of the identity's organisation.
+     */
     @Test
     fun `missing rank key resolves to the lowest rank`() {
         val police = identityDto(IdentityType.POLICE.name, rankKey = null)
@@ -124,6 +139,9 @@ class RoleplayDtoMapperTest {
         assertEquals(SarRank.RescueAssistant, assertIs<CoreSarIdentity>(sar.toDomain(owner)).rank)
     }
 
+    /**
+     * Verifies that qualification keys naming no known qualification are dropped while known ones are kept.
+     */
     @Test
     fun `unknown qualification keys are dropped`() {
         val police = identityDto(
@@ -145,6 +163,9 @@ class RoleplayDtoMapperTest {
         assertTrue(assertIs<CoreSarIdentity>(sar.toDomain(owner)).qualifications.isEmpty())
     }
 
+    /**
+     * Verifies that identities of an unknown type are left out of the mapped user.
+     */
     @Test
     fun `identities of an unknown type are skipped`() {
         val civilian = identityDto(IdentityType.CIVILIAN.name)
@@ -158,6 +179,9 @@ class RoleplayDtoMapperTest {
         assertNull(domain.activeIdentity)
     }
 
+    /**
+     * Verifies that mapping a revoked license DTO keeps every revocation field.
+     */
     @Test
     fun `revoked license keeps every revocation field`() {
         val grantedBy = UUID.randomUUID()
@@ -184,6 +208,9 @@ class RoleplayDtoMapperTest {
         assertTrue(license.isRevoked)
     }
 
+    /**
+     * Verifies that a revocation reason naming no known reason maps to null while the license is still reported as revoked.
+     */
     @Test
     fun `unknown revocation reason maps to null while the license stays revoked`() {
         val dto = UserLicenseDto(
@@ -201,6 +228,9 @@ class RoleplayDtoMapperTest {
         assertTrue(license.isRevoked)
     }
 
+    /**
+     * Verifies that a license DTO with a malformed key is dropped while valid ones are kept.
+     */
     @Test
     fun `licenses with a malformed key are dropped`() {
         val valid = UserLicenseDto(CarLicense.key.asString(), now(), null, null, null, null)

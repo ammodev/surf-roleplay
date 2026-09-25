@@ -32,6 +32,9 @@ class CoreClientUserManagerTest {
         coEvery { service.findByUuid(uuid) } answers { RoleplayUserDto(uuid, emptyList()) }
     }
 
+    /**
+     * Verifies that loadAndCache caches the loaded user.
+     */
     @Test
     fun `loadAndCache caches the loaded user`() = runBlocking {
         val loaded = manager.loadAndCache(uuid)
@@ -43,6 +46,9 @@ class CoreClientUserManagerTest {
         coVerify(exactly = 0) { service.findByUuid(any()) }
     }
 
+    /**
+     * Verifies that loadAndCache reuses the cached instance without loading again.
+     */
     @Test
     fun `loadAndCache reuses the cached instance without loading again`() = runBlocking {
         val first = manager.loadAndCache(uuid)
@@ -51,6 +57,9 @@ class CoreClientUserManagerTest {
         coVerify(exactly = 1) { service.findOrCreateByUuid(uuid) }
     }
 
+    /**
+     * Verifies that loadAndCache racing a slower load shares one instance and holds it twice.
+     */
     @Test
     fun `loadAndCache racing a slower load shares one instance and holds it twice`() = runBlocking {
         val gate = CompletableDeferred<Unit>()
@@ -76,6 +85,9 @@ class CoreClientUserManagerTest {
         coVerify(exactly = 1) { service.findByUuid(uuid) }
     }
 
+    /**
+     * Verifies that release after two acquires keeps the user cached.
+     */
     @Test
     fun `release after two acquires keeps the user cached`() = runBlocking {
         val cached = manager.loadAndCache(uuid)
@@ -87,6 +99,9 @@ class CoreClientUserManagerTest {
         coVerify(exactly = 0) { service.findByUuid(any()) }
     }
 
+    /**
+     * Verifies that second release after two acquires evicts the user.
+     */
     @Test
     fun `second release after two acquires evicts the user`() = runBlocking {
         val cached = manager.loadAndCache(uuid)
@@ -99,6 +114,9 @@ class CoreClientUserManagerTest {
         coVerify(exactly = 1) { service.findByUuid(uuid) }
     }
 
+    /**
+     * Verifies that release of a user that is not cached does nothing.
+     */
     @Test
     fun `release of a user that is not cached does nothing`() = runBlocking {
         manager.release(uuid)
@@ -107,6 +125,9 @@ class CoreClientUserManagerTest {
         assertSame(cached, manager.findByUuid(uuid))
     }
 
+    /**
+     * Verifies that failed load acquires no hold.
+     */
     @Test
     fun `failed load acquires no hold`() = runBlocking {
         coEvery { service.findOrCreateByUuid(uuid) } throws IllegalStateException("unavailable")
@@ -117,6 +138,9 @@ class CoreClientUserManagerTest {
         coVerify(exactly = 1) { service.findByUuid(uuid) }
     }
 
+    /**
+     * Verifies that findByUuid of a user that is not cached does not cache it.
+     */
     @Test
     fun `findByUuid of a user that is not cached does not cache it`() = runBlocking {
         val first = assertNotNull(manager.findByUuid(uuid))
@@ -126,6 +150,9 @@ class CoreClientUserManagerTest {
         coVerify(exactly = 2) { service.findByUuid(uuid) }
     }
 
+    /**
+     * Verifies that findByUuid returns null for an unknown user.
+     */
     @Test
     fun `findByUuid returns null for an unknown user`() = runBlocking {
         val unknown = UUID.randomUUID()
@@ -134,6 +161,9 @@ class CoreClientUserManagerTest {
         assertNull(manager.findByUuid(unknown))
     }
 
+    /**
+     * Verifies that findOrCreateByUuid of a user that is not cached does not cache it.
+     */
     @Test
     fun `findOrCreateByUuid of a user that is not cached does not cache it`() = runBlocking {
         val first = manager.findOrCreateByUuid(uuid)
@@ -143,6 +173,9 @@ class CoreClientUserManagerTest {
         coVerify(exactly = 2) { service.findOrCreateByUuid(uuid) }
     }
 
+    /**
+     * Verifies that evict removes the cached user regardless of remaining holds.
+     */
     @Test
     fun `evict removes the cached user regardless of remaining holds`() = runBlocking {
         val cached = manager.loadAndCache(uuid)

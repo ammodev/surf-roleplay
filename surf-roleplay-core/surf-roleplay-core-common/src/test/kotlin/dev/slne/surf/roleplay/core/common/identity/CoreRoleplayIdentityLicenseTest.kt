@@ -76,6 +76,9 @@ class CoreRoleplayIdentityLicenseTest {
         return user.identities.single() as CoreRoleplayIdentity
     }
 
+    /**
+     * Verifies that granting an already-held license reports AlreadyOwned without sending anything.
+     */
     @Test
     fun `granting a held license reports AlreadyOwned without sending`() = runBlocking {
         val identity = identityWith(held(CarLicense.key.asString()))
@@ -86,6 +89,9 @@ class CoreRoleplayIdentityLicenseTest {
         coVerify(exactly = 0) { service.grantLicense(any(), any(), any(), any()) }
     }
 
+    /**
+     * Verifies that granting a license whose requirements are not met reports the requirement breakdown without sending anything.
+     */
     @Test
     fun `granting a license with unmet requirements reports the breakdown without sending`() = runBlocking {
         val identity = identityWith()
@@ -99,6 +105,9 @@ class CoreRoleplayIdentityLicenseTest {
         coVerify(exactly = 0) { service.grantLicense(any(), any(), any(), any()) }
     }
 
+    /**
+     * Verifies that a forced grant skips the requirement check and applies the returned license.
+     */
     @Test
     fun `forcing a grant skips the requirements and applies the returned state`() = runBlocking {
         val identity = identityWith()
@@ -116,6 +125,9 @@ class CoreRoleplayIdentityLicenseTest {
         assertTrue(identity.hasLicense(TruckLicense))
     }
 
+    /**
+     * Verifies that granting a license whose requirements are met sends the grant to the remote user service.
+     */
     @Test
     fun `granting a license with met requirements sends it`() = runBlocking {
         val carKey = CarLicense.key.asString()
@@ -130,6 +142,9 @@ class CoreRoleplayIdentityLicenseTest {
         assertTrue(identity.hasLicense(TruckLicense))
     }
 
+    /**
+     * Verifies that revoking a license that is not held returns false without sending anything.
+     */
     @Test
     fun `revoking a license that is not held returns false without sending`() = runBlocking {
         val identity = identityWith()
@@ -138,6 +153,9 @@ class CoreRoleplayIdentityLicenseTest {
         coVerify(exactly = 0) { service.revokeLicense(any(), any(), any(), any(), any()) }
     }
 
+    /**
+     * Verifies that revoking a held license applies the revoked state returned by the remote user service.
+     */
     @Test
     fun `revoking a held license applies the returned state`() = runBlocking {
         val carKey = CarLicense.key.asString()

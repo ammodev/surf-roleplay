@@ -18,6 +18,9 @@ import kotlin.test.assertTrue
  */
 class CoreLicenseRegistryTest {
 
+    /**
+     * Verifies that constructing the registry registers the car and truck license definitions.
+     */
     @Test
     fun `registers the car and truck license definitions on construction`() {
         val registry = CoreLicenseRegistry()
@@ -25,6 +28,9 @@ class CoreLicenseRegistryTest {
         assertEquals(setOf(CarLicense, TruckLicense), registry.licenses.toSet())
     }
 
+    /**
+     * Verifies that getByKey resolves a registered license by its key.
+     */
     @Test
     fun `getByKey resolves a registered license by its key`() {
         val registry = CoreLicenseRegistry()
@@ -33,6 +39,9 @@ class CoreLicenseRegistryTest {
         assertSame(TruckLicense, registry.getByKey(TruckLicense.key))
     }
 
+    /**
+     * Verifies that getByKey returns null for an unregistered key.
+     */
     @Test
     fun `getByKey returns null for an unregistered key`() {
         val registry = CoreLicenseRegistry()
@@ -40,6 +49,9 @@ class CoreLicenseRegistryTest {
         assertNull(registry.getByKey(key("roleplay", "unknown_license")))
     }
 
+    /**
+     * Verifies that unregister removes a license so it can no longer be resolved.
+     */
     @Test
     fun `unregister removes a license so it can no longer be resolved`() {
         val registry = CoreLicenseRegistry()
@@ -49,6 +61,9 @@ class CoreLicenseRegistryTest {
         assertNull(registry.getByKey(CarLicense.key))
     }
 
+    /**
+     * Verifies that register throws when a license is already registered under that key.
+     */
     @Test
     fun `register throws when a license is already registered under that key`() {
         val registry = CoreLicenseRegistry()
@@ -63,6 +78,9 @@ class CoreLicenseRegistryTest {
         }
     }
 
+    /**
+     * Verifies that unregister does nothing when a different instance is registered under that key.
+     */
     @Test
     fun `unregister does nothing when a different instance is registered under that key`() {
         val registry = CoreLicenseRegistry()
@@ -77,6 +95,9 @@ class CoreLicenseRegistryTest {
         assertSame(CarLicense, registry.getByKey(CarLicense.key))
     }
 
+    /**
+     * Verifies that the licenses view reflects registrations made after it was obtained.
+     */
     @Test
     fun `licenses is a live view that reflects later registrations`() {
         val registry = CoreLicenseRegistry()

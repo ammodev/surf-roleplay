@@ -55,6 +55,9 @@ class IdentityAccountResolverTest {
         )
     }
 
+    /**
+     * Verifies that the first candidate account name uses eight hex digits for every identity type.
+     */
     @Test
     fun `first candidate name uses eight hex digits for every identity type`() {
         assertEquals("rp-civilian-0123abcd", IdentityAccountResolver.accountName(player, IdentityType.CIVILIAN, 8))
@@ -69,6 +72,9 @@ class IdentityAccountResolverTest {
         }
     }
 
+    /**
+     * Verifies that successive candidate names grow by four hex digits and never exceed the maximum account name length.
+     */
     @Test
     fun `candidate names grow by four digits and never exceed the maximum length`() {
         for (type in IdentityType.entries) {
@@ -92,6 +98,9 @@ class IdentityAccountResolverTest {
         )
     }
 
+    /**
+     * Verifies that an existing account already owned by the player is reused without creating one.
+     */
     @Test
     fun `an account the player already owns is reused`() = runBlocking {
         val ownId = UUID.randomUUID()
@@ -104,6 +113,9 @@ class IdentityAccountResolverTest {
         assertTrue(store.createdNames.isEmpty())
     }
 
+    /**
+     * Verifies that a candidate name owned by another player makes the resolver try a longer prefix.
+     */
     @Test
     fun `a foreign-owned name lengthens the prefix`() = runBlocking {
         val createdId = UUID.randomUUID()
@@ -116,6 +128,9 @@ class IdentityAccountResolverTest {
         assertEquals(listOf("rp-sar-0123abcd4567"), store.createdNames)
     }
 
+    /**
+     * Verifies that a candidate name with no existing account is created for the player.
+     */
     @Test
     fun `an absent name is created for the player`() = runBlocking {
         val createdId = UUID.randomUUID()
@@ -132,6 +147,9 @@ class IdentityAccountResolverTest {
         assertEquals(listOf("rp-civilian-0123abcd"), store.createdNames)
     }
 
+    /**
+     * Verifies that an account created concurrently by the same player is reused after the creation attempt fails.
+     */
     @Test
     fun `a name taken concurrently by the player is reused`() = runBlocking {
         val ownId = UUID.randomUUID()
@@ -147,6 +165,9 @@ class IdentityAccountResolverTest {
         assertEquals(listOf("rp-police-0123abcd"), store.createdNames)
     }
 
+    /**
+     * Verifies that an account created concurrently by another player makes the resolver try a longer prefix.
+     */
     @Test
     fun `a name taken concurrently by another player lengthens the prefix`() = runBlocking {
         val createdId = UUID.randomUUID()
@@ -166,6 +187,9 @@ class IdentityAccountResolverTest {
         assertEquals(listOf("rp-police-0123abcd", "rp-police-0123abcd4567"), store.createdNames)
     }
 
+    /**
+     * Verifies that resolution fails once every candidate name is owned by another player.
+     */
     @Test
     fun `every candidate name owned by another player fails`() {
         val store = Store(createResult = { _, _ -> error("must not create") })
@@ -179,6 +203,9 @@ class IdentityAccountResolverTest {
         assertTrue(store.createdNames.isEmpty())
     }
 
+    /**
+     * Verifies that a creation failure unrelated to a taken name fails resolution with that reason.
+     */
     @Test
     fun `a creation failure other than a taken name fails with the reason`() {
         val store = Store(createResult = { _, _ -> AccountCreationResult.Failed(FailureReason.NAME_TOO_LONG) })

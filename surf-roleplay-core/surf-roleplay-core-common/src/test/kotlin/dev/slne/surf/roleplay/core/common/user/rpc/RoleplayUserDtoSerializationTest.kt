@@ -28,6 +28,10 @@ class RoleplayUserDtoSerializationTest {
     private fun at(instant: Instant): OffsetDateTime =
         instant.atZone(ZoneId.systemDefault()).toOffsetDateTime()
 
+    /**
+     * Verifies that a fully populated user DTO is unchanged after encoding to JSON and decoding
+     * back.
+     */
     @Test
     fun `full user round-trips through JSON`() {
         val now = Instant.now().truncatedTo(ChronoUnit.SECONDS)

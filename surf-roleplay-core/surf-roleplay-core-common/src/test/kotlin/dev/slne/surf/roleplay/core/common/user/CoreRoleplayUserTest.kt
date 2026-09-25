@@ -74,6 +74,9 @@ class CoreRoleplayUserTest {
             it.applyState(RoleplayUserDto(userUuid, identities.toList()))
         }
 
+    /**
+     * Verifies that setActiveIdentity activates the owned instance even when passed an equal copy.
+     */
     @Test
     fun `setActiveIdentity activates the owned instance`() = runBlocking {
         val dto = identityDto(IdentityType.CIVILIAN)
@@ -85,6 +88,9 @@ class CoreRoleplayUserTest {
         assertSame(user.identities.single(), user.activeIdentity)
     }
 
+    /**
+     * Verifies that setActiveIdentity rejects an identity the user does not own.
+     */
     @Test
     fun `setActiveIdentity rejects a foreign identity`() = runBlocking {
         val user = user(identityDto(IdentityType.CIVILIAN))
@@ -99,6 +105,9 @@ class CoreRoleplayUserTest {
         assertNull(user.activeIdentity)
     }
 
+    /**
+     * Verifies that clearActiveIdentity leaves no identity active afterwards.
+     */
     @Test
     fun `clearActiveIdentity leaves no identity active`() = runBlocking {
         val user = user(identityDto(IdentityType.CIVILIAN))
@@ -109,6 +118,9 @@ class CoreRoleplayUserTest {
         assertNull(user.activeIdentity)
     }
 
+    /**
+     * Verifies that creating a second identity of an already-owned type is rejected without resolving an account or contacting the service.
+     */
     @Test
     fun `createIdentity rejects a second identity of the same type without resolving or sending`() {
         val user = user(identityDto(IdentityType.POLICE))
@@ -123,6 +135,9 @@ class CoreRoleplayUserTest {
         coVerify(exactly = 0) { service.createIdentity(any(), any(), any()) }
     }
 
+    /**
+     * Verifies that createIdentity sends the resolved account to the service and returns the created identity while keeping existing identity instances.
+     */
     @Test
     fun `createIdentity sends the resolved account and returns the new identity`() = runBlocking {
         val ownAccount = mockk<Account>()
@@ -148,6 +163,9 @@ class CoreRoleplayUserTest {
         assertSame(existing, user.identities.first { it.uuid == civilian.uuid })
     }
 
+    /**
+     * Verifies that a null response from the service surfaces as IdentityAlreadyExistsException.
+     */
     @Test
     fun `createIdentity rejected by the service fails with IdentityAlreadyExistsException`() {
         val ownAccount = mockk<Account>()
@@ -165,6 +183,9 @@ class CoreRoleplayUserTest {
         }
     }
 
+    /**
+     * Verifies that applyState updates an already-held identity instance in place instead of replacing it.
+     */
     @Test
     fun `applyState updates held identities in place`() = runBlocking {
         val policeUuid = UUID.randomUUID()
@@ -197,6 +218,9 @@ class CoreRoleplayUserTest {
         assertTrue(police.hasLicense(CarLicense))
     }
 
+    /**
+     * Verifies that applyState adds identities new to the state and removes ones missing from it, keeping existing instances.
+     */
     @Test
     fun `applyState adds new identities and removes missing ones`() {
         val kept = identityDto(IdentityType.CIVILIAN)
@@ -211,6 +235,9 @@ class CoreRoleplayUserTest {
         assertSame(keptInstance, user.identities.first())
     }
 
+    /**
+     * Verifies that applyState clears the active identity when it is no longer part of the state.
+     */
     @Test
     fun `applyState clears the active identity when it is missing`() = runBlocking {
         val kept = identityDto(IdentityType.CIVILIAN)

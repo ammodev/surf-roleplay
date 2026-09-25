@@ -56,6 +56,9 @@ class CoreLicenseRegistry : LicenseRegistry {
         licensesByKey.remove(license.key, license)
     }
 
+    /**
+     * Resolves the license registered under [key], or `null` if none is registered.
+     */
     override fun getByKey(key: Key): License? = licensesByKey[key]
 
     /**
@@ -65,11 +68,20 @@ class CoreLicenseRegistry : LicenseRegistry {
      * its own [License.key], not merely present anywhere in the backing map's values.
      */
     private inner class LicenseSetView : AbstractObjectSet<License>() {
+        /**
+         * Iterates the licenses currently registered in [licensesByKey].
+         */
         override fun iterator(): ObjectIterator<License> =
             ObjectIterators.asObjectIterator(licensesByKey.values.iterator())
 
+        /**
+         * The number of licenses currently registered in [licensesByKey].
+         */
         override val size: Int get() = licensesByKey.size
 
+        /**
+         * Checks whether [element] is the instance currently registered under its own key.
+         */
         override fun contains(element: License): Boolean = licensesByKey[element.key] === element
     }
 }
