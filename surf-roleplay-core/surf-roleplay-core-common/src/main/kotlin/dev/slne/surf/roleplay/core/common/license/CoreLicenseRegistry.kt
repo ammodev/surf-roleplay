@@ -5,7 +5,9 @@ import dev.slne.surf.roleplay.api.common.license.License
 import dev.slne.surf.roleplay.api.common.license.LicenseRegistry
 import dev.slne.surf.roleplay.api.common.license.licenses.CarLicense
 import dev.slne.surf.roleplay.api.common.license.licenses.TruckLicense
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import it.unimi.dsi.fastutil.objects.AbstractObjectSet
+import it.unimi.dsi.fastutil.objects.ObjectIterator
+import it.unimi.dsi.fastutil.objects.ObjectIterators
 import it.unimi.dsi.fastutil.objects.ObjectSet
 import it.unimi.dsi.fastutil.objects.ObjectSets
 import net.kyori.adventure.key.Key
@@ -23,9 +25,13 @@ import java.util.concurrent.ConcurrentHashMap
 class CoreLicenseRegistry : LicenseRegistry {
     private val licensesByKey = ConcurrentHashMap<Key, License>()
 
-    /** A snapshot of every license definition currently registered. */
-    override val licenses: ObjectSet<License>
-        get() = ObjectSets.unmodifiable(ObjectOpenHashSet(licensesByKey.values))
+    /**
+     * A live, unmodifiable view over every license definition currently registered.
+     *
+     * The view reflects later [register] and [unregister] calls; iterating it while the
+     * registry is concurrently modified is weakly consistent, as for [ConcurrentHashMap.values].
+     */
+    override val licenses: ObjectSet<License> = ObjectSets.unmodifiable(LicenseSetView())
 
     init {
         register(CarLicense)
@@ -51,4 +57,19 @@ class CoreLicenseRegistry : LicenseRegistry {
     }
 
     override fun getByKey(key: Key): License? = licensesByKey[key]
+
+    /**
+     * A live [ObjectSet] view over [licensesByKey]'s values.
+     *
+     * Membership is checked by confirming the candidate is still the instance registered under
+     * its own [License.key], not merely present anywhere in the backing map's values.
+     */
+    private inner class LicenseSetView : AbstractObjectSet<License>() {
+        override fun iterator(): ObjectIterator<License> =
+            ObjectIterators.asObjectIterator(licensesByKey.values.iterator())
+
+        override val size: Int get() = licensesByKey.size
+
+        override fun contains(element: License): Boolean = licensesByKey[element.key] === element
+    }
 }

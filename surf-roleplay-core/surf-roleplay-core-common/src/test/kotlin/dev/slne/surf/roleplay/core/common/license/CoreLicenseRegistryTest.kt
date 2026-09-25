@@ -8,8 +8,10 @@ import dev.slne.surf.roleplay.api.common.license.licenses.TruckLicense
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 /**
  * Tests for [CoreLicenseRegistry].
@@ -73,5 +75,22 @@ class CoreLicenseRegistryTest {
         registry.unregister(other)
 
         assertSame(CarLicense, registry.getByKey(CarLicense.key))
+    }
+
+    @Test
+    fun `licenses is a live view that reflects later registrations`() {
+        val registry = CoreLicenseRegistry()
+        val view = registry.licenses
+        val additional = object : License(
+            key = key("roleplay", "additional_license"),
+            displayName = { text("Weitere Lizenz") },
+            requirements = objectListOf()
+        ) {}
+
+        assertFalse(view.contains(additional))
+
+        registry.register(additional)
+
+        assertTrue(view.contains(additional))
     }
 }
