@@ -11,5 +11,8 @@ import java.nio.file.Path
  */
 @AutoService(ClientInstance::class)
 class VelocityClientInstance : ClientInstance() {
+    /**
+     * The data directory injected into the loaded [VelocityMain] plugin instance.
+     */
     override val dataPath: Path get() = plugin.dataPath
 }
