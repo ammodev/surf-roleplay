@@ -1,0 +1,15 @@
+name: Publish
+
+on:
+    push:
+        branches:
+            - version/*
+    workflow_dispatch:
+
+jobs:
+    build:
+        if: github.event_name != 'workflow_dispatch' || startsWith(github.ref, 'refs/heads/version/')
+        uses: SLNE-Development/surf-workflows/.github/workflows/build-publish-release-gradle.yml@master
+        with:
+            modules: "surf-roleplay-paper-*-all.jar;surf-roleplay-velocity-*-all.jar;surf-roleplay-minestom-*-all.jar;surf-roleplay-microservice-*-all.jar"
+        secrets: inherit

@@ -1,0 +1,10 @@
+# Keeps the Gradle dependencies current without anyone remembering to look.
+# This is surf-api's own configuration, copied rather than improved on, so
+# every repository in the organisation is updated on the same schedule.
+version: 2
+updates:
+    - package-ecosystem: "gradle"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+      rebase-strategy: auto

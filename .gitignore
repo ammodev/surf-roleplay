@@ -1,0 +1,12 @@
+.gradle/
+build/
+out/
+.kotlin/
+bin/
+.idea
+
+.idea/
+*.iml
+
+*.log
+*.hprof
