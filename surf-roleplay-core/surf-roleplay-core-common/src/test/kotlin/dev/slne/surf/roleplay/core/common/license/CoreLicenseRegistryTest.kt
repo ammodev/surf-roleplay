@@ -1,10 +1,13 @@
 package dev.slne.surf.roleplay.core.common.license
 
 import dev.slne.surf.api.core.messages.adventure.key
+import dev.slne.surf.api.core.util.objectListOf
+import dev.slne.surf.roleplay.api.common.license.License
 import dev.slne.surf.roleplay.api.common.license.licenses.CarLicense
 import dev.slne.surf.roleplay.api.common.license.licenses.TruckLicense
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
@@ -42,5 +45,33 @@ class CoreLicenseRegistryTest {
         registry.unregister(CarLicense)
 
         assertNull(registry.getByKey(CarLicense.key))
+    }
+
+    @Test
+    fun `register throws when a license is already registered under that key`() {
+        val registry = CoreLicenseRegistry()
+        val duplicate = object : License(
+            key = CarLicense.key,
+            displayName = { text("Doppelter Führerschein") },
+            requirements = objectListOf()
+        ) {}
+
+        assertFailsWith<IllegalArgumentException> {
+            registry.register(duplicate)
+        }
+    }
+
+    @Test
+    fun `unregister does nothing when a different instance is registered under that key`() {
+        val registry = CoreLicenseRegistry()
+        val other = object : License(
+            key = key("roleplay", "unknown_license"),
+            displayName = { text("Andere Lizenz") },
+            requirements = objectListOf()
+        ) {}
+
+        registry.unregister(other)
+
+        assertSame(CarLicense, registry.getByKey(CarLicense.key))
     }
 }
