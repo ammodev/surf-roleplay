@@ -21,8 +21,8 @@ class PaperMain : SuspendingJavaPlugin() {
     }
 
     /**
-     * Enables the client instance and registers the listener that loads and evicts the roleplay
-     * users of connecting and disconnecting players.
+     * Enables the client instance and registers the listener that acquires a hold on the roleplay
+     * user of every player logging in and releases it when the player's connection closes.
      *
      * @throws IllegalStateException if the registered user manager is not the client user manager
      */
