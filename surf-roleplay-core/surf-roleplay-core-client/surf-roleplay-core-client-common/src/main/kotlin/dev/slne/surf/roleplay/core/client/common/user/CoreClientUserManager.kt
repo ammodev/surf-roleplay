@@ -32,7 +32,7 @@ class CoreClientUserManager : UserManager {
             return cacheHit
         }
 
-        return userProxy.findOrCreateByUuid(uuid)?.let { dto ->
+        return userProxy.findOrCreateByUuid(uuid).let { dto ->
             throw NotImplementedError("Not implemented yet")
         }
     }
