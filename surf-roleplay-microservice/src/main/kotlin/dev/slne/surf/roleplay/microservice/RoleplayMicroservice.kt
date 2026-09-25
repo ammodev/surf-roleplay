@@ -6,6 +6,7 @@ import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import dev.slne.surf.database.libs.org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import dev.slne.surf.microservice.api.microservice.Microservice
 import dev.slne.surf.rabbitmq.api.ServerRabbitMQApi
+import dev.slne.surf.roleplay.core.common.user.rpc.UserService
 import dev.slne.surf.roleplay.microservice.user.UserServiceImpl
 import dev.slne.surf.roleplay.microservice.user.db.tables.RoleplayIdentitiesTable
 import dev.slne.surf.roleplay.microservice.user.db.tables.RoleplayIdentityLicensesTable
@@ -44,7 +45,7 @@ class RoleplayMicroservice : Microservice() {
             )
         }
 
-        rabbitApi.registerRpcService(UserServiceImpl)
+        rabbitApi.registerRpcService<UserService>(UserServiceImpl)
         rabbitApi.freezeAndConnect()
     }
 
