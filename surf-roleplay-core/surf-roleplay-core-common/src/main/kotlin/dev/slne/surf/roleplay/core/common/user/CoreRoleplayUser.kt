@@ -4,261 +4,75 @@ import dev.slne.surf.api.core.util.freeze
 import dev.slne.surf.api.core.util.mutableObjectListOf
 import dev.slne.surf.roleplay.api.common.identity.IdentityType
 import dev.slne.surf.roleplay.api.common.identity.RoleplayIdentity
-import dev.slne.surf.roleplay.api.common.identity.exceptions.NoActiveIdentityException
+import dev.slne.surf.roleplay.api.common.identity.exceptions.UnknownIdentityException
 import dev.slne.surf.roleplay.api.common.user.RoleplayUser
-import dev.slne.surf.transaction.api.account.Account
-import dev.slne.surf.transaction.api.currency.Currency
-import dev.slne.surf.transaction.api.transaction.PendingTransactionResult
-import dev.slne.surf.transaction.api.transaction.TransactionResult
-import dev.slne.surf.transaction.api.transaction.data.TransactionData
-import dev.slne.surf.transaction.api.transactional.PendingExecutionDecision
-import dev.slne.surf.transaction.api.transactional.PendingExecutionResult
-import dev.slne.surf.transaction.api.transactional.PendingRollbackPolicy
+import dev.slne.surf.roleplay.core.common.user.rpc.UserService
 import it.unimi.dsi.fastutil.objects.ObjectList
-import java.math.BigDecimal
 import java.util.*
-import kotlin.time.Duration
 
+/**
+ * A roleplay user held in memory together with every identity it owns.
+ *
+ * No identity is active when a user is constructed.
+ *
+ * @param uuid the UUID of the player
+ * @param identities every identity owned by the player
+ * @param service the remote user service write operations are sent to
+ */
 class CoreRoleplayUser(
     override val uuid: UUID,
-    identities: ObjectList<RoleplayIdentity>
+    identities: Collection<RoleplayIdentity>,
+    private val service: UserService
 ) : RoleplayUser {
-    private val _identities = mutableObjectListOf(identities)
-    override val identities get() = _identities.freeze()
+    private val _identities: ObjectList<RoleplayIdentity> = mutableObjectListOf(identities)
+
+    /**
+     * A read-only view of every identity owned by this user.
+     */
+    override val identities: ObjectList<RoleplayIdentity> get() = _identities.freeze()
 
     private var _activeIdentity: RoleplayIdentity? = null
-    override val activeIdentity get() = _activeIdentity
 
     /**
-     * Creates a new identity of [type] for this user.
+     * The identity the player is currently playing as, or `null` if none is active.
+     */
+    override val activeIdentity: RoleplayIdentity? get() = _activeIdentity
+
+    /**
+     * Creates a new identity of [type] for this user through the remote user service, together
+     * with the transaction account it owns.
      *
-     * Not yet functional; always throws [NotImplementedError].
+     * @param type the organisation the new identity belongs to
+     * @return the created identity
      */
     override suspend fun createIdentity(type: IdentityType): RoleplayIdentity {
-        TODO("Implement")
-    }
-
-    override suspend fun setActiveIdentity(identity: RoleplayIdentity) {
-        _activeIdentity = identity
-
-        TODO("Implement")
+        TODO()
     }
 
     /**
-     * Deactivates the active identity.
+     * Makes the owned identity with the UUID of [identity] the active identity of this user.
      *
-     * Not yet functional; always throws [NotImplementedError].
+     * @param identity the identity to activate
+     * @throws UnknownIdentityException if this user owns no identity with the UUID of [identity]
+     */
+    override suspend fun setActiveIdentity(identity: RoleplayIdentity) {
+        _activeIdentity = _identities.firstOrNull { it.uuid == identity.uuid }
+            ?: throw UnknownIdentityException(uuid, identity.uuid)
+    }
+
+    /**
+     * Deactivates the active identity, so that no identity is active afterwards.
      */
     override fun clearActiveIdentity() {
-        TODO("Implement")
+        _activeIdentity = null
     }
 
     /**
-     * Permanently deletes [identity] from this user.
+     * Permanently deletes [identity] and its transaction account through the remote user service.
      *
-     * Not yet functional; always throws [NotImplementedError].
+     * @param identity the identity to delete
      */
     override suspend fun deleteIdentity(identity: RoleplayIdentity) {
-        TODO("Implement")
-    }
-
-    override suspend fun balance(
-        account: Account,
-        currency: Currency
-    ): BigDecimal {
-        return activeIdentity?.balance(account, currency)
-            ?: throw NoActiveIdentityException(uuid)
-    }
-
-    override suspend fun beginDeposit(
-        account: Account,
-        initiator: UUID,
-        amount: BigDecimal,
-        currency: Currency,
-        timeout: Duration,
-        ignoreMinimum: Boolean,
-        vararg additionalData: TransactionData
-    ): PendingTransactionResult {
-        return activeIdentity?.beginDeposit(
-            account,
-            initiator,
-            amount,
-            currency,
-            timeout,
-            ignoreMinimum,
-            *additionalData
-        ) ?: throw NoActiveIdentityException(uuid)
-    }
-
-    override suspend fun beginTransfer(
-        initiator: UUID,
-        sender: Account,
-        amount: BigDecimal,
-        currency: Currency,
-        receiver: Account,
-        timeout: Duration,
-        ignoreSenderMinimum: Boolean,
-        ignoreReceiverMinimum: Boolean,
-        additionalSenderData: Set<TransactionData>,
-        additionalReceiverData: Set<TransactionData>
-    ): PendingTransactionResult {
-        return activeIdentity?.beginTransfer(
-            initiator,
-            sender,
-            amount,
-            currency,
-            receiver,
-            timeout,
-            ignoreSenderMinimum,
-            ignoreReceiverMinimum,
-            additionalSenderData,
-            additionalReceiverData
-        ) ?: throw NoActiveIdentityException(uuid)
-    }
-
-    override suspend fun beginWithdrawal(
-        account: Account,
-        initiator: UUID,
-        amount: BigDecimal,
-        currency: Currency,
-        timeout: Duration,
-        ignoreMinimum: Boolean,
-        vararg additionalData: TransactionData
-    ): PendingTransactionResult {
-        return activeIdentity?.beginWithdrawal(
-            account,
-            initiator,
-            amount,
-            currency,
-            timeout,
-            ignoreMinimum,
-            *additionalData
-        ) ?: throw NoActiveIdentityException(uuid)
-    }
-
-    override suspend fun deposit(
-        account: Account,
-        initiator: UUID,
-        amount: BigDecimal,
-        currency: Currency,
-        ignoreMinimum: Boolean,
-        vararg additionalData: TransactionData
-    ): TransactionResult {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun transfer(
-        initiator: UUID,
-        sender: Account,
-        amount: BigDecimal,
-        currency: Currency,
-        receiver: Account,
-        ignoreSenderMinimum: Boolean,
-        ignoreReceiverMinimum: Boolean,
-        additionalSenderData: Set<TransactionData>,
-        additionalReceiverData: Set<TransactionData>
-    ): TransactionResult {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun <T> withPendingDeposit(
-        account: Account,
-        initiator: UUID,
-        amount: BigDecimal,
-        currency: Currency,
-        timeout: Duration,
-        ignoreMinimum: Boolean,
-        additionalData: Set<TransactionData>,
-        rollbackOn: PendingRollbackPolicy,
-        block: suspend (UUID) -> T
-    ): PendingExecutionResult<T> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun <T> withPendingDepositDecision(
-        account: Account,
-        initiator: UUID,
-        amount: BigDecimal,
-        currency: Currency,
-        timeout: Duration,
-        ignoreMinimum: Boolean,
-        additionalData: Set<TransactionData>,
-        rollbackOn: PendingRollbackPolicy,
-        block: suspend (UUID) -> PendingExecutionDecision<T>
-    ): PendingExecutionResult<T> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun <T> withPendingTransfer(
-        initiator: UUID,
-        sender: Account,
-        amount: BigDecimal,
-        currency: Currency,
-        receiver: Account,
-        timeout: Duration,
-        ignoreSenderMinimum: Boolean,
-        ignoreReceiverMinimum: Boolean,
-        additionalSenderData: Set<TransactionData>,
-        additionalReceiverData: Set<TransactionData>,
-        rollbackOn: PendingRollbackPolicy,
-        block: suspend (UUID) -> T
-    ): PendingExecutionResult<T> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun <T> withPendingTransferDecision(
-        initiator: UUID,
-        sender: Account,
-        amount: BigDecimal,
-        currency: Currency,
-        receiver: Account,
-        timeout: Duration,
-        ignoreSenderMinimum: Boolean,
-        ignoreReceiverMinimum: Boolean,
-        additionalSenderData: Set<TransactionData>,
-        additionalReceiverData: Set<TransactionData>,
-        rollbackOn: PendingRollbackPolicy,
-        block: suspend (UUID) -> PendingExecutionDecision<T>
-    ): PendingExecutionResult<T> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun <T> withPendingWithdrawal(
-        account: Account,
-        initiator: UUID,
-        amount: BigDecimal,
-        currency: Currency,
-        timeout: Duration,
-        ignoreMinimum: Boolean,
-        additionalData: Set<TransactionData>,
-        rollbackOn: PendingRollbackPolicy,
-        block: suspend (UUID) -> T
-    ): PendingExecutionResult<T> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun <T> withPendingWithdrawalDecision(
-        account: Account,
-        initiator: UUID,
-        amount: BigDecimal,
-        currency: Currency,
-        timeout: Duration,
-        ignoreMinimum: Boolean,
-        additionalData: Set<TransactionData>,
-        rollbackOn: PendingRollbackPolicy,
-        block: suspend (UUID) -> PendingExecutionDecision<T>
-    ): PendingExecutionResult<T> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun withdraw(
-        account: Account,
-        initiator: UUID,
-        amount: BigDecimal,
-        currency: Currency,
-        ignoreMinimum: Boolean,
-        vararg additionalData: TransactionData
-    ): TransactionResult {
-        TODO("Not yet implemented")
+        TODO()
     }
 }
