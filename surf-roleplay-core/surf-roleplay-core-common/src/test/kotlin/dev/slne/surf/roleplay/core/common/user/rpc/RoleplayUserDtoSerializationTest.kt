@@ -9,6 +9,7 @@ import dev.slne.surf.roleplay.api.common.license.licenses.CarLicense
 import dev.slne.surf.roleplay.api.common.license.licenses.TruckLicense
 import dev.slne.surf.roleplay.api.common.license.revoke.LicenseRevokedReason
 import kotlinx.serialization.json.Json
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -21,9 +22,15 @@ import kotlin.test.assertEquals
  */
 class RoleplayUserDtoSerializationTest {
 
+    /**
+     * Converts [instant] to an offset date-time carrying the system zone's offset at that instant.
+     */
+    private fun at(instant: Instant): OffsetDateTime =
+        instant.atZone(ZoneId.systemDefault()).toOffsetDateTime()
+
     @Test
     fun `full user round-trips through JSON`() {
-        val now = OffsetDateTime.now(ZoneId.systemDefault()).truncatedTo(ChronoUnit.SECONDS)
+        val now = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val user = RoleplayUserDto(
             uuid = UUID.randomUUID(),
             identities = listOf(
@@ -34,14 +41,14 @@ class RoleplayUserDtoSerializationTest {
                     rankKey = null,
                     qualificationKeys = emptyList(),
                     licenses = listOf(
-                        UserLicenseDto(CarLicense.key.asString(), now.minusDays(10), null, null, null, null),
+                        UserLicenseDto(CarLicense.key.asString(), at(now.minus(10, ChronoUnit.DAYS)), null, null, null, null),
                         UserLicenseDto(
                             licenseKey = TruckLicense.key.asString(),
-                            acquiredAt = now.minusDays(5),
+                            acquiredAt = at(now.minus(5, ChronoUnit.DAYS)),
                             grantedByUuid = UUID.randomUUID(),
                             revokedByUuid = UUID.randomUUID(),
                             revokedReason = LicenseRevokedReason.ADMINISTRATIVE.name,
-                            revokedAt = now
+                            revokedAt = at(now)
                         )
                     )
                 ),
