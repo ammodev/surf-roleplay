@@ -17,4 +17,7 @@ surfMicroservice {
 
 dependencies {
     api(projects.surfRoleplayApi.surfRoleplayApiCommon)
+
+    testImplementation("it.unimi.dsi:fastutil:8.5.19")
+    testImplementation("net.kyori:adventure-api:5.2.0")
 }
