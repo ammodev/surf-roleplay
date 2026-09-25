@@ -1,10 +1,15 @@
 plugins {
     id("dev.slne.surf.api.gradle.velocity")
+    id("dev.slne.surf.microservice")
 }
 
 surfVelocityApi {
     withCoreVelocity()
     withSurfRedis()
+}
+
+surfMicroservice {
+    withClientVelocityApi()
 }
 
 dependencies {

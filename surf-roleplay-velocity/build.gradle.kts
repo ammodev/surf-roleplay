@@ -3,9 +3,12 @@ plugins {
 }
 
 surfVelocityApi {
-    //mainClass("dev.slne.surf.roleplay.paper.VelocityMain")
     withCoreVelocity()
     withSurfRedis()
+}
+
+velocityPluginFile {
+    main = "dev.slne.surf.roleplay.velocity.VelocityMain"
 }
 
 dependencies {

@@ -1,5 +1,8 @@
+import dev.slne.surf.microservice.gradle.plugin.rabbit.RabbitModule
+
 plugins {
     id("dev.slne.surf.api.gradle.core")
+    id("dev.slne.surf.microservice")
 }
 
 surfCoreApi {
@@ -7,8 +10,12 @@ surfCoreApi {
     withSurfRedis()
 }
 
+surfMicroservice {
+    withClientCommonApi()
+    withRabbitModule(RabbitModule.CLIENT_API)
+}
+
 dependencies {
     api(projects.surfRoleplayCore.surfRoleplayCoreCommon)
     api(projects.surfRoleplayApi.surfRoleplayApiClient.surfRoleplayApiClientCommon)
-    compileOnlyApi("dev.slne.surf.transaction:surf-transaction-api:4.1.7")
 }

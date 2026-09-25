@@ -6,3 +6,7 @@ surfCoreApi {
     withCoreCommon()
     withSurfRedis()
 }
+
+dependencies {
+    compileOnlyApi("dev.slne.surf.transaction:surf-transaction-api:4.1.7")
+}
