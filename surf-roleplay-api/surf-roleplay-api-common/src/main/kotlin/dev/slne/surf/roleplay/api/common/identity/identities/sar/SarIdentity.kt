@@ -19,4 +19,27 @@ interface SarIdentity : RoleplayIdentity {
      * The search-and-rescue qualifications this identity currently holds.
      */
     val qualifications: ObjectSet<SarQualification>
+
+    /**
+     * Changes the rank this identity holds within the search-and-rescue service to [rank].
+     *
+     * @param rank the new rank
+     */
+    suspend fun setRank(rank: SarRank)
+
+    /**
+     * Grants [qualification] to this identity.
+     *
+     * @param qualification the qualification to add
+     * @return `true` if the qualification was added, `false` if this identity already held it
+     */
+    suspend fun addQualification(qualification: SarQualification): Boolean
+
+    /**
+     * Takes [qualification] away from this identity.
+     *
+     * @param qualification the qualification to remove
+     * @return `true` if the qualification was removed, `false` if this identity did not hold it
+     */
+    suspend fun removeQualification(qualification: SarQualification): Boolean
 }
