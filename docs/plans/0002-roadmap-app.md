@@ -1,6 +1,6 @@
 # Plan 0002: Roadmap app
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-26
 - **Accepted proposal:** Build a self-hosted roadmap and tracker app for the surf-roleplay gamemode, seeded with the full specification from the 2026-09-26 question rounds
 - **Decision records:** ADR-0023, ADR-0024
