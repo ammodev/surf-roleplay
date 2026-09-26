@@ -29,3 +29,5 @@ Create the next record with `/surf:new-adr`.
 | [0020](0020-the-server-is-authoritative.md) | The server is authoritative | Accepted | 2026-09-26 |
 | [0021](0021-vehicles-use-client-prediction-with-server-reconciliation.md) | Vehicles use client prediction with server reconciliation | Accepted | 2026-09-26 |
 | [0022](0022-the-launcher-is-an-electron-app.md) | The launcher is an Electron app | Accepted | 2026-09-26 |
+| [0023](0023-the-roadmap-app-is-a-next-js-app-with-sqlite.md) | The roadmap app is a Next.js app with SQLite | Accepted | 2026-09-26 |
+| [0024](0024-the-roadmap-app-uses-one-shared-login-token.md) | The roadmap app uses one shared login token | Accepted | 2026-09-26 |
