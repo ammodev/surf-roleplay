@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { getDb } from "@/db";
+import { requireToken, SESSION_COOKIE, verifySession } from "@/lib/auth";
 import {
   addPerson,
   addTask,
@@ -19,8 +21,16 @@ import {
 /** Result of a mutation: `ok`, or an error message to show. */
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
-/** Runs `fn`, refreshes every page and converts thrown errors into a result. */
-function run(fn: () => void): ActionResult {
+/**
+ * Checks the session cookie, runs `fn`, refreshes every page and converts thrown
+ * errors into a result. Actions are reachable independently of the middleware's
+ * route matcher, so every mutation verifies the session itself.
+ */
+async function run(fn: () => void): Promise<ActionResult> {
+  const store = await cookies();
+  if (!(await verifySession(store.get(SESSION_COOKIE)?.value, requireToken()))) {
+    return { ok: false, error: "Your session has ended. Sign in again." };
+  }
   try {
     fn();
     revalidatePath("/", "layout");
