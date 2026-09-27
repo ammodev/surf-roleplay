@@ -24,6 +24,9 @@ include(":surf-roleplay-core:surf-roleplay-core-client:surf-roleplay-core-client
 include(":surf-roleplay-core:surf-roleplay-core-client:surf-roleplay-core-client-paper")
 include(":surf-roleplay-core:surf-roleplay-core-client:surf-roleplay-core-client-velocity")
 
+// Protocol
+include(":surf-roleplay-protocol")
+
 // Runtime
 include(":surf-roleplay-paper")
 include(":surf-roleplay-velocity")
