@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven("https://reposilite.slne.dev/releases")
+        maven("https://maven.fabricmc.net/")
     }
 }
 
@@ -26,6 +27,9 @@ include(":surf-roleplay-core:surf-roleplay-core-client:surf-roleplay-core-client
 
 // Protocol
 include(":surf-roleplay-protocol")
+
+// Client mod
+include(":surf-roleplay-fabric")
 
 // Runtime
 include(":surf-roleplay-paper")

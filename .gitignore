@@ -15,3 +15,6 @@ bin/
 .superpowers/
 .worktrees/
 .claude/settings.local.json
+
+# Fabric dev run directory
+surf-roleplay-fabric/run/
