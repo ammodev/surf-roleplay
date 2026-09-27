@@ -1,6 +1,6 @@
 # Plan 0003: Roadmap agent access
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-27
 - **Accepted proposal:** Add a REST API, a remote MCP endpoint and a skill so agents can read the hosted roadmap and post their progress
 - **Decision records:** ADR-0025, ADR-0026
