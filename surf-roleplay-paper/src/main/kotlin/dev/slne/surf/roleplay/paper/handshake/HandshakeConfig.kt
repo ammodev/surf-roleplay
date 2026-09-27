@@ -7,8 +7,10 @@ import java.time.Duration
  * The settings of the mod handshake.
  *
  * @property timeout how long the server waits for the client mod's hello
+ * @property allowedMods the ids of the client mods allowed in addition to the ones every client
+ *           may load
  */
-data class HandshakeConfig(val timeout: Duration) {
+data class HandshakeConfig(val timeout: Duration, val allowedMods: Set<String>) {
 
     /**
      * Reads handshake settings from the plugin configuration.
@@ -29,7 +31,8 @@ data class HandshakeConfig(val timeout: Duration) {
         fun from(config: ConfigurationSection): HandshakeConfig {
             val seconds = config.getLong("handshake.timeout-seconds", DEFAULT_TIMEOUT_SECONDS)
             require(seconds > 0) { "handshake.timeout-seconds must be positive, was $seconds" }
-            return HandshakeConfig(Duration.ofSeconds(seconds))
+            val allowedMods = config.getStringList("handshake.allowed-mods").map { it.trim() }.toSet()
+            return HandshakeConfig(Duration.ofSeconds(seconds), allowedMods)
         }
     }
 }

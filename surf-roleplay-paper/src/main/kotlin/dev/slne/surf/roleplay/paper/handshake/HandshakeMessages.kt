@@ -18,6 +18,16 @@ object HandshakeMessages {
     val PROTOCOL_MISMATCH: Component = Component.text("Deine Roleplay-Mod ist nicht aktuell. Update über den Launcher.")
 
     /**
+     * Creates the message shown to a player who loaded mods that are not allowed.
+     *
+     * @param modIds the ids of the mods that are not allowed
+     * @return the message listing the mods
+     */
+    fun forbiddenMods(modIds: List<String>): Component = Component.text(
+        "Folgende Mods sind nicht erlaubt: ${modIds.joinToString()}. Bitte starte das Spiel über den Roleplay-Launcher."
+    )
+
+    /**
      * Returns the disconnect message for a rejected handshake.
      *
      * @param outcome the outcome of the handshake
@@ -27,5 +37,6 @@ object HandshakeMessages {
         HandshakeOutcome.Accepted -> null
         HandshakeOutcome.MissingMod -> MISSING_MOD
         is HandshakeOutcome.ProtocolMismatch -> PROTOCOL_MISMATCH
+        is HandshakeOutcome.ForbiddenMods -> forbiddenMods(outcome.modIds)
     }
 }

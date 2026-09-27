@@ -45,7 +45,7 @@ class PaperMain : SuspendingJavaPlugin() {
         saveDefaultConfig()
         val handshakeConfig = HandshakeConfig.from(config)
         server.pluginManager.registerEvents(
-            HandshakeListener(packetRegistry, handshakeConfig, HandshakeEvaluator()),
+            HandshakeListener(packetRegistry, handshakeConfig, HandshakeEvaluator(handshakeConfig.allowedMods)),
             this,
         )
 
