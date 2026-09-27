@@ -73,6 +73,17 @@ CREATE TABLE IF NOT EXISTS open_questions (
   system_id TEXT REFERENCES systems(id) ON DELETE SET NULL,
   resolved INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS progress_updates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  system_id TEXT NOT NULL REFERENCES systems(id) ON DELETE CASCADE,
+  task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
+  summary TEXT NOT NULL,
+  next_step TEXT,
+  commit_hash TEXT,
+  author TEXT NOT NULL,
+  agent INTEGER NOT NULL,
+  created_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS change_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   entity TEXT NOT NULL,

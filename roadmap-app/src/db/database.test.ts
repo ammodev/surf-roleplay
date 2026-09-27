@@ -12,6 +12,7 @@ const EXPECTED_TABLES = [
   "people",
   "phase_dependencies",
   "phases",
+  "progress_updates",
   "systems",
   "tasks",
 ];

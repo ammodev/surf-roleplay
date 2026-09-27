@@ -95,6 +95,19 @@ export const openQuestions = sqliteTable("open_questions", {
   resolved: integer("resolved", { mode: "boolean" }).notNull(),
 });
 
+/** Progress reports posted by people or agents about their work on a system. */
+export const progressUpdates = sqliteTable("progress_updates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  systemId: text("system_id").notNull().references(() => systems.id, { onDelete: "cascade" }),
+  taskId: integer("task_id").references(() => tasks.id, { onDelete: "set null" }),
+  summary: text("summary").notNull(),
+  nextStep: text("next_step"),
+  commitHash: text("commit_hash"),
+  author: text("author").notNull(),
+  agent: integer("agent", { mode: "boolean" }).notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
 /** Append-only record of every change made through the app. */
 export const changeLog = sqliteTable("change_log", {
   id: integer("id").primaryKey({ autoIncrement: true }),

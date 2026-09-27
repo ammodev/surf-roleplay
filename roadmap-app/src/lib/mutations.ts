@@ -4,6 +4,7 @@ import {
   changeLog,
   openQuestions,
   people,
+  progressUpdates,
   PRIORITIES,
   ROLES,
   STATUSES,
@@ -241,5 +242,105 @@ export function setQuestionResolved(db: RoadmapDb, id: string, resolved: boolean
     if (current.resolved === resolved) return;
     tx.update(openQuestions).set({ resolved }).where(eq(openQuestions.id, id)).run();
     logChange(tx, "question", id, "resolved", String(current.resolved), String(resolved), author);
+  });
+}
+
+/** Content of a progress update. */
+export interface UpdateInput {
+  systemId: string;
+  taskId?: number | null;
+  summary: string;
+  nextStep?: string | null;
+  commit?: string | null;
+}
+
+/** Who posted a progress update. */
+export interface UpdateAuthor {
+  author: string;
+  agent: boolean;
+}
+
+/** Content of a new open question. */
+export interface QuestionInput {
+  title: string;
+  text: string;
+  systemId?: string | null;
+}
+
+/**
+ * Formats the author of an agent change as `<agent> (for <person>)`.
+ *
+ * @throws Error if the agent or the person is empty
+ */
+export function agentAuthor(agent: string, onBehalfOf: string): string {
+  const a = agent.trim();
+  const p = onBehalfOf.trim();
+  if (!a) throw new Error("`agent` is required: the name of the agent making the change.");
+  if (!p) throw new Error("`onBehalfOf` is required: the person the agent works for.");
+  return `${a.slice(0, 40)} (for ${p.slice(0, 40)})`;
+}
+
+/**
+ * Stores a progress update for a system and logs it. The commit hash may name a
+ * commit that is not pushed yet.
+ *
+ * @return the new update's id
+ * @throws Error if the summary is empty, the system is unknown, the task belongs to
+ *         another system, or the commit hash is not 7 to 40 hex characters
+ */
+export function postUpdate(db: RoadmapDb, input: UpdateInput, by: UpdateAuthor): number {
+  const summary = input.summary.trim();
+  if (!summary) throw new Error("An update needs a summary.");
+  const commit = input.commit?.trim().toLowerCase() || null;
+  if (commit && !/^[0-9a-f]{7,40}$/.test(commit)) throw new Error("`commit` must be a 7 to 40 character hex hash.");
+
+  return db.transaction((tx) => {
+    const system = tx.select({ id: systems.id }).from(systems).where(eq(systems.id, input.systemId)).get();
+    if (!system) throw new Error(`Unknown system: ${input.systemId}`);
+    if (input.taskId != null) {
+      const task = tx.select({ systemId: tasks.systemId }).from(tasks).where(eq(tasks.id, input.taskId)).get();
+      if (!task || task.systemId !== input.systemId) {
+        throw new Error(`Task ${input.taskId} does not belong to system ${input.systemId}.`);
+      }
+    }
+    const row = tx
+      .insert(progressUpdates)
+      .values({
+        systemId: input.systemId,
+        taskId: input.taskId ?? null,
+        summary,
+        nextStep: input.nextStep?.trim() || null,
+        commitHash: commit,
+        author: authorOf(by.author),
+        agent: by.agent,
+        createdAt: new Date().toISOString(),
+      })
+      .returning({ id: progressUpdates.id })
+      .get();
+    logChange(tx, "update", row.id, "posted", null, summary, by.author);
+    return row.id;
+  });
+}
+
+/**
+ * Creates an unresolved open question, optionally linked to a system.
+ *
+ * @return the new question's id
+ * @throws Error if the title is empty or the system is unknown
+ */
+export function addQuestion(db: RoadmapDb, input: QuestionInput, author: string): string {
+  const title = input.title.trim();
+  if (!title) throw new Error("A question needs a title.");
+  return db.transaction((tx) => {
+    if (input.systemId) {
+      const system = tx.select({ id: systems.id }).from(systems).where(eq(systems.id, input.systemId)).get();
+      if (!system) throw new Error(`Unknown system: ${input.systemId}`);
+    }
+    const id = `q-${crypto.randomUUID().slice(0, 8)}`;
+    tx.insert(openQuestions)
+      .values({ id, title, text: input.text.trim(), systemId: input.systemId ?? null, resolved: false })
+      .run();
+    logChange(tx, "question", id, "created", null, title, author);
+    return id;
   });
 }
