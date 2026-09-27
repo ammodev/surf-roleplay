@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "surf-roadmap": {
+      "type": "http",
+      "url": "${ROADMAP_URL:-http://localhost:3000}/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${ROADMAP_TOKEN}"
+      }
+    }
+  }
+}
