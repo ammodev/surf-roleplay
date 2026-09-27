@@ -14,3 +14,4 @@ Create the next plan with `/surf:new-plan`.
 | ---- | ----- | ---- | ------ |
 | [0001](0001-roleplay-data-layer.md) | Roleplay data layer | 2026-09-25 | Done |
 | [0002](0002-roadmap-app.md) | Roadmap app | 2026-09-26 | Done |
+| [0003](0003-roadmap-agent-access.md) | Roadmap agent access | 2026-09-27 | In progress |
