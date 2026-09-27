@@ -31,3 +31,5 @@ Create the next record with `/surf:new-adr`.
 | [0022](0022-the-launcher-is-an-electron-app.md) | The launcher is an Electron app | Accepted | 2026-09-26 |
 | [0023](0023-the-roadmap-app-is-a-next-js-app-with-sqlite.md) | The roadmap app is a Next.js app with SQLite | Accepted | 2026-09-26 |
 | [0024](0024-the-roadmap-app-uses-one-shared-login-token.md) | The roadmap app uses one shared login token | Accepted | 2026-09-26 |
+| [0025](0025-agents-use-the-roadmap-app-through-a-remote-mcp-endpoint.md) | Agents use the roadmap app through a remote MCP endpoint | Accepted | 2026-09-27 |
+| [0026](0026-agents-authenticate-with-the-shared-login-token.md) | Agents authenticate with the shared login token | Accepted | 2026-09-27 |
