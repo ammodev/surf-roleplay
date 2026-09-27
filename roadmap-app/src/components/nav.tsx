@@ -5,6 +5,7 @@ import { AuthorBadge } from "./author-badge";
 /** Navigation entries in display order. */
 const LINKS = [
   { href: "/", label: "Catalogue" },
+  { href: "/updates", label: "Updates" },
   { href: "/board", label: "Board" },
   { href: "/roadmap", label: "Roadmap" },
   { href: "/decisions", label: "Decisions" },

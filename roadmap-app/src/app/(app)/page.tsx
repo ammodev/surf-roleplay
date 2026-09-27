@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { OwnerChip, PriorityChip, StatusChip } from "@/components/chips";
 import { PRIORITIES, STATUSES } from "@/db/schema";
-import { listDomains, listPeople, listPhases, listSystems, type SystemFilter } from "@/lib/queries";
+import { latestUpdates, listDomains, listPeople, listPhases, listSystems, type SystemFilter } from "@/lib/queries";
+import { relativeAge } from "@/lib/time";
 
 /** Reads a single string search parameter. */
 function param(value: string | string[] | undefined): string {
@@ -30,6 +31,7 @@ export default async function CataloguePage({
   const people = listPeople();
   const systems = listSystems(filter);
   const phaseName = new Map(phases.map((p) => [p.id, p.name]));
+  const latest = latestUpdates();
   const all = listSystems();
   const done = all.filter((s) => s.status === "Done").length;
 
@@ -100,6 +102,12 @@ export default async function CataloguePage({
                       <span className="eyebrow shrink-0">{phaseName.get(s.phaseId)?.split(" ")[0]}</span>
                     </div>
                     <p className="text-sm text-[var(--ink-2)] flex-1">{s.summary}</p>
+                    {latest.has(s.id) && (
+                      <p className="text-xs border-l-2 border-[var(--accent)] pl-2 text-[var(--ink-2)] line-clamp-2">
+                        <span className="text-[var(--ink-3)]">{relativeAge(latest.get(s.id)!.createdAt)}:</span>{" "}
+                        {latest.get(s.id)!.summary}
+                      </p>
+                    )}
                     <div className="flex flex-wrap gap-1.5 items-center">
                       <StatusChip status={s.status} />
                       <PriorityChip priority={s.priority} />

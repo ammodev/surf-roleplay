@@ -4,7 +4,8 @@ import { History } from "@/components/history";
 import { SpecView } from "@/components/spec-view";
 import { SystemEditor } from "@/components/system-editor";
 import { TaskList } from "@/components/task-list";
-import { getSystem, listPeople, systemHistory } from "@/lib/queries";
+import { UpdateList } from "@/components/update-list";
+import { getSystem, listPeople, listUpdates, systemHistory } from "@/lib/queries";
 
 /**
  * Detail page of one system: spec, editable tracking fields, tasks and history.
@@ -50,6 +51,10 @@ export default async function SystemPage({ params }: { params: Promise<{ id: str
               </ul>
             </section>
           )}
+          <section>
+            <h2 className="text-lg font-semibold mb-2">Progress updates</h2>
+            <UpdateList updates={listUpdates({ systemId: system.id, limit: 100 })} />
+          </section>
           <TaskList systemId={system.id} tasks={tasks} people={people} />
           <section>
             <h2 className="text-lg font-semibold mb-2">History</h2>

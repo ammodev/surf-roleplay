@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { PRIORITIES, STATUSES } from "@/db/schema";
+import { commitUrl } from "./repo";
 import {
   addQuestion,
   addTask,
@@ -21,8 +22,6 @@ import {
   listUpdates,
 } from "./queries";
 
-/** Base URL commit hashes are linked to. */
-export const REPO_URL = (process.env.REPO_URL ?? "https://github.com/ammodev/surf-roleplay").replace(/\/+$/, "");
 
 /** Attribution every agent write must carry. */
 export const attribution = {
@@ -138,7 +137,7 @@ export function opListPeople() {
 
 /** Adds the commit URL to an update row. */
 function withCommitUrl<T extends { commitHash: string | null }>(u: T): T & { commitUrl: string | null } {
-  return { ...u, commitUrl: u.commitHash ? `${REPO_URL}/commit/${u.commitHash}` : null };
+  return { ...u, commitUrl: commitUrl(u.commitHash) };
 }
 
 /** Returns progress updates, newest first. */
@@ -171,8 +170,7 @@ export function opUpdateTask({ id, agent, onBehalfOf, ...patch }: Input<typeof u
 export function opPostUpdate({ agent, onBehalfOf, ...input }: Input<typeof postUpdateInput>) {
   const id = postUpdate(getDb(), input, { author: agentAuthor(agent, onBehalfOf), agent: true });
   refresh();
-  const commit = input.commit?.trim().toLowerCase();
-  return { id, commitUrl: commit ? `${REPO_URL}/commit/${commit}` : null };
+  return { id, commitUrl: commitUrl(input.commit?.trim().toLowerCase()) };
 }
 
 /** Adds an open question and returns its id. */
