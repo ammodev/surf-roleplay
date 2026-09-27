@@ -11,8 +11,17 @@ current while you work, as described below.
 
 ## Connect
 
-**MCP (preferred).** Add the hosted server once per machine. The human gives you
-the host and the token; never commit the token.
+**MCP (preferred).** This repository ships the server in `.mcp.json` as
+`surf-roadmap`. It reads two environment variables, which the human sets before
+starting Claude Code:
+
+- `ROADMAP_TOKEN` (required)
+- `ROADMAP_URL` (defaults to `http://localhost:3000`; set it to the hosted URL, such
+  as `https://roadmap.example.com`)
+
+Claude Code asks once to approve the project server. Never commit the token.
+
+Outside this repository, add the server by hand:
 
 ```bash
 claude mcp add --transport http surf-roadmap https://<roadmap-host>/api/mcp \
