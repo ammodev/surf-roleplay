@@ -33,3 +33,7 @@ Create the next record with `/surf:new-adr`.
 | [0024](0024-the-roadmap-app-uses-one-shared-login-token.md) | The roadmap app uses one shared login token | Accepted | 2026-09-26 |
 | [0025](0025-agents-use-the-roadmap-app-through-a-remote-mcp-endpoint.md) | Agents use the roadmap app through a remote MCP endpoint | Accepted | 2026-09-27 |
 | [0026](0026-agents-authenticate-with-the-shared-login-token.md) | Agents authenticate with the shared login token | Accepted | 2026-09-27 |
+| [0027](0027-packets-are-encoded-with-kotlinx-serialization-protobuf.md) | Packets are encoded with kotlinx.serialization ProtoBuf | Accepted | 2026-09-27 |
+| [0028](0028-every-packet-has-its-own-payload-channel.md) | Every packet has its own payload channel | Accepted | 2026-09-27 |
+| [0029](0029-the-mod-handshake-runs-in-the-configuration-phase.md) | The mod handshake runs in the configuration phase | Accepted | 2026-09-27 |
+| [0030](0030-the-client-mod-depends-on-fabric-language-kotlin.md) | The client mod depends on Fabric Language Kotlin | Accepted | 2026-09-27 |
