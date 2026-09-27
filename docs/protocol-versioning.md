@@ -1,0 +1,48 @@
+# Protocol versioning
+
+The server and the client mod share one protocol, defined in `surf-roleplay-protocol`. Its
+version is `PROTOCOL_VERSION` in `ProtocolVersion.kt`. During the configuration phase the mod
+sends its version in `ClientHello`. If the version differs from the server's, the server
+disconnects the player with an update notice. Two builds with the same `PROTOCOL_VERSION` must
+understand every packet the other sends.
+
+## How packets are encoded
+
+- Every packet type is listed in `Packets.all` with a `PacketType`: a snake_case name, a
+  direction and the connection phases it may be sent in.
+- Each packet type travels on its own payload channel `roleplay:<name>`.
+- The payload body is the packet's kotlinx.serialization ProtoBuf encoding, with no extra
+  framing.
+- Every property of a packet class carries an explicit `@ProtoNumber`.
+- Decoders skip fields whose number they do not know. A field that a reader expects and does not
+  find takes its default value. If it has no default, decoding fails.
+
+## Changes that bump `PROTOCOL_VERSION`
+
+Bump the version for any of these:
+
+- adding, removing or renaming a packet type, which changes the set of channels
+- changing a packet type's direction or connection phases
+- adding a field without a default value
+- removing a field that has no default value
+- changing a field's `@ProtoNumber`
+- changing a field's type, or whether it is nullable or a list
+- reusing a field number that was released with a different meaning
+- changing what an existing field means, even if its type stays the same
+
+## Changes that keep the version
+
+- adding a field with a new, never-used `@ProtoNumber` and a default value
+- removing a field that has a default value. Its number is retired and never reused.
+- renaming a Kotlin property or class without changing its `@ProtoNumber`, type or packet name
+- changing code that does not affect the bytes on the wire, such as handlers, validation or logging
+
+If in doubt, bump. A needless bump forces an update. A missing bump lets incompatible builds talk
+to each other.
+
+## Releasing a bump
+
+1. Increment `PROTOCOL_VERSION` by one in the same commit as the incompatible change.
+2. Release the Paper plugin and the client mod from the same commit.
+3. Publish the new mod through the launcher before the server update goes live. Players with the
+   old mod are then disconnected with the update notice until the launcher updates them.

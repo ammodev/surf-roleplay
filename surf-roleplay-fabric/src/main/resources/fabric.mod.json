@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "surf-roleplay",
+  "version": "${version}",
+  "name": "Surf Roleplay",
+  "description": "The required client mod of the surf roleplay server.",
+  "authors": ["SLNE Development"],
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "dev.slne.surf.roleplay.fabric.RoleplayClient"
+      }
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${fabricLoaderVersion}",
+    "minecraft": "~${minecraftVersion}",
+    "java": ">=25",
+    "fabric-api": "*",
+    "fabric-language-kotlin": ">=1.14.1"
+  }
+}

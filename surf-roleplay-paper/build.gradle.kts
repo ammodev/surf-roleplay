@@ -16,4 +16,5 @@ surfPaperPluginApi {
 
 dependencies {
     api(projects.surfRoleplayCore.surfRoleplayCoreClient.surfRoleplayCoreClientPaper)
+    implementation(projects.surfRoleplayProtocol)
 }

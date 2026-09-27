@@ -1,6 +1,6 @@
 # Plan 0004: Protocol module, mod skeleton and handshake
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-27
 - **Accepted proposal:** Build the shared protocol module, packet registries on Paper and Fabric, the Fabric mod skeleton, and a configuration-phase version handshake with a mod whitelist
 - **Decision records:** ADR-0012, ADR-0013, ADR-0027, ADR-0028, ADR-0029, ADR-0030
