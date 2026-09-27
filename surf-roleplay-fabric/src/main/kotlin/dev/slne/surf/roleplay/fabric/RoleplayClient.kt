@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.fabric
 
+import dev.slne.surf.roleplay.fabric.protocol.FabricPacketRegistry
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
 import org.slf4j.LoggerFactory
@@ -29,9 +30,11 @@ object RoleplayClient : ClientModInitializer {
     }
 
     /**
-     * Initialises the mod on the client and logs its version.
+     * Initialises the mod on the client: registers the roleplay payload channels and logs the
+     * mod version.
      */
     override fun onInitializeClient() {
+        FabricPacketRegistry.register()
         log.info("Surf Roleplay {} initialised", modVersion)
     }
 }
