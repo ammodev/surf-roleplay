@@ -1,7 +1,6 @@
 package dev.slne.surf.roleplay.protocol
 
 import dev.slne.surf.roleplay.protocol.packets.ClientHello
-import dev.slne.surf.roleplay.protocol.packets.HandshakeResult
 import dev.slne.surf.roleplay.protocol.packets.ModInfo
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -29,25 +28,13 @@ class ProtocolCodecTest {
     }
 
     /**
-     * Verifies that a rejecting handshake result with a reason survives encoding and decoding.
+     * Verifies that a client hello without loaded mods decodes with an empty mod list.
      */
     @Test
-    fun `handshake result round-trips`() {
-        val result = HandshakeResult(accepted = false, reason = "Update über den Launcher")
+    fun `client hello without mods decodes to empty mod list`() {
+        val bytes = ProtocolCodec.encode(Packets.HELLO, ClientHello(PROTOCOL_VERSION, "26.3.0"))
 
-        val bytes = ProtocolCodec.encode(Packets.HANDSHAKE_RESULT, result)
-
-        assertEquals(result, ProtocolCodec.decode(Packets.HANDSHAKE_RESULT.channel, bytes))
-    }
-
-    /**
-     * Verifies that an accepting handshake result without a reason decodes with a null reason.
-     */
-    @Test
-    fun `handshake result without reason decodes to null reason`() {
-        val bytes = ProtocolCodec.encode(Packets.HANDSHAKE_RESULT, HandshakeResult(accepted = true))
-
-        assertEquals(HandshakeResult(accepted = true, reason = null), ProtocolCodec.decode(Packets.HANDSHAKE_RESULT.channel, bytes))
+        assertEquals(emptyList(), (ProtocolCodec.decode(Packets.HELLO.channel, bytes) as ClientHello).loadedMods)
     }
 
     /**

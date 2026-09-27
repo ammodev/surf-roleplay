@@ -42,14 +42,13 @@ class PacketsTest {
     }
 
     /**
-     * Verifies that the handshake packets use the expected channels and directions.
+     * Verifies that the hello uses its channel and is sent by the client in the configuration phase.
      */
     @Test
-    fun `handshake packets use their channels and directions`() {
+    fun `hello uses its channel, direction and phase`() {
         assertEquals("roleplay:hello", Packets.HELLO.channel)
         assertEquals(PacketDirection.SERVERBOUND, Packets.HELLO.direction)
-        assertEquals("roleplay:handshake_result", Packets.HANDSHAKE_RESULT.channel)
-        assertEquals(PacketDirection.CLIENTBOUND, Packets.HANDSHAKE_RESULT.direction)
+        assertEquals(setOf(ConnectionPhase.CONFIGURATION), Packets.HELLO.phases)
     }
 
     /**

@@ -1,7 +1,6 @@
 package dev.slne.surf.roleplay.protocol
 
 import dev.slne.surf.roleplay.protocol.packets.ClientHello
-import dev.slne.surf.roleplay.protocol.packets.HandshakeResult
 
 /**
  * The registry of every [PacketType] of the roleplay protocol.
@@ -20,19 +19,9 @@ object Packets {
     )
 
     /**
-     * The server's answer to a [ClientHello].
-     */
-    val HANDSHAKE_RESULT: PacketType<HandshakeResult> = PacketType(
-        "handshake_result",
-        PacketDirection.CLIENTBOUND,
-        setOf(ConnectionPhase.CONFIGURATION),
-        HandshakeResult.serializer(),
-    )
-
-    /**
      * Every packet type of the protocol.
      */
-    val all: List<PacketType<*>> = listOf(HELLO, HANDSHAKE_RESULT)
+    val all: List<PacketType<*>> = listOf(HELLO)
 
     /**
      * The packet types keyed by their channel id.
