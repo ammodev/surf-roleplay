@@ -17,6 +17,16 @@ kotlin {
     jvmToolchain(25)
 }
 
+loom {
+    runs {
+        register("localClient") {
+            inherit(getByName("client"))
+            configName = "Minecraft Client (localhost)"
+            programArgs("--quickPlayMultiplayer", "localhost:25565")
+        }
+    }
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
     implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
