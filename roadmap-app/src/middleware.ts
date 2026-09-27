@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
   return NextResponse.redirect(url);
 }
 
-/** Applies the guard to everything except the login page and static assets. */
+/** Applies the guard to everything except the login page, the bearer-authenticated API and static assets. */
 export const config = {
-  matcher: ["/((?!login|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!login|api/|_next/static|_next/image|favicon.ico).*)"],
 };

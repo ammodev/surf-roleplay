@@ -9,6 +9,7 @@ import {
   people,
   phaseDependencies,
   phases,
+  progressUpdates,
   systems,
   tasks,
   type Priority,
@@ -177,4 +178,52 @@ export function listQuestions() {
     .leftJoin(systems, eq(openQuestions.systemId, systems.id))
     .orderBy(asc(openQuestions.resolved), asc(openQuestions.id))
     .all();
+}
+
+/** Filters accepted by {@link listUpdates}. */
+export interface UpdateFilter {
+  systemId?: string;
+  limit?: number;
+}
+
+/** Returns progress updates, newest first, with system and task titles. */
+export function listUpdates(filter: UpdateFilter = {}) {
+  return getDb()
+    .select({
+      id: progressUpdates.id,
+      systemId: progressUpdates.systemId,
+      systemTitle: systems.title,
+      taskId: progressUpdates.taskId,
+      taskTitle: tasks.title,
+      summary: progressUpdates.summary,
+      nextStep: progressUpdates.nextStep,
+      commitHash: progressUpdates.commitHash,
+      author: progressUpdates.author,
+      agent: progressUpdates.agent,
+      createdAt: progressUpdates.createdAt,
+    })
+    .from(progressUpdates)
+    .innerJoin(systems, eq(progressUpdates.systemId, systems.id))
+    .leftJoin(tasks, eq(progressUpdates.taskId, tasks.id))
+    .where(filter.systemId ? eq(progressUpdates.systemId, filter.systemId) : undefined)
+    .orderBy(desc(progressUpdates.id))
+    .limit(Math.min(Math.max(filter.limit ?? 50, 1), 500))
+    .all();
+}
+
+/** Returns the newest progress update of every system that has one, keyed by system id. */
+export function latestUpdates(): Map<string, { summary: string; author: string; createdAt: string }> {
+  const rows = getDb()
+    .select({
+      systemId: progressUpdates.systemId,
+      summary: progressUpdates.summary,
+      author: progressUpdates.author,
+      createdAt: progressUpdates.createdAt,
+    })
+    .from(progressUpdates)
+    .orderBy(desc(progressUpdates.id))
+    .all();
+  const latest = new Map<string, { summary: string; author: string; createdAt: string }>();
+  for (const r of rows) if (!latest.has(r.systemId)) latest.set(r.systemId, r);
+  return latest;
 }
