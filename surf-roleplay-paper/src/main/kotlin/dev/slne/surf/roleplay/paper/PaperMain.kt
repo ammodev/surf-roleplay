@@ -4,6 +4,9 @@ import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import dev.slne.surf.roleplay.api.common.user.UserManager
 import dev.slne.surf.roleplay.core.client.common.ClientInstance
 import dev.slne.surf.roleplay.core.client.common.user.CoreClientUserManager
+import dev.slne.surf.roleplay.paper.handshake.HandshakeConfig
+import dev.slne.surf.roleplay.paper.handshake.HandshakeEvaluator
+import dev.slne.surf.roleplay.paper.handshake.HandshakeListener
 import dev.slne.surf.roleplay.paper.listener.UserConnectionListener
 import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
 import org.bukkit.plugin.java.JavaPlugin
@@ -28,9 +31,9 @@ class PaperMain : SuspendingJavaPlugin() {
     }
 
     /**
-     * Enables the client instance, registers the roleplay payload channels, and registers the
-     * listener that acquires a hold on the roleplay user of every player logging in and releases
-     * it when the player's connection closes.
+     * Enables the client instance, registers the roleplay payload channels and the mod handshake,
+     * and registers the listener that acquires a hold on the roleplay user of every player logging
+     * in and releases it when the player's connection closes.
      *
      * @throws IllegalStateException if the registered user manager is not the client user manager
      */
@@ -38,6 +41,13 @@ class PaperMain : SuspendingJavaPlugin() {
         ClientInstance.INSTANCE.onEnable()
 
         packetRegistry = PaperPacketRegistry(this).also { it.register() }
+
+        saveDefaultConfig()
+        val handshakeConfig = HandshakeConfig.from(config)
+        server.pluginManager.registerEvents(
+            HandshakeListener(packetRegistry, handshakeConfig, HandshakeEvaluator()),
+            this,
+        )
 
         val userManager = UserManager.INSTANCE as? CoreClientUserManager
             ?: error(
