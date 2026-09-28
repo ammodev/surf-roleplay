@@ -1,6 +1,6 @@
 # Plan 0005: Docker dev stack
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-28
 - **Accepted proposal:** Commit the local dev stack as a Docker Compose project in tools/devenv and add a roadmap REST helper script to the surf-roadmap skill
 - **Decision records:** ADR-0031
