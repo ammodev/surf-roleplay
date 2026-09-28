@@ -273,6 +273,7 @@ data class ScrollListNode(
  * @property width how wide this node is laid out
  * @property height how tall this node is laid out
  * @property text the text as component JSON
+ * @property icon the name of a Lucide icon drawn before the text, or `null` for none
  */
 @Serializable
 @SerialName("label")
@@ -281,6 +282,7 @@ data class LabelNode(
     @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
     @ProtoNumber(4) val text: String = "",
+    @ProtoNumber(5) val icon: String? = null,
 ) : ScreenNode
 
 /**
@@ -293,6 +295,7 @@ data class LabelNode(
  * @property enabled whether the button can be clicked
  * @property submitsInput whether a click requires every input of the screen to be valid; a button
  *           that does not submit input, such as a back button, is accepted with invalid inputs
+ * @property icon the name of a Lucide icon drawn before the caption, or `null` for none
  */
 @Serializable
 @SerialName("button")
@@ -303,6 +306,7 @@ data class ButtonNode(
     @ProtoNumber(4) val text: String = "",
     @ProtoNumber(5) val enabled: Boolean = true,
     @ProtoNumber(6) val submitsInput: Boolean = true,
+    @ProtoNumber(7) val icon: String? = null,
 ) : ScreenNode
 
 /**
@@ -316,6 +320,7 @@ data class ButtonNode(
  * @property maxLength the maximum number of characters, or `null` for no limit
  * @property required whether an empty value is invalid
  * @property enabled whether the player can edit the field
+ * @property icon the name of a Lucide icon drawn at the start of the field, or `null` for none
  */
 @Serializable
 @SerialName("text_input")
@@ -328,6 +333,7 @@ data class TextInputNode(
     @ProtoNumber(6) val maxLength: Int? = null,
     @ProtoNumber(7) val required: Boolean = false,
     @ProtoNumber(8) val enabled: Boolean = true,
+    @ProtoNumber(9) val icon: String? = null,
 ) : ScreenNode
 
 /**
@@ -445,4 +451,25 @@ data class ProgressNode(
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
     @ProtoNumber(4) val progress: Float = 0f,
     @ProtoNumber(5) val label: String? = null,
+) : ScreenNode
+
+/**
+ * A Lucide icon, drawn square and tinted with a theme token.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property icon the Lucide name of the icon, such as `trash-2`
+ * @property size the side length the icon fits into when the node fits its content, in GUI pixels
+ * @property color the theme token the icon is tinted with
+ */
+@Serializable
+@SerialName("icon")
+data class IconNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val icon: String = "",
+    @ProtoNumber(5) val size: Int = 16,
+    @ProtoNumber(6) val color: IconColor = IconColor.FOREGROUND,
 ) : ScreenNode

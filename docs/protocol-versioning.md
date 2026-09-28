@@ -37,6 +37,8 @@ Bump the version for any of these:
 - adding, removing or renaming a screen type, a screen node kind or a patch operation kind, or
   changing a `@SerialName` of a sealed subclass
 - adding an enum constant, or changing an enum constant's `@ProtoNumber`
+- updating the pinned Lucide release if it renames or removes an icon, because icon names in
+  screen packets refer to that release
 
 ## Changes that keep the version
 

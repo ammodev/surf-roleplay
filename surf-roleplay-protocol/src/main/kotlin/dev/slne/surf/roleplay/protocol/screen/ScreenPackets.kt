@@ -46,6 +46,12 @@ class TypedScreenBody(
  * @property title the screen's title as component JSON
  * @property closable whether the player can close the screen with Escape
  * @property body what the screen shows
+ * @property theme the name of the theme the screen is drawn with; unknown names draw the
+ *           `default` theme
+ * @property variant the light or dark variant of the theme
+ * @property presentation how the screen is shown relative to the screens below it
+ * @property sheetEdge the window edge a sheet is attached to; used only for
+ *           [Presentation.SHEET]
  */
 @Serializable
 data class ScreenOpen(
@@ -54,6 +60,10 @@ data class ScreenOpen(
     @ProtoNumber(3) val title: String,
     @ProtoNumber(4) val closable: Boolean = true,
     @ProtoNumber(5) val body: ScreenBody,
+    @ProtoNumber(6) val theme: String = "default",
+    @ProtoNumber(7) val variant: ThemeVariant = ThemeVariant.DARK,
+    @ProtoNumber(8) val presentation: Presentation = Presentation.SCREEN,
+    @ProtoNumber(9) val sheetEdge: SheetEdge = SheetEdge.RIGHT,
 ) : Packet
 
 /**
