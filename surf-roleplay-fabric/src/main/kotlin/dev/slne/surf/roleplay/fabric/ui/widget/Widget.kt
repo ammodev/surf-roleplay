@@ -1,11 +1,13 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
+import dev.slne.surf.roleplay.fabric.ui.PanelSizing
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
+import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.Insets
@@ -411,10 +413,10 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
         }
         if (maxScroll > 0) {
             val track = Rect(bounds.right - UiMetrics.SCROLL_BAR_WIDTH, bounds.y, UiMetrics.SCROLL_BAR_WIDTH, bounds.height)
-                        val content = bounds.height + maxScroll
-            val handleHeight = (bounds.height * bounds.height / content).coerceAtLeast(8)
+            val content = bounds.height + maxScroll
+            val handleHeight = PanelSizing.handleHeight(bounds.height, content)
             val handleY = bounds.y + (bounds.height - handleHeight) * scrollOffset / maxScroll
-            ui.fillRounded(Rect(track.x, handleY, track.width, handleHeight), dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors.withAlpha(ui.tokens.mutedForeground, SCROLL_HANDLE_ALPHA), track.width / 2)
+            ui.fillRounded(Rect(track.x, handleY, track.width, handleHeight), ThemeColors.withAlpha(ui.tokens.mutedForeground, SCROLL_HANDLE_ALPHA), track.width / 2)
         }
     }
 

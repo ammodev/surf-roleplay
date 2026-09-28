@@ -68,7 +68,6 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null) 
      */
     override val focusable: Boolean get() = enabled
 
-
     /**
      * Returns the size of the caption with the button's padding.
      *
@@ -368,7 +367,6 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
      */
     override val focusable: Boolean get() = enabled
 
-
     /**
      * `true` if the box is checked, `false` otherwise.
      */
@@ -489,7 +487,6 @@ class DropdownWidget(
      * Whether the widget can take the keyboard focus, which it can while enabled.
      */
     override val focusable: Boolean get() = enabled
-
 
     /**
      * The value of the selected option, or an empty string if none is selected.

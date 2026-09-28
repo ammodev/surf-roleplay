@@ -145,7 +145,18 @@ class ScreenPanel(
     /**
      * When the panel was created, for the sheet slide-in.
      */
-    private val openedAt: Long = System.currentTimeMillis()
+    val openedAt: Long = System.currentTimeMillis()
+
+    /**
+     * Whether the sheet was still sliding in at the last layout check.
+     */
+    private var wasSliding: Boolean = true
+
+    /**
+     * The mouse position of the last frame, used to move the dropdown highlight only when the mouse
+     * moves.
+     */
+    private var lastMouse: Pair<Int, Int> = Int.MIN_VALUE to Int.MIN_VALUE
 
     /**
      * The text on the system clipboard.
@@ -164,12 +175,16 @@ class ScreenPanel(
      * @param height the window height in GUI pixels
      */
     fun layoutIfNeeded(font: Font, width: Int, height: Int) {
-        if (!layoutPending && window.width == width && window.height == height && !sliding()) return
+        val slidingNow = sliding()
+        val slideEnded = wasSliding && !slidingNow
+        wasSliding = slidingNow
+        if (!layoutPending && window.width == width && window.height == height && !slidingNow && !slideEnded) return
         window = Rect(0, 0, width, height)
         layout(font)
         if (revealPending) {
             revealPending = false
-            if (revealFocused()) layout(font)
+            if (revealInLists()) layout(font)
+            if (revealInPanel()) layout(font)
         }
     }
 
@@ -198,7 +213,7 @@ class ScreenPanel(
             horizontalSheet || root.width.mode == SizeMode.GROW -> maxWidth
             else -> preferred.width.coerceAtMost(maxWidth)
         }
-        val contentHeight = if (root.height.mode == SizeMode.GROW) maxHeight else preferred.height
+        val contentHeight = PanelSizing.contentHeight(root.height.mode, preferred.height, maxHeight)
         val viewportHeight = if (verticalSheet) maxHeight else contentHeight.coerceAtMost(maxHeight)
         scroll.update(contentHeight, viewportHeight)
 
@@ -252,24 +267,34 @@ class ScreenPanel(
         style.presentation == Presentation.SHEET && System.currentTimeMillis() - openedAt < SLIDE_MILLIS
 
     /**
-     * Scrolls the scroll lists around the focused widget and the panel so that the widget is
-     * visible.
+     * Scrolls the scroll lists around the focused widget, innermost first, so that the widget is
+     * visible inside them.
      *
-     * @return whether anything scrolled, in which case the panel must be laid out again
+     * @return whether a list scrolled, in which case the panel must be laid out again
      */
-    private fun revealFocused(): Boolean {
-        val focused = focusedWidget ?: return false
+    private fun revealInLists(): Boolean {
+        val focused = focusedWidget ?: dropdown ?: return false
         var moved = false
-        var current = focused
+        var current: Widget = focused
         while (true) {
             val parent = WidgetTree.parentOf(root, current.id) ?: break
             if (parent is ScrollListWidget) moved = parent.ensureVisible(focused) || moved
             current = parent
         }
+        return moved
+    }
+
+    /**
+     * Scrolls the panel so that the focused widget is visible, using the bounds of the last layout.
+     *
+     * @return whether the panel scrolled, in which case it must be laid out again
+     */
+    private fun revealInPanel(): Boolean {
+        val focused = focusedWidget ?: dropdown ?: return false
         val before = scroll.offset
         val top = focused.bounds.y - (viewport.y - scroll.offset)
         scroll.ensureVisible(top - FOCUS_MARGIN, top + focused.bounds.height + FOCUS_MARGIN)
-        return moved || scroll.offset != before
+        return scroll.offset != before
     }
 
     /**
@@ -316,7 +341,7 @@ class ScreenPanel(
     private fun renderScrollBar(ui: UiGraphics) {
         val trackX = panel.right - UiMetrics.PANEL_PADDING / 2 - UiMetrics.SCROLL_BAR_WIDTH / 2
         val content = viewport.height + scroll.maxOffset
-        val handleHeight = (viewport.height * viewport.height / content).coerceAtLeast(MIN_HANDLE)
+        val handleHeight = PanelSizing.handleHeight(viewport.height, content)
         val handleY = viewport.y + (viewport.height - handleHeight) * scroll.offset / scroll.maxOffset
         ui.fillRounded(
             Rect(trackX, handleY, UiMetrics.SCROLL_BAR_WIDTH, handleHeight),
@@ -336,9 +361,11 @@ class ScreenPanel(
     private fun renderDropdownList(ui: UiGraphics, open: DropdownWidget, mouseX: Int, mouseY: Int) {
         val list = dropdownList(open)
         ui.fillRounded(list, tokens.popover)
+        val mouseMoved = lastMouse != (mouseX to mouseY)
+        lastMouse = mouseX to mouseY
         open.options.forEachIndexed { index, option ->
             val row = optionRow(list, index)
-            if (row.contains(mouseX.toDouble(), mouseY.toDouble())) highlighted = index
+            if (mouseMoved && row.contains(mouseX.toDouble(), mouseY.toDouble())) highlighted = index
             val lit = index == highlighted
             if (lit) ui.fillRounded(row, tokens.accent, (tokens.radius - 1).coerceAtLeast(0))
             if (option.value == open.selected) ui.fill(Rect(row.x + 2, row.y + 3, 2, row.height - 6), tokens.ring)
@@ -494,6 +521,8 @@ class ScreenPanel(
     override fun openDropdown(dropdown: DropdownWidget) {
         this.dropdown = dropdown
         highlighted = dropdown.options.indexOfFirst { it.value == dropdown.selected }.coerceAtLeast(0)
+        revealPending = true
+        requestLayout()
     }
 
     /**
@@ -567,11 +596,6 @@ class ScreenPanel(
          * The space kept around a widget that is scrolled into view.
          */
         const val FOCUS_MARGIN: Int = 4
-
-        /**
-         * The smallest height of the panel's scroll bar handle.
-         */
-        const val MIN_HANDLE: Int = 8
 
         /**
          * The opacity of the panel's scroll bar handle, relative to the muted foreground colour.

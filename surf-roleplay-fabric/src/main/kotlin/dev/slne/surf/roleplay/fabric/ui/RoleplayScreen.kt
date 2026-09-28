@@ -8,6 +8,7 @@ import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
+import org.lwjgl.glfw.GLFW
 
 /**
  * The Minecraft screen that shows the visible roleplay panels, bottom to top.
@@ -22,6 +23,11 @@ class RoleplayScreen : Screen(Component.empty()) {
      * The visible panels, from bottom to top.
      */
     var layers: List<ScreenPanel> = emptyList()
+
+    /**
+     * The filter that lets held activation keys trigger only once.
+     */
+    private val repeats = KeyRepeatFilter()
 
     /**
      * The panel that receives input, or `null` if no panel is shown.
@@ -57,8 +63,8 @@ class RoleplayScreen : Screen(Component.empty()) {
     }
 
     /**
-     * Passes a click to the top panel. A click on the backdrop of a dialog or sheet asks it to
-     * close.
+     * Passes a click to the top panel. A left click on the backdrop of a dialog or sheet asks it to
+     * close, unless the dialog or sheet opened only a moment ago.
      *
      * @param event the mouse event
      * @param doubleClick whether the click is a double click
@@ -66,9 +72,10 @@ class RoleplayScreen : Screen(Component.empty()) {
      */
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
         val panel = top ?: return true
-        if (!panel.mouseClicked(event.x(), event.y(), event.button()) && panel.style.presentation != Presentation.SCREEN) {
-            panel.requestClose()
-        }
+        val handled = panel.mouseClicked(event.x(), event.y(), event.button())
+        val backdrop = !handled && panel.style.presentation != Presentation.SCREEN
+        val settled = System.currentTimeMillis() - panel.openedAt >= BACKDROP_GRACE_MILLIS
+        if (backdrop && settled && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) panel.requestClose()
         return true
     }
 
@@ -93,6 +100,7 @@ class RoleplayScreen : Screen(Component.empty()) {
      * @return whether the key was handled
      */
     override fun keyPressed(event: KeyEvent): Boolean {
+        if (!repeats.accept(event.key())) return true
         val panel = top ?: return super.keyPressed(event)
         if (panel.keyPressed(event)) return true
         if (event.isEscape) {
@@ -100,6 +108,17 @@ class RoleplayScreen : Screen(Component.empty()) {
             return true
         }
         return false
+    }
+
+    /**
+     * Records that a key was released, so that a held activation key can trigger again.
+     *
+     * @param event the key event
+     * @return whether the release was handled by the default screen behaviour
+     */
+    override fun keyReleased(event: KeyEvent): Boolean {
+        repeats.release(event.key())
+        return super.keyReleased(event)
     }
 
     /**
@@ -132,5 +151,10 @@ class RoleplayScreen : Screen(Component.empty()) {
          * The opacity of the backdrop behind dialogs and sheets, relative to the background colour.
          */
         const val BACKDROP_ALPHA: Float = 0.6f
+
+        /**
+         * How long after a dialog or sheet opens a click on its backdrop is ignored, in milliseconds.
+         */
+        const val BACKDROP_GRACE_MILLIS: Long = 250
     }
 }

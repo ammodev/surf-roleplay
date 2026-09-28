@@ -110,3 +110,78 @@ object FocusOrder {
         return focusable[(index + step + focusable.size) % focusable.size]
     }
 }
+
+/**
+ * Size rules of screen panels.
+ */
+object PanelSizing {
+
+    /**
+     * Returns the height a panel's content is laid out at: its preferred height, or for a growing
+     * root at least the available height.
+     *
+     * @param mode how the root is sized vertically
+     * @param preferred the height the content needs
+     * @param available the height the window leaves for the content
+     * @return the content height
+     */
+    fun contentHeight(mode: dev.slne.surf.roleplay.protocol.screen.SizeMode, preferred: Int, available: Int): Int =
+        if (mode == dev.slne.surf.roleplay.protocol.screen.SizeMode.GROW) maxOf(preferred, available) else preferred
+
+    /**
+     * Returns the height of a scroll bar handle: proportional to the visible share of the
+     * content, at least a minimum, and never taller than the viewport.
+     *
+     * @param viewport the height of the viewport
+     * @param content the height of the content
+     * @return the handle height
+     */
+    fun handleHeight(viewport: Int, content: Int): Int =
+        (viewport * viewport / content.coerceAtLeast(1)).coerceAtLeast(MIN_HANDLE).coerceAtMost(viewport)
+
+    /**
+     * The smallest height of a scroll bar handle.
+     */
+    private const val MIN_HANDLE: Int = 8
+}
+
+/**
+ * Lets an activation key trigger only once while it is held down.
+ *
+ * Minecraft reports repeated key presses of a held key like new presses. Enter, keypad Enter and
+ * Space trigger once and are accepted again only after they were released; other keys always pass.
+ */
+class KeyRepeatFilter {
+
+    /**
+     * The activation keys that are currently held down.
+     */
+    private val held = mutableSetOf<Int>()
+
+    /**
+     * Checks whether a key press should be handled.
+     *
+     * @param key the GLFW key code
+     * @return whether the press is handled
+     */
+    fun accept(key: Int): Boolean = key !in ACTIVATION_KEYS || held.add(key)
+
+    /**
+     * Records that a key was released.
+     *
+     * @param key the GLFW key code
+     */
+    fun release(key: Int) {
+        held -= key
+    }
+
+    /**
+     * Holds the activation keys.
+     */
+    private companion object {
+        /**
+         * Enter, keypad Enter and Space.
+         */
+        val ACTIVATION_KEYS = setOf(257, 335, 32)
+    }
+}
