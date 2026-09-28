@@ -97,5 +97,38 @@ services:
       - ../../surf-roleplay-microservice/build/libs:/build:ro
       - ./run/ms-roleplay:/data
 
+  paper:
+    <<: *java-service
+    environment:
+      <<: *surf-env
+      JVM_ARGS: -Xmx2G
+    depends_on:
+      ms-core: { condition: service_started }
+      ms-transaction: { condition: service_started }
+      ms-roleplay: { condition: service_started }
+    command: ["sh", "/scripts/start-server.sh", "paper", "--nogui"]
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./jars:/jars:ro
+      - ./templates/paper:/templates:ro
+      - ../../surf-roleplay-paper/build/libs:/build:ro
+      - ./run/paper:/data
+
+  velocity:
+    <<: *java-service
+    environment:
+      <<: *surf-env
+      JVM_ARGS: -Xmx512M
+    depends_on:
+      paper: { condition: service_started }
+    command: ["sh", "/scripts/start-server.sh", "velocity"]
+    ports: ["25565:25565"]
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./jars:/jars:ro
+      - ./templates/velocity:/templates:ro
+      - ../../surf-roleplay-velocity/build/libs:/build:ro
+      - ./run/velocity:/data
+
 volumes:
   postgres-data:

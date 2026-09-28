@@ -1,0 +1,6 @@
+# Only the keys the dev stack needs. Paper adds every other key with its default.
+proxies:
+  velocity:
+    enabled: true
+    online-mode: false
+    secret: surf-roleplay-dev-forwarding-secret
