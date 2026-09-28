@@ -43,6 +43,16 @@ class ScreenBuilder internal constructor(private val title: Component) : Element
     var closable: Boolean = true
 
     /**
+     * The name of the theme the screen is drawn with, such as [ScreenThemes.POLICE].
+     */
+    var theme: String = ScreenThemes.DEFAULT
+
+    /**
+     * The light or dark variant of the theme.
+     */
+    var variant: ScreenVariant = ScreenVariant.DARK
+
+    /**
      * The handler run when the screen is closed, or `null` for none.
      */
     private var closeHandler: CloseHandler? = null
@@ -63,7 +73,7 @@ class ScreenBuilder internal constructor(private val title: Component) : Element
      * @throws IllegalStateException if the builder does not hold exactly one root element
      * @throws IllegalArgumentException if two elements share an id
      */
-    internal fun build(): ScreenDefinition = ScreenDefinition(title, single(), closable, closeHandler)
+    internal fun build(): ScreenDefinition = ScreenDefinition(title, single(), closable, closeHandler, theme, variant)
 }
 
 /**
