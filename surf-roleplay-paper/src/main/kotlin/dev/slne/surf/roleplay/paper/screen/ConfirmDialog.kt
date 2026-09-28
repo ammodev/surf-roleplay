@@ -26,11 +26,6 @@ object ConfirmDialog {
     const val CANCEL_ID: String = "cancel"
 
     /**
-     * The width of a confirmation dialog's content, in GUI pixels.
-     */
-    private const val WIDTH: Int = 220
-
-    /**
      * Opens a confirmation dialog. Exactly one handler runs: [onConfirm] on confirmation, and
      * [onCancel] on cancel or when the dialog closes for any other reason.
      *
@@ -67,10 +62,10 @@ object ConfirmDialog {
                     onCancel()
                 }
             }
-            column("confirm_root", width = ElementSize.fixed(WIDTH), gap = 10, crossAlign = Alignment.STRETCH) {
+            column("confirm_root", gap = 10, crossAlign = Alignment.STRETCH) {
                 row("confirm_body", gap = 8, crossAlign = Alignment.CENTER) {
                     if (destructive) icon("confirm_icon", "triangle-alert", size = 16, tint = IconTint.DESTRUCTIVE)
-                    label("confirm_text", text, width = ElementSize.grow())
+                    label("confirm_text", text)
                 }
                 row("confirm_buttons", gap = 6, mainAlign = Alignment.END) {
                     button(CANCEL_ID, cancelLabel, submitsInput = false) { click ->

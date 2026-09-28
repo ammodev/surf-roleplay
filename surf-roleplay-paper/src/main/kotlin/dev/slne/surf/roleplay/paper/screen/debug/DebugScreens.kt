@@ -168,7 +168,7 @@ class DebugScreens(private val plugin: Plugin) {
         val definition = screen(Component.text("Details")) {
             this.theme = theme
             this.variant = variant
-            column("details", width = ElementSize.fixed(160), gap = 8, crossAlign = Alignment.STRETCH) {
+            column("details", gap = 8, crossAlign = Alignment.STRETCH) {
                 label("details_heading", Component.text("Seitenleiste").decorate(TextDecoration.BOLD), icon = "panel-right")
                 label("details_text", Component.text("Diese Leiste gleitet von rechts herein."))
                 label("details_hint", Component.text("Escape oder ein Klick daneben schließt sie."))
