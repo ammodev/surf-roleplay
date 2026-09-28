@@ -102,6 +102,16 @@ enum class TextKind {
      * The description of an item, muted and on at most two lines.
      */
     ITEM_DESCRIPTION,
+
+    /**
+     * The title of a popover.
+     */
+    POPOVER_TITLE,
+
+    /**
+     * The description of a popover, muted.
+     */
+    POPOVER_DESCRIPTION,
 }
 
 /**

@@ -122,6 +122,18 @@ enum class TextKind {
      */
     @ProtoNumber(18)
     ITEM_DESCRIPTION,
+
+    /**
+     * The title of a popover.
+     */
+    @ProtoNumber(19)
+    POPOVER_TITLE,
+
+    /**
+     * The description of a popover, muted.
+     */
+    @ProtoNumber(20)
+    POPOVER_DESCRIPTION,
 }
 
 /**

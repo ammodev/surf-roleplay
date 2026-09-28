@@ -58,14 +58,14 @@ data class TextStyle(
          * @return its style
          */
         fun of(kind: TextKind): TextStyle = when (kind) {
-            TextKind.P, TextKind.SMALL, TextKind.ITEM_TITLE -> TextStyle()
+            TextKind.P, TextKind.SMALL, TextKind.ITEM_TITLE, TextKind.POPOVER_TITLE -> TextStyle()
             TextKind.H1 -> TextStyle(scale = 2f, bold = true)
             TextKind.H2 -> TextStyle(scale = 1.75f, bold = true, padding = Insets(bottom = 4))
             TextKind.H3 -> TextStyle(scale = 1.5f, bold = true)
             TextKind.H4 -> TextStyle(scale = 1.25f, bold = true)
             TextKind.LEAD -> TextStyle(scale = 1.25f, muted = true)
             TextKind.LARGE, TextKind.CARD_TITLE -> TextStyle(bold = true)
-            TextKind.MUTED, TextKind.ALERT_DESCRIPTION, TextKind.CARD_DESCRIPTION -> TextStyle(muted = true)
+            TextKind.MUTED, TextKind.ALERT_DESCRIPTION, TextKind.CARD_DESCRIPTION, TextKind.POPOVER_DESCRIPTION -> TextStyle(muted = true)
             TextKind.BLOCKQUOTE -> TextStyle(italic = true, padding = Insets(left = 12))
             TextKind.INLINE_CODE -> TextStyle(padding = Insets(1, 3, 1, 3))
             TextKind.ALERT_TITLE -> TextStyle(maxLines = 1)

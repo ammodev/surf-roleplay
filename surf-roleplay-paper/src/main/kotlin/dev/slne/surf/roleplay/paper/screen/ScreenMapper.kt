@@ -164,6 +164,19 @@ import dev.slne.surf.roleplay.protocol.screen.ItemActionsNode
 import dev.slne.surf.roleplay.protocol.screen.ItemHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.ItemFooterNode
 import dev.slne.surf.roleplay.protocol.screen.ItemGroupNode
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.TooltipElement
+import dev.slne.surf.roleplay.protocol.screen.PopoverNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverContentNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.HoverCardNode
+import dev.slne.surf.roleplay.protocol.screen.HoverCardContentNode
+import dev.slne.surf.roleplay.protocol.screen.TooltipNode
+import dev.slne.surf.roleplay.protocol.screen.SetOpen
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -315,6 +328,15 @@ object ScreenMapper {
             is ItemHeaderElement -> ItemHeaderNode(element.id, width, height, element.children.map(::toNode))
             is ItemFooterElement -> ItemFooterNode(element.id, width, height, element.children.map(::toNode))
             is ItemGroupElement -> ItemGroupNode(element.id, width, height, element.children.map(::toNode))
+            is PopoverElement -> PopoverNode(element.id, width, height, element.children.map(::toNode), element.open, enumOf(element.side), align(element.align), element.onChange != null)
+            is PopoverContentElement -> PopoverContentNode(element.id, width, height, element.children.map(::toNode))
+            is PopoverHeaderElement -> PopoverHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is HoverCardElement -> HoverCardNode(
+                element.id, width, height, element.children.map(::toNode), element.open, enumOf(element.side), align(element.align),
+                element.openDelay, element.closeDelay, element.onChange != null,
+            )
+            is HoverCardContentElement -> HoverCardContentNode(element.id, width, height, element.children.map(::toNode))
+            is TooltipElement -> TooltipNode(element.id, width, height, element.children.map(::toNode), text(element.text), enumOf(element.side))
         }
     }
 
@@ -334,6 +356,7 @@ object ScreenMapper {
         is ScreenChange.SetEnabled -> SetEnabled(change.targetId, change.enabled)
         is ScreenChange.SetOptions -> SetOptions(change.targetId, groups(change.groups))
         is ScreenChange.SetInvalid -> SetInvalid(change.targetId, change.invalid)
+        is ScreenChange.SetOpen -> SetOpen(change.targetId, change.open)
     }
 
     /**

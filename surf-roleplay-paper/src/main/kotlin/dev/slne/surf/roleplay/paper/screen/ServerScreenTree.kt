@@ -1,6 +1,12 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.TooltipElement
 import dev.slne.surf.roleplay.api.client.common.screen.EmptyElement
 import dev.slne.surf.roleplay.api.client.common.screen.EmptyHeaderElement
 import dev.slne.surf.roleplay.api.client.common.screen.EmptyMediaElement
@@ -103,6 +109,7 @@ class ServerScreenTree(root: ScreenElement) {
             } ?: return false
 
             is ScreenChange.SetValue -> update(change.targetId) { element -> withValue(element, change.value) } ?: return false
+            is ScreenChange.SetOpen -> update(change.targetId) { element -> withValue(element, change.open.toString()) } ?: return false
             is ScreenChange.SetProgress -> update(change.targetId) { element ->
                 (element as? ProgressElement)?.copy(progress = change.progress)
             } ?: return false
@@ -278,6 +285,12 @@ class ServerScreenTree(root: ScreenElement) {
             is ItemHeaderElement -> container.copy(children = children)
             is ItemFooterElement -> container.copy(children = children)
             is ItemGroupElement -> container.copy(children = children)
+            is PopoverElement -> container.copy(children = children)
+            is PopoverContentElement -> container.copy(children = children)
+            is PopoverHeaderElement -> container.copy(children = children)
+            is HoverCardElement -> container.copy(children = children)
+            is HoverCardContentElement -> container.copy(children = children)
+            is TooltipElement -> container.copy(children = children)
         }
     }
 }

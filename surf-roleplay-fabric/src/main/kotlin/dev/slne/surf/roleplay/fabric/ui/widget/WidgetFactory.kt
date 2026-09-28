@@ -3,6 +3,12 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverContentNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.HoverCardNode
+import dev.slne.surf.roleplay.protocol.screen.HoverCardContentNode
+import dev.slne.surf.roleplay.protocol.screen.TooltipNode
 import dev.slne.surf.roleplay.protocol.screen.EmptyNode
 import dev.slne.surf.roleplay.protocol.screen.EmptyHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.EmptyMediaNode
@@ -176,6 +182,12 @@ object WidgetFactory {
             is ItemHeaderNode -> container(ItemHeaderWidget(node.id), node.children)
             is ItemFooterNode -> container(ItemFooterWidget(node.id), node.children)
             is ItemGroupNode -> container(ItemGroupWidget(node.id), node.children)
+            is PopoverNode -> container(PopoverWidget(node.id, node.side, node.align), node.children).apply { requestOpen(node.open) }
+            is PopoverContentNode -> container(PopoverContentWidget(node.id), node.children)
+            is PopoverHeaderNode -> container(PopoverHeaderWidget(node.id), node.children)
+            is HoverCardNode -> container(HoverCardWidget(node.id, node.side, node.align, node.openDelay, node.closeDelay), node.children).apply { requestOpen(node.open) }
+            is HoverCardContentNode -> container(PopoverContentWidget(node.id), node.children)
+            is TooltipNode -> container(TooltipWidget(node.id, node.text, node.side), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -194,6 +206,8 @@ object WidgetFactory {
             is RadioGroupNode -> node.notifyChange
             is SliderNode -> node.notifyChange
             is InputOtpNode -> node.notifyChange
+            is PopoverNode -> node.notifyChange
+            is HoverCardNode -> node.notifyChange
             else -> false
         }
         return widget

@@ -34,6 +34,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
 import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupCountElement
 import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
 import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
+import dev.slne.surf.roleplay.api.client.common.screen.TooltipElement
 import dev.slne.surf.roleplay.api.client.common.screen.KbdElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import net.kyori.adventure.text.Component
@@ -132,6 +135,22 @@ object ElementRules {
      * @return whether it is enabled
      */
     fun isEnabled(element: ScreenElement): Boolean = rule(element)?.enabled?.invoke(element) ?: true
+
+    /**
+     * Creates the input rule of an overlay whose value is its open state, `true` or `false`.
+     *
+     * @param E the element class
+     * @param open returns whether the overlay is open
+     * @param withOpen returns a copy that is open or closed
+     * @param onChange returns the handler of open-state changes, or `null` for none
+     * @return the rule
+     */
+    fun <E : ScreenElement> openState(open: (E) -> Boolean, withOpen: (E, Boolean) -> E, onChange: (E) -> ChangeHandler?): InputRule<E> = InputRule(
+        current = { open(it).toString() },
+        violation = { _, v -> if (v == "true" || v == "false") null else "value must be true or false" },
+        withValue = { e, v -> withOpen(e, v == "true") },
+        onChange = onChange,
+    )
 
     /**
      * Checks a value against the constraints of a number range.
@@ -381,6 +400,9 @@ object ElementRules {
         register(BadgeElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(AvatarElement::class, ElementRule(withText = { e, t -> e.copy(fallback = t) }))
         register(ItemElement::class, ElementRule(action = { item -> item.onClick?.let { ActionRule(it, submitsInput = false) } }))
+        register(PopoverElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(HoverCardElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(TooltipElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(AvatarGroupCountElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(FieldSeparatorElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(
