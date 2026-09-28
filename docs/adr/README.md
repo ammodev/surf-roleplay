@@ -61,3 +61,5 @@ Create the next record with `/surf:new-adr`.
 | [0052](0052-screen-inputs-submit-with-actions-and-can-send-change-events.md) | Screen inputs submit with actions and can send change events | Accepted | 2026-09-28 |
 | [0053](0053-dates-are-shown-in-german-and-sent-as-iso-dates.md) | Dates are shown in German and sent as ISO dates | Accepted | 2026-09-28 |
 | [0054](0054-comboboxes-filter-on-the-client-with-an-optional-search-event.md) | Comboboxes filter on the client with an optional search event | Accepted | 2026-09-28 |
+| [0055](0055-screen-texts-wrap-to-the-width-their-container-gives-them.md) | Screen texts wrap to the width their container gives them | Accepted | 2026-09-28 |
+| [0056](0056-avatars-show-player-heads-or-resource-pack-textures.md) | Avatars show player heads or resource-pack textures | Accepted | 2026-09-28 |
