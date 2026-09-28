@@ -1,0 +1,456 @@
+package dev.slne.surf.roleplay.fabric.ui.widget
+
+import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
+import dev.slne.surf.roleplay.fabric.ui.UiGraphics
+import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
+import dev.slne.surf.roleplay.fabric.ui.layout.Rect
+import dev.slne.surf.roleplay.fabric.ui.layout.Size
+import dev.slne.surf.roleplay.fabric.ui.theme.RoleplayTheme
+import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.Insets
+import dev.slne.surf.roleplay.protocol.screen.Sizing
+import net.minecraft.client.input.CharacterEvent
+import net.minecraft.client.input.KeyEvent
+
+/**
+ * What a widget can ask of the screen that shows it while handling input.
+ */
+interface UiContext {
+    /**
+     * The widget that receives keyboard input, or `null` if none does.
+     */
+    val focusedWidget: Widget?
+
+    /**
+     * Gives a widget the keyboard focus, or clears it.
+     *
+     * @param widget the widget to focus, or `null` to clear the focus
+     */
+    fun focus(widget: Widget?)
+
+    /**
+     * Shows a dropdown's option list above everything else, replacing any open list.
+     *
+     * @param dropdown the dropdown whose options to show
+     */
+    fun openDropdown(dropdown: DropdownWidget)
+
+    /**
+     * Hides the open dropdown option list, if any.
+     */
+    fun closeDropdown()
+
+    /**
+     * Asks the screen to lay its tree out again before the next frame.
+     */
+    fun requestLayout()
+
+    /**
+     * Reports that the player clicked a button.
+     *
+     * @param button the clicked button
+     */
+    fun buttonClicked(button: ButtonWidget)
+
+    /**
+     * The text on the system clipboard.
+     */
+    var clipboard: String
+}
+
+/**
+ * A node of a roleplay screen's widget tree.
+ *
+ * A widget describes its layout through [createLayout], receives its [bounds] once the tree is
+ * laid out, draws itself and handles the input that reaches it.
+ *
+ * @property id the id of the widget, unique within its screen
+ */
+abstract class Widget(val id: String) {
+    /**
+     * How wide the widget is laid out.
+     */
+    var width: Sizing = Sizing.FIT
+
+    /**
+     * How tall the widget is laid out.
+     */
+    var height: Sizing = Sizing.FIT
+
+    /**
+     * Whether the widget can be used. Disabled widgets ignore input and are drawn dimmed.
+     */
+    var enabled: Boolean = true
+
+    /**
+     * The area the widget occupies on screen, set by the last layout.
+     */
+    var bounds: Rect = Rect.EMPTY
+        internal set
+
+    /**
+     * The layout box created for the widget by the last [createLayout].
+     */
+    internal var layoutBox: LayoutBox? = null
+
+    /**
+     * Whether a click can give this widget the keyboard focus.
+     */
+    open val focusable: Boolean get() = false
+
+    /**
+     * The child widgets, empty for leaves.
+     */
+    open val children: List<Widget> get() = emptyList()
+
+    /**
+     * Computes the size of the widget's content, used when it fits its content.
+     *
+     * @param measurer the text measurer
+     * @return the content size
+     */
+    abstract fun contentSize(measurer: TextMeasurer): Size
+
+    /**
+     * Creates the layout box of this widget, and of its children for containers.
+     *
+     * @param measurer the text measurer
+     * @return the layout box
+     */
+    open fun createLayout(measurer: TextMeasurer): LayoutBox =
+        LayoutBox(width = width, height = height, content = contentSize(measurer)).also { layoutBox = it }
+
+    /**
+     * Copies the bounds computed for the layout boxes into this widget and its children.
+     */
+    open fun applyLayout() {
+        bounds = layoutBox?.bounds ?: Rect.EMPTY
+    }
+
+    /**
+     * Moves the widget and its children by an offset.
+     *
+     * @param dx the horizontal offset
+     * @param dy the vertical offset
+     */
+    open fun offset(dx: Int, dy: Int) {
+        bounds = bounds.copy(x = bounds.x + dx, y = bounds.y + dy)
+    }
+
+    /**
+     * Draws the widget.
+     *
+     * @param ui the graphics to draw with
+     * @param context the screen showing the widget
+     * @param mouseX the mouse x position, or a position outside the screen if the mouse is hidden
+     *        from this widget
+     * @param mouseY the mouse y position
+     */
+    abstract fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int)
+
+    /**
+     * Handles a mouse click.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param button the mouse button
+     * @return whether the click was handled
+     */
+    open fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean = false
+
+    /**
+     * Handles mouse wheel scrolling.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param amount the scroll amount; positive scrolls up
+     * @return whether the scrolling was handled
+     */
+    open fun mouseScrolled(context: UiContext, x: Double, y: Double, amount: Double): Boolean = false
+
+    /**
+     * Handles a key press while this widget has the focus.
+     *
+     * @param context the screen showing the widget
+     * @param event the key event
+     * @return whether the key was handled
+     */
+    open fun keyPressed(context: UiContext, event: KeyEvent): Boolean = false
+
+    /**
+     * Handles a typed character while this widget has the focus.
+     *
+     * @param context the screen showing the widget
+     * @param event the character event
+     * @return whether the character was handled
+     */
+    open fun charTyped(context: UiContext, event: CharacterEvent): Boolean = false
+
+    /**
+     * The widget's input value in the string form sent to the server, or `null` if the widget is
+     * not an input.
+     */
+    open val inputValue: String? get() = null
+
+    /**
+     * Sets the widget's input value from its string form. Widgets that are not inputs ignore it.
+     *
+     * @param value the value
+     */
+    open fun applyValue(value: String) = Unit
+
+    /**
+     * Sets the widget's text from component JSON. Widgets without text ignore it.
+     *
+     * @param json the component JSON
+     */
+    open fun applyText(json: String) = Unit
+
+    /**
+     * Checks whether a point is on this widget.
+     *
+     * @param x the x position
+     * @param y the y position
+     * @return whether the point lies within [bounds]
+     */
+    fun isOver(x: Double, y: Double): Boolean = bounds.contains(x, y)
+
+    /**
+     * Checks whether a point is on this widget.
+     *
+     * @param x the x position
+     * @param y the y position
+     * @return whether the point lies within [bounds]
+     */
+    fun isOver(x: Int, y: Int): Boolean = bounds.contains(x.toDouble(), y.toDouble())
+}
+
+/**
+ * A widget that lays out child widgets along an axis.
+ *
+ * @param id the id of the widget
+ * @property axis the layout axis
+ */
+open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
+    /**
+     * The child widgets, in layout order.
+     */
+    val childList: MutableList<Widget> = mutableListOf()
+
+    override val children: List<Widget> get() = childList
+
+    /**
+     * The space between two children, in GUI pixels.
+     */
+    var gap: Int = 0
+
+    /**
+     * The space inside the container's edges.
+     */
+    var padding: Insets = Insets.NONE
+
+    /**
+     * How the children are placed along the axis.
+     */
+    var mainAlign: Align = Align.START
+
+    /**
+     * How the children are placed across the axis.
+     */
+    var crossAlign: Align = Align.START
+
+    /**
+     * Whether the children may extend beyond the container along its axis.
+     */
+    protected open val scrolls: Boolean get() = false
+
+    /**
+     * Returns the size of a container's content, which the layout computes from its children.
+     *
+     * @param measurer the text measurer
+     * @return zero
+     */
+    override fun contentSize(measurer: TextMeasurer): Size = Size.ZERO
+
+    /**
+     * Creates the layout box of this container with the boxes of its children.
+     *
+     * @param measurer the text measurer
+     * @return the layout box
+     */
+    override fun createLayout(measurer: TextMeasurer): LayoutBox = LayoutBox(
+        width = width,
+        height = height,
+        axis = axis,
+        children = childList.map { it.createLayout(measurer) },
+        gap = gap,
+        padding = padding,
+        mainAlign = mainAlign,
+        crossAlign = crossAlign,
+        scrolls = scrolls,
+    ).also { layoutBox = it }
+
+    /**
+     * Copies the computed bounds into this container and its children.
+     */
+    override fun applyLayout() {
+        super.applyLayout()
+        childList.forEach { it.applyLayout() }
+    }
+
+    /**
+     * Moves the container and its children by an offset.
+     *
+     * @param dx the horizontal offset
+     * @param dy the vertical offset
+     */
+    override fun offset(dx: Int, dy: Int) {
+        super.offset(dx, dy)
+        childList.forEach { it.offset(dx, dy) }
+    }
+
+    /**
+     * Draws every child.
+     *
+     * @param ui the graphics to draw with
+     * @param context the screen showing the widget
+     * @param mouseX the mouse x position
+     * @param mouseY the mouse y position
+     */
+    override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
+        childList.forEach { it.render(ui, context, mouseX, mouseY) }
+    }
+
+    /**
+     * Passes a click to the children until one handles it.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param button the mouse button
+     * @return whether a child handled the click
+     */
+    override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean =
+        childList.any { it.mouseClicked(context, x, y, button) }
+
+    /**
+     * Passes scrolling to the children until one handles it.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param amount the scroll amount
+     * @return whether a child handled the scrolling
+     */
+    override fun mouseScrolled(context: UiContext, x: Double, y: Double, amount: Double): Boolean =
+        childList.any { it.mouseScrolled(context, x, y, amount) }
+}
+
+/**
+ * A vertical container whose children can be taller than itself and are scrolled with the mouse
+ * wheel. Children outside the list are clipped and do not receive the mouse.
+ *
+ * The children are stretched across the list's width, leaving room for the scroll bar at the
+ * right.
+ *
+ * @param id the id of the widget
+ */
+class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
+    override val scrolls: Boolean get() = true
+
+    init {
+        crossAlign = Align.STRETCH
+        padding = Insets(right = RoleplayTheme.SCROLL_BAR_WIDTH + 2)
+    }
+
+    /**
+     * How far the content is scrolled, in GUI pixels from the top.
+     */
+    var scrollOffset: Int = 0
+        private set
+
+    /**
+     * The largest scroll offset allowed by the last layout.
+     */
+    private var maxScroll: Int = 0
+
+    /**
+     * Copies the computed bounds into the list and its children, and shifts the children by the
+     * scroll offset, clamped to the content.
+     */
+    override fun applyLayout() {
+        super.applyLayout()
+        val box = layoutBox ?: return
+        maxScroll = (box.contentExtent - bounds.height).coerceAtLeast(0)
+        scrollOffset = scrollOffset.coerceIn(0, maxScroll)
+        childList.forEach { it.offset(0, -scrollOffset) }
+    }
+
+    /**
+     * Draws the children clipped to the list, and a scroll bar if the content is taller than the
+     * list.
+     *
+     * @param ui the graphics to draw with
+     * @param context the screen showing the widget
+     * @param mouseX the mouse x position
+     * @param mouseY the mouse y position
+     */
+    override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
+        val inside = isOver(mouseX, mouseY)
+        ui.clipped(bounds) {
+            super.render(ui, context, if (inside) mouseX else HIDDEN, if (inside) mouseY else HIDDEN)
+        }
+        if (maxScroll > 0) {
+            val track = Rect(bounds.right - RoleplayTheme.SCROLL_BAR_WIDTH, bounds.y, RoleplayTheme.SCROLL_BAR_WIDTH, bounds.height)
+            ui.fill(track, RoleplayTheme.SCROLL_TRACK)
+            val content = bounds.height + maxScroll
+            val handleHeight = (bounds.height * bounds.height / content).coerceAtLeast(8)
+            val handleY = bounds.y + (bounds.height - handleHeight) * scrollOffset / maxScroll
+            ui.fill(Rect(track.x, handleY, track.width, handleHeight), RoleplayTheme.SCROLL_HANDLE)
+        }
+    }
+
+    /**
+     * Passes a click inside the list to the children.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param button the mouse button
+     * @return whether a child handled the click
+     */
+    override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean =
+        isOver(x, y) && super.mouseClicked(context, x, y, button)
+
+    /**
+     * Passes scrolling to the children first, and otherwise scrolls the list if the mouse is over
+     * it.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param amount the scroll amount; positive scrolls up
+     * @return whether the scrolling was handled
+     */
+    override fun mouseScrolled(context: UiContext, x: Double, y: Double, amount: Double): Boolean {
+        if (!isOver(x, y)) return false
+        if (super.mouseScrolled(context, x, y, amount)) return true
+        if (maxScroll == 0) return false
+        scrollOffset = (scrollOffset - (amount * RoleplayTheme.SCROLL_STEP).toInt()).coerceIn(0, maxScroll)
+        context.requestLayout()
+        return true
+    }
+
+    /**
+     * Holds the hidden mouse position.
+     */
+    private companion object {
+        /**
+         * A mouse position that no widget is under.
+         */
+        const val HIDDEN: Int = Int.MIN_VALUE / 2
+    }
+}
