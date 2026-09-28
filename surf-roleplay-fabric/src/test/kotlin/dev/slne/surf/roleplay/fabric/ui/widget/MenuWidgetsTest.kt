@@ -233,4 +233,15 @@ class MenuWidgetsTest {
         assertEquals(edit, panel.popover?.owner)
         assertTrue(edit.open)
     }
+
+    /**
+     * Verifies that menubar triggers and menu labels are measured with the bold text they draw.
+     */
+    @Test
+    fun `bold menu texts are measured bold`() {
+        val bold = measurer.width(TextStyle.styled("\"Datei\"", bold = true, italic = false))
+
+        assertEquals(bold + 2 * 4, MenubarTriggerWidget("t", "\"Datei\"").contentSize(measurer).width)
+        assertEquals(MenuStyle.PADDING_X + bold + MenuStyle.PADDING_X, MenuLabelWidget("l", "\"Datei\"", false).contentSize(measurer).width)
+    }
 }

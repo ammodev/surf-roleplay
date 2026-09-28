@@ -454,13 +454,13 @@ class MenuRadioItemWidget(id: String, var text: String, val value: String) : Men
 class MenuLabelWidget(id: String, var text: String, val inset: Boolean) : Widget(id) {
 
     /**
-     * Returns the size of the text on one line.
+     * Returns the size of the bold text on one line.
      *
      * @param measurer the text measurer
      * @return the size
      */
     override fun contentSize(measurer: TextMeasurer): Size =
-        Size((if (inset) MenuStyle.INSET else MenuStyle.PADDING_X) + measurer.width(text) + MenuStyle.PADDING_X, MenuStyle.ITEM_HEIGHT)
+        Size((if (inset) MenuStyle.INSET else MenuStyle.PADDING_X) + measurer.width(TextStyle.styled(text, bold = true, italic = false)) + MenuStyle.PADDING_X, MenuStyle.ITEM_HEIGHT)
 
     /**
      * Draws the text.
@@ -986,12 +986,12 @@ class MenubarTriggerWidget(id: String, var text: String) : Widget(id) {
     override val focusable: Boolean get() = enabled
 
     /**
-     * Returns the size of the text with padding.
+     * Returns the size of the bold text with padding.
      *
      * @param measurer the text measurer
      * @return the size
      */
-    override fun contentSize(measurer: TextMeasurer): Size = Size(measurer.width(text) + 2 * PADDING_X, HEIGHT)
+    override fun contentSize(measurer: TextMeasurer): Size = Size(measurer.width(TextStyle.styled(text, bold = true, italic = false)) + 2 * PADDING_X, HEIGHT)
 
     /**
      * Draws the highlight while hovered or while the menu is open, and the text.
