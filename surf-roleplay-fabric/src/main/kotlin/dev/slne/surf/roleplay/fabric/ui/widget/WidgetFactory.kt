@@ -3,6 +3,9 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
@@ -323,6 +326,12 @@ object WidgetFactory {
             is PaginationNextNode -> PaginationLinkWidget(node.id, node.text, false, PaginationLinkKind.NEXT).apply { enabled = node.enabled }
             is PaginationEllipsisNode -> EllipsisWidget(node.id, PaginationLinkWidget.HEIGHT, clickable = false)
             is ScrollAreaNode -> container(ScrollAreaWidget(node.id, node.orientation), node.children)
+            is ResizablePanelGroupNode -> container(ResizablePanelGroupWidget(node.id, node.orientation), node.children).apply {
+                childList.filterIsInstance<ResizableHandleWidget>().forEach { it.group = this }
+                resetSizes()
+            }
+            is ResizablePanelNode -> container(ResizablePanelWidget(node.id, node.defaultSize, node.minSize, node.maxSize), node.children)
+            is ResizableHandleNode -> ResizableHandleWidget(node.id, node.withHandle)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -354,6 +363,7 @@ object WidgetFactory {
             is CollapsibleNode -> node.notifyChange
             is AccordionNode -> node.notifyChange
             is TabsNode -> node.notifyChange
+            is ResizablePanelGroupNode -> node.notifyChange
             else -> false
         }
         return widget

@@ -122,4 +122,23 @@ class NavigationComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that a resizable panel group survives a round trip.
+     */
+    @Test
+    fun `resizable groups round-trip`() {
+        val root = ResizablePanelGroupNode(
+            "group",
+            orientation = Orientation.VERTICAL,
+            notifyChange = true,
+            children = listOf(
+                ResizablePanelNode("one", defaultSize = 25.0, minSize = 10.0, maxSize = 60.0, children = listOf(LabelNode("a"))),
+                ResizableHandleNode("handle", withHandle = true),
+                ResizablePanelNode("two"),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

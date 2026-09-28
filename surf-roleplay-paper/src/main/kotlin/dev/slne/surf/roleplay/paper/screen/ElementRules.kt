@@ -52,6 +52,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbLinkElement
 import dev.slne.surf.roleplay.api.client.common.screen.PaginationLinkElement
 import dev.slne.surf.roleplay.api.client.common.screen.PaginationPreviousElement
@@ -341,6 +343,61 @@ object ElementRules {
         tabs.children.filterIsInstance<TabsListElement>().flatMap { list -> list.children.filterIsInstance<TabsTriggerElement>() }
 
     /**
+     * Returns the shares of the panels of a resizable group as the server holds them: the stored
+     * shares, or else the default sizes of the panels, where panels without one share what the
+     * others leave equally.
+     *
+     * @param group the group
+     * @return the shares in percent, in the order of the panels
+     */
+    private fun resizableSizes(group: ResizablePanelGroupElement): List<Double> {
+        val panels = group.children.filterIsInstance<ResizablePanelElement>()
+        if (group.sizes.size == panels.size) return group.sizes
+        val fixed = panels.filter { it.defaultSize > 0.0 }.sumOf { it.defaultSize }
+        val open = panels.count { it.defaultSize <= 0.0 }
+        val rest = if (open > 0) ((100.0 - fixed) / open).coerceAtLeast(0.0) else 0.0
+        return panels.map { (if (it.defaultSize > 0.0) it.defaultSize else rest).coerceIn(it.minSize, it.maxSize) }
+    }
+
+    /**
+     * Formats a share with at most one decimal.
+     *
+     * @param share the share in percent
+     * @return the share as text
+     */
+    private fun formatShare(share: Double): String {
+        val rounded = kotlin.math.round(share * 10) / 10
+        return if (rounded == rounded.toLong().toDouble()) rounded.toLong().toString() else rounded.toString()
+    }
+
+    /**
+     * Checks the shares a resizable group would take: one number per panel, each inside its
+     * panel's limits, together 100 percent.
+     *
+     * @param group the group
+     * @param value the shares in percent, comma separated
+     * @return a description of the violated constraint, or `null` if the shares are valid
+     */
+    private fun resizableViolation(group: ResizablePanelGroupElement, value: String): String? {
+        val panels = group.children.filterIsInstance<ResizablePanelElement>()
+        val shares = value.split(',').map { it.trim().toDoubleOrNull() ?: return "value is not a list of numbers" }
+        if (shares.size != panels.size) return "value does not name every panel"
+        if (shares.indices.any { shares[it] < panels[it].minSize - SHARE_TOLERANCE || shares[it] > panels[it].maxSize + SHARE_TOLERANCE }) return "a share is outside its panel's limits"
+        if (kotlin.math.abs(shares.sum() - 100.0) > SUM_TOLERANCE) return "the shares do not sum to 100"
+        return null
+    }
+
+    /**
+     * How far a panel share may lie outside its limits through rounding, in percent.
+     */
+    private const val SHARE_TOLERANCE: Double = 0.05
+
+    /**
+     * How far the shares of a resizable group may miss 100 percent through rounding.
+     */
+    private const val SUM_TOLERANCE: Double = 0.5
+
+    /**
      * Returns the items of an accordion, in order.
      *
      * @param accordion the accordion
@@ -544,6 +601,17 @@ object ElementRules {
         )
         register(AccordionItemElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
         register(AccordionTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            ResizablePanelGroupElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { e -> resizableSizes(e).joinToString(",") { formatShare(it) } },
+                    violation = { e, v -> resizableViolation(e, v) },
+                    withValue = { e, v -> e.copy(sizes = v.split(',').map { it.trim().toDouble() }) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
         register(
             BreadcrumbLinkElement::class,
             ElementRule(

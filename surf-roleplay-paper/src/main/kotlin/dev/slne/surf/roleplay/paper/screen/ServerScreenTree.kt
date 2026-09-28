@@ -1,6 +1,8 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbListElement
@@ -350,6 +352,8 @@ class ServerScreenTree(root: ScreenElement) {
             is PaginationContentElement -> container.copy(children = children)
             is PaginationItemElement -> container.copy(children = children)
             is ScrollAreaElement -> container.copy(children = children)
+            is ResizablePanelGroupElement -> container.copy(children = children)
+            is ResizablePanelElement -> container.copy(children = children)
             is DialogContentElement -> container.copy(children = children)
             is DialogHeaderElement -> container.copy(children = children)
             is DialogFooterElement -> container.copy(children = children)

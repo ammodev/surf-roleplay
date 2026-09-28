@@ -678,3 +678,83 @@ data class ScrollAreaNode(
      */
     override fun withChildren(children: List<ScreenNode>): ScrollAreaNode = copy(children = children)
 }
+
+/**
+ * A group of panels side by side or stacked, with handles between them that resize the panels on
+ * both sides.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the panels, with a handle between every two
+ * @property orientation whether the panels are side by side or stacked
+ * @property notifyChange whether the mod reports the panel sizes after the player resized them
+ */
+@Serializable
+@SerialName("resizable_panel_group")
+data class ResizablePanelGroupNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val orientation: Orientation = Orientation.HORIZONTAL,
+    @ProtoNumber(6) val notifyChange: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ResizablePanelGroupNode = copy(children = children)
+}
+
+/**
+ * A panel of a resizable group, taking a share of the group in percent.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, stacked
+ * @property defaultSize the share of the group the panel takes at first, in percent, or 0 to
+ *           share what the other panels leave
+ * @property minSize the smallest share the panel can take, in percent
+ * @property maxSize the largest share the panel can take, in percent
+ */
+@Serializable
+@SerialName("resizable_panel")
+data class ResizablePanelNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val defaultSize: Double = 0.0,
+    @ProtoNumber(6) val minSize: Double = 0.0,
+    @ProtoNumber(7) val maxSize: Double = 100.0,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ResizablePanelNode = copy(children = children)
+}
+
+/**
+ * A handle between two panels of a resizable group: a thin line, optionally with a grip, that is
+ * dragged or moved with the arrow keys.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property withHandle whether a grip is drawn on the line
+ */
+@Serializable
+@SerialName("resizable_handle")
+data class ResizableHandleNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val withHandle: Boolean = false,
+) : ScreenNode

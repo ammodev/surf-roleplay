@@ -10,6 +10,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.collapsible
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.resizableHandle
+import dev.slne.surf.roleplay.api.client.common.screen.resizablePanel
+import dev.slne.surf.roleplay.api.client.common.screen.resizablePanelGroup
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollOrientation
 import dev.slne.surf.roleplay.api.client.common.screen.scrollArea
@@ -48,6 +51,9 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import dev.slne.surf.roleplay.protocol.screen.ScrollOrientation as NodeScrollOrientation
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
@@ -355,5 +361,54 @@ class NavigationComponentsTest {
         assertEquals(120, area.width.value)
         assertEquals(80, area.height.value)
         assertEquals(1, area.children.size)
+    }
+
+    /**
+     * Opens a screen with a vertical resizable group of a panel of 30 percent (between 20 and 60)
+     * and a panel that takes the rest.
+     *
+     * @return the session id
+     */
+    private fun openResizable(): Int = state.open(
+        screen(Component.text("Resizable")) {
+            resizablePanelGroup("group", Orientation.VERTICAL, onChange = { report(it) }) {
+                resizablePanel("top", defaultSize = 30.0, minSize = 20.0, maxSize = 60.0) {}
+                resizableHandle("handle", withHandle = true)
+                resizablePanel("bottom") {}
+            }
+        },
+        null,
+    ).sessionId
+
+    /**
+     * Verifies that a resizable group maps to its nodes with its limits.
+     */
+    @Test
+    fun `resizable groups map to their nodes`() {
+        openResizable()
+
+        val group = assertIs<ResizablePanelGroupNode>(assertIs<WidgetScreenBody>((sent.last() as ScreenOpen).body).root)
+        assertEquals(NodeOrientation.VERTICAL, group.orientation)
+        assertTrue(group.notifyChange)
+        val top = assertIs<ResizablePanelNode>(group.children[0])
+        assertEquals(30.0, top.defaultSize)
+        assertEquals(20.0, top.minSize)
+        assertEquals(60.0, top.maxSize)
+        assertTrue(assertIs<ResizableHandleNode>(group.children[1]).withHandle)
+    }
+
+    /**
+     * Verifies that the sizes must name every panel, stay inside the limits and sum to 100.
+     */
+    @Test
+    fun `resizable sizes are validated`() {
+        val session = openResizable()
+
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChange(session, "group", "45.5,54.5")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "70,30")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "30,30")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "100")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "a,b")))
+        assertEquals(listOf("group=45.5,54.5"), reports)
     }
 }

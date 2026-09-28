@@ -820,3 +820,113 @@ fun ElementsBuilder.scrollArea(
     elements += ScrollAreaElement(id, build(children), orientation, width, height)
 }
 
+
+/**
+ * A group of panels side by side or stacked, with handles between them that resize the panels on
+ * both sides.
+ *
+ * @property id the id of this element
+ * @property children the panels, with a handle between every two
+ * @property orientation whether the panels are side by side or stacked
+ * @property onChange the handler run after the player resized the panels, with the shares in
+ *           percent, comma separated, or `null` for none
+ * @property sizes the shares of the panels in percent as the server holds them, or empty for the
+ *           default sizes of the panels
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ResizablePanelGroupElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val orientation: Orientation = Orientation.HORIZONTAL,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+    val sizes: List<Double> = emptyList(),
+) : ContainerElement
+
+/**
+ * A panel of a resizable group, taking a share of the group in percent.
+ *
+ * @property id the id of this element
+ * @property children the content, stacked
+ * @property defaultSize the share of the group the panel takes at first, in percent, or 0 to
+ *           share what the other panels leave
+ * @property minSize the smallest share the panel can take, in percent
+ * @property maxSize the largest share the panel can take, in percent
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ResizablePanelElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val defaultSize: Double = 0.0,
+    val minSize: Double = 0.0,
+    val maxSize: Double = 100.0,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A handle between two panels of a resizable group: a thin line, optionally with a grip, that is
+ * dragged or moved with the arrow keys.
+ *
+ * @property id the id of this element
+ * @property withHandle whether a grip is drawn on the line
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ResizableHandleElement(
+    override val id: String,
+    val withHandle: Boolean = false,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * Adds a resizable panel group. Its children are [resizablePanel]s with a [resizableHandle]
+ * between every two.
+ *
+ * @param id the id of the group
+ * @param orientation whether the panels are side by side or stacked
+ * @param width how wide the group is laid out
+ * @param height how tall the group is laid out
+ * @param onChange the handler run after the player resized the panels, with the shares in
+ *        percent, comma separated, or `null` for none
+ * @param children the builder of the panels and handles
+ */
+fun ElementsBuilder.resizablePanelGroup(
+    id: String,
+    orientation: Orientation = Orientation.HORIZONTAL,
+    width: ElementSize = ElementSize.grow(),
+    height: ElementSize = ElementSize.FIT,
+    onChange: ChangeHandler? = null,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += ResizablePanelGroupElement(id, build(children), orientation, onChange, width, height)
+}
+
+/**
+ * Adds a panel of a resizable group.
+ *
+ * @param id the id of the panel
+ * @param defaultSize the share of the group the panel takes at first, in percent, or 0 to share
+ *        what the other panels leave
+ * @param minSize the smallest share the panel can take, in percent
+ * @param maxSize the largest share the panel can take, in percent
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.resizablePanel(id: String, defaultSize: Double = 0.0, minSize: Double = 0.0, maxSize: Double = 100.0, children: ElementsBuilder.() -> Unit) {
+    elements += ResizablePanelElement(id, build(children), defaultSize, minSize, maxSize)
+}
+
+/**
+ * Adds a handle between two panels of a resizable group.
+ *
+ * @param id the id of the handle
+ * @param withHandle whether a grip is drawn on the line
+ */
+fun ElementsBuilder.resizableHandle(id: String, withHandle: Boolean = false) {
+    elements += ResizableHandleElement(id, withHandle)
+}
+

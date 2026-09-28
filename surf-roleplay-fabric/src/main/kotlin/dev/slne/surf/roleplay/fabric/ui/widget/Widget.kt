@@ -397,7 +397,7 @@ abstract class Widget(val id: String) {
      * @param y the y position
      * @return whether the point lies within [bounds]
      */
-    fun isOver(x: Double, y: Double): Boolean = bounds.contains(x, y)
+    open fun isOver(x: Double, y: Double): Boolean = bounds.contains(x, y)
 
     /**
      * Checks whether a point is on this widget.
@@ -406,7 +406,7 @@ abstract class Widget(val id: String) {
      * @param y the y position
      * @return whether the point lies within [bounds]
      */
-    fun isOver(x: Int, y: Int): Boolean = bounds.contains(x.toDouble(), y.toDouble())
+    fun isOver(x: Int, y: Int): Boolean = isOver(x.toDouble(), y.toDouble())
 }
 
 /**
