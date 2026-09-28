@@ -11,7 +11,8 @@ import org.bukkit.plugin.Plugin
  *
  * `/rpscreen` opens the generic demo screen, `/rpscreen inputs`, `/rpscreen display`,
  * `/rpscreen overlays` and `/rpscreen navigation` the pages of the input, display, overlay and
- * navigation components, and `/rpscreen counter` the typed debug counter. The command needs the permission [PERMISSION] and a player as sender.
+ * navigation components, `/rpscreen phone` the home screen of a smartphone, and
+ * `/rpscreen counter` the typed debug counter. The command needs the permission [PERMISSION] and a player as sender.
  */
 object ScreenDebugCommand {
 
@@ -56,6 +57,12 @@ object ScreenDebugCommand {
                     .then(
                         Commands.literal("navigation").executes { context ->
                             NavigationDemo.open(context.source.executor as Player)
+                            Command.SINGLE_SUCCESS
+                        },
+                    )
+                    .then(
+                        Commands.literal("phone").executes { context ->
+                            PhoneDemo.open(context.source.executor as Player)
                             Command.SINGLE_SUCCESS
                         },
                     )
