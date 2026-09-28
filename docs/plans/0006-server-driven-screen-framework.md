@@ -1,9 +1,9 @@
 # Plan 0006: Server-driven screen framework
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-28
 - **Accepted proposal:** A hybrid server-driven screen framework (generic widget trees and typed screens) with a public server API, an own mod UI toolkit, and roleplay-server scoping of the mod
-- **Decision records:** ADR-0032, ADR-0033, ADR-0034, ADR-0035, ADR-0036, ADR-0037, ADR-0038, ADR-0039, ADR-0040
+- **Decision records:** ADR-0032, ADR-0033, ADR-0034, ADR-0035, ADR-0036, ADR-0037, ADR-0038, ADR-0039, ADR-0040 (superseded during step 1 by ADR-0041), ADR-0041
 
 ## Goal
 
@@ -21,9 +21,8 @@ The server rejects and logs actions for unknown sessions, missing or disabled wi
 values that break an input's constraints. It also rate-limits actions per player. The mod
 enforces the same constraints while the player types.
 
-The mod sends its hello only to servers that announce `roleplay:hello` in the configuration
-phase. It enables screens only after the play-phase `welcome` packet, and resets on
-disconnect.
+The mod keeps sending its hello to every server. It enables screens only after the play-phase
+`welcome` packet, and resets on disconnect.
 
 The API for generic screens and for closing screens is public in `surf-roleplay-api`
 (model and DSL in `surf-roleplay-api-client-common`, the player-facing service in
@@ -71,12 +70,13 @@ Velocity logs of the same join.
 **Does:**
 - **Protocol:** adds the clientbound play packet `welcome` and bumps `PROTOCOL_VERSION` to 2.
   The later packet changes in this plan belong to the same unreleased version 2.
-- **Fabric:** sends the hello only at the point found in step 1, and adds a
+- **Fabric:** keeps sending the hello at the start of every configuration phase (step 1 found
+  that the server never announces the channel, and ADR-0041 records the outcome), and adds a
   `RoleplayServerState` that becomes active when `welcome` arrives and resets on disconnect.
 - **Paper:** sends `welcome` to every player who joins after a passed handshake.
 
-**Ends in:** On the dev stack, the dev client log shows the hello being sent and the
-roleplay state turning active after join. It shows the state resetting after disconnect.
+**Ends in:** On the dev stack, the dev client log shows the roleplay state turning active
+after join. It shows the state resetting after disconnect.
 
 **Verified by:** `./gradlew build` passes, the protocol tests cover the `welcome` round trip,
 and a live join and leave on the dev stack show the log lines above.

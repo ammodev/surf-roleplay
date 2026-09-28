@@ -1,9 +1,9 @@
 # ADR-0033: Generic screens are trees of flex containers and fixed widgets
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0051
 - **Date:** 2026-09-28
 - **Supersedes:** none
-- **Superseded by:** none
+- **Superseded by:** ADR-0051
 
 ## Context
 

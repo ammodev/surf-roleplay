@@ -17,4 +17,7 @@ surfPaperPluginApi {
 dependencies {
     api(projects.surfRoleplayCore.surfRoleplayCoreClient.surfRoleplayCoreClientPaper)
     implementation(projects.surfRoleplayProtocol)
+
+    testRuntimeOnly("com.google.flogger:flogger:0.9")
+    testRuntimeOnly("com.google.flogger:flogger-system-backend:0.9")
 }

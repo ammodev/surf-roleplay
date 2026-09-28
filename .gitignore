@@ -22,3 +22,6 @@ surf-roleplay-fabric/run/
 # Dev stack runtime data and downloaded jars
 tools/devenv/run/
 tools/devenv/jars/
+
+# Screenshots from live verification runs
+screenshots/

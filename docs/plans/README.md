@@ -17,4 +17,5 @@ Create the next plan with `/surf:new-plan`.
 | [0003](0003-roadmap-agent-access.md) | Roadmap agent access | 2026-09-27 | Done |
 | [0004](0004-protocol-mod-skeleton-and-handshake.md) | Protocol module, mod skeleton and handshake | 2026-09-27 | Done |
 | [0005](0005-docker-dev-stack.md) | Docker dev stack | 2026-09-28 | Done |
-| [0006](0006-server-driven-screen-framework.md) | Server-driven screen framework | 2026-09-28 | In progress |
+| [0006](0006-server-driven-screen-framework.md) | Server-driven screen framework | 2026-09-28 | Done |
+| [0007](0007-screen-foundations.md) | Screen foundations | 2026-09-28 | Done |

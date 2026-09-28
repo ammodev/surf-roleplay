@@ -1,0 +1,214 @@
+import org.apache.batik.transcoder.TranscoderInput
+import org.apache.batik.transcoder.TranscoderOutput
+import org.apache.batik.transcoder.image.ImageTranscoder
+import org.apache.batik.transcoder.image.PNGTranscoder
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.net.URI
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
+import java.util.zip.ZipFile
+import javax.imageio.ImageIO
+
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath("org.apache.xmlgraphics:batik-transcoder:1.19")
+        classpath("org.apache.xmlgraphics:batik-codec:1.19")
+    }
+}
+
+/** The pinned Lucide release whose icons the mod ships. */
+val lucideVersion = "1.48.0"
+
+/** The SHA-256 of the pinned release archive. */
+val lucideArchiveSha256 = "e27a6b58bebc563581f89668a5a652782075a85a07568e4fd8051a17ce81dba6"
+
+/** The SHA-256 of the pinned release's licence file. */
+val lucideLicenseSha256 = "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+
+/** The side length of one icon in the atlas, in pixels. */
+val lucideCell = 64
+
+/** The number of icons per atlas row. */
+val lucideColumns = 64
+
+/** Where the downloaded release and its licence are kept. */
+val lucideDownloads = layout.buildDirectory.dir("lucide/$lucideVersion")
+
+/** Where the atlas, index and licence are generated as mod resources. */
+val lucideResources = layout.buildDirectory.dir("generated/lucide")
+
+/** Whether Gradle runs offline, in which case nothing is downloaded. */
+val offline = gradle.startParameter.isOffline
+
+/**
+ * Computes the SHA-256 of a file.
+ *
+ * @param file the file
+ * @return the lower-case hexadecimal digest
+ */
+fun sha256(file: File): String =
+    MessageDigest.getInstance("SHA-256").digest(file.readBytes()).joinToString("") { "%02x".format(it) }
+
+/**
+ * Makes sure a pinned file exists with its expected digest, downloading it through a temporary file
+ * if it is missing or does not match.
+ *
+ * @param url the download URL
+ * @param target the file to create
+ * @param expected the expected SHA-256
+ * @throws GradleException if the file cannot be downloaded offline or its digest does not match
+ */
+fun ensurePinned(url: String, target: File, expected: String) {
+    if (target.exists() && sha256(target) == expected) return
+    if (offline) throw GradleException("${target.name} is missing or changed and Gradle runs offline; run once online")
+    val temporary = File(target.parentFile, target.name + ".part")
+    URI(url).toURL().openStream().use { input -> temporary.outputStream().use { input.copyTo(it) } }
+    val actual = sha256(temporary)
+    if (actual != expected) {
+        temporary.delete()
+        throw GradleException("${target.name} has SHA-256 $actual, expected $expected")
+    }
+    Files.move(temporary.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+}
+
+/** Downloads the pinned Lucide icon release and its licence, and checks both against their digests. */
+val downloadLucide = tasks.register("downloadLucide") {
+    description = "Downloads the pinned Lucide icon release and its licence."
+    val target = lucideDownloads
+    inputs.property("version", lucideVersion)
+    inputs.property("archiveSha256", lucideArchiveSha256)
+    inputs.property("licenseSha256", lucideLicenseSha256)
+    outputs.dir(target)
+    doLast {
+        val dir = target.get().asFile.apply { mkdirs() }
+        ensurePinned(
+            "https://github.com/lucide-icons/lucide/releases/download/$lucideVersion/lucide-icons-$lucideVersion.zip",
+            dir.resolve("lucide-icons.zip"),
+            lucideArchiveSha256,
+        )
+        ensurePinned("https://raw.githubusercontent.com/lucide-icons/lucide/$lucideVersion/LICENSE", dir.resolve("LICENSE"), lucideLicenseSha256)
+    }
+}
+
+/**
+ * Rasterises every Lucide icon into one white texture atlas, writes a name index with aliases and
+ * categories, copies the licence, and writes a contact sheet. Fails if any icon cannot be rasterised.
+ */
+val rasterizeLucide = tasks.register("rasterizeLucide") {
+    description = "Rasterises every Lucide icon into one white texture atlas with a name index and a contact sheet."
+    dependsOn(downloadLucide)
+    val source = lucideDownloads
+    val target = lucideResources
+    val sheet = layout.buildDirectory.file("lucide/contact-sheet.png")
+    inputs.dir(source)
+    inputs.property("cell", lucideCell)
+    inputs.property("columns", lucideColumns)
+    inputs.property("rasteriser", "batik-1.19")
+    inputs.file(project.file("lucide.gradle.kts"))
+    outputs.dir(target)
+    outputs.file(sheet)
+    doLast {
+        ZipFile(source.get().asFile.resolve("lucide-icons.zip")).use { zip ->
+            val entries = zip.entries().toList().filter { it.name.startsWith("icons/") && it.name.endsWith(".svg") }.sortedBy { it.name }
+            val rows = (entries.size + lucideColumns - 1) / lucideColumns
+            val atlas = BufferedImage(lucideColumns * lucideCell, rows * lucideCell, BufferedImage.TYPE_INT_ARGB)
+            val index = StringBuilder("{\"version\":\"$lucideVersion\",\"cell\":$lucideCell,\"columns\":$lucideColumns,\"width\":${atlas.width},\"height\":${atlas.height},\"icons\":{")
+            val aliasPattern = Regex("\"name\"\\s*:\\s*\"([a-z0-9-]+)\"")
+            val categoryBlock = Regex("\"categories\"\\s*:\\s*\\[([^]]*)]")
+            val failed = mutableListOf<String>()
+            var first = true
+
+            entries.forEachIndexed { position, entry ->
+                val name = entry.name.removePrefix("icons/").removeSuffix(".svg")
+                val svg = zip.getInputStream(entry).readBytes().toString(Charsets.UTF_8).replace("currentColor", "#ffffff")
+                val column = position % lucideColumns
+                val row = position / lucideColumns
+                try {
+                    val image = rasterize(svg, lucideCell)
+                    atlas.createGraphics().apply { drawImage(image, column * lucideCell, row * lucideCell, null); dispose() }
+                } catch (exception: Exception) {
+                    failed += "$name: ${exception.message}"
+                    return@forEachIndexed
+                }
+
+                val meta = zip.getEntry("icons/$name.json")?.let { zip.getInputStream(it).readBytes().toString(Charsets.UTF_8) } ?: ""
+                val aliases = meta.substringAfter("\"aliases\"", "").let { part -> aliasPattern.findAll(part).map { it.groupValues[1] }.toList() }
+                val categories = categoryBlock.find(meta)?.groupValues?.get(1)?.split(',')?.map { it.trim().trim('"') }?.filter { it.isNotEmpty() } ?: emptyList()
+                for (key in listOf(name) + aliases) {
+                    if (!first) index.append(',')
+                    first = false
+                    index.append("\"$key\":{\"x\":$column,\"y\":$row")
+                    if (key != name) index.append(",\"alias\":\"$name\"") else index.append(",\"categories\":[${categories.joinToString(",") { "\"$it\"" }}]")
+                    index.append('}')
+                }
+            }
+            index.append("}}")
+            if (failed.isNotEmpty()) throw GradleException("Could not rasterise ${failed.size} Lucide icons:\n" + failed.joinToString("\n"))
+
+            val out = target.get().asFile.apply { deleteRecursively() }
+            val textures = out.resolve("assets/surf-roleplay/textures/gui").apply { mkdirs() }
+            ImageIO.write(atlas, "png", textures.resolve("lucide.png"))
+            textures.resolve("lucide.png.mcmeta").writeText("{\"texture\":{\"blur\":true,\"clamp\":true}}")
+            val meta = out.resolve("assets/surf-roleplay/lucide").apply { mkdirs() }
+            meta.resolve("index.json").writeText(index.toString())
+            source.get().asFile.resolve("LICENSE").copyTo(meta.resolve("LICENSE.txt"), overwrite = true)
+
+            val contact = BufferedImage(atlas.width, atlas.height, BufferedImage.TYPE_INT_RGB)
+            contact.createGraphics().apply {
+                color = Color(0x17, 0x17, 0x17)
+                fillRect(0, 0, contact.width, contact.height)
+                drawImage(atlas, 0, 0, null)
+                dispose()
+            }
+            ImageIO.write(contact, "png", sheet.get().asFile)
+            logger.lifecycle("Rasterised ${entries.size} Lucide icons into a ${atlas.width}x${atlas.height} atlas")
+        }
+    }
+}
+
+/**
+ * Rasterises an SVG document into a square image.
+ *
+ * @param svg the SVG source
+ * @param size the side length in pixels
+ * @return the image
+ * @throws IllegalStateException if the transcoder produced no image
+ */
+fun rasterize(svg: String, size: Int): BufferedImage {
+    var result: BufferedImage? = null
+    val transcoder = object : ImageTranscoder() {
+        /**
+         * Creates the image the SVG is drawn into.
+         *
+         * @param width the width in pixels
+         * @param height the height in pixels
+         * @return a transparent ARGB image
+         */
+        override fun createImage(width: Int, height: Int) = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+
+        /**
+         * Keeps the drawn image instead of encoding it.
+         *
+         * @param image the drawn image
+         * @param output the unused transcoder output
+         */
+        override fun writeImage(image: BufferedImage, output: TranscoderOutput?) {
+            result = image
+        }
+    }
+    transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, size.toFloat())
+    transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, size.toFloat())
+    transcoder.transcode(TranscoderInput(ByteArrayInputStream(svg.toByteArray())), TranscoderOutput(ByteArrayOutputStream()))
+    return result ?: error("no image produced")
+}
+
+tasks.named<ProcessResources>("processResources") {
+    dependsOn(rasterizeLucide)
+    from(lucideResources)
+}

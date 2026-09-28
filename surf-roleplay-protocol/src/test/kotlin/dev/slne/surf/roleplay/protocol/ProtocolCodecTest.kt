@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.protocol
 
 import dev.slne.surf.roleplay.protocol.packets.ClientHello
 import dev.slne.surf.roleplay.protocol.packets.ModInfo
+import dev.slne.surf.roleplay.protocol.packets.Welcome
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -35,6 +36,16 @@ class ProtocolCodecTest {
         val bytes = ProtocolCodec.encode(Packets.HELLO, ClientHello(PROTOCOL_VERSION, "26.3.0"))
 
         assertEquals(emptyList(), (ProtocolCodec.decode(Packets.HELLO.channel, bytes) as ClientHello).loadedMods)
+    }
+
+    /**
+     * Verifies that the welcome survives encoding and decoding.
+     */
+    @Test
+    fun `welcome round-trips`() {
+        val bytes = ProtocolCodec.encode(Packets.WELCOME, Welcome)
+
+        assertEquals(Welcome, ProtocolCodec.decode(Packets.WELCOME.channel, bytes))
     }
 
     /**

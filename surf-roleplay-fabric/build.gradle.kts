@@ -36,6 +36,12 @@ dependencies {
     implementation(projects.surfRoleplayProtocol)
     include(projects.surfRoleplayProtocol)
     include("org.jetbrains.kotlinx:kotlinx-serialization-protobuf-jvm:$serializationVersion")
+
+    testImplementation(kotlin("test"))
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.processResources {
@@ -49,6 +55,8 @@ tasks.processResources {
         expand(properties)
     }
 }
+
+apply(from = "lucide.gradle.kts")
 
 tasks.withType<JavaCompile>().configureEach {
     options.release = 25

@@ -52,6 +52,16 @@ class PacketsTest {
     }
 
     /**
+     * Verifies that the welcome uses its channel and is sent by the server in the play phase.
+     */
+    @Test
+    fun `welcome uses its channel, direction and phase`() {
+        assertEquals("roleplay:welcome", Packets.WELCOME.channel)
+        assertEquals(PacketDirection.CLIENTBOUND, Packets.WELCOME.direction)
+        assertEquals(setOf(ConnectionPhase.PLAY), Packets.WELCOME.phases)
+    }
+
+    /**
      * Verifies that a packet type name outside snake_case is rejected.
      */
     @Test

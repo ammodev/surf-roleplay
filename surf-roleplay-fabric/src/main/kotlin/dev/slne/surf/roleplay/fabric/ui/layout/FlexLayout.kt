@@ -1,0 +1,323 @@
+package dev.slne.surf.roleplay.fabric.ui.layout
+
+import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.Insets
+import dev.slne.surf.roleplay.protocol.screen.SizeMode
+import dev.slne.surf.roleplay.protocol.screen.Sizing
+
+/**
+ * A rectangle in GUI pixels.
+ *
+ * @property x the left edge
+ * @property y the top edge
+ * @property width the width
+ * @property height the height
+ */
+data class Rect(val x: Int, val y: Int, val width: Int, val height: Int) {
+    /**
+     * The right edge, exclusive.
+     */
+    val right: Int get() = x + width
+
+    /**
+     * The bottom edge, exclusive.
+     */
+    val bottom: Int get() = y + height
+
+    /**
+     * Checks whether a point lies inside this rectangle.
+     *
+     * @param px the x coordinate
+     * @param py the y coordinate
+     * @return whether the point is inside
+     */
+    fun contains(px: Double, py: Double): Boolean = px >= x && px < right && py >= y && py < bottom
+
+    /**
+     * Holds the empty rectangle.
+     */
+    companion object {
+        /**
+         * The empty rectangle at the origin.
+         */
+        val EMPTY: Rect = Rect(0, 0, 0, 0)
+    }
+}
+
+/**
+ * A size in GUI pixels.
+ *
+ * @property width the width
+ * @property height the height
+ */
+data class Size(val width: Int, val height: Int) {
+    /**
+     * Holds the empty size.
+     */
+    companion object {
+        /**
+         * The size of nothing.
+         */
+        val ZERO: Size = Size(0, 0)
+    }
+}
+
+/**
+ * The axis along which a container lays out its children.
+ */
+enum class Axis {
+    /**
+     * From left to right.
+     */
+    HORIZONTAL,
+
+    /**
+     * From top to bottom.
+     */
+    VERTICAL,
+}
+
+/**
+ * A box in a layout tree: a leaf with a content size, or a container that lays out its children
+ * along an axis.
+ *
+ * [FlexLayout] writes the computed [bounds] and [contentExtent] into each box.
+ *
+ * @property width how wide the box is laid out
+ * @property height how tall the box is laid out
+ * @property content the size a leaf's content needs, used by [SizeMode.FIT]
+ * @property axis the axis of a container, or `null` for a leaf
+ * @property children the children of a container, in layout order
+ * @property gap the space between two children of a container
+ * @property padding the space inside a container's edges
+ * @property mainAlign how a container places its children along its axis
+ * @property crossAlign how a container places its children across its axis
+ * @property scrolls whether a container's children may extend beyond it along its axis, to be
+ *           scrolled into view
+ */
+class LayoutBox(
+    val width: Sizing = Sizing.FIT,
+    val height: Sizing = Sizing.FIT,
+    var content: Size = Size.ZERO,
+    val axis: Axis? = null,
+    val children: List<LayoutBox> = emptyList(),
+    val gap: Int = 0,
+    val padding: Insets = Insets.NONE,
+    val mainAlign: Align = Align.START,
+    val crossAlign: Align = Align.START,
+    val scrolls: Boolean = false,
+) {
+    /**
+     * The area the box was laid out in.
+     */
+    var bounds: Rect = Rect.EMPTY
+        internal set
+
+    /**
+     * For a container, the length of its content along its axis, including padding and gaps. For a
+     * leaf, zero.
+     */
+    var contentExtent: Int = 0
+        internal set
+}
+
+/**
+ * Computes the positions and sizes of a tree of [LayoutBox]es.
+ *
+ * Along a container's axis, children with a fixed or fitting size get that size, and growing
+ * children share what is left by weight. Children that do not fit keep their size and overflow
+ * the container. Across the axis, growing children and children of a stretching container fill
+ * the container; other children keep their size, clamped to the container when they fit their
+ * content.
+ */
+object FlexLayout {
+
+    /**
+     * Lays out a root box within an area, sized by its own sizing and centered in the area. The
+     * root never exceeds the area.
+     *
+     * @param root the root box
+     * @param availableWidth the width of the area
+     * @param availableHeight the height of the area
+     */
+    fun layoutRoot(root: LayoutBox, availableWidth: Int, availableHeight: Int) =
+        layoutRoot(root, Rect(0, 0, availableWidth, availableHeight))
+
+    /**
+     * Lays out a root box within an area, sized by its own sizing and centered in the area. The
+     * root never exceeds the area.
+     *
+     * @param root the root box
+     * @param area the area to lay the root out in
+     */
+    fun layoutRoot(root: LayoutBox, area: Rect) {
+        val preferred = measure(root)
+        val width = resolveRoot(root.width, preferred.width, area.width)
+        val height = resolveRoot(root.height, preferred.height, area.height)
+        layout(root, Rect(area.x + (area.width - width) / 2, area.y + (area.height - height) / 2, width, height))
+    }
+
+    /**
+     * Lays out a box in exactly the given area, and its children within it.
+     *
+     * @param box the box
+     * @param area the area the box occupies
+     */
+    fun layout(box: LayoutBox, area: Rect) {
+        box.bounds = area
+        val axis = box.axis
+        if (axis == null) {
+            box.contentExtent = 0
+            return
+        }
+
+        val padding = box.padding
+        val innerMainStart = if (axis == Axis.HORIZONTAL) area.x + padding.left else area.y + padding.top
+        val innerCrossStart = if (axis == Axis.HORIZONTAL) area.y + padding.top else area.x + padding.left
+        val innerMain = (if (axis == Axis.HORIZONTAL) area.width - padding.left - padding.right else area.height - padding.top - padding.bottom).coerceAtLeast(0)
+        val innerCross = (if (axis == Axis.HORIZONTAL) area.height - padding.top - padding.bottom else area.width - padding.left - padding.right).coerceAtLeast(0)
+
+        val children = box.children
+        val gaps = box.gap * (children.size - 1).coerceAtLeast(0)
+        val preferred = children.map { measure(it) }
+        val mainSizes = IntArray(children.size)
+        var fixedTotal = 0
+        var weightTotal = 0
+        children.forEachIndexed { index, child ->
+            val sizing = child.sizing(axis)
+            if (sizing.mode == SizeMode.GROW && !box.scrolls) {
+                weightTotal += sizing.value.coerceAtLeast(1)
+            } else {
+                mainSizes[index] = preferred[index].along(axis)
+                fixedTotal += mainSizes[index]
+            }
+        }
+
+        val remaining = (innerMain - gaps - fixedTotal).coerceAtLeast(0)
+        if (weightTotal > 0) distributeGrowth(box, axis, remaining, weightTotal, mainSizes)
+
+        val used = mainSizes.sum() + gaps
+        val free = (innerMain - used).coerceAtLeast(0)
+        var cursor = innerMainStart + when (box.mainAlign) {
+            Align.CENTER -> free / 2
+            Align.END -> free
+            Align.START, Align.STRETCH -> 0
+        }
+
+        children.forEachIndexed { index, child ->
+            val crossSizing = child.sizing(axis.other())
+            val preferredCross = preferred[index].along(axis.other())
+            val crossSize = when {
+                crossSizing.mode == SizeMode.GROW || box.crossAlign == Align.STRETCH -> innerCross
+                crossSizing.mode == SizeMode.FIXED -> crossSizing.value
+                else -> preferredCross.coerceAtMost(innerCross)
+            }
+            val crossOffset = when (box.crossAlign) {
+                Align.CENTER -> (innerCross - crossSize) / 2
+                Align.END -> innerCross - crossSize
+                Align.START, Align.STRETCH -> 0
+            }
+            val mainSize = mainSizes[index]
+            val childArea = if (axis == Axis.HORIZONTAL) {
+                Rect(cursor, innerCrossStart + crossOffset, mainSize, crossSize)
+            } else {
+                Rect(innerCrossStart + crossOffset, cursor, crossSize, mainSize)
+            }
+            layout(child, childArea)
+            cursor += mainSize + box.gap
+        }
+
+        val paddingMain = if (axis == Axis.HORIZONTAL) padding.left + padding.right else padding.top + padding.bottom
+        box.contentExtent = used + paddingMain
+    }
+
+    /**
+     * Computes the size a box prefers: its fixed size, or the size its content or children need.
+     * A growing box prefers the size its content needs.
+     *
+     * @param box the box
+     * @return the preferred size
+     */
+    fun measure(box: LayoutBox): Size {
+        val natural = naturalSize(box)
+        return Size(
+            if (box.width.mode == SizeMode.FIXED) box.width.value else natural.width,
+            if (box.height.mode == SizeMode.FIXED) box.height.value else natural.height,
+        )
+    }
+
+    /**
+     * Computes the size a box's content or children need, ignoring its own sizing.
+     *
+     * @param box the box
+     * @return the size of a leaf's content, or of a container's children with gaps and padding
+     */
+    private fun naturalSize(box: LayoutBox): Size {
+        val axis = box.axis ?: return box.content
+        val sizes = box.children.map { measure(it) }
+        val main = sizes.sumOf { it.along(axis) } + box.gap * (sizes.size - 1).coerceAtLeast(0)
+        val cross = sizes.maxOfOrNull { it.along(axis.other()) } ?: 0
+        val padding = box.padding
+        return if (axis == Axis.HORIZONTAL) {
+            Size(main + padding.left + padding.right, cross + padding.top + padding.bottom)
+        } else {
+            Size(cross + padding.left + padding.right, main + padding.top + padding.bottom)
+        }
+    }
+
+    /**
+     * Shares space among a container's growing children by weight. The rounding leftover goes to
+     * the last growing child, so that the shares add up to the space exactly.
+     *
+     * @param box the container
+     * @param axis the container's axis
+     * @param space the space to share
+     * @param weightTotal the sum of the growing children's weights
+     * @param mainSizes the children's sizes along the axis, filled in for the growing children
+     */
+    private fun distributeGrowth(box: LayoutBox, axis: Axis, space: Int, weightTotal: Int, mainSizes: IntArray) {
+        var given = 0
+        val lastGrowing = box.children.indexOfLast { it.sizing(axis).mode == SizeMode.GROW }
+        box.children.forEachIndexed { index, child ->
+            val sizing = child.sizing(axis)
+            if (sizing.mode != SizeMode.GROW) return@forEachIndexed
+            val share = if (index == lastGrowing) space - given else space * sizing.value.coerceAtLeast(1) / weightTotal
+            mainSizes[index] = share
+            given += share
+        }
+    }
+
+    /**
+     * Resolves the size of the root along one axis.
+     *
+     * @param sizing the root's sizing on that axis
+     * @param preferred the root's preferred size on that axis
+     * @param available the available size on that axis
+     * @return the size, never larger than [available]
+     */
+    private fun resolveRoot(sizing: Sizing, preferred: Int, available: Int): Int =
+        if (sizing.mode == SizeMode.GROW) available else preferred.coerceAtMost(available)
+
+    /**
+     * Returns the box's sizing along an axis.
+     *
+     * @param axis the axis
+     * @return the width sizing for [Axis.HORIZONTAL], the height sizing otherwise
+     */
+    private fun LayoutBox.sizing(axis: Axis): Sizing = if (axis == Axis.HORIZONTAL) width else height
+
+    /**
+     * Returns this size's extent along an axis.
+     *
+     * @param axis the axis
+     * @return the width for [Axis.HORIZONTAL], the height otherwise
+     */
+    private fun Size.along(axis: Axis): Int = if (axis == Axis.HORIZONTAL) width else height
+
+    /**
+     * Returns the axis perpendicular to this one.
+     *
+     * @return the other axis
+     */
+    private fun Axis.other(): Axis = if (this == Axis.HORIZONTAL) Axis.VERTICAL else Axis.HORIZONTAL
+}

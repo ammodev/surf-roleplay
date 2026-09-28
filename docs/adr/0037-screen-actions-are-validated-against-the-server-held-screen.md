@@ -1,9 +1,9 @@
 # ADR-0037: Screen actions are validated against the server-held screen
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0042
 - **Date:** 2026-09-28
 - **Supersedes:** none
-- **Superseded by:** none
+- **Superseded by:** ADR-0042
 
 ## Context
 
