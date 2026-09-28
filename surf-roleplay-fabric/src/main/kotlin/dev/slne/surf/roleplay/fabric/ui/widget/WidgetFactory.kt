@@ -11,6 +11,9 @@ import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DropdownNode
 import dev.slne.surf.roleplay.protocol.screen.IconNode
+import dev.slne.surf.roleplay.protocol.screen.RadioGroupNode
+import dev.slne.surf.roleplay.protocol.screen.SliderNode
+import dev.slne.surf.roleplay.protocol.screen.SwitchNode
 import dev.slne.surf.roleplay.protocol.screen.InputGroupAddonNode
 import dev.slne.surf.roleplay.protocol.screen.InputGroupNode
 import dev.slne.surf.roleplay.protocol.screen.InputGroupTextNode
@@ -79,6 +82,9 @@ object WidgetFactory {
             is ToggleGroupNode -> ToggleGroupWidget(node.id, node.items, node.selected, node.multiple, node.variant, node.size, node.spacing, node.orientation, node.required)
                 .apply { enabled = node.enabled }
             is ProgressNode -> ProgressWidget(node.id, node.progress, node.label)
+            is SwitchNode -> SwitchWidget(node.id, node.checked, node.size).apply { enabled = node.enabled }
+            is RadioGroupNode -> RadioGroupWidget(node.id, node.options, node.selected, node.orientation, node.required).apply { enabled = node.enabled }
+            is SliderNode -> SliderWidget(node.id, node.values, node.min, node.max, node.step, node.orientation).apply { enabled = node.enabled }
             is TextareaNode -> TextareaWidget(node.id, TextEditState(node.value, TextFilter.maxLength(node.maxLength)), node.placeholder, node.rows, node.required)
                 .apply { enabled = node.enabled }
             is InputGroupNode -> InputGroupWidget(node.id, node.children.map { create(it) })
@@ -95,6 +101,9 @@ object WidgetFactory {
             is DropdownNode -> node.notifyChange
             is ToggleGroupNode -> node.notifyChange
             is TextareaNode -> node.notifyChange
+            is SwitchNode -> node.notifyChange
+            is RadioGroupNode -> node.notifyChange
+            is SliderNode -> node.notifyChange
             is InputOtpNode -> node.notifyChange
             else -> false
         }

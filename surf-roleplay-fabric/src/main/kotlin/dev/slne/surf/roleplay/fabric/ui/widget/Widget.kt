@@ -244,6 +244,21 @@ abstract class Widget(val id: String) {
     open fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean = false
 
     /**
+     * Whether a click that focuses this widget starts a drag, after which mouse movement with the
+     * button held goes to [mouseDragged].
+     */
+    open val draggable: Boolean get() = false
+
+    /**
+     * Handles mouse movement with the button held after a click on this widget started a drag.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     */
+    open fun mouseDragged(context: UiContext, x: Double, y: Double) = Unit
+
+    /**
      * Handles mouse wheel scrolling.
      *
      * @param context the screen showing the widget

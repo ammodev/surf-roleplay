@@ -445,15 +445,15 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val size = UiMetrics.CHECKBOX_SIZE
         val box = Rect(bounds.x, bounds.y + (bounds.height - size) / 2, size, size)
-        val hovered = enabled && isOver(mouseX, mouseY)
         val tokens = ui.tokens
         val radius = CHECKBOX_RADIUS
         if (checked) {
             ui.fillRounded(box, if (enabled) tokens.primary else ui.disabled(tokens.primary), radius)
-            drawCheck(ui, box, if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground))
+            val mark = size - 2
+            ui.icon("check", Rect(box.x + 1, box.y + 1, mark, mark), if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground))
         } else {
             ui.fillRounded(box, inputFill(ui), radius)
-            ui.borderRounded(box, if (hovered) tokens.ring else tokens.input, radius)
+            ui.borderRounded(box, if (enabled) tokens.input else ui.disabled(tokens.input), radius)
         }
         ui.text(label, box.right + LABEL_GAP, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
     }
@@ -823,21 +823,6 @@ private const val CHECKBOX_RADIUS: Int = 2
 internal fun inputFill(ui: UiGraphics): Int =
     ThemeColors.withAlpha(ui.tokens.input, ((ui.tokens.input ushr 24) / 255f) * INPUT_FILL_ALPHA)
 
-/**
- * Draws a check mark inside a checkbox's box.
- *
- * @param ui the graphics to draw with
- * @param box the box
- * @param color the ARGB colour of the mark
- */
-internal fun drawCheck(ui: UiGraphics, box: Rect, color: Int) {
-    val x = box.x + box.width / 4
-    val y = box.y + box.height / 2
-    val short = box.width / 4
-    val long = box.width / 2
-    for (step in 0 until short) ui.fill(Rect(x + step, y + step - 1, 1, 2), color)
-    for (step in 0 until long) ui.fill(Rect(x + short + step, y + short - step - 2, 1, 2), color)
-}
 
 /**
  * Checks whether a key activates a focused widget: Enter, keypad Enter or Space.

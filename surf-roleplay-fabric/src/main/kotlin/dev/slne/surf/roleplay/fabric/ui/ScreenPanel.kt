@@ -115,6 +115,11 @@ class ScreenPanel(
     private var dropdown: DropdownWidget? = null
 
     /**
+     * The widget that receives mouse movement while the button is held, or `null` if none does.
+     */
+    private var dragTarget: Widget? = null
+
+    /**
      * The option highlighted in the open dropdown list, for keyboard selection.
      */
     private var highlighted: Int = 0
@@ -446,7 +451,32 @@ class ScreenPanel(
         if (!viewport.contains(x, y)) return true
         focusedWidget = null
         root.mouseClicked(this, x, y, button)
+        dragTarget = focusedWidget?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
         return true
+    }
+
+    /**
+     * Passes mouse movement with the button held to the widget a click started a drag on.
+     *
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @return whether a widget is being dragged
+     */
+    fun mouseDragged(x: Double, y: Double): Boolean {
+        val target = dragTarget ?: return false
+        if (!ScreenRules.isStillUsable(root, target)) {
+            dragTarget = null
+            return false
+        }
+        target.mouseDragged(this, x, y)
+        return true
+    }
+
+    /**
+     * Ends a drag when the mouse button is released.
+     */
+    fun mouseReleased() {
+        dragTarget = null
     }
 
     /**
