@@ -7,6 +7,8 @@ import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.ContextMenuNode
+import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.DialogNode
 import dev.slne.surf.roleplay.protocol.screen.DropdownMenuNode
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
 import dev.slne.surf.roleplay.protocol.screen.MenuCheckboxItemNode
@@ -65,10 +67,12 @@ class MenuWidgetsTest {
      * Creates a laid-out panel around nodes placed in a row.
      *
      * @param nodes the nodes
+     * @param width how wide the row is
+     * @param height how tall the row is
      * @return the panel
      */
-    private fun panel(vararg nodes: ScreenNode): ScreenPanel =
-        ScreenPanel("T", WidgetFactory.create(RowNode("root", gap = 60, children = nodes.toList())), true, listener, PanelStyle(Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)))
+    private fun panel(vararg nodes: ScreenNode, width: Sizing = Sizing.FIT, height: Sizing = Sizing.FIT): ScreenPanel =
+        ScreenPanel("T", WidgetFactory.create(RowNode("root", width = width, height = height, gap = 60, children = nodes.toList())), true, listener, PanelStyle(Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)))
             .also { it.layoutIfNeeded(measurer, 480, 300) }
 
     /**
@@ -261,5 +265,70 @@ class MenuWidgetsTest {
 
         assertEquals(listOf("edit"), actions)
         assertNull(panel.popover)
+    }
+
+    /**
+     * Creates a dropdown menu whose item opens a dialog that holds a dropdown menu of its own.
+     *
+     * @return the node
+     */
+    private fun menuWithDialog() = DropdownMenuNode(
+        "menu",
+        children = listOf(
+            ButtonNode("trigger", text = "Menu"),
+            MenuContentNode(
+                "content",
+                children = listOf(
+                    DialogNode(
+                        "dialog",
+                        children = listOf(
+                            MenuItemNode("edit", text = "Edit"),
+                            DialogContentNode(
+                                "dialog_content",
+                                width = Sizing.fixed(120),
+                                children = listOf(DropdownMenuNode("inner", children = listOf(ButtonNode("inner_trigger", text = "More"), MenuContentNode("inner_content", children = listOf(MenuItemNode("inner_item", text = "Item")))))),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    /**
+     * Verifies that the mouse does not reach a menu below a modal dialog, even where the menu is
+     * not covered by the dialog's content.
+     */
+    @Test
+    fun `menus below a modal do not follow the mouse`() {
+        val panel = panel(menuWithDialog(), width = Sizing.fixed(440), height = Sizing.fixed(260))
+        click(panel, "trigger")
+        click(panel, "edit")
+        assertEquals(2, panel.popovers.size)
+        val areas = panel.overlayAreas()
+        val menu = areas[0]
+        val x = menu.x + 1
+        val y = menu.y + 1
+        assertTrue(!areas[1].contains(x.toDouble(), y.toDouble()))
+
+        assertEquals(-1, panel.mouseOverlay(areas, x, y))
+    }
+
+    /**
+     * Verifies that choosing an item of a menu inside a dialog closes only that menu, and keeps
+     * the dialog and the menu it was opened from.
+     */
+    @Test
+    fun `choosing in a menu inside a dialog keeps the dialog`() {
+        val panel = panel(menuWithDialog(), width = Sizing.fixed(440), height = Sizing.fixed(260))
+        click(panel, "trigger")
+        click(panel, "edit")
+        click(panel, "inner_trigger")
+        assertEquals(3, panel.popovers.size)
+
+        click(panel, "inner_item")
+
+        assertEquals(listOf("inner_item"), actions)
+        assertEquals(2, panel.popovers.size)
     }
 }

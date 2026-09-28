@@ -754,13 +754,18 @@ open class MenuPopover(owner: OverlayHostWidget, side: OverlaySide, align: Align
     }
 
     /**
-     * Closes every menu after an entry fired its action.
+     * Closes this menu after an entry fired its action, together with the menus it was opened
+     * from, down to the first overlay that is not a menu.
      *
      * @param context the screen showing the menu
      * @param widget the entry
      */
     override fun afterAction(context: UiContext, widget: Widget) {
-        context.popovers.firstOrNull { it is MenuPopover }?.let { context.closePopover(it) }
+        val popovers = context.popovers
+        var index = popovers.indexOf(this)
+        if (index < 0) return
+        while (index > 0 && popovers[index - 1] is MenuPopover && popovers[index - 1].containsWidget(popovers[index].owner)) index--
+        context.closePopover(popovers[index])
     }
 }
 

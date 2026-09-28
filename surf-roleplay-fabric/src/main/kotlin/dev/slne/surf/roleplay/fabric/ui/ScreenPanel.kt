@@ -319,6 +319,20 @@ class ScreenPanel(
     internal fun overlayAreas(): List<Rect> = stack.map { popoverArea(it) }
 
     /**
+     * Returns the index of the overlay the mouse is on: the topmost one whose area contains the
+     * mouse, unless a modal overlay above it covers it.
+     *
+     * @param areas the areas of the open overlays, bottom first
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @return the index, or -1 if the mouse is on no overlay it can reach
+     */
+    internal fun mouseOverlay(areas: List<Rect>, x: Int, y: Int): Int {
+        val hit = areas.indexOfLast { it.contains(x.toDouble(), y.toDouble()) }
+        return if (hit < stack.indexOfLast { it.modal }) -1 else hit
+    }
+
+    /**
      * Returns the widget to scroll into view: the focused widget, or for a widget inside an
      * overlay the host of the lowest overlay, or else the owner of the open overlay.
      *
@@ -409,7 +423,7 @@ class ScreenPanel(
         }
 
         val areas = stack.map { it.area(scopeFor(it), measurer ?: FontTextMeasurer(font)) }
-        val hit = areas.indexOfLast { it.contains(mouseX.toDouble(), mouseY.toDouble()) }
+        val hit = mouseOverlay(areas, mouseX, mouseY)
         val mouseInside = active && viewport.contains(mouseX.toDouble(), mouseY.toDouble()) && hit < 0 && stack.none { it.modal }
         ui.clipped(viewport) {
             root.render(ui, this, if (mouseInside) mouseX else HIDDEN, if (mouseInside) mouseY else HIDDEN)
