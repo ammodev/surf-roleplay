@@ -1,6 +1,6 @@
 # Plan 0009: shadcn display components
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-28
 - **Accepted proposal:** Port the display components of the shadcn registry (alert, aspect-ratio, avatar, badge, card, empty, item, kbd, progress, separator, skeleton, spinner, typography) as native screen nodes, and make screen texts wrap; pre-accepted under the standing autonomy for shadcn-faithful components
 - **Decision records:** ADR-0051, ADR-0055, ADR-0056
