@@ -9,7 +9,6 @@ surfCoreApi {
 
 dependencies {
     api(projects.surfRoleplayApi.surfRoleplayApiCommon)
-}
-dependencies {
+
     testImplementation("net.kyori:adventure-api:5.2.0")
 }
