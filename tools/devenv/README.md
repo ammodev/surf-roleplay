@@ -54,7 +54,7 @@ nested inside `fabric-api`. So the dev Paper config lists those module ids in
 |---|---|
 | Reload after `./gradlew build` | `docker compose restart paper velocity ms-roleplay` |
 | Follow logs | `docker compose logs -f paper` (or any service) |
-| Server console | `docker compose attach paper`, detach with `Ctrl+P` `Ctrl+Q` |
+| Server console | `docker attach surf-roleplay-dev-paper-1` (or `-velocity-1`), detach with `Ctrl+P` `Ctrl+Q` |
 | Stop | `docker compose down` |
 | Reset worlds, configs and the database | `docker compose down -v`, then delete `run/` |
 | Update a pinned version | edit `versions.env`; the next `docker compose up` downloads all jars again |
