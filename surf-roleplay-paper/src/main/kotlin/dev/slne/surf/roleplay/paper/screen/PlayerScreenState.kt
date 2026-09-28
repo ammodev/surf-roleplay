@@ -57,16 +57,19 @@ interface TypedOpenScreen<S> : OpenScreen {
  * The open screens of one player: the server side of the player's screen stack.
  *
  * It opens, patches and closes screens, and validates and routes the player's screen actions to
- * their handlers. It is not thread-safe; every call must happen on the player's thread.
+ * their handlers. Only the top screen accepts actions. It is not thread-safe: every entry point,
+ * including the members of the open screens it hands out, runs [threadCheck] first.
  *
  * @property viewer the player's unique id
  * @property sender the sender of the player's screen packets
  * @property limiter the action rate limiter
+ * @property threadCheck throws [IllegalStateException] if the calling thread does not own the player
  */
 class PlayerScreenState(
     val viewer: UUID,
     private val sender: ScreenPacketSender,
     private val limiter: ActionRateLimiter,
+    private val threadCheck: () -> Unit = {},
 ) {
     /**
      * The outcome of handling a player's action.
@@ -81,8 +84,10 @@ class PlayerScreenState(
          * The action was rejected, and no handler ran.
          *
          * @property reason why the action was rejected
+         * @property suspicious whether a normal client could not have sent the action; `false` for
+         *           actions that arrive for a screen that closed or was covered in the meantime
          */
-        data class Rejected(val reason: String) : Outcome
+        data class Rejected(val reason: String, val suspicious: Boolean = true) : Outcome
     }
 
     /**
@@ -96,9 +101,18 @@ class PlayerScreenState(
     private var nextSessionId = 1
 
     /**
+     * Whether the player left, after which no screen can be opened.
+     */
+    private var disposed = false
+
+    /**
      * The open screens, from bottom to top.
      */
-    val openScreens: List<OpenScreen> get() = stack.entries.map { it.content }
+    val openScreens: List<OpenScreen>
+        get() {
+            threadCheck()
+            return stack.entries.map { it.content }
+        }
 
     /**
      * Opens a generic screen.
@@ -106,12 +120,13 @@ class PlayerScreenState(
      * @param definition the screen
      * @param parentSessionId the session to open on top of, or `null` to replace every open screen
      * @return the open screen
+     * @throws IllegalStateException if the player left
      */
     fun open(definition: ScreenDefinition, parentSessionId: Int?): OpenScreen {
+        checkUsable()
         val session = GenericSession(nextSessionId++, definition)
-        push(session, parentSessionId)
-        sender.send(
-            Packets.SCREEN_OPEN,
+        push(
+            session,
             ScreenOpen(session.sessionId, parentSessionId, ScreenMapper.text(definition.title), definition.closable, WidgetScreenBody(ScreenMapper.toNode(definition.root))),
         )
         return session
@@ -130,6 +145,7 @@ class PlayerScreenState(
      * @param onAction the handler of the screen's decoded actions
      * @param onClose the handler run when the screen closes, or `null`
      * @return the open screen
+     * @throws IllegalStateException if the player left
      */
     fun <S, A> openTyped(
         type: ScreenType<S, A>,
@@ -140,23 +156,36 @@ class PlayerScreenState(
         onAction: (TypedOpenScreen<S>, A) -> Unit,
         onClose: ((TypedOpenScreen<S>) -> Unit)? = null,
     ): TypedOpenScreen<S> {
+        checkUsable()
         val session = TypedSession(nextSessionId++, closable, type, onAction, onClose)
-        push(session, parentSessionId)
-        sender.send(
-            Packets.SCREEN_OPEN,
+        push(
+            session,
             ScreenOpen(session.sessionId, parentSessionId, ScreenMapper.text(title), closable, TypedScreenBody(type.key, type.encodeState(state))),
         )
         return session
     }
 
     /**
-     * Puts a session on the stack and runs the close handlers of the screens it replaces.
+     * Checks that the calling thread owns the player and that the player has not left.
+     *
+     * @throws IllegalStateException if either does not hold
+     */
+    private fun checkUsable() {
+        threadCheck()
+        check(!disposed) { "The player $viewer left; no screen can be opened" }
+    }
+
+    /**
+     * Puts a session on the stack, sends its open packet, and then runs the close handlers of the
+     * screens it replaced, so that screens those handlers open follow the new one on the client.
      *
      * @param session the session
-     * @param parentSessionId the parent session, or `null`
+     * @param packet the open packet of the session
      */
-    private fun push(session: Session, parentSessionId: Int?) {
-        stack.open(session.sessionId, parentSessionId, session.closable, session).forEach { it.content.closed() }
+    private fun push(session: Session, packet: ScreenOpen) {
+        val removed = stack.open(session.sessionId, packet.parentSessionId, session.closable, session)
+        sender.send(Packets.SCREEN_OPEN, packet)
+        removed.forEach { it.content.closed() }
     }
 
     /**
@@ -166,6 +195,7 @@ class PlayerScreenState(
      * @param notifyClient whether to tell the player's client
      */
     fun close(sessionId: Int, notifyClient: Boolean) {
+        threadCheck()
         val removed = stack.close(sessionId)
         if (removed.isEmpty()) return
         if (notifyClient) sender.send(Packets.SCREEN_CLOSE, ScreenClose(sessionId))
@@ -178,6 +208,7 @@ class PlayerScreenState(
      * @param notifyClient whether to tell the player's client
      */
     fun closeAll(notifyClient: Boolean) {
+        threadCheck()
         val removed = stack.closeAll()
         if (removed.isEmpty()) return
         if (notifyClient) sender.send(Packets.SCREEN_CLOSE, ScreenClose(null))
@@ -185,11 +216,38 @@ class PlayerScreenState(
     }
 
     /**
-     * Handles the player's report that they closed a screen.
+     * Closes every screen without telling the client, runs their close handlers, and refuses every
+     * later open, including opens from those handlers.
+     */
+    fun dispose() {
+        threadCheck()
+        disposed = true
+        closeAll(notifyClient = false)
+    }
+
+    /**
+     * Handles the player's report that they closed a screen. Only a closable top screen can be
+     * closed this way; other reports are ignored.
      *
      * @param packet the report
+     * @return the outcome
      */
-    fun handleClosed(packet: ScreenClosed) = close(packet.sessionId, notifyClient = false)
+    fun handleClosed(packet: ScreenClosed): Outcome {
+        threadCheck()
+        val top = stack.top ?: return Outcome.Rejected("no open screen", suspicious = false)
+        if (top.sessionId != packet.sessionId) return Outcome.Rejected("session ${packet.sessionId} is not the top screen", suspicious = false)
+        if (!top.closable) return Outcome.Rejected("session ${packet.sessionId} is not closable")
+        close(packet.sessionId, notifyClient = false)
+        return Outcome.Accepted
+    }
+
+    /**
+     * Returns the top session if it has the given id.
+     *
+     * @param sessionId the session id of the action
+     * @return the top session, or `null` if the session is not open or covered by another screen
+     */
+    private fun topSession(sessionId: Int): Session? = stack.top?.takeIf { it.sessionId == sessionId }?.content
 
     /**
      * Validates a click on a generic screen and runs the button's handler.
@@ -198,9 +256,10 @@ class PlayerScreenState(
      * @return the outcome
      */
     fun handleWidgetAction(packet: ScreenWidgetAction): Outcome {
+        threadCheck()
         if (!limiter.tryAcquire(viewer)) return Outcome.Rejected("rate limit exceeded")
-        val session = stack.find(packet.sessionId)?.content as? GenericSession
-            ?: return Outcome.Rejected("no open generic screen with session ${packet.sessionId}")
+        val session = topSession(packet.sessionId) as? GenericSession
+            ?: return Outcome.Rejected("session ${packet.sessionId} is not the top generic screen", suspicious = false)
         return when (val result = ScreenActionValidator.validate(session.tree, packet.widgetId, packet.values)) {
             is ScreenActionValidator.Result.Rejected -> Outcome.Rejected(result.reason)
             is ScreenActionValidator.Result.Accepted -> {
@@ -221,15 +280,15 @@ class PlayerScreenState(
      * @return the outcome
      */
     fun handleTypedAction(packet: ScreenTypedAction): Outcome {
+        threadCheck()
         if (!limiter.tryAcquire(viewer)) return Outcome.Rejected("rate limit exceeded")
-        val session = stack.find(packet.sessionId)?.content as? TypedSession<*, *>
-            ?: return Outcome.Rejected("no open typed screen with session ${packet.sessionId}")
+        val session = topSession(packet.sessionId) as? TypedSession<*, *>
+            ?: return Outcome.Rejected("session ${packet.sessionId} is not the top typed screen", suspicious = false)
         return session.handle(packet.action)
     }
 
     /**
-     * Runs a handler, logging and swallowing its exceptions so that one failing handler does not
-     * break the player's screens.
+     * Runs a handler, logging and swallowing its exceptions.
      *
      * @param what a description of the handler, for the log
      * @param handler the handler
@@ -257,7 +316,11 @@ class PlayerScreenState(
         /**
          * Whether this session is still on the player's stack.
          */
-        override val isOpen: Boolean get() = stack.find(sessionId)?.content === this
+        override val isOpen: Boolean
+            get() {
+                threadCheck()
+                return stack.find(sessionId)?.content === this
+            }
 
         /**
          * Closes this screen with the screens above it and tells the player's client.
@@ -291,6 +354,7 @@ class PlayerScreenState(
          * @param changes the builder of the changes
          */
         override fun patch(changes: ScreenPatchBuilder.() -> Unit) {
+            threadCheck()
             if (!isOpen) return
             val (applied, refused) = ScreenPatchBuilder().apply(changes).changes.partition { tree.apply(it) }
             if (refused.isNotEmpty()) log.atWarning().log("Screen patch for %s refused changes %s", viewer, refused)
@@ -337,6 +401,7 @@ class PlayerScreenState(
          * @param state the new state
          */
         override fun update(state: S) {
+            threadCheck()
             if (!isOpen) return
             sender.send(Packets.SCREEN_TYPED_UPDATE, ScreenTypedUpdate(sessionId, type.encodeState(state)))
         }

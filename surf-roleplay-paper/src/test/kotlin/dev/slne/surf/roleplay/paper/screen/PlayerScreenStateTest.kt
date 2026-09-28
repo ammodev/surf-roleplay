@@ -58,9 +58,16 @@ class PlayerScreenStateTest {
     private var now = 0L
 
     /**
-     * The state under test, with a limit of five actions per second.
+     * Whether the fake thread check passes.
      */
-    private val state = PlayerScreenState(UUID.randomUUID(), sender, ActionRateLimiter(5) { now })
+    private var onOwningThread = true
+
+    /**
+     * The state under test, with a limit of five actions per second and a fake thread check.
+     */
+    private val state = PlayerScreenState(UUID.randomUUID(), sender, ActionRateLimiter(5) { now }) {
+        check(onOwningThread) { "wrong thread" }
+    }
 
     /**
      * The names of the screens whose close handler ran, in order.
@@ -274,5 +281,81 @@ class PlayerScreenStateTest {
 
         val root = assertIs<WidgetScreenBody>(assertIs<ScreenOpen>(sent.last()).body).root
         assertEquals(LabelNode("only", text = ScreenMapper.text(Component.text("L"))), root)
+    }
+
+    /**
+     * Verifies that actions and close reports for a screen covered by a child are rejected.
+     */
+    @Test
+    fun `covered screens do not accept actions`() {
+        val parent = state.open(form("a"), null)
+        state.open(form("b"), parent.sessionId)
+
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleWidgetAction(ScreenWidgetAction(parent.sessionId, "submit")))
+        state.handleClosed(ScreenClosed(parent.sessionId))
+
+        assertTrue(clicks.isEmpty())
+        assertTrue(parent.isOpen)
+    }
+
+    /**
+     * Verifies that a close report for a screen that is not closable is ignored.
+     */
+    @Test
+    fun `close reports for non-closable screens are ignored`() {
+        val locked = state.open(screen(Component.text("fest")) { closable = false; label("l", Component.empty()) }, null)
+
+        state.handleClosed(ScreenClosed(locked.sessionId))
+
+        assertTrue(locked.isOpen)
+    }
+
+    /**
+     * Verifies that a close handler that opens a screen while another screen replaces its own
+     * leaves the client and server with the same top screen.
+     */
+    @Test
+    fun `close handlers that open screens keep both stacks in step`() {
+        val hub = screen(Component.text("hub")) { label("hub", Component.empty()) }
+        state.open(screen(Component.text("a")) { onClose { state.open(hub, null) }; label("a", Component.empty()) }, null)
+
+        state.open(form("b"), null)
+
+        val lastOpen = sent.filterIsInstance<ScreenOpen>().last()
+        assertEquals(state.openScreens.single().sessionId, lastOpen.sessionId)
+        assertEquals("hub", assertIs<WidgetScreenBody>(lastOpen.body).root.id)
+    }
+
+    /**
+     * Verifies that disposing runs every close handler and that screens opened afterwards, even by
+     * a close handler, are refused.
+     */
+    @Test
+    fun `dispose runs close handlers and refuses new screens`() {
+        var reopenFailed = false
+        state.open(screen(Component.text("a")) {
+            onClose { reopenFailed = runCatching { state.open(form("late"), null) }.isFailure }
+            label("a", Component.empty())
+        }, null)
+
+        state.dispose()
+
+        assertTrue(reopenFailed)
+        assertTrue(state.openScreens.isEmpty())
+        kotlin.test.assertFailsWith<IllegalStateException> { state.open(form("b"), null) }
+    }
+
+    /**
+     * Verifies that every entry point checks that it runs on the player's thread.
+     */
+    @Test
+    fun `entry points check the owning thread`() {
+        val screen = state.open(form("a"), null)
+        onOwningThread = false
+
+        kotlin.test.assertFailsWith<IllegalStateException> { state.open(form("b"), null) }
+        kotlin.test.assertFailsWith<IllegalStateException> { screen.patch { setText("title", Component.empty()) } }
+        kotlin.test.assertFailsWith<IllegalStateException> { screen.close() }
+        kotlin.test.assertFailsWith<IllegalStateException> { screen.isOpen }
     }
 }

@@ -13,6 +13,7 @@ import dev.slne.surf.roleplay.protocol.Packets
 import dev.slne.surf.roleplay.protocol.screen.ScreenType
 import io.papermc.paper.connection.PlayerGameConnection
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -26,17 +27,28 @@ private val log = logger()
 /**
  * The Paper implementation of [ScreenService].
  *
- * It keeps a [PlayerScreenState] per player, sends screen packets through the packet registry,
- * and routes the players' screen packets to their state on the player's own thread. It must be
- * [started][start] by the plugin before use.
+ * It keeps a [PlayerScreenState] per player and routes the players' screen packets to their state
+ * on the player's own thread. Every call must happen on the thread that owns the player. Screens
+ * opened before the player's client is ready are sent once it is. It must be [started][start] by
+ * the plugin before use.
  */
 @AutoService(ScreenService::class)
 class PaperScreenService : ScreenService, Listener {
 
     /**
-     * The screen state of every player who has or had a screen open since joining.
+     * The screen state of every player who opened a screen since joining.
      */
     private val states = ConcurrentHashMap<UUID, PlayerScreenState>()
+
+    /**
+     * The queueing sender of every player's screen state.
+     */
+    private val senders = ConcurrentHashMap<UUID, QueueingScreenSender>()
+
+    /**
+     * The players whose client can receive screen packets.
+     */
+    private val ready: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
     /**
      * The plugin that owns the screens, set by [start].
@@ -54,6 +66,11 @@ class PaperScreenService : ScreenService, Listener {
     private lateinit var limiter: ActionRateLimiter
 
     /**
+     * The limiter of rejection log entries.
+     */
+    private val rejections = RejectionLog(REJECTIONS_LOGGED_PER_MINUTE)
+
+    /**
      * Starts the service: registers the handlers of the serverbound screen packets and the quit
      * listener.
      *
@@ -67,8 +84,19 @@ class PaperScreenService : ScreenService, Listener {
         limiter = ActionRateLimiter(maxActionsPerSecond)
         registry.dispatcher.on(Packets.SCREEN_WIDGET_ACTION, onPlayerThread { state, packet -> report(state, state.handleWidgetAction(packet)) })
         registry.dispatcher.on(Packets.SCREEN_TYPED_ACTION, onPlayerThread { state, packet -> report(state, state.handleTypedAction(packet)) })
-        registry.dispatcher.on(Packets.SCREEN_CLOSED, onPlayerThread { state, packet -> state.handleClosed(packet) })
+        registry.dispatcher.on(Packets.SCREEN_CLOSED, onPlayerThread { state, packet -> report(state, state.handleClosed(packet)) })
         plugin.server.pluginManager.registerEvents(this, plugin)
+    }
+
+    /**
+     * Marks a player's client as ready for screen packets and sends the screens opened for the
+     * player before.
+     *
+     * @param player the player
+     */
+    fun markReady(player: Player) {
+        ready += player.uniqueId
+        senders[player.uniqueId]?.markReady()
     }
 
     /**
@@ -85,19 +113,29 @@ class PaperScreenService : ScreenService, Listener {
             val player = (connection as? PlayerGameConnection)?.player ?: return@PacketHandler
             player.scheduler.run(plugin, {
                 val state = states[player.uniqueId] ?: return@run
-                synchronized(state) { handler(state, packet) }
+                handler(state, packet)
             }, null)
         }
 
     /**
-     * Logs a rejected action.
+     * Logs a rejected action: suspicious rejections as warnings, within the player's log budget,
+     * and rejections caused by ordinary latency at the fine level.
      *
      * @param state the state of the player who sent it
      * @param outcome the outcome of the action
      */
     private fun report(state: PlayerScreenState, outcome: PlayerScreenState.Outcome) {
-        if (outcome is PlayerScreenState.Outcome.Rejected) {
-            log.atWarning().log("Rejected a screen action of %s: %s", state.viewer, outcome.reason)
+        if (outcome !is PlayerScreenState.Outcome.Rejected) return
+        if (!outcome.suspicious) {
+            log.atFine().log("Dropped a stale screen action of %s: %s", state.viewer, outcome.reason)
+            return
+        }
+        when (rejections.decide(state.viewer)) {
+            RejectionLog.Decision.LOG -> log.atWarning().log("Rejected a screen action of %s: %s", state.viewer, outcome.reason)
+            RejectionLog.Decision.SUPPRESS_NOTICE ->
+                log.atWarning().log("Suppressing further rejected screen actions of %s for this minute", state.viewer)
+
+            RejectionLog.Decision.SILENT -> Unit
         }
     }
 
@@ -106,18 +144,34 @@ class PaperScreenService : ScreenService, Listener {
      *
      * @param player the player
      * @return the state
+     * @throws IllegalStateException if the calling thread does not own the player
      */
-    private fun state(player: Player): PlayerScreenState = states.computeIfAbsent(player.uniqueId) {
-        PlayerScreenState(player.uniqueId, sender(player), limiter)
+    private fun state(player: Player): PlayerScreenState {
+        checkOwned(player)
+        return states.computeIfAbsent(player.uniqueId) { id ->
+            val sender = QueueingScreenSender(registrySender(player), ready = id in ready)
+            senders[id] = sender
+            PlayerScreenState(id, sender, limiter) { checkOwned(player) }
+        }
     }
 
     /**
-     * Creates the packet sender of a player.
+     * Checks that the calling thread owns a player.
+     *
+     * @param player the player
+     * @throws IllegalStateException if it does not
+     */
+    private fun checkOwned(player: Player) {
+        check(Bukkit.isOwnedByCurrentRegion(player)) { "Screens of ${player.name} must be used on the player's region thread" }
+    }
+
+    /**
+     * Creates the sender that delivers packets to a player through the packet registry.
      *
      * @param player the player
      * @return the sender
      */
-    private fun sender(player: Player) = object : ScreenPacketSender {
+    private fun registrySender(player: Player) = object : ScreenPacketSender {
         /**
          * Sends a packet to the player.
          *
@@ -135,12 +189,12 @@ class PaperScreenService : ScreenService, Listener {
      * @param parent the open screen to open on top of, or `null`
      * @return the open screen
      * @throws IllegalArgumentException if [parent] is not an open screen of [player]
+     * @throws IllegalStateException if the calling thread does not own the player, or the player
+     *         is leaving
      */
     override fun open(player: Player, definition: ScreenDefinition, parent: OpenScreen?): OpenScreen {
         val state = state(player)
-        synchronized(state) {
-            return state.open(definition, parentSession(state, player, parent))
-        }
+        return state.open(definition, parentSession(state, player, parent))
     }
 
     /**
@@ -157,6 +211,8 @@ class PaperScreenService : ScreenService, Listener {
      * @param onAction the handler of the screen's actions
      * @return the open screen
      * @throws IllegalArgumentException if [parent] is not an open screen of [player]
+     * @throws IllegalStateException if the calling thread does not own the player, or the player
+     *         is leaving
      */
     fun <S, A> openTyped(
         player: Player,
@@ -168,9 +224,7 @@ class PaperScreenService : ScreenService, Listener {
         onAction: (TypedOpenScreen<S>, A) -> Unit,
     ): TypedOpenScreen<S> {
         val state = state(player)
-        synchronized(state) {
-            return state.openTyped(type, title, initial, closable, parentSession(state, player, parent), onAction)
-        }
+        return state.openTyped(type, title, initial, closable, parentSession(state, player, parent), onAction)
     }
 
     /**
@@ -184,7 +238,7 @@ class PaperScreenService : ScreenService, Listener {
      */
     private fun parentSession(state: PlayerScreenState, player: Player, parent: OpenScreen?): Int? {
         if (parent == null) return null
-        require(parent.isOpen && state.openScreens.any { it === parent }) { "The parent screen is not open for ${player.name}" }
+        require(state.openScreens.any { it === parent }) { "The parent screen is not open for ${player.name}" }
         return parent.sessionId
     }
 
@@ -193,39 +247,50 @@ class PaperScreenService : ScreenService, Listener {
      *
      * @param player the player
      * @return the open screens, from bottom to top
+     * @throws IllegalStateException if the calling thread does not own the player
      */
     override fun openScreens(player: Player): List<OpenScreen> {
-        val state = states[player.uniqueId] ?: return emptyList()
-        synchronized(state) { return state.openScreens }
+        checkOwned(player)
+        return states[player.uniqueId]?.openScreens ?: emptyList()
     }
 
     /**
      * Closes every screen a player has open.
      *
      * @param player the player
+     * @throws IllegalStateException if the calling thread does not own the player
      */
     override fun closeAll(player: Player) {
-        val state = states[player.uniqueId] ?: return
-        synchronized(state) { state.closeAll(notifyClient = true) }
+        checkOwned(player)
+        states[player.uniqueId]?.closeAll(notifyClient = true)
     }
 
     /**
-     * Drops the screen state of a player who quits, running the close handlers of their screens.
+     * Disposes the screen state of a player who quits, running the close handlers of their
+     * screens, and forgets the player.
      *
      * @param event the quit event
      */
     @EventHandler
     fun onQuit(event: PlayerQuitEvent) {
         val id = event.player.uniqueId
+        states[id]?.dispose()
+        states.remove(id)
+        senders.remove(id)
+        ready -= id
         limiter.forget(id)
-        val state = states.remove(id) ?: return
-        synchronized(state) { state.closeAll(notifyClient = false) }
+        rejections.forget(id)
     }
 
     /**
      * Provides the service instance registered for [ScreenService].
      */
     companion object {
+        /**
+         * The number of suspicious rejected actions logged per player and minute.
+         */
+        private const val REJECTIONS_LOGGED_PER_MINUTE = 5
+
         /**
          * The registered service.
          */

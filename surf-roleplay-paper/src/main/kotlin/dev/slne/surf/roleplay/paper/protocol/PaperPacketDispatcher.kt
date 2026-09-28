@@ -32,8 +32,8 @@ fun interface PacketHandler<P : Packet> {
  * Decodes serverbound roleplay payloads and routes each packet to the handler registered for
  * its packet type.
  *
- * Payloads on a channel without a handler, and payloads that cannot be decoded, are logged and
- * dropped.
+ * Payloads on a channel without a handler, and payloads that cannot be decoded, are logged at the
+ * fine level and dropped.
  */
 class PaperPacketDispatcher : PluginMessageListener {
 
@@ -83,7 +83,7 @@ class PaperPacketDispatcher : PluginMessageListener {
         val packet = try {
             ProtocolCodec.decode(type, message)
         } catch (exception: Exception) {
-            log.atWarning().withCause(exception).log(
+            log.atFine().withCause(exception).log(
                 "Dropped undecodable %s from %s", channel, connection.address
             )
             return
