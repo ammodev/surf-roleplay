@@ -9,6 +9,8 @@ import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.FormWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.ActionInterceptor
+import dev.slne.surf.roleplay.fabric.ui.widget.KeyInterceptor
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayContainerWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayHostWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Popover
@@ -621,7 +623,25 @@ class ScreenPanel(
         if (event.isEscape) return false
         val focused = focusedWidget ?: return false
         if (focused.keyPressed(this, event)) return true
+        if (offerKey(focused, event)) return true
         return (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) && submitForm(focused)
+    }
+
+    /**
+     * Offers a key the focused widget did not use to the containers around it, nearest first,
+     * until one handles it.
+     *
+     * @param focused the focused widget
+     * @param event the key event
+     * @return whether a container handled the key
+     */
+    private fun offerKey(focused: Widget, event: KeyEvent): Boolean {
+        var current: Widget = focused
+        while (true) {
+            val parent = WidgetTree.parentOf(root, current.id) ?: return false
+            if (parent is KeyInterceptor && parent.descendantKeyPressed(this, focused, event)) return true
+            current = parent
+        }
     }
 
     /**
@@ -733,6 +753,7 @@ class ScreenPanel(
      * @param submitsInput whether the action submits the screen's input
      */
     override fun actionTriggered(widget: Widget, submitsInput: Boolean) {
+        if (interceptAction(widget)) return
         OverlayHostWidget.hostOfTrigger(root, widget)?.let { host ->
             if (host.enabled) host.toggle(this)
             return
@@ -742,6 +763,21 @@ class ScreenPanel(
         if (submitsInput) WidgetTree.touchAll(root)
         listener.actionTriggered(this, widget)
         stack.lastOrNull { it.containsWidget(widget) }?.afterAction(this, widget, submitsInput)
+    }
+
+    /**
+     * Offers an action to the containers around the widget, nearest first, until one handles it.
+     *
+     * @param widget the widget whose action fired
+     * @return whether a container handled the action
+     */
+    private fun interceptAction(widget: Widget): Boolean {
+        var via = widget
+        while (true) {
+            val parent = WidgetTree.parentOf(root, via.id) ?: return false
+            if (parent is ActionInterceptor && parent.interceptAction(this, widget, via)) return true
+            via = parent
+        }
     }
 
     /**

@@ -667,3 +667,35 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
         const val SCROLL_HANDLE_ALPHA: Float = 0.4f
     }
 }
+
+/**
+ * A container that takes the actions of some of its descendants for itself instead of letting
+ * them reach the server, such as a collapsible whose trigger button shows its content.
+ */
+interface ActionInterceptor {
+    /**
+     * Handles an action of a descendant, or declines it.
+     *
+     * @param context the screen showing the widget
+     * @param widget the widget whose action fired
+     * @param via the child of this container that holds the widget, or the widget itself
+     * @return whether the action was handled and must not reach the server
+     */
+    fun interceptAction(context: UiContext, widget: Widget, via: Widget): Boolean
+}
+
+/**
+ * A container that handles the keys its focused descendants do not use, such as a tab list that
+ * moves between its triggers on the arrow keys.
+ */
+interface KeyInterceptor {
+    /**
+     * Handles a key the focused descendant did not use, or declines it.
+     *
+     * @param context the screen showing the widget
+     * @param focused the focused descendant
+     * @param event the key event
+     * @return whether the key was handled
+     */
+    fun descendantKeyPressed(context: UiContext, focused: Widget, event: KeyEvent): Boolean
+}

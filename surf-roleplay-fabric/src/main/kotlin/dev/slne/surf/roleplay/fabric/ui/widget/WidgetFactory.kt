@@ -3,6 +3,13 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionItemNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleContentNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
 import dev.slne.surf.roleplay.protocol.screen.DialogNode
 import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
@@ -262,6 +269,16 @@ object WidgetFactory {
             is DrawerNode -> container(ModalHostWidget(node.id, ModalKind.DRAWER), node.children).apply { requestOpen(node.open) }
             is DrawerContentNode -> container(DrawerContentWidget(node.id, node.direction), node.children)
             is OverlayContainerNode -> container(OverlayContainerWidget(node.id), node.children)
+            is CollapsibleNode -> container(CollapsibleWidget(node.id), node.children).apply { setOpen(node.open) }
+            is CollapsibleTriggerNode -> container(CollapsibleTriggerWidget(node.id), node.children)
+            is CollapsibleContentNode -> container(CollapsibleContentWidget(node.id), node.children)
+            is AccordionNode -> container(AccordionWidget(node.id, node.type, node.collapsible), node.children).apply { open(node.value.toSet()) }
+            is AccordionItemNode -> container(AccordionItemWidget(node.id, node.value), node.children).apply {
+                enabled = node.enabled
+                trigger?.item = this
+            }
+            is AccordionTriggerNode -> AccordionTriggerWidget(node.id, node.text)
+            is AccordionContentNode -> container(AccordionContentWidget(node.id), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -290,6 +307,8 @@ object WidgetFactory {
             is AlertDialogNode -> node.notifyChange
             is SheetNode -> node.notifyChange
             is DrawerNode -> node.notifyChange
+            is CollapsibleNode -> node.notifyChange
+            is AccordionNode -> node.notifyChange
             else -> false
         }
         return widget
