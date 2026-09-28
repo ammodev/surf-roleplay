@@ -517,6 +517,7 @@ class ScreenPanel(
             if (area.contains(x, y)) {
                 closeFrom(index + 1)
                 if (open.owner.enabled) open.mouseClicked(this, area, x, y, button)
+                startDrag(x, y, button)
                 return true
             }
             if (open.modal) {
@@ -533,8 +534,19 @@ class ScreenPanel(
         if (!viewport.contains(x, y)) return true
         focusedWidget = null
         root.mouseClicked(this, x, y, button)
-        dragTarget = focusedWidget?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
+        startDrag(x, y, button)
         return true
+    }
+
+    /**
+     * Starts a drag on the focused widget after a left click on it, if it can be dragged.
+     *
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param button the mouse button
+     */
+    private fun startDrag(x: Double, y: Double, button: Int) {
+        dragTarget = focusedWidget?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
     }
 
     /**

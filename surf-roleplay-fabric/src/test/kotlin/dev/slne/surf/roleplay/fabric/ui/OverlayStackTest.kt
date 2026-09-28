@@ -10,12 +10,14 @@ import dev.slne.surf.roleplay.fabric.ui.widget.ContainerWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayContentWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayHostWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Popover
+import dev.slne.surf.roleplay.fabric.ui.widget.SliderWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.TextInputWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.TextEditState
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetPopover
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetTree
 import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.Orientation
 import dev.slne.surf.roleplay.protocol.screen.OverlaySide
 import dev.slne.surf.roleplay.protocol.screen.SetOpen
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
@@ -381,5 +383,20 @@ class OverlayStackTest {
         panel.keyPressed(key(GLFW.GLFW_KEY_ESCAPE))
 
         assertEquals("a_trigger", panel.focusedWidget?.id)
+    }
+
+    /**
+     * Verifies that a slider inside an overlay can be dragged after a click on it.
+     */
+    @Test
+    fun `sliders drag inside overlays`() {
+        val slider = SliderWidget("volume", listOf(0.0), 0.0, 100.0, 1.0, Orientation.HORIZONTAL)
+        val panel = panel(column(host("a", listOf(slider))))
+        click(panel, "a_trigger")
+        val b = findVisible(panel, "volume")
+        panel.mouseClicked(b.x + 1.0, b.y + b.height / 2.0, GLFW.GLFW_MOUSE_BUTTON_LEFT)
+
+        assertTrue(panel.mouseDragged(b.right - 1.0, b.y + b.height / 2.0))
+        assertEquals("100", slider.inputValue?.substringBefore('.'))
     }
 }
