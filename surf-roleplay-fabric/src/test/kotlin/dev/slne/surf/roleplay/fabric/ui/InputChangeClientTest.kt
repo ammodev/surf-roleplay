@@ -98,7 +98,7 @@ class InputChangeClientTest {
 
     /**
      * Verifies that the debouncer releases a widget only after it stayed unchanged long enough,
-     * and releases every widget at once when flushed.
+     * releases every widget at once when flushed, and drops a cancelled widget.
      */
     @Test
     fun `debouncer waits for a pause`() {
@@ -116,5 +116,8 @@ class InputChangeClientTest {
         assertEquals(emptyList(), debouncer.due())
         debouncer.changed("b")
         assertEquals(listOf("b"), debouncer.flush())
+        debouncer.changed("c")
+        debouncer.cancel("c")
+        assertEquals(emptyList(), debouncer.flush())
     }
 }

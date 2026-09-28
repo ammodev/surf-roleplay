@@ -591,13 +591,19 @@ class ScreenPanel(
     override fun widget(id: String): Widget? = WidgetTree.find(root, id)
 
     /**
-     * Reports a changed input to the listener, at once or after the player paused typing.
+     * Reports a changed input to the listener, at once or after the player paused typing. A report
+     * at once replaces a report that still waits for a pause.
      *
      * @param widget the input
      * @param immediate whether to report at once
      */
     override fun valueChanged(widget: Widget, immediate: Boolean) {
-        if (immediate) listener.valueChanged(this, widget) else debouncer.changed(widget.id)
+        if (immediate) {
+            debouncer.cancel(widget.id)
+            listener.valueChanged(this, widget)
+        } else {
+            debouncer.changed(widget.id)
+        }
     }
 
     /**

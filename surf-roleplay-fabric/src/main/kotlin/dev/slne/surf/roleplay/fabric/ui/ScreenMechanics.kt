@@ -226,4 +226,13 @@ class ChangeDebouncer(private val delayMillis: Long, private val clock: () -> Lo
      * @return the pending keys
      */
     fun flush(): List<String> = pending.keys.toList().also { pending.clear() }
+
+    /**
+     * Drops a waiting key without releasing it.
+     *
+     * @param key the key
+     */
+    fun cancel(key: String) {
+        pending.remove(key)
+    }
 }
