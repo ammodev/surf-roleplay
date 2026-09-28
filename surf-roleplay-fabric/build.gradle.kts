@@ -56,6 +56,8 @@ tasks.processResources {
     }
 }
 
+apply(from = "lucide.gradle.kts")
+
 tasks.withType<JavaCompile>().configureEach {
     options.release = 25
 }
