@@ -51,4 +51,23 @@ class NavigationComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that tabs with every part survive a round trip.
+     */
+    @Test
+    fun `tabs round-trip`() {
+        val root = TabsNode(
+            "tabs",
+            value = "b",
+            orientation = Orientation.VERTICAL,
+            notifyChange = true,
+            children = listOf(
+                TabsListNode("list", variant = TabsVariant.LINE, children = listOf(TabsTriggerNode("trigger_a", value = "a", text = "\"A\"", icon = "user", enabled = false))),
+                TabsContentNode("content_a", value = "a", children = listOf(LabelNode("text"))),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

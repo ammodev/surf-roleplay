@@ -3,6 +3,11 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.Orientation
+import dev.slne.surf.roleplay.protocol.screen.TabsNode
+import dev.slne.surf.roleplay.protocol.screen.TabsListNode
+import dev.slne.surf.roleplay.protocol.screen.TabsTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionItemNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionNode
@@ -279,6 +284,14 @@ object WidgetFactory {
             }
             is AccordionTriggerNode -> AccordionTriggerWidget(node.id, node.text)
             is AccordionContentNode -> container(AccordionContentWidget(node.id), node.children)
+            is TabsNode -> TabsWidget(node.id, node.orientation).apply {
+                node.children.mapTo(childList) { child -> if (child is TabsListNode) tabsList(child, node.orientation) else create(child) }
+                triggers.forEach { it.tabs = this }
+                select(node.value)
+            }
+            is TabsListNode -> tabsList(node, Orientation.HORIZONTAL)
+            is TabsTriggerNode -> TabsTriggerWidget(node.id, node.value, node.text, node.icon).apply { enabled = node.enabled }
+            is TabsContentNode -> container(TabsContentWidget(node.id, node.value), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -309,10 +322,25 @@ object WidgetFactory {
             is DrawerNode -> node.notifyChange
             is CollapsibleNode -> node.notifyChange
             is AccordionNode -> node.notifyChange
+            is TabsNode -> node.notifyChange
             else -> false
         }
         return widget
     }
+
+    /**
+     * Creates a tab list whose triggers are laid out across the orientation of its tabs.
+     *
+     * @param node the list node
+     * @param orientation the orientation of the tabs around the list
+     * @return the list
+     */
+    private fun tabsList(node: TabsListNode, orientation: Orientation): TabsListWidget =
+        container(TabsListWidget(node.id, node.variant, if (orientation == Orientation.HORIZONTAL) Axis.HORIZONTAL else Axis.VERTICAL), node.children).apply {
+            childList.filterIsInstance<TabsTriggerWidget>().forEach { it.list = this }
+            width = node.width
+            height = node.height
+        }
 
     /**
      * Fills a container with the widgets of child nodes.

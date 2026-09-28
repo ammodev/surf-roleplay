@@ -238,3 +238,151 @@ fun ElementsBuilder.accordionContent(id: String, children: ElementsBuilder.() ->
     elements += AccordionContentElement(id, build(children))
 }
 
+/**
+ * How a tab list is drawn.
+ */
+enum class TabsVariant {
+    /**
+     * A muted pill in which the active trigger is raised.
+     */
+    DEFAULT,
+
+    /**
+     * Plain triggers with a line under the active one.
+     */
+    LINE,
+}
+
+/**
+ * Tabs: a tab list and contents, of which only the content of the selected tab is shown.
+ *
+ * @property id the id of this element
+ * @property children one tab list and the tab contents
+ * @property value the value of the selected tab
+ * @property orientation whether the triggers are in a row above the contents or in a column
+ *           beside them
+ * @property onChange whether the mod reports every change of the state at once
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class TabsElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val value: String = "",
+    val orientation: Orientation = Orientation.HORIZONTAL,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The list of the triggers of tabs.
+ *
+ * @property id the id of this element
+ * @property children the tab triggers
+ * @property variant how the list is drawn
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class TabsListElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val variant: TabsVariant = TabsVariant.DEFAULT,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A trigger of tabs: selecting it shows the content with the same value.
+ *
+ * @property id the id of this element
+ * @property value the value of the tab
+ * @property text the text
+ * @property icon the Lucide name of an icon before the text, or null for none
+ * @property enabled whether the tab can be selected
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class TabsTriggerElement(
+    override val id: String,
+    val value: String = "",
+    val text: Component = Component.empty(),
+    val icon: String? = null,
+    val enabled: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * The content of a tab, shown while its tab is selected.
+ *
+ * @property id the id of this element
+ * @property children the content, stacked
+ * @property value the value of the tab it belongs to
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class TabsContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val value: String = "",
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds tabs. Their children are one [tabsList] and a [tabsContent] per tab.
+ *
+ * @param id the id of the tabs
+ * @param value the value of the tab selected at first; empty selects the first enabled tab
+ * @param orientation whether the triggers are in a row above the contents or in a column beside
+ *        them
+ * @param onChange the handler run whenever the player selects another tab, with its value, or
+ *        `null` for none
+ * @param children the builder of the list and the contents
+ */
+fun ElementsBuilder.tabs(
+    id: String,
+    value: String = "",
+    orientation: Orientation = Orientation.HORIZONTAL,
+    onChange: ChangeHandler? = null,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += TabsElement(id, build(children), value, orientation, onChange)
+}
+
+/**
+ * Adds the list of the triggers of tabs. Its children are [tabsTrigger]s.
+ *
+ * @param id the id of the list
+ * @param variant how the list is drawn
+ * @param children the builder of the triggers
+ */
+fun ElementsBuilder.tabsList(id: String, variant: TabsVariant = TabsVariant.DEFAULT, children: ElementsBuilder.() -> Unit) {
+    elements += TabsListElement(id, build(children), variant)
+}
+
+/**
+ * Adds a trigger of tabs.
+ *
+ * @param id the id of the trigger
+ * @param value the value of the tab
+ * @param text the text
+ * @param icon the Lucide name of an icon before the text, or `null` for none
+ * @param enabled whether the tab can be selected
+ */
+fun ElementsBuilder.tabsTrigger(id: String, value: String, text: Component, icon: String? = null, enabled: Boolean = true) {
+    elements += TabsTriggerElement(id, value, text, icon, enabled)
+}
+
+/**
+ * Adds the content of a tab, shown while its tab is selected.
+ *
+ * @param id the id of the content
+ * @param value the value of the tab it belongs to
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.tabsContent(id: String, value: String, children: ElementsBuilder.() -> Unit) {
+    elements += TabsContentElement(id, build(children), value)
+}
+

@@ -10,6 +10,12 @@ import dev.slne.surf.roleplay.api.client.common.screen.collapsible
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.Orientation
+import dev.slne.surf.roleplay.api.client.common.screen.TabsVariant
+import dev.slne.surf.roleplay.api.client.common.screen.tabs
+import dev.slne.surf.roleplay.api.client.common.screen.tabsContent
+import dev.slne.surf.roleplay.api.client.common.screen.tabsList
+import dev.slne.surf.roleplay.api.client.common.screen.tabsTrigger
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
@@ -25,6 +31,12 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
+import dev.slne.surf.roleplay.protocol.screen.TabsListNode
+import dev.slne.surf.roleplay.protocol.screen.TabsNode
+import dev.slne.surf.roleplay.protocol.screen.TabsTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.Orientation as NodeOrientation
+import dev.slne.surf.roleplay.protocol.screen.TabsVariant as NodeTabsVariant
 import net.kyori.adventure.text.Component
 import java.util.UUID
 import kotlin.test.Test
@@ -173,5 +185,59 @@ class NavigationComponentsTest {
 
         assertIs<PlayerScreenState.Outcome.Accepted>(outcome)
         assertEquals(listOf("save=[a, b]"), reports)
+    }
+
+    /**
+     * Opens a screen with vertical line tabs of three tabs, the second one disabled.
+     *
+     * @return the session id
+     */
+    private fun openTabs(): Int = state.open(
+        screen(Component.text("Tabs")) {
+            tabs("tabs", value = "account", orientation = Orientation.VERTICAL, onChange = { report(it) }) {
+                tabsList("list", TabsVariant.LINE) {
+                    tabsTrigger("trigger_account", "account", Component.text("Konto"), icon = "user")
+                    tabsTrigger("trigger_password", "password", Component.text("Passwort"), enabled = false)
+                    tabsTrigger("trigger_billing", "billing", Component.text("Rechnung"))
+                }
+                tabsContent("content_account", "account") {}
+                tabsContent("content_password", "password") {}
+                tabsContent("content_billing", "billing") {}
+            }
+        },
+        null,
+    ).sessionId
+
+    /**
+     * Verifies that tabs map to their nodes with their settings.
+     */
+    @Test
+    fun `tabs map to their nodes`() {
+        openTabs()
+
+        val tabs = assertIs<TabsNode>(assertIs<WidgetScreenBody>((sent.last() as ScreenOpen).body).root)
+        assertEquals("account", tabs.value)
+        assertEquals(NodeOrientation.VERTICAL, tabs.orientation)
+        assertTrue(tabs.notifyChange)
+        val list = assertIs<TabsListNode>(tabs.children[0])
+        assertEquals(NodeTabsVariant.LINE, list.variant)
+        val trigger = assertIs<TabsTriggerNode>(list.children[0])
+        assertEquals("account", trigger.value)
+        assertEquals("user", trigger.icon)
+        assertEquals(false, assertIs<TabsTriggerNode>(list.children[1]).enabled)
+        assertEquals("billing", assertIs<TabsContentNode>(tabs.children[3]).value)
+    }
+
+    /**
+     * Verifies that tabs accept only the value of a known, enabled tab.
+     */
+    @Test
+    fun `tab values are validated`() {
+        val session = openTabs()
+
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChange(session, "tabs", "billing")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "tabs", "password")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "tabs", "unknown")))
+        assertEquals(listOf("tabs=billing"), reports)
     }
 }

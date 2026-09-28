@@ -52,6 +52,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
+import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleElement
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionElement
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionItemElement
@@ -323,6 +326,15 @@ object ElementRules {
     fun splitList(value: String): List<String> = value.split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
     /**
+     * Returns the triggers of every tab list of tabs, in order.
+     *
+     * @param tabs the tabs
+     * @return the triggers
+     */
+    private fun tabTriggers(tabs: TabsElement): List<TabsTriggerElement> =
+        tabs.children.filterIsInstance<TabsListElement>().flatMap { list -> list.children.filterIsInstance<TabsTriggerElement>() }
+
+    /**
      * Returns the items of an accordion, in order.
      *
      * @param accordion the accordion
@@ -526,6 +538,28 @@ object ElementRules {
         )
         register(AccordionItemElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
         register(AccordionTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            TabsElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { it.value },
+                    violation = { e, v ->
+                        val trigger = tabTriggers(e).firstOrNull { it.value == v }
+                        when {
+                            trigger == null -> "value is not a tab"
+                            !trigger.enabled && v != e.value -> "the tab is disabled"
+                            else -> null
+                        }
+                    },
+                    withValue = { e, v -> e.copy(value = v) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            TabsTriggerElement::class,
+            ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }),
+        )
         register(AlertDialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(SheetElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(DrawerElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))

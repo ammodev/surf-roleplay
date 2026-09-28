@@ -1,6 +1,9 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleElement
 import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleContentElement
@@ -330,6 +333,9 @@ class ServerScreenTree(root: ScreenElement) {
             is AccordionElement -> container.copy(children = children)
             is AccordionItemElement -> container.copy(children = children)
             is AccordionContentElement -> container.copy(children = children)
+            is TabsElement -> container.copy(children = children)
+            is TabsListElement -> container.copy(children = children)
+            is TabsContentElement -> container.copy(children = children)
             is DialogContentElement -> container.copy(children = children)
             is DialogHeaderElement -> container.copy(children = children)
             is DialogFooterElement -> container.copy(children = children)

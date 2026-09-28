@@ -205,3 +205,130 @@ data class AccordionContentNode(
      */
     override fun withChildren(children: List<ScreenNode>): AccordionContentNode = copy(children = children)
 }
+
+/**
+ * How a tab list is drawn.
+ */
+@Serializable
+enum class TabsVariant {
+    /**
+     * A muted pill in which the active trigger is raised.
+     */
+    @ProtoNumber(0)
+    DEFAULT,
+
+    /**
+     * Plain triggers with a line under the active one.
+     */
+    @ProtoNumber(1)
+    LINE,
+}
+
+/**
+ * Tabs: a tab list and contents, of which only the content of the selected tab is shown.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children one tab list and the tab contents
+ * @property value the value of the selected tab
+ * @property orientation whether the triggers are in a row above the contents or in a column
+ *           beside them
+ * @property notifyChange whether the mod reports every change of the state at once
+ */
+@Serializable
+@SerialName("tabs")
+data class TabsNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val value: String = "",
+    @ProtoNumber(6) val orientation: Orientation = Orientation.HORIZONTAL,
+    @ProtoNumber(7) val notifyChange: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): TabsNode = copy(children = children)
+}
+
+/**
+ * The list of the triggers of tabs.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the tab triggers
+ * @property variant how the list is drawn
+ */
+@Serializable
+@SerialName("tabs_list")
+data class TabsListNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val variant: TabsVariant = TabsVariant.DEFAULT,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): TabsListNode = copy(children = children)
+}
+
+/**
+ * A trigger of tabs: selecting it shows the content with the same value.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property value the value of the tab
+ * @property text the text
+ * @property icon the Lucide name of an icon before the text, or null for none
+ * @property enabled whether the tab can be selected
+ */
+@Serializable
+@SerialName("tabs_trigger")
+data class TabsTriggerNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val value: String = "",
+    @ProtoNumber(5) val text: String = "",
+    @ProtoNumber(6) val icon: String? = null,
+    @ProtoNumber(7) val enabled: Boolean = true,
+) : ScreenNode
+
+/**
+ * The content of a tab, shown while its tab is selected.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, stacked
+ * @property value the value of the tab it belongs to
+ */
+@Serializable
+@SerialName("tabs_content")
+data class TabsContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val value: String = "",
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): TabsContentNode = copy(children = children)
+}

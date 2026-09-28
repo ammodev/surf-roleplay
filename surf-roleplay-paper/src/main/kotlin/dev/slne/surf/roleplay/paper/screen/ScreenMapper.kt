@@ -265,6 +265,14 @@ import dev.slne.surf.roleplay.protocol.screen.AccordionNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionItemNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
+import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsContentElement
+import dev.slne.surf.roleplay.protocol.screen.TabsNode
+import dev.slne.surf.roleplay.protocol.screen.TabsListNode
+import dev.slne.surf.roleplay.protocol.screen.TabsTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -473,6 +481,10 @@ object ScreenMapper {
             is AccordionItemElement -> AccordionItemNode(element.id, width, height, element.children.map(::toNode), element.value, element.enabled)
             is AccordionTriggerElement -> AccordionTriggerNode(element.id, width, height, text(element.text))
             is AccordionContentElement -> AccordionContentNode(element.id, width, height, element.children.map(::toNode))
+            is TabsElement -> TabsNode(element.id, width, height, element.children.map(::toNode), element.value, enumOf(element.orientation), element.onChange != null)
+            is TabsListElement -> TabsListNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant))
+            is TabsTriggerElement -> TabsTriggerNode(element.id, width, height, element.value, text(element.text), element.icon, element.enabled)
+            is TabsContentElement -> TabsContentNode(element.id, width, height, element.children.map(::toNode), element.value)
         }
     }
 
