@@ -140,11 +140,21 @@ object FlexLayout {
      * @param availableWidth the width of the area
      * @param availableHeight the height of the area
      */
-    fun layoutRoot(root: LayoutBox, availableWidth: Int, availableHeight: Int) {
+    fun layoutRoot(root: LayoutBox, availableWidth: Int, availableHeight: Int) =
+        layoutRoot(root, Rect(0, 0, availableWidth, availableHeight))
+
+    /**
+     * Lays out a root box within an area, sized by its own sizing and centered in the area. The
+     * root never exceeds the area.
+     *
+     * @param root the root box
+     * @param area the area to lay the root out in
+     */
+    fun layoutRoot(root: LayoutBox, area: Rect) {
         val preferred = measure(root)
-        val width = resolveRoot(root.width, preferred.width, availableWidth)
-        val height = resolveRoot(root.height, preferred.height, availableHeight)
-        layout(root, Rect((availableWidth - width) / 2, (availableHeight - height) / 2, width, height))
+        val width = resolveRoot(root.width, preferred.width, area.width)
+        val height = resolveRoot(root.height, preferred.height, area.height)
+        layout(root, Rect(area.x + (area.width - width) / 2, area.y + (area.height - height) / 2, width, height))
     }
 
     /**

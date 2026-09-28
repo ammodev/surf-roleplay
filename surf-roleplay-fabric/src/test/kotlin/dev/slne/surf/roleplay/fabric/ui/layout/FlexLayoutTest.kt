@@ -186,4 +186,16 @@ class FlexLayoutTest {
 
         assertEquals(Rect(0, 0, 300, 200), root.bounds)
     }
+
+    /**
+     * Verifies that the root is centered within an area that does not start at the origin.
+     */
+    @Test
+    fun `root is centered in an offset area`() {
+        val root = fixed(100, 50)
+
+        FlexLayout.layoutRoot(root, Rect(10, 20, 300, 200))
+
+        assertEquals(Rect(110, 95, 100, 50), root.bounds)
+    }
 }
