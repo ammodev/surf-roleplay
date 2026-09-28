@@ -1,6 +1,35 @@
 # Local dev stack of surf-roleplay. See README.md in this folder.
 name: surf-roleplay-dev
 
+# Connection settings shared by every surf plugin and microservice.
+x-surf-env: &surf-env
+  SURF_DATABASE_TYPE: postgresql
+  SURF_DATABASE_HOST: postgres
+  SURF_DATABASE_PORT: "5432"
+  SURF_DATABASE_NAME: surf
+  SURF_DATABASE_SCHEMA: public
+  SURF_DATABASE_USERNAME: postgres
+  SURF_DATABASE_PASSWORD: dev
+  SURF_REDIS_HOST: redis
+  SURF_REDIS_PORT: "6379"
+  SURF_RABBITMQ_HOST: rabbitmq
+  SURF_RABBITMQ_PORT: "5672"
+  SURF_RABBITMQ_USERNAME: surf
+  SURF_RABBITMQ_PASSWORD: dev
+  # Docker's default seccomp profile blocks io_uring, so Netty must use NIO.
+  JAVA_TOOL_OPTIONS: -Dio.netty.transport.noNative=true
+
+# The Java services start after the infrastructure is healthy and the jars are fetched.
+x-java-service: &java-service
+  image: eclipse-temurin:25-jre
+  environment: *surf-env
+  stdin_open: true
+  depends_on:
+    postgres: { condition: service_healthy }
+    redis: { condition: service_healthy }
+    rabbitmq: { condition: service_healthy }
+    fetch: { condition: service_completed_successfully }
+
 services:
   postgres:
     image: postgres:17
@@ -24,6 +53,9 @@ services:
 
   rabbitmq:
     image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: surf
+      RABBITMQ_DEFAULT_PASS: dev
     ports: ["15672:15672"]
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
@@ -39,6 +71,31 @@ services:
       - ./scripts:/scripts:ro
       - ./versions.env:/versions.env:ro
       - ./jars:/jars
+
+  ms-core:
+    <<: *java-service
+    working_dir: /data
+    command: ["java", "-Xmx512M", "-jar", "/jars/microservices/surf-core.jar"]
+    volumes:
+      - ./jars:/jars:ro
+      - ./run/ms-core:/data
+
+  ms-transaction:
+    <<: *java-service
+    working_dir: /data
+    command: ["java", "-Xmx512M", "-jar", "/jars/microservices/surf-transaction.jar"]
+    volumes:
+      - ./jars:/jars:ro
+      - ./run/ms-transaction:/data
+
+  ms-roleplay:
+    <<: *java-service
+    working_dir: /data
+    command: ["sh", "/scripts/run-build-jar.sh", "/build", "-Xmx512M"]
+    volumes:
+      - ./scripts:/scripts:ro
+      - ../../surf-roleplay-microservice/build/libs:/build:ro
+      - ./run/ms-roleplay:/data
 
 volumes:
   postgres-data:
