@@ -63,3 +63,6 @@ Create the next record with `/surf:new-adr`.
 | [0054](0054-comboboxes-filter-on-the-client-with-an-optional-search-event.md) | Comboboxes filter on the client with an optional search event | Accepted | 2026-09-28 |
 | [0055](0055-screen-texts-wrap-to-the-width-their-container-gives-them.md) | Screen texts wrap to the width their container gives them | Accepted | 2026-09-28 |
 | [0056](0056-avatars-show-player-heads-or-resource-pack-textures.md) | Avatars show player heads or resource-pack textures | Accepted | 2026-09-28 |
+| [0057](0057-overlays-are-screen-nodes-opened-on-the-client.md) | Overlays are screen nodes opened on the client | Accepted | 2026-09-28 |
+| [0058](0058-toasts-travel-in-their-own-packets-and-show-over-the-hud.md) | Toasts travel in their own packets and show over the HUD | Accepted | 2026-09-28 |
+| [0059](0059-holding-a-key-shows-a-cursor-over-the-hud.md) | Holding a key shows a cursor over the HUD | Accepted | 2026-09-28 |
