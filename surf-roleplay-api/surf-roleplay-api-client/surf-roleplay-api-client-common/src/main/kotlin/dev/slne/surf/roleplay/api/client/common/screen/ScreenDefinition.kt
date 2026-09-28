@@ -10,13 +10,37 @@ import java.util.UUID
  * @property root the root element
  * @property closable whether the player can close the screen with Escape
  * @property onClose the handler run when the screen is closed for any reason, or `null` for none
+ * @throws IllegalArgumentException if two elements of the tree share an id
  */
 data class ScreenDefinition(
     val title: Component,
     val root: ScreenElement,
     val closable: Boolean = true,
     val onClose: CloseHandler? = null,
-)
+) {
+    init {
+        val ids = mutableListOf<String>()
+        collectIds(root, ids)
+        val duplicates = ids.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
+        require(duplicates.isEmpty()) { "Screen element ids are not unique: $duplicates" }
+    }
+
+    /**
+     * Holds the id collection helper.
+     */
+    private companion object {
+        /**
+         * Adds the id of an element and of its descendants to a list.
+         *
+         * @param element the element
+         * @param ids the list to add to
+         */
+        fun collectIds(element: ScreenElement, ids: MutableList<String>) {
+            ids += element.id
+            if (element is ContainerElement) element.children.forEach { collectIds(it, ids) }
+        }
+    }
+}
 
 /**
  * Handles a click on a button.
@@ -104,6 +128,9 @@ class ScreenValues(val all: Map<String, String>) {
 
 /**
  * A screen that is open for a player.
+ *
+ * Every member must be used on the thread that owns the viewer, and throws
+ * [IllegalStateException] otherwise.
  */
 interface OpenScreen {
     /**

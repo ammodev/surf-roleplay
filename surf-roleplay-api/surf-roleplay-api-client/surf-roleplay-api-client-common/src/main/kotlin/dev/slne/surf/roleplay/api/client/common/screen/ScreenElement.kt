@@ -226,6 +226,10 @@ data class LabelElement(
  * A button. Clicking an enabled button runs its handler with the screen's validated input
  * values.
  *
+ * A button that submits input is accepted only if every input of the screen is valid. A button
+ * that does not, such as a back or cancel button, is always accepted; its handler receives the
+ * valid values, and invalid inputs keep their last valid value.
+ *
  * @property id the id of this element
  * @property text the caption
  * @property enabled whether the button can be clicked
@@ -233,6 +237,7 @@ data class LabelElement(
  *           for none
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @property submitsInput whether a click requires every input of the screen to be valid
  */
 data class ButtonElement(
     override val id: String,
@@ -241,6 +246,7 @@ data class ButtonElement(
     val onClick: ButtonHandler? = null,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
+    val submitsInput: Boolean = true,
 ) : ScreenElement
 
 /**

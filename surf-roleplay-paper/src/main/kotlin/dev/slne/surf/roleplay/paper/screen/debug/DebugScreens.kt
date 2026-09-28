@@ -62,7 +62,7 @@ class DebugScreens(private val plugin: Plugin) {
                     for (index in 1..8) {
                         row("row_$index", gap = 4, crossAlign = Alignment.CENTER) {
                             label("row_${index}_label", Component.text("Eintrag $index"), width = ElementSize.grow())
-                            button("row_${index}_open", Component.text("Öffnen")) { click -> openEntry(player, click.screen, index) }
+                            button("row_${index}_open", Component.text("Öffnen"), submitsInput = false) { click -> openEntry(player, click.screen, index) }
                         }
                     }
                 }
@@ -71,10 +71,10 @@ class DebugScreens(private val plugin: Plugin) {
                     progress("load", 0f, Component.text("0 %"), width = ElementSize.grow())
                 }
                 row("buttons", gap = 6, padding = Spacing(top = 4), mainAlign = Alignment.END) {
-                    button("locked", Component.text("Gesperrt"), enabled = false) { _ ->
+                    button("locked", Component.text("Gesperrt"), enabled = false, submitsInput = false) { _ ->
                         player.sendMessage(Component.text("Die gesperrte Schaltfläche wurde benutzt.", NamedTextColor.GREEN))
                     }
-                    button("patch", Component.text("Ändern")) { _ ->
+                    button("patch", Component.text("Ändern"), submitsInput = false) { _ ->
                         patches++
                         unlocked = !unlocked
                         demo.patch {
@@ -120,7 +120,7 @@ class DebugScreens(private val plugin: Plugin) {
         val definition: ScreenDefinition = screen(Component.text("Eintrag $index")) {
             column("entry", gap = 8, crossAlign = Alignment.CENTER) {
                 label("entry_text", Component.text("Das ist Eintrag $index."))
-                button("back", Component.text("Zurück")) { click -> click.screen.close() }
+                button("back", Component.text("Zurück"), submitsInput = false) { click -> click.screen.close() }
             }
         }
         ScreenService.open(player, definition, parent)

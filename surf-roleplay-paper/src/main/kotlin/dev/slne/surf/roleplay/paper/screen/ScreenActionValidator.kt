@@ -12,8 +12,10 @@ import dev.slne.surf.roleplay.protocol.screen.InputValue
  * Validates a player's click on a generic screen against the server's copy of the screen.
  *
  * A click is accepted only if it targets an enabled button that exists in the tree, and every
- * submitted value belongs to an input of the tree, is submitted once, keeps its value if the
- * input is disabled, and satisfies the input's constraints.
+ * submitted value belongs to an input of the tree, is submitted once and keeps its value if the
+ * input is disabled. For a button that submits input, every value must also satisfy its input's
+ * constraints. For a button that does not, values that break their constraints are ignored and
+ * their inputs keep their current value.
  */
 object ScreenActionValidator {
 
@@ -46,11 +48,12 @@ object ScreenActionValidator {
      * @return the outcome
      */
     fun validate(tree: ServerScreenTree, widgetId: String, submitted: List<InputValue>): Result {
-        when (val widget = tree.find(widgetId)) {
-            null -> return Result.Rejected("unknown widget '$widgetId'")
-            !is ButtonElement -> return Result.Rejected("widget '$widgetId' is not a button")
-            else -> if (!widget.enabled) return Result.Rejected("button '$widgetId' is disabled")
+        val button = when (val widget = tree.find(widgetId)) {
+            null -> return Result.Rejected("unknown widget ${display(widgetId)}")
+            !is ButtonElement -> return Result.Rejected("widget ${display(widgetId)} is not a button")
+            else -> widget
         }
+        if (!button.enabled) return Result.Rejected("button ${display(widgetId)} is disabled")
 
         val values = LinkedHashMap<String, String>()
         tree.elements().forEach { element -> currentValue(element)?.let { values[element.id] = it } }
@@ -58,18 +61,39 @@ object ScreenActionValidator {
         val seen = mutableSetOf<String>()
         for (value in submitted) {
             val id = value.widgetId
-            if (!seen.add(id)) return Result.Rejected("input '$id' was submitted twice")
-            val element = tree.find(id) ?: return Result.Rejected("unknown input '$id'")
-            val current = currentValue(element) ?: return Result.Rejected("widget '$id' is not an input")
+            if (!seen.add(id)) return Result.Rejected("input ${display(id)} was submitted twice")
+            val element = tree.find(id) ?: return Result.Rejected("unknown input ${display(id)}")
+            val current = currentValue(element) ?: return Result.Rejected("widget ${display(id)} is not an input")
             if (!isEnabled(element)) {
-                if (value.value != current) return Result.Rejected("input '$id' is disabled but its value changed")
+                if (value.value != current) return Result.Rejected("input ${display(id)} is disabled but its value changed")
                 continue
             }
-            constraintViolation(element, value.value)?.let { return Result.Rejected("input '$id': $it") }
+            val violation = constraintViolation(element, value.value)
+            if (violation != null) {
+                if (button.submitsInput) return Result.Rejected("input ${display(id)}: $violation")
+                continue
+            }
             values[id] = value.value
         }
         return Result.Accepted(values)
     }
+
+    /**
+     * Formats a client-supplied id for a rejection reason: quoted, cut to a short length and with
+     * control characters replaced.
+     *
+     * @param id the id
+     * @return the printable id
+     */
+    private fun display(id: String): String {
+        val shown = id.take(MAX_SHOWN_ID).map { if (it.isISOControl()) '?' else it }.joinToString("")
+        return if (id.length > MAX_SHOWN_ID) "'$shown…'" else "'$shown'"
+    }
+
+    /**
+     * The largest number of characters of a client-supplied id shown in a rejection reason.
+     */
+    private const val MAX_SHOWN_ID = 48
 
     /**
      * Returns an input's current value in its string form.

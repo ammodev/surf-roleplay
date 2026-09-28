@@ -52,6 +52,7 @@ class ScreenProtocolTest {
             ImageNode("logo", width = Sizing.fixed(32), height = Sizing.fixed(32), texture = "surf-roleplay:textures/gui/logo.png"),
             ProgressNode("load", progress = 0.25f, label = """{"text":"25%"}"""),
             ButtonNode("submit", text = """{"text":"Senden"}""", enabled = false),
+            ButtonNode("back", text = """{"text":"Zurück"}""", submitsInput = false),
         ),
     )
 

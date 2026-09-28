@@ -34,6 +34,7 @@ class ScreenActionValidatorTest {
                 TextInputElement("locked", value = "fest", enabled = false),
                 ButtonElement("ok", Component.text("OK")),
                 ButtonElement("off", Component.text("Aus"), enabled = false),
+                ButtonElement("back", Component.text("Zurück"), submitsInput = false),
             ),
         ),
     )
@@ -147,6 +148,41 @@ class ScreenActionValidatorTest {
     fun `dropdowns accept only their options`() {
         assertRejected(validate(values = valid.replace("city", "south")), "option")
         assertRejected(validate(values = valid.replace("city", "")), "required")
+    }
+
+    /**
+     * Verifies that a button that does not submit input is accepted with invalid inputs, and that
+     * the invalid inputs keep their last valid value.
+     */
+    @Test
+    fun `non-submitting buttons accept invalid inputs`() {
+        val invalid = valid.replace("name", "").replace("age", "5")
+
+        val accepted = assertIs<ScreenActionValidator.Result.Accepted>(validate("back", invalid))
+
+        assertEquals("", accepted.values["name"])
+        assertEquals("", accepted.values["age"])
+        assertEquals("north", accepted.values["city"])
+    }
+
+    /**
+     * Verifies that non-submitting buttons still reject values for unknown inputs.
+     */
+    @Test
+    fun `non-submitting buttons still reject unknown inputs`() {
+        assertRejected(validate("back", valid + InputValue("missing", "x")), "unknown input")
+    }
+
+    /**
+     * Verifies that client-supplied ids in rejection reasons are shortened and stripped of control
+     * characters.
+     */
+    @Test
+    fun `rejection reasons sanitise client ids`() {
+        val rejected = assertIs<ScreenActionValidator.Result.Rejected>(validate("x".repeat(500) + "\n"))
+
+        kotlin.test.assertTrue(rejected.reason.length < 120, rejected.reason)
+        kotlin.test.assertFalse(rejected.reason.contains('\n'))
     }
 
     /**

@@ -143,4 +143,33 @@ class ScreenDslTest {
         assertNull(values.text("missing"))
         assertNotNull(values.all["age"])
     }
+
+    /**
+     * Verifies that a definition built without the DSL also rejects duplicate ids.
+     */
+    @Test
+    fun `direct definitions reject duplicate ids`() {
+        assertFailsWith<IllegalArgumentException> {
+            ScreenDefinition(
+                Component.text("Doppelt"),
+                ColumnElement("root", listOf(LabelElement("same", Component.empty()), LabelElement("same", Component.empty()))),
+            )
+        }
+    }
+
+    /**
+     * Verifies that buttons submit input unless told otherwise.
+     */
+    @Test
+    fun `buttons submit input by default`() {
+        val definition = screen(Component.text("Knöpfe")) {
+            row("root") {
+                button("ok", Component.text("OK"))
+                button("back", Component.text("Zurück"), submitsInput = false)
+            }
+        }
+
+        val buttons = (definition.root as RowElement).children.map { it as ButtonElement }
+        assertEquals(listOf(true, false), buttons.map { it.submitsInput })
+    }
 }

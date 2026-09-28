@@ -63,25 +63,7 @@ class ScreenBuilder internal constructor(private val title: Component) : Element
      * @throws IllegalStateException if the builder does not hold exactly one root element
      * @throws IllegalArgumentException if two elements share an id
      */
-    internal fun build(): ScreenDefinition {
-        val root = single()
-        val ids = mutableListOf<String>()
-        collectIds(root, ids)
-        val duplicates = ids.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
-        require(duplicates.isEmpty()) { "Screen element ids are not unique: $duplicates" }
-        return ScreenDefinition(title, root, closable, closeHandler)
-    }
-
-    /**
-     * Adds the id of an element and of its descendants to a list.
-     *
-     * @param element the element
-     * @param ids the list to add to
-     */
-    private fun collectIds(element: ScreenElement, ids: MutableList<String>) {
-        ids += element.id
-        if (element is ContainerElement) element.children.forEach { collectIds(it, ids) }
-    }
+    internal fun build(): ScreenDefinition = ScreenDefinition(title, single(), closable, closeHandler)
 }
 
 /**
@@ -194,6 +176,7 @@ open class ElementsBuilder {
      * @param enabled whether the button can be clicked
      * @param width how wide the button is laid out
      * @param height how tall the button is laid out
+     * @param submitsInput whether a click requires every input of the screen to be valid
      * @param onClick the handler run on a validated click, or `null` for none
      */
     fun button(
@@ -202,9 +185,10 @@ open class ElementsBuilder {
         enabled: Boolean = true,
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
+        submitsInput: Boolean = true,
         onClick: ButtonHandler? = null,
     ) {
-        elements += ButtonElement(id, text, enabled, onClick, width, height)
+        elements += ButtonElement(id, text, enabled, onClick, width, height, submitsInput)
     }
 
     /**

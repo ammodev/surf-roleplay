@@ -80,7 +80,7 @@ object ScreenMapper {
 
             is ScrollListElement -> ScrollListNode(element.id, width, height, element.children.map(::toNode), element.gap)
             is LabelElement -> LabelNode(element.id, width, height, text(element.text))
-            is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled)
+            is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput)
             is TextInputElement -> TextInputNode(
                 element.id, width, height, element.value, text(element.placeholder), element.maxLength, element.required, element.enabled,
             )

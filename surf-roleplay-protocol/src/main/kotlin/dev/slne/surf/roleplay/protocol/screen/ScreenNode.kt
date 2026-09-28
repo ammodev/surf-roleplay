@@ -291,6 +291,8 @@ data class LabelNode(
  * @property height how tall this node is laid out
  * @property text the caption as component JSON
  * @property enabled whether the button can be clicked
+ * @property submitsInput whether a click requires every input of the screen to be valid; a button
+ *           that does not submit input, such as a back button, is accepted with invalid inputs
  */
 @Serializable
 @SerialName("button")
@@ -300,6 +302,7 @@ data class ButtonNode(
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
     @ProtoNumber(4) val text: String = "",
     @ProtoNumber(5) val enabled: Boolean = true,
+    @ProtoNumber(6) val submitsInput: Boolean = true,
 ) : ScreenNode
 
 /**
