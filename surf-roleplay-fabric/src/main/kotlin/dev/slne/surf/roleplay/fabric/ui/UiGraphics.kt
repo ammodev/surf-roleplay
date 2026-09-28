@@ -5,10 +5,35 @@ import dev.slne.surf.roleplay.fabric.ui.icon.LucideIndex
 import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
+import dev.slne.surf.roleplay.fabric.ui.text.TextBlock
+import dev.slne.surf.roleplay.fabric.ui.text.TextWrap
+import dev.slne.surf.roleplay.fabric.ui.widget.PlainText
 import net.minecraft.client.gui.Font
+import net.minecraft.locale.Language
+import net.minecraft.network.chat.FormattedText
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
+
+/**
+ * How the lines of a text are placed within its width.
+ */
+enum class TextAlign {
+    /**
+     * At the left edge.
+     */
+    START,
+
+    /**
+     * Centered.
+     */
+    CENTER,
+
+    /**
+     * At the right edge.
+     */
+    END,
+}
 
 /**
  * Measures texts for layout.
@@ -34,6 +59,16 @@ interface TextMeasurer {
      * @return the width in GUI pixels
      */
     fun plainWidth(text: String): Int
+
+    /**
+     * Measures the lines of a text given as component JSON wrapped to a width.
+     *
+     * @param json the component JSON
+     * @param maxWidth the largest width of a line
+     * @return the width of every line, at least one
+     */
+    fun lineWidths(json: String, maxWidth: Int): List<Int> =
+        TextWrap.lines(PlainText.of(json), maxWidth, ::plainWidth).map(::plainWidth)
 }
 
 /**
@@ -62,6 +97,16 @@ class FontTextMeasurer(private val font: Font) : TextMeasurer {
      * @return the width in GUI pixels
      */
     override fun plainWidth(text: String): Int = font.width(text)
+
+    /**
+     * Measures the lines of a text wrapped to a width by the font.
+     *
+     * @param json the component JSON
+     * @param maxWidth the largest width of a line
+     * @return the width of every line, at least one
+     */
+    override fun lineWidths(json: String, maxWidth: Int): List<Int> =
+        font.splitIgnoringLanguage(ScreenText.parse(json), maxWidth.coerceAtLeast(1)).map { font.width(it) }.ifEmpty { listOf(0) }
 }
 
 /**
@@ -138,6 +183,47 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     fun text(json: String, x: Int, y: Int, color: Int) {
         graphics.text(font, ScreenText.parse(json), x, y, color, false)
     }
+
+    /**
+     * Draws a text given as component JSON wrapped to a width, line by line from a top edge. With
+     * a line limit, the last shown line of a longer text ends with an ellipsis.
+     *
+     * @param json the component JSON
+     * @param x the left edge
+     * @param y the top edge
+     * @param maxWidth the largest width of a line
+     * @param color the ARGB color of unstyled parts
+     * @param maxLines the largest number of lines drawn, or `0` for no limit
+     * @param align how each line is placed within the width
+     */
+    fun wrappedText(json: String, x: Int, y: Int, maxWidth: Int, color: Int, maxLines: Int = 0, align: TextAlign = TextAlign.START) {
+        val width = maxWidth.coerceAtLeast(1)
+        val lines = font.splitIgnoringLanguage(ScreenText.parse(json), width)
+        val clamped = maxLines > 0 && lines.size > maxLines
+        val shown = if (clamped) lines.take(maxLines) else lines
+        shown.forEachIndexed { index, line ->
+            val text = if (clamped && index == shown.lastIndex) ellipsized(line, width) else line
+            val sequence = Language.getInstance().getVisualOrder(text)
+            val lineWidth = font.width(sequence)
+            val lineX = when (align) {
+                TextAlign.START -> x
+                TextAlign.CENTER -> x + (width - lineWidth) / 2
+                TextAlign.END -> x + width - lineWidth
+            }
+            graphics.text(font, sequence, lineX, y + index * (lineHeight + TextBlock.LINE_GAP), color, false)
+        }
+    }
+
+    /**
+     * Shortens a line so that it fits a width together with an ellipsis, and appends the
+     * ellipsis.
+     *
+     * @param line the line
+     * @param width the width
+     * @return the shortened line with the ellipsis
+     */
+    private fun ellipsized(line: FormattedText, width: Int): FormattedText =
+        FormattedText.composite(font.substrByWidth(line, (width - font.width(ELLIPSIS)).coerceAtLeast(0)), FormattedText.of(ELLIPSIS))
 
     /**
      * Draws a text given as component JSON centered in a rectangle.
@@ -220,6 +306,16 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      */
     fun nextLayer() {
         graphics.nextStratum()
+    }
+
+    /**
+     * Holds the ellipsis of clamped texts.
+     */
+    private companion object {
+        /**
+         * The ellipsis that ends a clamped text.
+         */
+        const val ELLIPSIS: String = "…"
     }
 
 }
