@@ -175,9 +175,17 @@ open class ElementsBuilder {
      * @param width how wide the label is laid out
      * @param height how tall the label is laid out
      * @param icon the Lucide name of an icon drawn before the text, or `null` for none
+     * @param forId the id of the input that a click on the label focuses, or `null` for none
      */
-    fun label(id: String, text: Component, width: ElementSize = ElementSize.FIT, height: ElementSize = ElementSize.FIT, icon: String? = null) {
-        elements += LabelElement(id, text, width, height, icon)
+    fun label(
+        id: String,
+        text: Component,
+        width: ElementSize = ElementSize.FIT,
+        height: ElementSize = ElementSize.FIT,
+        icon: String? = null,
+        forId: String? = null,
+    ) {
+        elements += LabelElement(id, text, width, height, icon, forId)
     }
 
     /**
@@ -242,6 +250,7 @@ open class ElementsBuilder {
      * @param width how wide the input is laid out
      * @param height how tall the input is laid out
      * @param icon the Lucide name of an icon drawn at the start of the field, or `null` for none
+     * @param type the kind of text the input holds
      * @param onChange the handler run on every validated change, or `null`
      */
     fun textInput(
@@ -254,9 +263,10 @@ open class ElementsBuilder {
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
         icon: String? = null,
+        type: TextInputType = TextInputType.TEXT,
         onChange: ChangeHandler? = null,
     ) {
-        elements += TextInputElement(id, value, placeholder, maxLength, required, enabled, width, height, icon, onChange)
+        elements += TextInputElement(id, value, placeholder, maxLength, required, enabled, width, height, icon, onChange, type)
     }
 
     /**

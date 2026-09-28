@@ -3,6 +3,16 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAddonElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextareaElement
+import dev.slne.surf.roleplay.protocol.screen.InputGroupAddonNode
+import dev.slne.surf.roleplay.protocol.screen.InputGroupNode
+import dev.slne.surf.roleplay.protocol.screen.InputGroupTextNode
+import dev.slne.surf.roleplay.protocol.screen.InputOtpNode
+import dev.slne.surf.roleplay.protocol.screen.TextareaNode
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupSeparatorElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupTextElement
 import dev.slne.surf.roleplay.api.client.common.screen.ToggleElement
@@ -100,11 +110,11 @@ object ScreenMapper {
             )
 
             is ScrollListElement -> ScrollListNode(element.id, width, height, element.children.map(::toNode), element.gap)
-            is LabelElement -> LabelNode(element.id, width, height, text(element.text), element.icon)
+            is LabelElement -> LabelNode(element.id, width, height, text(element.text), element.icon, element.forId)
             is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput, element.icon, enumOf(element.variant), enumOf(element.size))
             is TextInputElement -> TextInputNode(
                 element.id, width, height, element.value, text(element.placeholder), element.maxLength, element.required, element.enabled, element.icon,
-                element.onChange != null,
+                element.onChange != null, enumOf(element.type),
             )
 
             is NumberInputElement -> NumberInputNode(
@@ -133,6 +143,19 @@ object ScreenMapper {
                 element.items.map { ToggleGroupItem(it.value, text(it.text), it.icon, it.enabled) },
                 element.multiple, element.selected, enumOf(element.variant), enumOf(element.size), element.spacing,
                 enumOf(element.orientation), element.enabled, element.required, element.onChange != null,
+            )
+
+            is TextareaElement -> TextareaNode(
+                element.id, width, height, element.value, text(element.placeholder), element.rows, element.maxLength, element.required,
+                element.enabled, element.onChange != null,
+            )
+
+            is InputGroupElement -> InputGroupNode(element.id, width, height, element.children.map(::toNode))
+            is InputGroupAddonElement -> InputGroupAddonNode(element.id, width, height, element.children.map(::toNode), enumOf(element.align))
+            is InputGroupTextElement -> InputGroupTextNode(element.id, width, height, text(element.text), element.icon)
+            is InputOtpElement -> InputOtpNode(
+                element.id, width, height, element.value, element.length, element.groups, enumOf(element.pattern), element.required,
+                element.enabled, element.onChange != null,
             )
         }
     }

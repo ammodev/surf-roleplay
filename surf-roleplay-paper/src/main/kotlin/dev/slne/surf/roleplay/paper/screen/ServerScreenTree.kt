@@ -1,6 +1,8 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAddonElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
@@ -201,6 +203,8 @@ class ServerScreenTree(root: ScreenElement) {
             is ColumnElement -> container.copy(children = children)
             is ScrollListElement -> container.copy(children = children)
             is ButtonGroupElement -> container.copy(children = children)
+            is InputGroupElement -> container.copy(children = children)
+            is InputGroupAddonElement -> container.copy(children = children)
         }
     }
 }

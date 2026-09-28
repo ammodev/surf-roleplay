@@ -215,6 +215,7 @@ data class ScrollListElement(
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
  * @property icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @property forId the id of the input that a click on the label focuses, or `null` for none
  */
 data class LabelElement(
     override val id: String,
@@ -222,6 +223,7 @@ data class LabelElement(
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
     val icon: String? = null,
+    val forId: String? = null,
 ) : ScreenElement
 
 /**
@@ -271,6 +273,7 @@ data class ButtonElement(
  * @property icon the Lucide name of an icon drawn at the start of the field, or `null` for none
  * @property onChange the handler run on every validated change, or `null` to send the value only
  *           with the next action
+ * @property type the kind of text the field holds; email fields accept only an address shape
  */
 data class TextInputElement(
     override val id: String,
@@ -283,6 +286,7 @@ data class TextInputElement(
     override val height: ElementSize = ElementSize.FIT,
     val icon: String? = null,
     val onChange: ChangeHandler? = null,
+    val type: TextInputType = TextInputType.TEXT,
 ) : ScreenElement
 
 /**

@@ -13,6 +13,11 @@ import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
+import dev.slne.surf.roleplay.api.client.common.screen.OtpSlots
+import dev.slne.surf.roleplay.api.client.common.screen.TextInputType
+import dev.slne.surf.roleplay.api.client.common.screen.TextareaElement
 import net.kyori.adventure.text.Component
 import kotlin.reflect.KClass
 
@@ -128,6 +133,40 @@ object ElementRules {
     }
 
     /**
+     * The shape of an email address: a local part, an at sign, and a domain with a dot, without
+     * whitespace.
+     */
+    private val EMAIL = Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")
+
+    /**
+     * Checks a text value against a length limit and required.
+     *
+     * @param value the text
+     * @param maxLength the maximum number of characters, or `null` for no limit
+     * @param required whether an empty value is invalid
+     * @return a description of the violated constraint, or `null` if the value is valid
+     */
+    fun textViolation(value: String, maxLength: Int?, required: Boolean): String? = when {
+        maxLength != null && value.length > maxLength -> "value is too long"
+        required && value.isEmpty() -> "value is required"
+        else -> null
+    }
+
+    /**
+     * Checks a one-time code: empty unless required, or complete and of the code's pattern.
+     *
+     * @param otp the one-time code input
+     * @param value the code
+     * @return a description of the violated constraint, or `null` if the value is valid
+     */
+    private fun otpViolation(otp: InputOtpElement, value: String): String? = when {
+        value.isEmpty() -> if (otp.required) "value is required" else null
+        value.length != otp.length -> "value is not a complete code"
+        value.any { !OtpSlots.accepts(otp.pattern, it) } -> "value does not match the code pattern"
+        else -> null
+    }
+
+    /**
      * Splits a comma-separated list value into its non-empty parts.
      *
      * @param value the list value
@@ -203,13 +242,42 @@ object ElementRules {
                 input = InputRule(
                     current = { it.value },
                     violation = { e, v ->
-                        when {
-                            e.maxLength != null && v.length > e.maxLength!! -> "value is too long"
-                            e.required && v.isEmpty() -> "value is required"
-                            else -> null
-                        }
+                        textViolation(v, e.maxLength, e.required)
+                            ?: when {
+                                v.any { it == '\n' || it == '\r' } -> "value contains a line break"
+                                e.type == TextInputType.EMAIL && v.isNotEmpty() && !EMAIL.matches(v) -> "value is not an email address"
+                                else -> null
+                            }
                     },
                     withValue = { e, v -> e.copy(value = v) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            TextareaElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(placeholder = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { it.value },
+                    violation = { e, v -> textViolation(v, e.maxLength, e.required) },
+                    withValue = { e, v -> e.copy(value = v) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(InputGroupTextElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            InputOtpElement::class,
+            ElementRule(
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { it.value },
+                    violation = { e, v -> otpViolation(e, v) },
+                    withValue = { e, v -> if (otpViolation(e.copy(required = false), v) == null) e.copy(value = v) else null },
                     onChange = { it.onChange },
                 ),
             ),
