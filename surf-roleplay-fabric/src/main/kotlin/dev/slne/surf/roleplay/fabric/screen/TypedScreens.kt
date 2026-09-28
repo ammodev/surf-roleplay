@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.fabric.screen
 
 import dev.slne.surf.roleplay.fabric.ui.RoleplayScreenHost
 import dev.slne.surf.roleplay.fabric.ui.ScreenHostListener
+import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.LabelWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
@@ -67,9 +68,10 @@ fun interface TypedScreenFactory {
      * @param title the title as component JSON
      * @param closable whether the player can close the screen with Escape
      * @param state the initial state, encoded with the screen's type
+     * @param tokens the design tokens the screen is drawn with
      * @return the view
      */
-    fun create(session: TypedScreenSession, title: String, closable: Boolean, state: ByteArray): TypedScreenView
+    fun create(session: TypedScreenSession, title: String, closable: Boolean, state: ByteArray, tokens: ThemeTokens): TypedScreenView
 }
 
 /**
@@ -99,18 +101,20 @@ object TypedScreens {
  * @param title the title as component JSON
  * @param closable whether the player can close the screen with Escape
  * @param state the initial state
+ * @param tokens the design tokens the screen is drawn with
  */
 class DebugCounterView(
     private val session: TypedScreenSession,
     title: String,
     closable: Boolean,
     state: ByteArray,
+    tokens: ThemeTokens,
 ) : TypedScreenView, ScreenHostListener {
 
     /**
      * The host that shows the counter.
      */
-    private val host = RoleplayScreenHost(title, WidgetFactory.create(tree()), closable, this)
+    private val host = RoleplayScreenHost(title, WidgetFactory.create(tree()), closable, this, tokens)
 
     /**
      * The host that shows the counter.

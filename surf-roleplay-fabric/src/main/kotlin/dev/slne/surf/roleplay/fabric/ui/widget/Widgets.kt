@@ -4,7 +4,8 @@ import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
-import dev.slne.surf.roleplay.fabric.ui.theme.RoleplayTheme
+import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
+import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.protocol.screen.DropdownOption
 import dev.slne.surf.roleplay.protocol.screen.IconColor
 import net.minecraft.client.input.CharacterEvent
@@ -36,7 +37,7 @@ class LabelWidget(id: String, var text: String = "") : Widget(id) {
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        ui.text(text, bounds.x, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, RoleplayTheme.TEXT)
+        ui.text(text, bounds.x, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, ui.tokens.foreground)
     }
 
     /**
@@ -64,7 +65,7 @@ class ButtonWidget(id: String, var text: String = "") : Widget(id) {
      * @return the button size
      */
     override fun contentSize(measurer: TextMeasurer): Size =
-        Size(measurer.width(text) + 2 * RoleplayTheme.WIDGET_PADDING, RoleplayTheme.WIDGET_HEIGHT)
+        Size(measurer.width(text) + 2 * UiMetrics.WIDGET_PADDING, UiMetrics.WIDGET_HEIGHT)
 
     /**
      * Draws the button, highlighted under the mouse and dimmed when disabled.
@@ -75,15 +76,15 @@ class ButtonWidget(id: String, var text: String = "") : Widget(id) {
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
+        val tokens = ui.tokens
         val background = when {
-            !enabled -> RoleplayTheme.WIDGET_DISABLED
-            isOver(mouseX, mouseY) -> RoleplayTheme.WIDGET_HOVER
-            else -> RoleplayTheme.WIDGET
+            !enabled -> ui.disabled(tokens.primary)
+            isOver(mouseX, mouseY) -> ThemeColors.blend(tokens.primary, tokens.background, HOVER_DIM)
+            else -> tokens.primary
         }
-        ui.fill(bounds, background)
-        ui.border(bounds, if (enabled && isOver(mouseX, mouseY)) RoleplayTheme.ACCENT else RoleplayTheme.WIDGET_BORDER)
+        ui.fillRounded(bounds, background)
         ui.clipped(bounds) {
-            ui.centeredText(text, bounds, if (enabled) RoleplayTheme.TEXT else RoleplayTheme.TEXT_DISABLED)
+            ui.centeredText(text, bounds, if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground))
         }
     }
 
@@ -153,7 +154,7 @@ open class TextInputWidget(
      * @param measurer the text measurer
      * @return the input size
      */
-    override fun contentSize(measurer: TextMeasurer): Size = Size(RoleplayTheme.INPUT_WIDTH, RoleplayTheme.WIDGET_HEIGHT)
+    override fun contentSize(measurer: TextMeasurer): Size = Size(UiMetrics.INPUT_WIDTH, UiMetrics.WIDGET_HEIGHT)
 
     /**
      * Draws the field with its text or placeholder and, while focused, a blinking cursor. The
@@ -166,31 +167,32 @@ open class TextInputWidget(
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val focused = context.focusedWidget === this
-        ui.fill(bounds, if (enabled) RoleplayTheme.INPUT else RoleplayTheme.WIDGET_DISABLED)
-        ui.border(
+        val tokens = ui.tokens
+        ui.fillRounded(bounds, inputFill(ui))
+        ui.borderRounded(
             bounds,
             when {
-                !isValid -> RoleplayTheme.INVALID
-                focused -> RoleplayTheme.ACCENT
-                else -> RoleplayTheme.WIDGET_BORDER
+                !isValid -> tokens.destructive
+                focused -> tokens.ring
+                else -> tokens.input
             },
         )
 
-        val innerWidth = bounds.width - 2 * RoleplayTheme.WIDGET_PADDING
-        val textX = bounds.x + RoleplayTheme.WIDGET_PADDING
+        val innerWidth = bounds.width - 2 * UiMetrics.WIDGET_PADDING
+        val textX = bounds.x + UiMetrics.WIDGET_PADDING
         val textY = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
         ui.clipped(Rect(textX, bounds.y, innerWidth.coerceAtLeast(0), bounds.height)) {
             if (edit.text.isEmpty()) {
-                if (!focused) ui.text(placeholder, textX, textY, RoleplayTheme.TEXT_MUTED)
+                if (!focused) ui.text(placeholder, textX, textY, tokens.mutedForeground)
             } else {
                 keepCursorVisible(ui, innerWidth)
                 val visible = ui.font.plainSubstrByWidth(edit.text.substring(scrollStart), innerWidth)
-                ui.plainText(visible, textX, textY, if (enabled) RoleplayTheme.TEXT else RoleplayTheme.TEXT_DISABLED)
+                ui.plainText(visible, textX, textY, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
             }
             if (focused && System.currentTimeMillis() / CURSOR_BLINK_MILLIS % 2 == 0L) {
                 keepCursorVisible(ui, innerWidth)
                 val cursorX = textX + ui.plainWidth(edit.text.substring(scrollStart, edit.cursor))
-                ui.fill(Rect(cursorX, textY - 1, 1, ui.lineHeight + 1), RoleplayTheme.TEXT)
+                ui.fill(Rect(cursorX, textY - 1, 1, ui.lineHeight + 1), tokens.foreground)
             }
         }
     }
@@ -336,8 +338,8 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
      */
     override fun contentSize(measurer: TextMeasurer): Size {
         val labelWidth = measurer.width(label)
-        val width = RoleplayTheme.CHECKBOX_SIZE + if (labelWidth > 0) LABEL_GAP + labelWidth else 0
-        return Size(width, maxOf(RoleplayTheme.CHECKBOX_SIZE, measurer.lineHeight))
+        val width = UiMetrics.CHECKBOX_SIZE + if (labelWidth > 0) LABEL_GAP + labelWidth else 0
+        return Size(width, maxOf(UiMetrics.CHECKBOX_SIZE, measurer.lineHeight))
     }
 
     /**
@@ -349,13 +351,19 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        val size = RoleplayTheme.CHECKBOX_SIZE
+        val size = UiMetrics.CHECKBOX_SIZE
         val box = Rect(bounds.x, bounds.y + (bounds.height - size) / 2, size, size)
         val hovered = enabled && isOver(mouseX, mouseY)
-        ui.fill(box, if (enabled) RoleplayTheme.INPUT else RoleplayTheme.WIDGET_DISABLED)
-        ui.border(box, if (hovered) RoleplayTheme.ACCENT else RoleplayTheme.WIDGET_BORDER)
-        if (checked) ui.fill(Rect(box.x + 3, box.y + 3, size - 6, size - 6), if (enabled) RoleplayTheme.ACCENT else RoleplayTheme.TEXT_DISABLED)
-        ui.text(label, box.right + LABEL_GAP, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, if (enabled) RoleplayTheme.TEXT else RoleplayTheme.TEXT_DISABLED)
+        val tokens = ui.tokens
+        val radius = CHECKBOX_RADIUS
+        if (checked) {
+            ui.fillRounded(box, if (enabled) tokens.primary else ui.disabled(tokens.primary), radius)
+            drawCheck(ui, box, if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground))
+        } else {
+            ui.fillRounded(box, inputFill(ui), radius)
+            ui.borderRounded(box, if (hovered) tokens.ring else tokens.input, radius)
+        }
+        ui.text(label, box.right + LABEL_GAP, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
     }
 
     /**
@@ -440,8 +448,8 @@ class DropdownWidget(
      */
     override fun contentSize(measurer: TextMeasurer): Size {
         val widest = options.maxOfOrNull { measurer.width(it.label) } ?: 0
-        val width = maxOf(RoleplayTheme.INPUT_WIDTH, widest + 2 * RoleplayTheme.WIDGET_PADDING + measurer.plainWidth(ARROW) + 4)
-        return Size(width, RoleplayTheme.WIDGET_HEIGHT)
+        val width = maxOf(UiMetrics.INPUT_WIDTH, widest + 2 * UiMetrics.WIDGET_PADDING + measurer.plainWidth(ARROW) + 4)
+        return Size(width, UiMetrics.WIDGET_HEIGHT)
     }
 
     /**
@@ -454,18 +462,19 @@ class DropdownWidget(
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val hovered = enabled && isOver(mouseX, mouseY)
-        ui.fill(bounds, if (!enabled) RoleplayTheme.WIDGET_DISABLED else if (hovered) RoleplayTheme.WIDGET_HOVER else RoleplayTheme.WIDGET)
-        ui.border(bounds, if (!isValid) RoleplayTheme.INVALID else if (hovered) RoleplayTheme.ACCENT else RoleplayTheme.WIDGET_BORDER)
+        val tokens = ui.tokens
+        ui.fillRounded(bounds, if (hovered) ThemeColors.blend(inputFill(ui), tokens.accent, HOVER_ACCENT) else inputFill(ui))
+        ui.borderRounded(bounds, if (!isValid) tokens.destructive else tokens.input)
         val textY = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
-        val color = if (enabled) RoleplayTheme.TEXT else RoleplayTheme.TEXT_DISABLED
+        val color = if (enabled) tokens.foreground else ui.disabled(tokens.foreground)
         ui.clipped(bounds) {
             val label = selectedLabel
             if (label != null) {
-                ui.text(label, bounds.x + RoleplayTheme.WIDGET_PADDING, textY, color)
+                ui.text(label, bounds.x + UiMetrics.WIDGET_PADDING, textY, color)
             } else {
-                ui.plainText("-", bounds.x + RoleplayTheme.WIDGET_PADDING, textY, RoleplayTheme.TEXT_MUTED)
+                ui.plainText("-", bounds.x + UiMetrics.WIDGET_PADDING, textY, tokens.mutedForeground)
             }
-            ui.plainText(ARROW, bounds.right - RoleplayTheme.WIDGET_PADDING - ui.plainWidth(ARROW), textY, color)
+            ui.plainText(ARROW, bounds.right - UiMetrics.WIDGET_PADDING - ui.plainWidth(ARROW), textY, color)
         }
     }
 
@@ -519,7 +528,7 @@ class ImageWidget(id: String, var texture: String = "") : Widget(id) {
      * @param measurer the text measurer
      * @return the image size
      */
-    override fun contentSize(measurer: TextMeasurer): Size = Size(RoleplayTheme.IMAGE_SIZE, RoleplayTheme.IMAGE_SIZE)
+    override fun contentSize(measurer: TextMeasurer): Size = Size(UiMetrics.IMAGE_SIZE, UiMetrics.IMAGE_SIZE)
 
     /**
      * Draws the texture over the widget's area.
@@ -550,8 +559,8 @@ class ProgressWidget(id: String, var progress: Float = 0f, var label: String? = 
      * @return the bar size
      */
     override fun contentSize(measurer: TextMeasurer): Size {
-        val labelWidth = label?.let { measurer.width(it) + 2 * RoleplayTheme.WIDGET_PADDING } ?: 0
-        return Size(maxOf(RoleplayTheme.PROGRESS_WIDTH, labelWidth), maxOf(RoleplayTheme.PROGRESS_HEIGHT, measurer.lineHeight + 2))
+        val labelWidth = label?.let { measurer.width(it) + 2 * UiMetrics.WIDGET_PADDING } ?: 0
+        return Size(maxOf(UiMetrics.PROGRESS_WIDTH, labelWidth), maxOf(UiMetrics.PROGRESS_HEIGHT, measurer.lineHeight + 2))
     }
 
     /**
@@ -563,11 +572,12 @@ class ProgressWidget(id: String, var progress: Float = 0f, var label: String? = 
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        ui.fill(bounds, RoleplayTheme.INPUT)
+        val tokens = ui.tokens
+        val radius = bounds.height / 2
+        ui.fillRounded(bounds, ThemeColors.withAlpha(tokens.primary, TRACK_ALPHA), radius)
         val filled = (bounds.width * progress.coerceIn(0f, 1f)).toInt()
-        ui.fill(Rect(bounds.x, bounds.y, filled, bounds.height), RoleplayTheme.ACCENT)
-        ui.border(bounds, RoleplayTheme.WIDGET_BORDER)
-        label?.let { ui.centeredText(it, bounds, RoleplayTheme.TEXT) }
+        if (filled > 0) ui.fillRounded(Rect(bounds.x, bounds.y, filled, bounds.height), tokens.primary, radius)
+        label?.let { ui.centeredText(it, bounds, tokens.foreground) }
     }
 
     /**
@@ -607,6 +617,56 @@ class IconWidget(id: String, var icon: String, val size: Int, val color: IconCol
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        ui.border(bounds, RoleplayTheme.TEXT_MUTED)
+        ui.border(bounds, ui.tokens.mutedForeground)
     }
+}
+
+/**
+ * The opacity of the translucent fill behind inputs, relative to the input token.
+ */
+private const val INPUT_FILL_ALPHA: Float = 0.3f
+
+/**
+ * How far a hovered button is blended towards the background.
+ */
+private const val HOVER_DIM: Float = 0.1f
+
+/**
+ * How far a hovered dropdown is blended towards the accent colour.
+ */
+private const val HOVER_ACCENT: Float = 0.6f
+
+/**
+ * The opacity of a progress bar's track, relative to the primary colour.
+ */
+private const val TRACK_ALPHA: Float = 0.2f
+
+/**
+ * The corner radius of checkbox boxes.
+ */
+private const val CHECKBOX_RADIUS: Int = 2
+
+/**
+ * Returns the translucent fill drawn behind text inputs, checkboxes and dropdowns.
+ *
+ * @param ui the graphics, whose tokens define the colour
+ * @return the ARGB fill colour
+ */
+internal fun inputFill(ui: UiGraphics): Int =
+    ThemeColors.withAlpha(ui.tokens.input, ((ui.tokens.input ushr 24) / 255f) * INPUT_FILL_ALPHA)
+
+/**
+ * Draws a check mark inside a checkbox's box.
+ *
+ * @param ui the graphics to draw with
+ * @param box the box
+ * @param color the ARGB colour of the mark
+ */
+internal fun drawCheck(ui: UiGraphics, box: Rect, color: Int) {
+    val x = box.x + box.width / 4
+    val y = box.y + box.height / 2
+    val short = box.width / 4
+    val long = box.width / 2
+    for (step in 0 until short) ui.fill(Rect(x + step, y + step - 1, 1, 2), color)
+    for (step in 0 until long) ui.fill(Rect(x + short + step, y + short - step - 2, 1, 2), color)
 }

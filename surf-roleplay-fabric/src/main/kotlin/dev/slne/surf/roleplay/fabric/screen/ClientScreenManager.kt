@@ -6,6 +6,7 @@ import dev.slne.surf.roleplay.fabric.protocol.FabricPacketDispatcher
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerState
 import dev.slne.surf.roleplay.fabric.ui.RoleplayScreenHost
 import dev.slne.surf.roleplay.fabric.ui.ScreenHostListener
+import dev.slne.surf.roleplay.fabric.ui.theme.Themes
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
 import dev.slne.surf.roleplay.protocol.Packets
@@ -128,7 +129,13 @@ object ClientScreenManager {
         }
         val content = when (val body = packet.body) {
             is WidgetScreenBody -> ClientScreen.Widgets(
-                RoleplayScreenHost(packet.title, WidgetFactory.create(body.root), packet.closable, WidgetListener(packet.sessionId)),
+                RoleplayScreenHost(
+                    packet.title,
+                    WidgetFactory.create(body.root),
+                    packet.closable,
+                    WidgetListener(packet.sessionId),
+                    Themes.resolve(packet.theme, packet.variant),
+                ),
             )
 
             is TypedScreenBody -> {
@@ -138,7 +145,9 @@ object ClientScreenManager {
                     ClientPackets.send(Packets.SCREEN_CLOSED, ScreenClosed(packet.sessionId))
                     return
                 }
-                ClientScreen.Typed(factory.create(TypedSession(packet.sessionId), packet.title, packet.closable, body.state))
+                ClientScreen.Typed(
+                    factory.create(TypedSession(packet.sessionId), packet.title, packet.closable, body.state, Themes.resolve(packet.theme, packet.variant)),
+                )
             }
         }
         stack.open(packet.sessionId, packet.parentSessionId, packet.closable, content)

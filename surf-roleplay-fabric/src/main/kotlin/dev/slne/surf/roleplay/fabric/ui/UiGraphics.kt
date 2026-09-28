@@ -2,6 +2,8 @@ package dev.slne.surf.roleplay.fabric.ui
 
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
+import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
+import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
@@ -66,8 +68,39 @@ class FontTextMeasurer(private val font: Font) : TextMeasurer {
  *
  * @property graphics the Minecraft GUI graphics of the current frame
  * @property font the font texts are drawn with
+ * @property tokens the design tokens of the screen being drawn
  */
-class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font) : TextMeasurer by FontTextMeasurer(font) {
+class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens: ThemeTokens) : TextMeasurer by FontTextMeasurer(font) {
+
+    /**
+     * Fills a rectangle with rounded corners.
+     *
+     * @param rect the rectangle
+     * @param color the ARGB colour
+     * @param radius the corner radius
+     */
+    fun fillRounded(rect: Rect, color: Int, radius: Int = tokens.radius) {
+        RoundedShape.spans(rect, radius).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
+    }
+
+    /**
+     * Draws a one-pixel border with rounded corners along the inside of a rectangle.
+     *
+     * @param rect the rectangle
+     * @param color the ARGB colour
+     * @param radius the corner radius
+     */
+    fun borderRounded(rect: Rect, color: Int, radius: Int = tokens.radius) {
+        RoundedShape.borderSpans(rect, radius).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
+    }
+
+    /**
+     * Returns a colour at the opacity used for disabled widgets.
+     *
+     * @param color the colour of the enabled widget
+     * @return the dimmed colour
+     */
+    fun disabled(color: Int): Int = ThemeColors.withAlpha(color, ((color ushr 24) / 255f) * 0.5f)
 
     /**
      * Fills a rectangle.
@@ -128,7 +161,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font) : TextMeasu
 
     /**
      * Draws a texture stretched over a rectangle. An identifier that cannot be parsed is drawn as
-     * a magenta placeholder.
+     * a placeholder in the destructive colour.
      *
      * @param texture the texture identifier
      * @param rect the rectangle
@@ -136,7 +169,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font) : TextMeasu
     fun image(texture: String, rect: Rect) {
         val id = Identifier.tryParse(texture)
         if (id == null) {
-            fill(rect, MISSING_TEXTURE)
+            fill(rect, tokens.destructive)
             return
         }
         graphics.blit(RenderPipelines.GUI_TEXTURED, id, rect.x, rect.y, 0f, 0f, rect.width, rect.height, rect.width, rect.height)
@@ -164,13 +197,4 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font) : TextMeasu
         graphics.nextStratum()
     }
 
-    /**
-     * Holds the placeholder color.
-     */
-    private companion object {
-        /**
-         * The color of a texture whose identifier cannot be parsed.
-         */
-        const val MISSING_TEXTURE: Int = 0xFFFF00FF.toInt()
-    }
 }

@@ -97,7 +97,7 @@ class WidgetFactoryTest {
         val list = assertIs<ScrollListWidget>(WidgetFactory.create(ScrollListNode("list")))
 
         assertEquals(Align.STRETCH, list.crossAlign)
-        assertEquals(dev.slne.surf.roleplay.fabric.ui.theme.RoleplayTheme.SCROLL_BAR_WIDTH + 2, list.padding.right)
+        assertEquals(dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics.SCROLL_BAR_WIDTH + 2, list.padding.right)
     }
 
     /**

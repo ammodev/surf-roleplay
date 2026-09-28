@@ -4,7 +4,10 @@ import dev.slne.surf.roleplay.fabric.screen.ScreenRules
 import dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
-import dev.slne.surf.roleplay.fabric.ui.theme.RoleplayTheme
+import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
+import dev.slne.surf.roleplay.fabric.ui.theme.Themes
+import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
+import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.DropdownWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.UiContext
@@ -46,12 +49,14 @@ interface ScreenHostListener {
  * @property root the root of the widget tree
  * @property closable whether Escape closes the screen
  * @property listener the receiver of clicks and close requests
+ * @property tokens the design tokens the screen is drawn with
  */
 class RoleplayScreenHost(
     val titleJson: String,
     root: Widget,
     val closable: Boolean,
     private val listener: ScreenHostListener,
+    val tokens: ThemeTokens = Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK),
 ) : Screen(ScreenText.parse(titleJson)), UiContext {
 
     /**
@@ -107,25 +112,25 @@ class RoleplayScreenHost(
      */
     private fun layout() {
         layoutPending = false
-        val inset = RoleplayTheme.SCREEN_MARGIN + RoleplayTheme.PANEL_PADDING
+        val inset = UiMetrics.SCREEN_MARGIN + UiMetrics.PANEL_PADDING
         val area = Rect(
             inset,
-            inset + RoleplayTheme.TITLE_BAR_HEIGHT,
+            inset + UiMetrics.TITLE_BAR_HEIGHT,
             (width - 2 * inset).coerceAtLeast(0),
-            (height - 2 * inset - RoleplayTheme.TITLE_BAR_HEIGHT).coerceAtLeast(0),
+            (height - 2 * inset - UiMetrics.TITLE_BAR_HEIGHT).coerceAtLeast(0),
         )
         val box = root.createLayout(FontTextMeasurer(font))
         FlexLayout.layoutRoot(box, area)
         root.applyLayout()
 
         val content = root.bounds
-        val titleWidth = font.width(title) + 2 * RoleplayTheme.PANEL_PADDING
-        val panelWidth = maxOf(content.width + 2 * RoleplayTheme.PANEL_PADDING, titleWidth)
+        val titleWidth = font.width(title) + 2 * UiMetrics.PANEL_PADDING
+        val panelWidth = maxOf(content.width + 2 * UiMetrics.PANEL_PADDING, titleWidth)
         panel = Rect(
             content.x + content.width / 2 - panelWidth / 2,
-            content.y - RoleplayTheme.PANEL_PADDING - RoleplayTheme.TITLE_BAR_HEIGHT,
+            content.y - UiMetrics.PANEL_PADDING - UiMetrics.TITLE_BAR_HEIGHT,
             panelWidth,
-            content.height + 2 * RoleplayTheme.PANEL_PADDING + RoleplayTheme.TITLE_BAR_HEIGHT,
+            content.height + 2 * UiMetrics.PANEL_PADDING + UiMetrics.TITLE_BAR_HEIGHT,
         )
     }
 
@@ -140,12 +145,12 @@ class RoleplayScreenHost(
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
         if (layoutPending) layout()
         super.extractRenderState(graphics, mouseX, mouseY, partialTick)
-        val ui = UiGraphics(graphics, font)
+        val ui = UiGraphics(graphics, font, tokens)
 
-        ui.fill(panel, RoleplayTheme.PANEL)
-        ui.fill(Rect(panel.x, panel.y, panel.width, RoleplayTheme.TITLE_BAR_HEIGHT), RoleplayTheme.TITLE_BAR)
-        ui.border(panel, RoleplayTheme.PANEL_BORDER)
-        graphics.text(font, title, panel.x + RoleplayTheme.PANEL_PADDING, panel.y + (RoleplayTheme.TITLE_BAR_HEIGHT - font.lineHeight + 1) / 2, RoleplayTheme.TEXT, false)
+        ui.fillRounded(panel, tokens.card)
+        ui.borderRounded(panel, tokens.border)
+        ui.fill(Rect(panel.x + 1, panel.y + UiMetrics.TITLE_BAR_HEIGHT, panel.width - 2, 1), tokens.border)
+        graphics.text(font, title, panel.x + UiMetrics.PANEL_PADDING, panel.y + (UiMetrics.TITLE_BAR_HEIGHT - font.lineHeight + 1) / 2, tokens.cardForeground, false)
 
         val open = dropdown
         val hideMouse = open != null && dropdownList(open).contains(mouseX.toDouble(), mouseY.toDouble())
@@ -167,16 +172,17 @@ class RoleplayScreenHost(
      */
     private fun renderDropdownList(ui: UiGraphics, open: DropdownWidget, mouseX: Int, mouseY: Int) {
         val list = dropdownList(open)
-        ui.fill(list, RoleplayTheme.WIDGET)
+        ui.fillRounded(list, tokens.popover)
         open.options.forEachIndexed { index, option ->
-            val row = Rect(list.x, list.y + index * OPTION_HEIGHT, list.width, OPTION_HEIGHT)
-            if (row.contains(mouseX.toDouble(), mouseY.toDouble())) ui.fill(row, RoleplayTheme.WIDGET_HOVER)
-            if (option.value == open.selected) ui.fill(Rect(row.x, row.y, 2, row.height), RoleplayTheme.ACCENT)
+            val row = Rect(list.x + 1, list.y + 1 + index * OPTION_HEIGHT, list.width - 2, OPTION_HEIGHT)
+            val hovered = row.contains(mouseX.toDouble(), mouseY.toDouble())
+            if (hovered) ui.fillRounded(row, tokens.accent, tokens.radius - 1)
+            if (option.value == open.selected) ui.fill(Rect(row.x + 2, row.y + 3, 2, row.height - 6), tokens.ring)
             ui.clipped(row) {
-                ui.text(option.label, row.x + RoleplayTheme.WIDGET_PADDING, row.y + (OPTION_HEIGHT - font.lineHeight + 1) / 2, RoleplayTheme.TEXT)
+                ui.text(option.label, row.x + UiMetrics.WIDGET_PADDING, row.y + (OPTION_HEIGHT - font.lineHeight + 1) / 2, if (hovered) tokens.accentForeground else tokens.popoverForeground)
             }
         }
-        ui.border(list, RoleplayTheme.ACCENT)
+        ui.borderRounded(list, tokens.border)
     }
 
     /**
@@ -187,7 +193,7 @@ class RoleplayScreenHost(
      * @return the area of the list
      */
     private fun dropdownList(open: DropdownWidget): Rect {
-        val listHeight = open.options.size * OPTION_HEIGHT
+        val listHeight = open.options.size * OPTION_HEIGHT + 2
         val below = open.bounds.bottom
         val y = if (below + listHeight > height && open.bounds.y - listHeight >= 0) open.bounds.y - listHeight else below
         return Rect(open.bounds.x, y, open.bounds.width, listHeight)
@@ -206,7 +212,7 @@ class RoleplayScreenHost(
         if (open != null) {
             val list = dropdownList(open)
             if (open.enabled && list.contains(event.x(), event.y())) {
-                val index = ((event.y() - list.y) / OPTION_HEIGHT).toInt()
+                val index = ((event.y() - list.y - 1) / OPTION_HEIGHT).toInt()
                 open.options.getOrNull(index)?.let { open.selected = it.value }
             }
             dropdown = null

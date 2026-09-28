@@ -6,7 +6,7 @@ import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
-import dev.slne.surf.roleplay.fabric.ui.theme.RoleplayTheme
+import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.Insets
 import dev.slne.surf.roleplay.protocol.screen.Sizing
@@ -369,7 +369,7 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
 
     init {
         crossAlign = Align.STRETCH
-        padding = Insets(right = RoleplayTheme.SCROLL_BAR_WIDTH + 2)
+        padding = Insets(right = UiMetrics.SCROLL_BAR_WIDTH + 2)
     }
 
     /**
@@ -410,12 +410,11 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
             super.render(ui, context, if (inside) mouseX else HIDDEN, if (inside) mouseY else HIDDEN)
         }
         if (maxScroll > 0) {
-            val track = Rect(bounds.right - RoleplayTheme.SCROLL_BAR_WIDTH, bounds.y, RoleplayTheme.SCROLL_BAR_WIDTH, bounds.height)
-            ui.fill(track, RoleplayTheme.SCROLL_TRACK)
-            val content = bounds.height + maxScroll
+            val track = Rect(bounds.right - UiMetrics.SCROLL_BAR_WIDTH, bounds.y, UiMetrics.SCROLL_BAR_WIDTH, bounds.height)
+                        val content = bounds.height + maxScroll
             val handleHeight = (bounds.height * bounds.height / content).coerceAtLeast(8)
             val handleY = bounds.y + (bounds.height - handleHeight) * scrollOffset / maxScroll
-            ui.fill(Rect(track.x, handleY, track.width, handleHeight), RoleplayTheme.SCROLL_HANDLE)
+            ui.fillRounded(Rect(track.x, handleY, track.width, handleHeight), dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors.withAlpha(ui.tokens.mutedForeground, SCROLL_HANDLE_ALPHA), track.width / 2)
         }
     }
 
@@ -445,7 +444,7 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
         if (!isOver(x, y)) return false
         if (super.mouseScrolled(context, x, y, amount)) return true
         if (maxScroll == 0) return false
-        scrollOffset = (scrollOffset - (amount * RoleplayTheme.SCROLL_STEP).toInt()).coerceIn(0, maxScroll)
+        scrollOffset = (scrollOffset - (amount * UiMetrics.SCROLL_STEP).toInt()).coerceIn(0, maxScroll)
         context.requestLayout()
         return true
     }
@@ -458,5 +457,10 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
          * A mouse position that no widget is under.
          */
         const val HIDDEN: Int = Int.MIN_VALUE / 2
+
+        /**
+         * The opacity of the scroll bar handle, relative to the muted foreground colour.
+         */
+        const val SCROLL_HANDLE_ALPHA: Float = 0.4f
     }
 }
