@@ -296,6 +296,8 @@ data class LabelNode(
  * @property submitsInput whether a click requires every input of the screen to be valid; a button
  *           that does not submit input, such as a back button, is accepted with invalid inputs
  * @property icon the name of a Lucide icon drawn before the caption, or `null` for none
+ * @property variant the look of the button
+ * @property size the size of the button
  */
 @Serializable
 @SerialName("button")
@@ -307,6 +309,8 @@ data class ButtonNode(
     @ProtoNumber(5) val enabled: Boolean = true,
     @ProtoNumber(6) val submitsInput: Boolean = true,
     @ProtoNumber(7) val icon: String? = null,
+    @ProtoNumber(8) val variant: ButtonVariant = ButtonVariant.DEFAULT,
+    @ProtoNumber(9) val size: ButtonSize = ButtonSize.DEFAULT,
 ) : ScreenNode
 
 /**
