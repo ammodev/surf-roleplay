@@ -5,6 +5,7 @@ import dev.slne.surf.roleplay.fabric.protocol.FabricPacketRegistry
 import dev.slne.surf.roleplay.fabric.screen.ClientScreenManager
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerDetection
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerState
+import dev.slne.surf.roleplay.fabric.toast.ToastLayer
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
 import org.slf4j.LoggerFactory
@@ -48,6 +49,7 @@ object RoleplayClient : ClientModInitializer {
         ClientHandshake.register()
         RoleplayServerDetection.register(serverState)
         ClientScreenManager.register(serverState)
+        ToastLayer.register(serverState)
         log.info("Surf Roleplay {} initialised", modVersion)
     }
 }

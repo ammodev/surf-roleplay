@@ -103,6 +103,14 @@ class PaperScreenService : ScreenService, Listener {
     }
 
     /**
+     * Checks whether a player's client can receive roleplay packets.
+     *
+     * @param player the player
+     * @return whether the client was welcomed and has not left since
+     */
+    fun isReady(player: Player): Boolean = player.uniqueId in ready
+
+    /**
      * Creates a packet handler that runs on the sending player's thread with the player's screen
      * state. Packets from players without screen state, or from connections outside the play
      * phase, are dropped.
