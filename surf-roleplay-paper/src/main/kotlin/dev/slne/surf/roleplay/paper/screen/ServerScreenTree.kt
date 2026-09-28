@@ -1,6 +1,7 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.OverlayContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogHeaderElement
@@ -315,6 +316,7 @@ class ServerScreenTree(root: ScreenElement) {
             is HoverCardElement -> container.copy(children = children)
             is HoverCardContentElement -> container.copy(children = children)
             is TooltipElement -> container.copy(children = children)
+            is OverlayContainerElement -> container.copy(children = children)
             is DialogElement -> container.copy(children = children)
             is DialogContentElement -> container.copy(children = children)
             is DialogHeaderElement -> container.copy(children = children)

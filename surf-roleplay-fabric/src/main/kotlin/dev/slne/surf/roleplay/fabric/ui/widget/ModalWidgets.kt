@@ -56,9 +56,10 @@ class ModalPopover(owner: OverlayHostWidget, val kind: ModalKind, val edge: Over
     WidgetPopover(owner, OverlaySide.BOTTOM, Align.CENTER, modal = true, dismissOnOutsideClick = kind != ModalKind.ALERT_DIALOG, trapFocus = true) {
 
     /**
-     * Lays the content out in its place and returns the place.
+     * Lays the content out in its place inside an area and returns the place.
      *
-     * @param window the window area
+     * @param window the area the overlay is confined to: its overlay container or the panel
+     *        content
      * @param measurer the text measurer
      * @return the content's area
      */
@@ -624,5 +625,17 @@ class SheetFooterWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
          * The space inside the header and footer of sheets and drawers.
          */
         const val PADDING: Int = 8
+    }
+}
+
+/**
+ * A region that confines the modal overlays opened inside it: their content is placed inside the
+ * region and their backdrop dims only the region. Its children are stacked across its width.
+ *
+ * @param id the id of the widget
+ */
+class OverlayContainerWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
+    init {
+        crossAlign = Align.STRETCH
     }
 }

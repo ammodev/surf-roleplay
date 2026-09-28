@@ -9,6 +9,7 @@ import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.FormWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.OverlayContainerWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayHostWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Popover
 import dev.slne.surf.roleplay.fabric.ui.widget.ScrollListWidget
@@ -192,6 +193,11 @@ class ScreenPanel(
      * The area in which the content is shown, set by the last layout.
      */
     private var viewport: Rect = Rect.EMPTY
+
+    /**
+     * The area in which the content is shown, set by the last layout.
+     */
+    internal val contentArea: Rect get() = viewport
 
     /**
      * The window size of the last layout.
@@ -395,7 +401,7 @@ class ScreenPanel(
             ui.text(titleJson, panel.x + UiMetrics.PANEL_PADDING, panel.y + (UiMetrics.TITLE_BAR_HEIGHT - font.lineHeight + 1) / 2, tokens.cardForeground)
         }
 
-        val areas = stack.map { it.area(window, measurer ?: FontTextMeasurer(font)) }
+        val areas = stack.map { it.area(scopeFor(it), measurer ?: FontTextMeasurer(font)) }
         val hit = areas.indexOfLast { it.contains(mouseX.toDouble(), mouseY.toDouble()) }
         val mouseInside = active && viewport.contains(mouseX.toDouble(), mouseY.toDouble()) && hit < 0 && stack.none { it.modal }
         ui.clipped(viewport) {
@@ -409,7 +415,7 @@ class ScreenPanel(
 
         stack.toList().forEachIndexed { index, open ->
             ui.nextLayer()
-            if (open.modal) ui.fill(window, ThemeColors.withAlpha(BACKDROP, BACKDROP_ALPHA))
+            if (open.modal) ui.fill(scopeFor(open), ThemeColors.withAlpha(BACKDROP, BACKDROP_ALPHA))
             val mouse = active && index == hit
             open.render(ui, this, areas[index], if (mouse) mouseX else HIDDEN, if (mouse) mouseY else HIDDEN)
         }
@@ -443,7 +449,25 @@ class ScreenPanel(
      * @param open the popover
      * @return the popover's area
      */
-    private fun popoverArea(open: Popover): Rect = open.area(window, measurer ?: FontTextMeasurer(Minecraft.getInstance().font))
+    private fun popoverArea(open: Popover): Rect = open.area(scopeFor(open), measurer ?: FontTextMeasurer(Minecraft.getInstance().font))
+
+    /**
+     * Returns the area a popover is placed in: the window for popovers that are not modal, and
+     * for modal ones the nearest overlay container around their owner, or else the visible
+     * content of the panel.
+     *
+     * @param popover the popover
+     * @return the area
+     */
+    private fun scopeFor(popover: Popover): Rect {
+        if (!popover.modal) return window
+        var current: Widget = popover.owner
+        while (true) {
+            val parent = WidgetTree.parentOf(root, current.id) ?: return viewport
+            if (parent is OverlayContainerWidget) return parent.bounds
+            current = parent
+        }
+    }
 
     /**
      * Checks whether a point lies on the panel.

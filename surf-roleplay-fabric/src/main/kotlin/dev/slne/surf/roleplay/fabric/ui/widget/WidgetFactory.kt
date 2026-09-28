@@ -3,6 +3,7 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
 import dev.slne.surf.roleplay.protocol.screen.DialogNode
 import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
 import dev.slne.surf.roleplay.protocol.screen.DialogHeaderNode
@@ -260,6 +261,7 @@ object WidgetFactory {
             is SheetFooterNode -> container(SheetFooterWidget(node.id), node.children)
             is DrawerNode -> container(ModalHostWidget(node.id, ModalKind.DRAWER), node.children).apply { requestOpen(node.open) }
             is DrawerContentNode -> container(DrawerContentWidget(node.id, node.direction), node.children)
+            is OverlayContainerNode -> container(OverlayContainerWidget(node.id), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width

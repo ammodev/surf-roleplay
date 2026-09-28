@@ -1450,3 +1450,30 @@ const val DIALOG_WIDTH: Int = 256
  * The width of small alert dialogs, in GUI pixels.
  */
 const val ALERT_DIALOG_SMALL_WIDTH: Int = 160
+
+/**
+ * A region that confines the modal overlays opened inside it, such as the frame of a phone.
+ *
+ * @property id the id of this element
+ * @property children the content of the region
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class OverlayContainerElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a region that confines the dialogs, sheets and drawers opened inside it.
+ *
+ * @param id the id of the region
+ * @param width how wide the region is laid out
+ * @param height how tall the region is laid out
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.overlayContainer(id: String, width: ElementSize = ElementSize.FIT, height: ElementSize = ElementSize.FIT, children: ElementsBuilder.() -> Unit) {
+    elements += OverlayContainerElement(id, build(children), width, height)
+}

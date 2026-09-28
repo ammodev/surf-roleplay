@@ -249,6 +249,8 @@ import dev.slne.surf.roleplay.protocol.screen.SheetFooterNode
 import dev.slne.surf.roleplay.protocol.screen.DrawerNode
 import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
 import dev.slne.surf.roleplay.protocol.screen.AlertDialogMediaNode
+import dev.slne.surf.roleplay.api.client.common.screen.OverlayContainerElement
+import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -448,6 +450,7 @@ object ScreenMapper {
             is SheetHeaderElement -> SheetHeaderNode(element.id, width, height, element.children.map(::toNode))
             is SheetFooterElement -> SheetFooterNode(element.id, width, height, element.children.map(::toNode))
             is DrawerElement -> DrawerNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is OverlayContainerElement -> OverlayContainerNode(element.id, width, height, element.children.map(::toNode))
             is DrawerContentElement -> DrawerContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
         }
     }

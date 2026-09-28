@@ -1137,3 +1137,29 @@ data class DrawerContentNode(
      */
     override fun withChildren(children: List<ScreenNode>): DrawerContentNode = copy(children = children)
 }
+
+/**
+ * A region that confines the modal overlays opened inside it, such as the frame of a phone: their
+ * content is placed inside the region and their backdrop dims only the region.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content of the region, stacked
+ */
+@Serializable
+@SerialName("overlay_container")
+data class OverlayContainerNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): OverlayContainerNode = copy(children = children)
+}

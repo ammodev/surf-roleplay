@@ -15,6 +15,7 @@ import dev.slne.surf.roleplay.protocol.screen.DialogHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.DialogNode
 import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
 import dev.slne.surf.roleplay.protocol.screen.DrawerNode
+import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
 import dev.slne.surf.roleplay.protocol.screen.OverlaySide
 import dev.slne.surf.roleplay.protocol.screen.RowNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
@@ -64,13 +65,13 @@ class ModalWidgetsTest {
     }
 
     /**
-     * Creates a laid-out panel around nodes placed in a row, in a 400 by 300 window.
+     * Creates a laid-out panel around nodes placed in a 360 by 240 row, in a 400 by 300 window.
      *
      * @param nodes the nodes
      * @return the panel
      */
     private fun panel(vararg nodes: ScreenNode): ScreenPanel =
-        ScreenPanel("T", WidgetFactory.create(RowNode("root", gap = 20, children = nodes.toList())), true, listener, PanelStyle(Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)))
+        ScreenPanel("T", WidgetFactory.create(RowNode("root", width = Sizing.fixed(360), height = Sizing.fixed(240), gap = 20, children = nodes.toList())), true, listener, PanelStyle(Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)))
             .also { it.layoutIfNeeded(measurer, 400, 300) }
 
     /**
@@ -109,7 +110,7 @@ class ModalWidgetsTest {
     )
 
     /**
-     * Verifies that a dialog opens centered in the window, and that its footer places its
+     * Verifies that a dialog opens centered in the panel content, and that its footer places its
      * buttons at the end.
      */
     @Test
@@ -118,9 +119,10 @@ class ModalWidgetsTest {
         click(panel, "open")
 
         val area = panel.overlayAreas().single()
+        val scope = panel.contentArea
         assertEquals(200, area.width)
-        assertEquals((400 - 200) / 2, area.x)
-        assertEquals((300 - area.height) / 2, area.y)
+        assertEquals(scope.x + (scope.width - 200) / 2, area.x)
+        assertEquals(scope.y + (scope.height - area.height) / 2, area.y)
         assertEquals(area.right - DialogContentWidget.PADDING, WidgetTree.find(panel.root, "save")!!.bounds.right)
     }
 
@@ -173,8 +175,8 @@ class ModalWidgetsTest {
     }
 
     /**
-     * Verifies that a right sheet is attached to the right edge over the whole window height, and
-     * that its footer sits at its bottom.
+     * Verifies that a right sheet is attached to the right edge of the panel content over its
+     * whole height, and that its footer sits at its bottom.
      */
     @Test
     fun `sheet is attached to its edge`() {
@@ -194,15 +196,16 @@ class ModalWidgetsTest {
         click(panel, "open")
 
         val area = panel.overlayAreas().single()
-        assertEquals(400, area.right)
-        assertEquals(0, area.y)
-        assertEquals(300, area.height)
-        assertEquals(SheetContentWidget.SIDE_WIDTH, area.width)
-        assertEquals(300 - SheetFooterWidget.PADDING, WidgetTree.find(panel.root, "done")!!.bounds.bottom)
+        val scope = panel.contentArea
+        assertEquals(scope.right, area.right)
+        assertEquals(scope.y, area.y)
+        assertEquals(scope.height, area.height)
+        assertEquals(minOf(scope.width * 3 / 4, SheetContentWidget.SIDE_WIDTH), area.width)
+        assertEquals(scope.bottom - SheetFooterWidget.PADDING, WidgetTree.find(panel.root, "done")!!.bounds.bottom)
     }
 
     /**
-     * Verifies that a bottom drawer spans the window width at its bottom edge.
+     * Verifies that a bottom drawer spans the panel content width at its bottom edge.
      */
     @Test
     fun `drawer comes from the bottom`() {
@@ -210,9 +213,28 @@ class ModalWidgetsTest {
         click(panel, "open")
 
         val area = panel.overlayAreas().single()
-        assertEquals(0, area.x)
-        assertEquals(400, area.width)
-        assertEquals(300, area.bottom)
-        assertTrue(area.height < 300)
+        val scope = panel.contentArea
+        assertEquals(scope.x, area.x)
+        assertEquals(scope.width, area.width)
+        assertEquals(scope.bottom, area.bottom)
+        assertTrue(area.height < scope.height)
+    }
+
+    /**
+     * Verifies that a sheet inside an overlay container is attached to the container instead of
+     * the panel.
+     */
+    @Test
+    fun `sheets stay inside their overlay container`() {
+        val sheet = SheetNode("sheet", children = listOf(ButtonNode("open", text = "Open"), SheetContentNode("content", side = OverlaySide.RIGHT, children = listOf(ButtonNode("x", text = "X")))))
+        val panel = panel(OverlayContainerNode("phone", width = Sizing.fixed(120), height = Sizing.fixed(160), children = listOf(sheet)))
+        click(panel, "open")
+
+        val phone = WidgetTree.find(panel.root, "phone")!!.bounds
+        val area = panel.overlayAreas().single()
+        assertEquals(phone.right, area.right)
+        assertEquals(phone.y, area.y)
+        assertEquals(phone.height, area.height)
+        assertEquals(phone.width * 3 / 4, area.width)
     }
 }
