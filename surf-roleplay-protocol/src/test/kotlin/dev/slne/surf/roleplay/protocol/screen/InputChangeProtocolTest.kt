@@ -36,7 +36,7 @@ class InputChangeProtocolTest {
                 TextInputNode("t", notifyChange = true),
                 NumberInputNode("n", notifyChange = true),
                 CheckboxNode("c", notifyChange = true),
-                DropdownNode("d", notifyChange = true),
+                SelectNode("d", notifyChange = true),
             ),
         )
         val open = ScreenOpen(sessionId = 1, title = "{}", body = WidgetScreenBody(root))

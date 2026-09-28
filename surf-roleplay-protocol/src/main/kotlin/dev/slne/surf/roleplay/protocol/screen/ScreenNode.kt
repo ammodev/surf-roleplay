@@ -397,43 +397,6 @@ data class CheckboxNode(
 ) : ScreenNode
 
 /**
- * A choice of one option from a list.
- *
- * @property id the id of this node
- * @property width how wide this node is laid out
- * @property height how tall this node is laid out
- * @property options the options, in display order
- * @property selected the value of the selected option, or `null` if none is selected
- * @property required whether having no selection is invalid
- * @property enabled whether the player can change the selection
- * @property notifyChange whether the mod reports every change of the value at once
- */
-@Serializable
-@SerialName("dropdown")
-data class DropdownNode(
-    @ProtoNumber(1) override val id: String,
-    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
-    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
-    @ProtoNumber(4) val options: List<DropdownOption> = emptyList(),
-    @ProtoNumber(5) val selected: String? = null,
-    @ProtoNumber(6) val required: Boolean = false,
-    @ProtoNumber(7) val enabled: Boolean = true,
-    @ProtoNumber(8) val notifyChange: Boolean = false,
-) : ScreenNode
-
-/**
- * One option of a [DropdownNode].
- *
- * @property value the value submitted when this option is selected
- * @property label the label shown for this option, as component JSON
- */
-@Serializable
-data class DropdownOption(
-    @ProtoNumber(1) val value: String,
-    @ProtoNumber(2) val label: String,
-)
-
-/**
  * A texture drawn over the node's whole area.
  *
  * @property id the id of this node

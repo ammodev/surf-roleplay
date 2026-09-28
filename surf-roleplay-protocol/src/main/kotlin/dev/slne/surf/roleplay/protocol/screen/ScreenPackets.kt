@@ -118,7 +118,7 @@ data class ScreenWidgetAction(
  * The value of one input widget.
  *
  * Text inputs send their text, number inputs their number in decimal or an empty string when
- * empty, checkboxes `true` or `false`, and dropdowns the value of the selected option or an empty
+ * empty, checkboxes `true` or `false`, and selects the value of the selected option or an empty
  * string when nothing is selected.
  *
  * @property widgetId the id of the input widget
@@ -153,15 +153,19 @@ data class ScreenClosed(
 ) : Packet
 
 /**
- * Reports that the player changed the value of an input that asked for change events.
+ * Reports that the player changed the value of an input that asked for change events, or the
+ * typed query of a combobox that asked for search events.
  *
  * @property sessionId the session of the screen
  * @property widgetId the id of the input
- * @property value the new value, in the string form of [InputValue.value]
+ * @property value the new value, in the string form of [InputValue.value]; for a search event,
+ *           the current value
+ * @property query the typed query for a search event, or `null` for a value change
  */
 @Serializable
 data class ScreenInputChange(
     @ProtoNumber(1) val sessionId: Int,
     @ProtoNumber(2) val widgetId: String,
     @ProtoNumber(3) val value: String,
+    @ProtoNumber(4) val query: String? = null,
 ) : Packet
