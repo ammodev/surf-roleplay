@@ -172,4 +172,12 @@ class ScreenDslTest {
         val buttons = (definition.root as RowElement).children.map { it as ButtonElement }
         assertEquals(listOf(true, false), buttons.map { it.submitsInput })
     }
+
+    /**
+     * Verifies that icon elements reject sizes that are not positive.
+     */
+    @Test
+    fun `icons need a positive size`() {
+        assertFailsWith<IllegalArgumentException> { IconElement("i", "x", size = 0) }
+    }
 }

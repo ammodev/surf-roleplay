@@ -135,7 +135,10 @@ class PlayerScreenState(
         sheetSide: SheetSide = SheetSide.RIGHT,
     ): OpenScreen {
         checkUsable()
-        val session = GenericSession(nextSessionId++, definition)
+        val (parentTheme, parentVariant) = themeOf(parentSessionId)
+        val theme = definition.theme ?: parentTheme
+        val variant = definition.variant ?: parentVariant
+        val session = GenericSession(nextSessionId++, definition, theme, variant)
         push(
             session,
             ScreenOpen(
@@ -144,8 +147,8 @@ class PlayerScreenState(
                 title = ScreenMapper.text(definition.title),
                 closable = definition.closable,
                 body = WidgetScreenBody(ScreenMapper.toNode(definition.root)),
-                theme = definition.theme,
-                variant = ScreenMapper.variant(definition.variant),
+                theme = theme,
+                variant = ScreenMapper.variant(variant),
                 presentation = ScreenMapper.presentation(presentation),
                 sheetEdge = ScreenMapper.sheetEdge(sheetSide),
             ),
@@ -154,7 +157,7 @@ class PlayerScreenState(
     }
 
     /**
-     * Returns the theme and variant of an open generic screen.
+     * Returns the theme and variant an open generic screen is drawn with.
      *
      * @param sessionId the session
      * @return the theme name and variant, or the default theme in dark if the session is not an
@@ -162,8 +165,8 @@ class PlayerScreenState(
      */
     fun themeOf(sessionId: Int?): Pair<String, ScreenVariant> {
         threadCheck()
-        val definition = (sessionId?.let { stack.find(it)?.content } as? GenericSession)?.definition
-        return (definition?.theme ?: ScreenThemes.DEFAULT) to (definition?.variant ?: ScreenVariant.DARK)
+        val session = sessionId?.let { stack.find(it)?.content } as? GenericSession
+        return (session?.theme ?: ScreenThemes.DEFAULT) to (session?.variant ?: ScreenVariant.DARK)
     }
 
     /**
@@ -372,8 +375,15 @@ class PlayerScreenState(
      *
      * @param sessionId the session id
      * @property definition the screen's definition
+     * @property theme the theme the screen is drawn with, after inheriting from its parent
+     * @property variant the variant the screen is drawn with, after inheriting from its parent
      */
-    private inner class GenericSession(sessionId: Int, val definition: ScreenDefinition) :
+    private inner class GenericSession(
+        sessionId: Int,
+        val definition: ScreenDefinition,
+        val theme: String,
+        val variant: ScreenVariant,
+    ) :
         Session(sessionId, definition.closable) {
 
         /**

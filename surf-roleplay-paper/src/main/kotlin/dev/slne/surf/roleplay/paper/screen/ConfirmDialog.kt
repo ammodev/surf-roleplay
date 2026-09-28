@@ -26,8 +26,10 @@ object ConfirmDialog {
     const val CANCEL_ID: String = "cancel"
 
     /**
-     * Opens a confirmation dialog. Exactly one handler runs: [onConfirm] on confirmation, and
-     * [onCancel] on cancel or when the dialog closes for any other reason.
+     * Opens a confirmation dialog. Once the dialog is open, exactly one handler runs: [onConfirm]
+     * on confirmation, and [onCancel] on cancel or when the dialog closes for any other reason. If
+     * opening fails, no handler runs. When the dialog closes because the player leaves, [onCancel]
+     * runs while no further screen can be opened for that player.
      *
      * @param state the player's screen state
      * @param parentSessionId the session to show the dialog over, or `null`
@@ -52,10 +54,7 @@ object ConfirmDialog {
         onCancel: () -> Unit,
     ): OpenScreen {
         var decided = false
-        val (theme, variant) = state.themeOf(parentSessionId)
         val definition = screen(title) {
-            this.theme = theme
-            this.variant = variant
             onClose {
                 if (!decided) {
                     decided = true

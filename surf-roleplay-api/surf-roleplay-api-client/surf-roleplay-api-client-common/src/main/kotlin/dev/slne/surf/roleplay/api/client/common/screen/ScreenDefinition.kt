@@ -11,8 +11,10 @@ import java.util.UUID
  * @property closable whether the player can close the screen with Escape
  * @property onClose the handler run when the screen is closed for any reason, or `null` for none
  * @property theme the name of the theme the screen is drawn with, such as [ScreenThemes.POLICE];
+ *           `null` uses the parent screen's theme, or [ScreenThemes.DEFAULT] without a parent;
  *           unknown names draw the default theme
- * @property variant the light or dark variant of the theme
+ * @property variant the light or dark variant of the theme; `null` uses the parent screen's
+ *           variant, or [ScreenVariant.DARK] without a parent
  * @throws IllegalArgumentException if two elements of the tree share an id
  */
 data class ScreenDefinition(
@@ -20,8 +22,8 @@ data class ScreenDefinition(
     val root: ScreenElement,
     val closable: Boolean = true,
     val onClose: CloseHandler? = null,
-    val theme: String = ScreenThemes.DEFAULT,
-    val variant: ScreenVariant = ScreenVariant.DARK,
+    val theme: String? = null,
+    val variant: ScreenVariant? = null,
 ) {
     init {
         val ids = mutableListOf<String>()

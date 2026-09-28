@@ -45,9 +45,11 @@ interface ScreenService {
      * Asks a player to confirm something in a dialog over a parent screen, or over the world if
      * there is no parent. The dialog uses the parent's theme.
      *
-     * Exactly one handler runs: [onConfirm] when the player confirms, and [onCancel] when the
-     * player cancels, closes the dialog, or the dialog closes for any other reason, such as its
-     * parent closing or the player leaving.
+     * Once the dialog is open, exactly one handler runs: [onConfirm] when the player confirms, and
+     * [onCancel] when the player cancels, closes the dialog, or the dialog closes for any other
+     * reason, such as its parent closing or the player leaving. If opening fails, no handler runs.
+     * When the player leaves, [onCancel] runs at a point where no further screen can be opened for
+     * the player.
      *
      * @param player the player
      * @param parent the open screen to show the dialog over, or `null`

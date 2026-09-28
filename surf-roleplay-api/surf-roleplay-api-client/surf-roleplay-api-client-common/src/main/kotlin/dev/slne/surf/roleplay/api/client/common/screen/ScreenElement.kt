@@ -390,6 +390,7 @@ data class ProgressElement(
  * @property tint the theme colour the icon is tinted with
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @throws IllegalArgumentException if [size] is not positive
  */
 data class IconElement(
     override val id: String,
@@ -398,4 +399,8 @@ data class IconElement(
     val tint: IconTint = IconTint.FOREGROUND,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
-) : ScreenElement
+) : ScreenElement {
+    init {
+        require(size > 0) { "Icon size must be positive, was $size" }
+    }
+}

@@ -173,4 +173,34 @@ class ConfirmDialogTest {
         assertEquals(listOf("cancel"), outcomes)
         assertTrue(state.openScreens.isEmpty())
     }
+
+    /**
+     * Verifies that a screen without its own theme inherits its parent's theme and variant, while
+     * one with a theme keeps it.
+     */
+    @Test
+    fun `screens without a theme inherit the parent's theme`() {
+        val parent = openParent()
+
+        state.open(screen(Component.text("Kind")) { label("c", Component.empty()) }, parent, ScreenPresentation.SHEET)
+        val inherited = sent.last() as ScreenOpen
+        state.open(screen(Component.text("Eigen")) { theme = "sar"; label("o", Component.empty()) }, parent, ScreenPresentation.DIALOG)
+        val own = sent.last() as ScreenOpen
+
+        assertEquals("police", inherited.theme)
+        assertEquals(ThemeVariant.LIGHT, inherited.variant)
+        assertEquals("sar", own.theme)
+    }
+
+    /**
+     * Verifies that a root screen without a theme uses the default theme in dark.
+     */
+    @Test
+    fun `root screens without a theme use the default theme`() {
+        state.open(screen(Component.text("Wurzel")) { label("r", Component.empty()) }, null)
+
+        val open = sent.last() as ScreenOpen
+        assertEquals("default", open.theme)
+        assertEquals(ThemeVariant.DARK, open.variant)
+    }
 }

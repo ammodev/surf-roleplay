@@ -43,14 +43,15 @@ class ScreenBuilder internal constructor(private val title: Component) : Element
     var closable: Boolean = true
 
     /**
-     * The name of the theme the screen is drawn with, such as [ScreenThemes.POLICE].
+     * The name of the theme the screen is drawn with, such as [ScreenThemes.POLICE], or `null` to
+     * use the parent screen's theme.
      */
-    var theme: String = ScreenThemes.DEFAULT
+    var theme: String? = null
 
     /**
-     * The light or dark variant of the theme.
+     * The light or dark variant of the theme, or `null` to use the parent screen's variant.
      */
-    var variant: ScreenVariant = ScreenVariant.DARK
+    var variant: ScreenVariant? = null
 
     /**
      * The handler run when the screen is closed, or `null` for none.
