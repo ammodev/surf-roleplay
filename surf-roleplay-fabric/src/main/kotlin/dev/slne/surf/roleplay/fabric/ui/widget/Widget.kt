@@ -11,6 +11,7 @@ import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.OverlaySide
 import dev.slne.surf.roleplay.protocol.screen.Insets
 import dev.slne.surf.roleplay.protocol.screen.Sizing
 import net.minecraft.client.input.CharacterEvent
@@ -48,6 +49,27 @@ interface UiContext {
      * Closes the open popover, if any.
      */
     fun closePopover() = Unit
+
+    /**
+     * The open popovers, from bottom to top.
+     */
+    val popovers: List<Popover> get() = listOfNotNull(popover)
+
+    /**
+     * Closes a popover and every popover opened above it.
+     *
+     * @param popover the popover
+     */
+    fun closePopover(popover: Popover) = Unit
+
+    /**
+     * Shows a tooltip for the current frame, above everything else.
+     *
+     * @param json the text as component JSON
+     * @param anchor the area the tooltip belongs to
+     * @param side the side of the anchor the tooltip is shown on
+     */
+    fun showTooltip(json: String, anchor: Rect, side: OverlaySide) = Unit
 
     /**
      * Asks the screen to lay its tree out again before the next frame.
@@ -207,6 +229,13 @@ abstract class Widget(val id: String) {
      * The child widgets, empty for leaves.
      */
     open val children: List<Widget> get() = emptyList()
+
+    /**
+     * The child widgets that take part in the Tab order and in hit testing of the widget's own
+     * area: its children, except content that is shown elsewhere, such as the closed content of an
+     * overlay.
+     */
+    open val focusChildren: List<Widget> get() = children
 
     /**
      * Computes the size of the widget's content, used when it fits its content.

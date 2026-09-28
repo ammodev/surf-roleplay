@@ -102,12 +102,24 @@ object FocusOrder {
      */
     fun next(root: Widget, current: Widget?, backwards: Boolean): Widget? {
         val focusable = mutableListOf<Widget>()
-        WidgetTree.visit(root) { if (it.focusable) focusable += it }
+        collect(root, focusable)
         if (focusable.isEmpty()) return null
         val index = focusable.indexOfFirst { it === current }
         if (index < 0) return if (backwards) focusable.last() else focusable.first()
         val step = if (backwards) -1 else 1
         return focusable[(index + step + focusable.size) % focusable.size]
+    }
+
+    /**
+     * Collects the focusable widgets of a tree in tree order, following only the children that
+     * take part in the Tab order.
+     *
+     * @param widget the root of the tree
+     * @param into the list to add to
+     */
+    private fun collect(widget: Widget, into: MutableList<Widget>) {
+        if (widget.focusable) into += widget
+        widget.focusChildren.forEach { collect(it, into) }
     }
 }
 
