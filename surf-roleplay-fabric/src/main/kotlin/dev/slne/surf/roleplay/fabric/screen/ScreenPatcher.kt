@@ -12,6 +12,8 @@ import dev.slne.surf.roleplay.protocol.screen.RemoveNode
 import dev.slne.surf.roleplay.protocol.screen.ReplaceNode
 import dev.slne.surf.roleplay.protocol.screen.SetEnabled
 import dev.slne.surf.roleplay.protocol.screen.SetInvalid
+import dev.slne.surf.roleplay.protocol.screen.SetOpen
+import dev.slne.surf.roleplay.fabric.ui.widget.OverlayHostWidget
 import dev.slne.surf.roleplay.protocol.screen.SetOptions
 import dev.slne.surf.roleplay.protocol.screen.SetProgress
 import dev.slne.surf.roleplay.protocol.screen.SetText
@@ -90,6 +92,7 @@ object ScreenPatcher {
             is SetEnabled -> (WidgetTree.find(root, operation.targetId) ?: return root to false).enabled = operation.enabled
             is SetOptions -> (WidgetTree.find(root, operation.targetId) as? ComboboxWidget ?: return root to false).replaceOptions(operation.groups)
             is SetInvalid -> (WidgetTree.find(root, operation.targetId) ?: return root to false).serverInvalid = operation.invalid
+            is SetOpen -> (WidgetTree.find(root, operation.targetId) as? OverlayHostWidget ?: return root to false).requestOpen(operation.open)
         }
         return root to true
     }
@@ -110,5 +113,6 @@ object ScreenPatcher {
         is SetEnabled -> operation.targetId
         is SetOptions -> operation.targetId
         is SetInvalid -> operation.targetId
+        is SetOpen -> operation.targetId
     }
 }

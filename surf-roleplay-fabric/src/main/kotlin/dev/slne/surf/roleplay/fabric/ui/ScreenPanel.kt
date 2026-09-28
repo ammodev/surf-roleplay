@@ -9,11 +9,14 @@ import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.FormWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.OverlayContainerWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.OverlayHostWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Popover
 import dev.slne.surf.roleplay.fabric.ui.widget.ScrollListWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.UiContext
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetTree
+import dev.slne.surf.roleplay.protocol.screen.OverlaySide
 import dev.slne.surf.roleplay.protocol.screen.Presentation
 import dev.slne.surf.roleplay.protocol.screen.SheetEdge
 import dev.slne.surf.roleplay.protocol.screen.SizeMode
@@ -110,7 +113,7 @@ class ScreenPanel(
         set(value) {
             field = value
             focusedWidget = null
-            popover = null
+            stack.clear()
             requestLayout()
         }
 
@@ -121,9 +124,30 @@ class ScreenPanel(
         private set
 
     /**
-     * The open popover, or `null` if none is open.
+     * The open overlays, from bottom to top.
      */
-    override var popover: Popover? = null
+    private val stack = mutableListOf<Popover>()
+
+    /**
+     * The top open overlay, or `null` if none is open.
+     */
+    override val popover: Popover? get() = stack.lastOrNull()
+
+    /**
+     * The open overlays, from bottom to top.
+     */
+    override val popovers: List<Popover> get() = stack.toList()
+
+    /**
+     * The tooltip asked for during the current frame, or `null` for none.
+     */
+    private var tooltip: TooltipRequest? = null
+
+    /**
+     * Whether the focus ring is shown: after the player used the keyboard, and not after a mouse
+     * click.
+     */
+    override var focusVisible: Boolean = false
         private set
 
     /**
@@ -164,7 +188,7 @@ class ScreenPanel(
     /**
      * The measurer of the font the panel was last laid out with.
      */
-    private var measurer: FontTextMeasurer? = null
+    private var measurer: TextMeasurer? = null
 
     /**
      * The area of the panel including its title bar, set by the last layout.
@@ -176,6 +200,11 @@ class ScreenPanel(
      * The area in which the content is shown, set by the last layout.
      */
     private var viewport: Rect = Rect.EMPTY
+
+    /**
+     * The area in which the content is shown, set by the last layout.
+     */
+    internal val contentArea: Rect get() = viewport
 
     /**
      * The window size of the last layout.
@@ -208,17 +237,27 @@ class ScreenPanel(
      * @param width the window width in GUI pixels
      * @param height the window height in GUI pixels
      */
-    fun layoutIfNeeded(font: Font, width: Int, height: Int) {
+    fun layoutIfNeeded(font: Font, width: Int, height: Int) = layoutIfNeeded(FontTextMeasurer(font), width, height)
+
+    /**
+     * Lays the panel out for a window size if the size changed or a layout was requested,
+     * measuring texts with a measurer.
+     *
+     * @param measurer the text measurer
+     * @param width the window width in GUI pixels
+     * @param height the window height in GUI pixels
+     */
+    internal fun layoutIfNeeded(measurer: TextMeasurer, width: Int, height: Int) {
         val slidingNow = sliding()
         val slideEnded = wasSliding && !slidingNow
         wasSliding = slidingNow
         if (!layoutPending && window.width == width && window.height == height && !slidingNow && !slideEnded) return
         window = Rect(0, 0, width, height)
-        layout(font)
+        layout(measurer)
         if (revealPending) {
             revealPending = false
-            if (revealInLists()) layout(font)
-            if (revealInPanel()) layout(font)
+            if (revealInLists()) layout(measurer)
+            if (revealInPanel()) layout(measurer)
         }
     }
 
@@ -226,11 +265,11 @@ class ScreenPanel(
      * Lays the tree out at its full height and places the panel and the viewport for the
      * presentation, capping the panel at the window and scrolling the rest.
      *
-     * @param font the font texts are measured with
+     * @param measurer the text measurer
      */
-    private fun layout(font: Font) {
+    private fun layout(measurer: TextMeasurer) {
         layoutPending = false
-        val measurer = FontTextMeasurer(font).also { this.measurer = it }
+        this.measurer = measurer
         val box = root.createLayout(measurer)
         val chromeX = 2 * UiMetrics.PANEL_PADDING
         val chromeY = 2 * UiMetrics.PANEL_PADDING + UiMetrics.TITLE_BAR_HEIGHT
@@ -241,7 +280,7 @@ class ScreenPanel(
         val verticalSheet = sheet && (style.sheetEdge == SheetEdge.LEFT || style.sheetEdge == SheetEdge.RIGHT)
         val horizontalSheet = sheet && !verticalSheet
 
-        val titleWidth = font.width(ScreenText.parse(titleJson)) + chromeX
+        val titleWidth = measurer.width(titleJson) + chromeX
         val contentWidth = when {
             horizontalSheet || root.width.mode == SizeMode.GROW -> maxWidth
             else -> FlexLayout.measure(box, maxWidth).width.coerceAtMost(maxWidth)
@@ -269,6 +308,39 @@ class ScreenPanel(
         val contentX = viewport.x + (viewport.width - contentWidth) / 2
         FlexLayout.layout(box, Rect(contentX, viewport.y - scroll.offset, contentWidth, contentHeight))
         root.applyLayout()
+        WidgetTree.visit(root) { if (it is OverlayHostWidget) it.sync(this) }
+    }
+
+    /**
+     * Lays out every open overlay and returns their areas, from bottom to top.
+     *
+     * @return the areas
+     */
+    internal fun overlayAreas(): List<Rect> = stack.map { popoverArea(it) }
+
+    /**
+     * Returns the index of the overlay the mouse is on: the topmost one whose area contains the
+     * mouse, unless a modal overlay above it covers it.
+     *
+     * @param areas the areas of the open overlays, bottom first
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @return the index, or -1 if the mouse is on no overlay it can reach
+     */
+    internal fun mouseOverlay(areas: List<Rect>, x: Int, y: Int): Int {
+        val hit = areas.indexOfLast { it.contains(x.toDouble(), y.toDouble()) }
+        return if (hit < stack.indexOfLast { it.modal }) -1 else hit
+    }
+
+    /**
+     * Returns the widget to scroll into view: the focused widget, or for a widget inside an
+     * overlay the host of the lowest overlay, or else the owner of the open overlay.
+     *
+     * @return the widget, or `null` for none
+     */
+    private fun revealTarget(): Widget? {
+        val focused = focusedWidget ?: return popover?.owner
+        return stack.firstOrNull { it.containsWidget(focused) }?.let { stack.first().owner } ?: focused
     }
 
     /**
@@ -306,7 +378,7 @@ class ScreenPanel(
      * @return whether a list scrolled, in which case the panel must be laid out again
      */
     private fun revealInLists(): Boolean {
-        val focused = focusedWidget ?: popover?.owner ?: return false
+        val focused = revealTarget() ?: return false
         var moved = false
         var current: Widget = focused
         while (true) {
@@ -323,7 +395,7 @@ class ScreenPanel(
      * @return whether the panel scrolled, in which case it must be laid out again
      */
     private fun revealInPanel(): Boolean {
-        val focused = focusedWidget ?: popover?.owner ?: return false
+        val focused = revealTarget() ?: return false
         val before = scroll.offset
         val top = focused.bounds.y - (viewport.y - scroll.offset)
         scroll.ensureVisible(top - FOCUS_MARGIN, top + focused.bounds.height + FOCUS_MARGIN)
@@ -350,23 +422,29 @@ class ScreenPanel(
             ui.text(titleJson, panel.x + UiMetrics.PANEL_PADDING, panel.y + (UiMetrics.TITLE_BAR_HEIGHT - font.lineHeight + 1) / 2, tokens.cardForeground)
         }
 
-        val open = popover
-        val openArea = open?.area(window, FontTextMeasurer(font))
-        val mouseInside = active && viewport.contains(mouseX.toDouble(), mouseY.toDouble()) &&
-            !(openArea != null && openArea.contains(mouseX.toDouble(), mouseY.toDouble()))
+        val areas = stack.map { it.area(scopeFor(it), measurer ?: FontTextMeasurer(font)) }
+        val hit = mouseOverlay(areas, mouseX, mouseY)
+        val mouseInside = active && viewport.contains(mouseX.toDouble(), mouseY.toDouble()) && hit < 0 && stack.none { it.modal }
         ui.clipped(viewport) {
             root.render(ui, this, if (mouseInside) mouseX else HIDDEN, if (mouseInside) mouseY else HIDDEN)
-            focusedWidget?.takeUnless { it.drawsOwnFocus }?.let { focused ->
+            focusedWidget?.takeIf { focusVisible }?.takeUnless { focused -> focused.drawsOwnFocus || stack.any { it.containsWidget(focused) } }?.let { focused ->
                 val b = (focused.focusFrame ?: focused).bounds
                 ui.borderRounded(Rect(b.x - 1, b.y - 1, b.width + 2, b.height + 2), tokens.ring, tokens.radius + 1)
             }
         }
         if (scroll.maxOffset > 0) renderScrollBar(ui)
 
-        if (open != null && openArea != null) {
+        stack.toList().forEachIndexed { index, open ->
             ui.nextLayer()
-            open.render(ui, this, openArea, if (active) mouseX else HIDDEN, if (active) mouseY else HIDDEN)
+            if (open.modal) ui.fill(scopeFor(open), ThemeColors.withAlpha(BACKDROP, BACKDROP_ALPHA))
+            val mouse = active && index == hit
+            open.render(ui, this, areas[index], if (mouse) mouseX else HIDDEN, if (mouse) mouseY else HIDDEN)
         }
+        tooltip?.let { request ->
+            ui.nextLayer()
+            TooltipPainter.draw(ui, request, window)
+        }
+        tooltip = null
     }
 
     /**
@@ -392,7 +470,25 @@ class ScreenPanel(
      * @param open the popover
      * @return the popover's area
      */
-    private fun popoverArea(open: Popover): Rect = open.area(window, measurer ?: FontTextMeasurer(Minecraft.getInstance().font))
+    private fun popoverArea(open: Popover): Rect = open.area(scopeFor(open), measurer ?: FontTextMeasurer(Minecraft.getInstance().font))
+
+    /**
+     * Returns the area a popover is placed in: the window for popovers that are not modal, and
+     * for modal ones the nearest overlay container around their owner, or else the visible
+     * content of the panel.
+     *
+     * @param popover the popover
+     * @return the area
+     */
+    private fun scopeFor(popover: Popover): Rect {
+        if (!popover.modal) return window
+        var current: Widget = popover.owner
+        while (true) {
+            val parent = WidgetTree.parentOf(root, current.id) ?: return viewport
+            if (parent is OverlayContainerWidget) return parent.bounds
+            current = parent
+        }
+    }
 
     /**
      * Checks whether a point lies on the panel.
@@ -414,22 +510,43 @@ class ScreenPanel(
      * @return whether the click was on the panel or its popover
      */
     fun mouseClicked(x: Double, y: Double, button: Int): Boolean {
-        val open = popover
-        if (open != null) {
+        focusVisible = false
+        for (index in stack.indices.reversed()) {
+            val open = stack[index]
             val area = popoverArea(open)
             if (area.contains(x, y)) {
+                closeFrom(index + 1)
                 if (open.owner.enabled) open.mouseClicked(this, area, x, y, button)
+                startDrag(x, y, button)
                 return true
             }
-            popover = null
-            if (open.owner.isOver(x, y) && !open.passesOwnerClicks) return true
+            if (open.modal) {
+                closeFrom(if (open.dismissOnOutsideClick) index else index + 1)
+                return true
+            }
+            if (open.owner.isOver(x, y) && !open.passesOwnerClicks) {
+                closeFrom(index)
+                return true
+            }
         }
+        closeFrom(0)
         if (!panel.contains(x, y)) return false
         if (!viewport.contains(x, y)) return true
         focusedWidget = null
         root.mouseClicked(this, x, y, button)
-        dragTarget = focusedWidget?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
+        startDrag(x, y, button)
         return true
+    }
+
+    /**
+     * Starts a drag on the focused widget after a left click on it, if it can be dragged.
+     *
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param button the mouse button
+     */
+    private fun startDrag(x: Double, y: Double, button: Int) {
+        dragTarget = focusedWidget?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
     }
 
     /**
@@ -466,9 +583,9 @@ class ScreenPanel(
      * @return whether the mouse was over the panel
      */
     fun mouseScrolled(x: Double, y: Double, amount: Double): Boolean {
-        popover?.let { open ->
-            val area = popoverArea(open)
-            if (area.contains(x, y)) open.mouseScrolled(area, amount)
+        if (stack.isNotEmpty()) {
+            val index = stack.indices.lastOrNull { popoverArea(stack[it]).contains(x, y) }
+            if (index != null) stack[index].mouseScrolled(this, popoverArea(stack[index]), x, y, amount)
             return true
         }
         if (!panel.contains(x, y)) return false
@@ -486,17 +603,19 @@ class ScreenPanel(
      * @return whether the key was handled
      */
     fun keyPressed(event: KeyEvent): Boolean {
+        focusVisible = true
         val open = popover
         if (open != null) {
             if (open.keyPressed(this, event)) return true
             if (event.isEscape) {
-                popover = null
+                closePopover()
                 return true
             }
-            if (event.key() == GLFW.GLFW_KEY_TAB) popover = null
+            if (event.key() == GLFW.GLFW_KEY_TAB && open.focusRoot == null) closePopover()
         }
         if (event.key() == GLFW.GLFW_KEY_TAB) {
-            focus(FocusOrder.next(root, focusedWidget, event.hasShiftDown()))
+            val scope = stack.lastOrNull { it.focusRoot != null }?.focusRoot ?: root
+            focus(FocusOrder.next(scope, focusedWidget, event.hasShiftDown()))
             return true
         }
         if (event.isEscape) return false
@@ -548,16 +667,55 @@ class ScreenPanel(
      * @param popover the popover
      */
     override fun openPopover(popover: Popover) {
-        this.popover = popover
+        closeFrom(stack.indexOfLast { it.containsWidget(popover.owner) } + 1)
+        stack += popover
+        popover.focusRoot?.let { root -> FocusOrder.next(root, null, backwards = false)?.let { focus(it) } }
         revealPending = true
         requestLayout()
     }
 
     /**
-     * Closes the open popover.
+     * Closes the top popover.
      */
     override fun closePopover() {
-        popover = null
+        if (stack.isNotEmpty()) closeFrom(stack.lastIndex)
+    }
+
+    /**
+     * Closes a popover and every popover above it.
+     *
+     * @param popover the popover
+     */
+    override fun closePopover(popover: Popover) {
+        val index = stack.indexOf(popover)
+        if (index >= 0) closeFrom(index)
+    }
+
+    /**
+     * Closes the popovers from an index up, topmost first.
+     *
+     * @param index the index of the lowest popover to close
+     */
+    private fun closeFrom(index: Int) {
+        while (stack.size > index.coerceAtLeast(0)) {
+            val closed = stack.removeAt(stack.lastIndex)
+            val focused = focusedWidget
+            if (focused != null && closed.containsWidget(focused)) {
+                focusedWidget = FocusOrder.next(closed.owner, null, backwards = false)?.takeUnless { closed.containsWidget(it) }
+            }
+            closed.closed(this)
+        }
+    }
+
+    /**
+     * Asks for a tooltip to be drawn above everything at the end of the current frame.
+     *
+     * @param json the text as component JSON
+     * @param anchor the area the tooltip belongs to
+     * @param side the side of the anchor the tooltip is shown on
+     */
+    override fun showTooltip(json: String, anchor: Rect, side: OverlaySide) {
+        tooltip = TooltipRequest(json, anchor, side)
     }
 
     /**
@@ -575,10 +733,15 @@ class ScreenPanel(
      * @param submitsInput whether the action submits the screen's input
      */
     override fun actionTriggered(widget: Widget, submitsInput: Boolean) {
+        OverlayHostWidget.hostOfTrigger(root, widget)?.let { host ->
+            if (host.enabled) host.toggle(this)
+            return
+        }
         reportChanges(debouncer.flush())
         reportSearches(searches.flush())
         if (submitsInput) WidgetTree.touchAll(root)
         listener.actionTriggered(this, widget)
+        stack.lastOrNull { it.containsWidget(widget) }?.afterAction(this, widget, submitsInput)
     }
 
     /**
@@ -651,7 +814,8 @@ class ScreenPanel(
      */
     fun treeChanged() {
         focusedWidget?.let { if (!ScreenRules.isStillUsable(root, it)) focusedWidget = null }
-        popover?.let { if (!ScreenRules.isStillUsable(root, it.owner)) popover = null }
+        val gone = stack.indexOfFirst { !ScreenRules.isStillUsable(root, it.owner) }
+        if (gone >= 0) closeFrom(gone)
         requestLayout()
     }
 
@@ -690,5 +854,15 @@ class ScreenPanel(
          * The opacity of the panel's scroll bar handle, relative to the muted foreground colour.
          */
         const val SCROLL_HANDLE_ALPHA: Float = 0.4f
+
+        /**
+         * The colour of the backdrop below modal overlays.
+         */
+        const val BACKDROP: Int = -0x1000000
+
+        /**
+         * The opacity of the backdrop below modal overlays.
+         */
+        const val BACKDROP_ALPHA: Float = 0.5f
     }
 }

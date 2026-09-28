@@ -7,6 +7,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.FieldTextKind
 import dev.slne.surf.roleplay.api.client.common.screen.FieldTextElement
 import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
+import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
@@ -326,7 +327,8 @@ class PlayerScreenState(
 
     /**
      * Validates a change of an input that reports its changes, stores the new value and runs the
-     * input's change handler.
+     * input's change handler. Changes of inputs inside an overlay the player cannot reach, and the
+     * opening of an overlay the player cannot open, are rejected.
      *
      * @param packet the change
      * @return the outcome
@@ -338,11 +340,16 @@ class PlayerScreenState(
             ?: return Outcome.Rejected("session ${packet.sessionId} is not the top generic screen", suspicious = false)
         val id = packet.widgetId
         val element = session.tree.find(id) ?: return Outcome.Rejected("unknown input ${ScreenActionValidator.display(id)}")
+        val reach = OverlayReach(session.tree)
+        if (!reach.isReachable(element)) return Outcome.Rejected("the player cannot reach input ${ScreenActionValidator.display(id)}")
         packet.query?.let { query -> return handleSearch(session, element, query) }
         val rule = ElementRules.input(element) ?: return Outcome.Rejected("widget ${ScreenActionValidator.display(id)} is not an input")
         val handler = rule.onChange(element) ?: return Outcome.Rejected("input ${ScreenActionValidator.display(id)} does not report changes")
         if (!ElementRules.isEnabled(element)) return Outcome.Rejected("input ${ScreenActionValidator.display(id)} is disabled")
         rule.violation(element, packet.value)?.let { return Outcome.Rejected("input ${ScreenActionValidator.display(id)}: $it", suspicious = false) }
+        if (OverlayReach.isHost(element) && packet.value == "true" && rule.current(element) != "true" && !reach.canOpen(element)) {
+            return Outcome.Rejected("overlay ${ScreenActionValidator.display(id)} cannot be opened")
+        }
         session.tree.storeValues(mapOf(id to packet.value))
         val values = session.tree.elements().mapNotNull { e -> ElementRules.input(e)?.current?.invoke(e)?.let { e.id to it } }.toMap()
         runHandler("change of '$id'") { handler.onChange(ScreenInputChange(session, id, packet.value, ScreenValues(values))) }
@@ -364,7 +371,7 @@ class PlayerScreenState(
     }
 
     /**
-     * Runs the search handler of a combobox for a changed query.
+     * Runs the search handler of a combobox or command menu for a changed query.
      *
      * @param session the screen the combobox is on
      * @param element the element the query was reported for
@@ -373,10 +380,14 @@ class PlayerScreenState(
      */
     private fun handleSearch(session: GenericSession, element: ScreenElement, query: String): Outcome {
         val id = ScreenActionValidator.display(element.id)
-        val combobox = element as? ComboboxElement ?: return Outcome.Rejected("widget $id is not a combobox")
-        val handler = combobox.onSearch ?: return Outcome.Rejected("combobox $id does not report searches")
-        if (!combobox.enabled) return Outcome.Rejected("combobox $id is disabled")
-        if (query.length > MAX_QUERY_LENGTH) return Outcome.Rejected("query of combobox $id is too long")
+        val (handler, enabled) = when (element) {
+            is ComboboxElement -> element.onSearch to element.enabled
+            is CommandElement -> element.onSearch to true
+            else -> return Outcome.Rejected("widget $id does not search")
+        }
+        if (handler == null) return Outcome.Rejected("widget $id does not report searches")
+        if (!enabled) return Outcome.Rejected("widget $id is disabled")
+        if (query.length > MAX_QUERY_LENGTH) return Outcome.Rejected("query of widget $id is too long")
         runHandler("search of '${element.id}'") { handler.onSearch(ScreenSearch(session, element.id, query)) }
         return Outcome.Accepted
     }

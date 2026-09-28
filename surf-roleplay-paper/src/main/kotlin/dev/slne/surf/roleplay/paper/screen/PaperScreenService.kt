@@ -68,6 +68,12 @@ class PaperScreenService : ScreenService, Listener {
     private lateinit var limiter: ActionRateLimiter
 
     /**
+     * The rate limiter shared by every player's actions, for other services whose clicks count
+     * against the same limit. Available after [start].
+     */
+    val actionLimiter: ActionRateLimiter get() = limiter
+
+    /**
      * The limiter of rejection log entries.
      */
     private val rejections = RejectionLog(REJECTIONS_LOGGED_PER_MINUTE)
@@ -101,6 +107,14 @@ class PaperScreenService : ScreenService, Listener {
         ready += player.uniqueId
         senders[player.uniqueId]?.markReady()
     }
+
+    /**
+     * Checks whether a player's client can receive roleplay packets.
+     *
+     * @param player the player
+     * @return whether the client was welcomed and has not left since
+     */
+    fun isReady(player: Player): Boolean = player.uniqueId in ready
 
     /**
      * Creates a packet handler that runs on the sending player's thread with the player's screen

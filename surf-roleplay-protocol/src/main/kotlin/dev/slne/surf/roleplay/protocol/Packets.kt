@@ -10,6 +10,9 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedAction
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedUpdate
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
+import dev.slne.surf.roleplay.protocol.toast.ToastAction
+import dev.slne.surf.roleplay.protocol.toast.ToastDismiss
+import dev.slne.surf.roleplay.protocol.toast.ToastShow
 
 /**
  * The registry of every [PacketType] of the roleplay protocol.
@@ -119,6 +122,36 @@ object Packets {
     )
 
     /**
+     * Shows a toast, or replaces the shown toast with the same id.
+     */
+    val TOAST_SHOW: PacketType<ToastShow> = PacketType(
+        "toast_show",
+        PacketDirection.CLIENTBOUND,
+        setOf(ConnectionPhase.PLAY),
+        ToastShow.serializer(),
+    )
+
+    /**
+     * Removes a shown toast.
+     */
+    val TOAST_DISMISS: PacketType<ToastDismiss> = PacketType(
+        "toast_dismiss",
+        PacketDirection.CLIENTBOUND,
+        setOf(ConnectionPhase.PLAY),
+        ToastDismiss.serializer(),
+    )
+
+    /**
+     * Reports a click on a button of a toast.
+     */
+    val TOAST_ACTION: PacketType<ToastAction> = PacketType(
+        "toast_action",
+        PacketDirection.SERVERBOUND,
+        setOf(ConnectionPhase.PLAY),
+        ToastAction.serializer(),
+    )
+
+    /**
      * Every packet type of the protocol.
      */
     val all: List<PacketType<*>> = listOf(
@@ -132,6 +165,9 @@ object Packets {
         SCREEN_TYPED_ACTION,
         SCREEN_CLOSED,
         SCREEN_INPUT_CHANGE,
+        TOAST_SHOW,
+        TOAST_DISMISS,
+        TOAST_ACTION,
     )
 
     /**

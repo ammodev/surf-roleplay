@@ -227,7 +227,7 @@ open class TextInputWidget(
     /**
      * The field's text.
      */
-    override val inputValue: String get() = edit.text
+    override val inputValue: String? get() = edit.text
 
     /**
      * Whether the current text satisfies the field's constraints.

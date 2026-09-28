@@ -88,6 +88,57 @@ interface Popover {
      * @return whether the character was handled
      */
     fun charTyped(context: UiContext, event: CharacterEvent): Boolean = false
+
+    /**
+     * Handles wheel scrolling inside the popover.
+     *
+     * @param context the screen showing the popover
+     * @param area the popover's area
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param amount the scroll amount; positive scrolls up
+     */
+    fun mouseScrolled(context: UiContext, area: Rect, x: Double, y: Double, amount: Double) = mouseScrolled(area, amount)
+
+    /**
+     * Whether the popover is modal: everything below it is dimmed and receives no input.
+     */
+    val modal: Boolean get() = false
+
+    /**
+     * Whether a click outside a modal popover closes it.
+     */
+    val dismissOnOutsideClick: Boolean get() = true
+
+    /**
+     * The widget whose descendants Tab cycles through while the popover is open, or `null` to let
+     * Tab close the popover.
+     */
+    val focusRoot: Widget? get() = null
+
+    /**
+     * Checks whether a widget is part of the popover's content.
+     *
+     * @param widget the widget
+     * @return whether the widget is inside the popover
+     */
+    fun containsWidget(widget: Widget): Boolean = false
+
+    /**
+     * Called after the popover was closed, for any reason.
+     *
+     * @param context the screen that showed the popover
+     */
+    fun closed(context: UiContext) = Unit
+
+    /**
+     * Called after a widget inside the popover triggered an action.
+     *
+     * @param context the screen showing the popover
+     * @param widget the widget
+     * @param submitsInput whether the action submitted the screen's input
+     */
+    fun afterAction(context: UiContext, widget: Widget, submitsInput: Boolean) = Unit
 }
 
 /**

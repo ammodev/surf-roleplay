@@ -34,6 +34,27 @@ import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
 import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupCountElement
 import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
 import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandEmptyElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuCheckboxItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
+import dev.slne.surf.roleplay.api.client.common.screen.TooltipElement
 import dev.slne.surf.roleplay.api.client.common.screen.KbdElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import net.kyori.adventure.text.Component
@@ -132,6 +153,22 @@ object ElementRules {
      * @return whether it is enabled
      */
     fun isEnabled(element: ScreenElement): Boolean = rule(element)?.enabled?.invoke(element) ?: true
+
+    /**
+     * Creates the input rule of an overlay whose value is its open state, `true` or `false`.
+     *
+     * @param E the element class
+     * @param open returns whether the overlay is open
+     * @param withOpen returns a copy that is open or closed
+     * @param onChange returns the handler of open-state changes, or `null` for none
+     * @return the rule
+     */
+    fun <E : ScreenElement> openState(open: (E) -> Boolean, withOpen: (E, Boolean) -> E, onChange: (E) -> ChangeHandler?): InputRule<E> = InputRule(
+        current = { open(it).toString() },
+        violation = { _, v -> if (v == "true" || v == "false") null else "value must be true or false" },
+        withValue = { e, v -> withOpen(e, v == "true") },
+        onChange = onChange,
+    )
 
     /**
      * Checks a value against the constraints of a number range.
@@ -381,6 +418,74 @@ object ElementRules {
         register(BadgeElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(AvatarElement::class, ElementRule(withText = { e, t -> e.copy(fallback = t) }))
         register(ItemElement::class, ElementRule(action = { item -> item.onClick?.let { ActionRule(it, submitsInput = false) } }))
+        register(PopoverElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(HoverCardElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(TooltipElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(DropdownMenuElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(MenuSubElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(ContextMenuElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(MenubarMenuElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(
+            MenuItemElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(
+            MenuCheckboxItemElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onToggle, submitsInput = false) },
+                input = InputRule(
+                    current = { it.checked.toString() },
+                    violation = { _, v -> if (v == "true" || v == "false") null else "value must be true or false" },
+                    withValue = { e, v -> e.copy(checked = v == "true") },
+                    onChange = { null },
+                ),
+            ),
+        )
+        register(
+            MenuRadioGroupElement::class,
+            ElementRule(
+                action = { ActionRule(it.onSelect, submitsInput = false) },
+                input = InputRule(
+                    current = { it.value },
+                    violation = { group, v ->
+                        val allowed = group.children.filterIsInstance<MenuRadioItemElement>().filter { it.enabled }.map { it.value }
+                        if (v.isEmpty() || v in allowed) null else "value is not an enabled item of the group"
+                    },
+                    withValue = { e, v -> e.copy(value = v) },
+                    onChange = { null },
+                ),
+            ),
+        )
+        register(MenuRadioItemElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(MenuLabelElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            MenuSubTriggerElement::class,
+            ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }),
+        )
+        register(MenubarTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            CommandItemElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(CommandEmptyElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(DialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(AlertDialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(SheetElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(DrawerElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(CommandInputElement::class, ElementRule(withText = { e, t -> e.copy(placeholder = t) }))
         register(AvatarGroupCountElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(FieldSeparatorElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(

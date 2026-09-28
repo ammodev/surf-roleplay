@@ -164,6 +164,93 @@ import dev.slne.surf.roleplay.protocol.screen.ItemActionsNode
 import dev.slne.surf.roleplay.protocol.screen.ItemHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.ItemFooterNode
 import dev.slne.surf.roleplay.protocol.screen.ItemGroupNode
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.TooltipElement
+import dev.slne.surf.roleplay.protocol.screen.PopoverNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverContentNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.HoverCardNode
+import dev.slne.surf.roleplay.protocol.screen.HoverCardContentNode
+import dev.slne.surf.roleplay.protocol.screen.TooltipNode
+import dev.slne.surf.roleplay.protocol.screen.SetOpen
+import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuCheckboxItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarTriggerElement
+import dev.slne.surf.roleplay.protocol.screen.DropdownMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.MenuRadioGroupNode
+import dev.slne.surf.roleplay.protocol.screen.MenuGroupNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSubNode
+import dev.slne.surf.roleplay.protocol.screen.ContextMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuCheckboxItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuRadioItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuLabelNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSubTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarTriggerNode
+import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandListElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandEmptyElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandSeparatorElement
+import dev.slne.surf.roleplay.protocol.screen.CommandNode
+import dev.slne.surf.roleplay.protocol.screen.CommandListNode
+import dev.slne.surf.roleplay.protocol.screen.CommandGroupNode
+import dev.slne.surf.roleplay.protocol.screen.CommandInputNode
+import dev.slne.surf.roleplay.protocol.screen.CommandEmptyNode
+import dev.slne.surf.roleplay.protocol.screen.CommandItemNode
+import dev.slne.surf.roleplay.protocol.screen.CommandSeparatorNode
+import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogCloseElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogMediaElement
+import dev.slne.surf.roleplay.protocol.screen.DialogNode
+import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.DialogHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.DialogFooterNode
+import dev.slne.surf.roleplay.protocol.screen.DialogCloseNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.SheetNode
+import dev.slne.surf.roleplay.protocol.screen.SheetContentNode
+import dev.slne.surf.roleplay.protocol.screen.SheetHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.SheetFooterNode
+import dev.slne.surf.roleplay.protocol.screen.DrawerNode
+import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogMediaNode
+import dev.slne.surf.roleplay.api.client.common.screen.OverlayContainerElement
+import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -315,6 +402,56 @@ object ScreenMapper {
             is ItemHeaderElement -> ItemHeaderNode(element.id, width, height, element.children.map(::toNode))
             is ItemFooterElement -> ItemFooterNode(element.id, width, height, element.children.map(::toNode))
             is ItemGroupElement -> ItemGroupNode(element.id, width, height, element.children.map(::toNode))
+            is PopoverElement -> PopoverNode(element.id, width, height, element.children.map(::toNode), element.open, enumOf(element.side), align(element.align), element.onChange != null)
+            is PopoverContentElement -> PopoverContentNode(element.id, width, height, element.children.map(::toNode))
+            is PopoverHeaderElement -> PopoverHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is HoverCardElement -> HoverCardNode(
+                element.id, width, height, element.children.map(::toNode), element.open, enumOf(element.side), align(element.align),
+                element.openDelay, element.closeDelay, element.onChange != null,
+            )
+            is HoverCardContentElement -> HoverCardContentNode(element.id, width, height, element.children.map(::toNode))
+            is TooltipElement -> TooltipNode(element.id, width, height, element.children.map(::toNode), text(element.text), enumOf(element.side))
+            is DropdownMenuElement -> DropdownMenuNode(element.id, width, height, element.children.map(::toNode), element.open, enumOf(element.side), align(element.align), element.onChange != null)
+            is MenuContentElement -> MenuContentNode(element.id, width, height, element.children.map(::toNode))
+            is MenuItemElement -> MenuItemNode(
+                element.id, width, height, text(element.text), element.icon, element.shortcut?.let(::text), element.destructive, element.inset, element.enabled,
+            )
+            is MenuCheckboxItemElement -> MenuCheckboxItemNode(element.id, width, height, text(element.text), element.checked, element.enabled)
+            is MenuRadioGroupElement -> MenuRadioGroupNode(element.id, width, height, element.children.map(::toNode), element.value)
+            is MenuRadioItemElement -> MenuRadioItemNode(element.id, width, height, text(element.text), element.value, element.enabled)
+            is MenuLabelElement -> MenuLabelNode(element.id, width, height, text(element.text), element.inset)
+            is MenuSeparatorElement -> MenuSeparatorNode(element.id, width, height)
+            is MenuGroupElement -> MenuGroupNode(element.id, width, height, element.children.map(::toNode))
+            is MenuSubElement -> MenuSubNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is MenuSubTriggerElement -> MenuSubTriggerNode(element.id, width, height, text(element.text), element.icon, element.inset, element.enabled)
+            is ContextMenuElement -> ContextMenuNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is MenubarElement -> MenubarNode(element.id, width, height, element.children.map(::toNode))
+            is MenubarMenuElement -> MenubarMenuNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is MenubarTriggerElement -> MenubarTriggerNode(element.id, width, height, text(element.text))
+            is CommandElement -> CommandNode(element.id, width, height, element.children.map(::toNode), element.onSearch != null)
+            is CommandInputElement -> CommandInputNode(element.id, width, height, text(element.placeholder))
+            is CommandListElement -> CommandListNode(element.id, width, height, element.children.map(::toNode))
+            is CommandEmptyElement -> CommandEmptyNode(element.id, width, height, text(element.text))
+            is CommandGroupElement -> CommandGroupNode(element.id, width, height, element.children.map(::toNode), element.heading?.let(::text))
+            is CommandItemElement -> CommandItemNode(
+                element.id, width, height, text(element.text), element.icon, element.shortcut?.let(::text), element.keywords, element.enabled,
+            )
+            is CommandSeparatorElement -> CommandSeparatorNode(element.id, width, height)
+            is DialogElement -> DialogNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is DialogContentElement -> DialogContentNode(element.id, width, height, element.children.map(::toNode), element.showCloseButton)
+            is DialogHeaderElement -> DialogHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is DialogFooterElement -> DialogFooterNode(element.id, width, height, element.children.map(::toNode))
+            is DialogCloseElement -> DialogCloseNode(element.id, width, height, element.children.map(::toNode))
+            is AlertDialogElement -> AlertDialogNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is AlertDialogContentElement -> AlertDialogContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.size))
+            is AlertDialogMediaElement -> AlertDialogMediaNode(element.id, width, height, element.icon)
+            is SheetElement -> SheetNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is SheetContentElement -> SheetContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.side), element.showCloseButton)
+            is SheetHeaderElement -> SheetHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is SheetFooterElement -> SheetFooterNode(element.id, width, height, element.children.map(::toNode))
+            is DrawerElement -> DrawerNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is OverlayContainerElement -> OverlayContainerNode(element.id, width, height, element.children.map(::toNode))
+            is DrawerContentElement -> DrawerContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
         }
     }
 
@@ -334,6 +471,7 @@ object ScreenMapper {
         is ScreenChange.SetEnabled -> SetEnabled(change.targetId, change.enabled)
         is ScreenChange.SetOptions -> SetOptions(change.targetId, groups(change.groups))
         is ScreenChange.SetInvalid -> SetInvalid(change.targetId, change.invalid)
+        is ScreenChange.SetOpen -> SetOpen(change.targetId, change.open)
     }
 
     /**

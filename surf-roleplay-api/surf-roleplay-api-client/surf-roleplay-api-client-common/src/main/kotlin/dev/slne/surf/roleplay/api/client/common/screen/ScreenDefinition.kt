@@ -284,6 +284,14 @@ sealed interface ScreenChange {
     data class SetValue(val targetId: String, val value: String) : ScreenChange
 
     /**
+     * Opens or closes an overlay.
+     *
+     * @property targetId the id of the overlay
+     * @property open whether the overlay is open
+     */
+    data class SetOpen(val targetId: String, val open: Boolean) : ScreenChange
+
+    /**
      * Sets the filled fraction of a progress bar.
      *
      * @property targetId the id of the progress bar
@@ -393,6 +401,16 @@ class ScreenPatchBuilder {
      */
     fun setValue(targetId: String, value: String) {
         recorded += ScreenChange.SetValue(targetId, value)
+    }
+
+    /**
+     * Opens or closes an overlay, such as a popover, menu or dialog.
+     *
+     * @param targetId the id of the overlay
+     * @param open whether the overlay is open
+     */
+    fun setOpen(targetId: String, open: Boolean) {
+        recorded += ScreenChange.SetOpen(targetId, open)
     }
 
     /**

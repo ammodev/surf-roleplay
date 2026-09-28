@@ -11,6 +11,7 @@ import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.OverlaySide
 import dev.slne.surf.roleplay.protocol.screen.Insets
 import dev.slne.surf.roleplay.protocol.screen.Sizing
 import net.minecraft.client.input.CharacterEvent
@@ -33,6 +34,12 @@ interface UiContext {
     fun focus(widget: Widget?)
 
     /**
+     * Whether the focus ring is shown: after the player used the keyboard, and not after a mouse
+     * click.
+     */
+    val focusVisible: Boolean get() = true
+
+    /**
      * The open popover, or `null` if none is open.
      */
     val popover: Popover? get() = null
@@ -48,6 +55,27 @@ interface UiContext {
      * Closes the open popover, if any.
      */
     fun closePopover() = Unit
+
+    /**
+     * The open popovers, from bottom to top.
+     */
+    val popovers: List<Popover> get() = listOfNotNull(popover)
+
+    /**
+     * Closes a popover and every popover opened above it.
+     *
+     * @param popover the popover
+     */
+    fun closePopover(popover: Popover) = Unit
+
+    /**
+     * Shows a tooltip for the current frame, above everything else.
+     *
+     * @param json the text as component JSON
+     * @param anchor the area the tooltip belongs to
+     * @param side the side of the anchor the tooltip is shown on
+     */
+    fun showTooltip(json: String, anchor: Rect, side: OverlaySide) = Unit
 
     /**
      * Asks the screen to lay its tree out again before the next frame.
@@ -119,6 +147,13 @@ abstract class Widget(val id: String) {
      * Whether the widget can be used. Disabled widgets ignore input and are drawn dimmed.
      */
     var enabled: Boolean = true
+
+    /**
+     * Whether the widget is left out of its container's layout, drawing, input and Tab order,
+     * such as a command item that does not match the query. A hidden input still reports its
+     * value.
+     */
+    var hidden: Boolean = false
 
     /**
      * Whether the mod reports every change of the widget's value at once.
@@ -207,6 +242,13 @@ abstract class Widget(val id: String) {
      * The child widgets, empty for leaves.
      */
     open val children: List<Widget> get() = emptyList()
+
+    /**
+     * The child widgets that take part in the Tab order and in hit testing of the widget's own
+     * area: its children, except content that is shown elsewhere, such as the closed content of an
+     * overlay.
+     */
+    open val focusChildren: List<Widget> get() = children
 
     /**
      * Computes the size of the widget's content, used when it fits its content.
@@ -377,6 +419,16 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
     override val children: List<Widget> get() = childList
 
     /**
+     * The child widgets that are not hidden, in layout order.
+     */
+    val shownChildren: List<Widget> get() = childList.filter { !it.hidden }
+
+    /**
+     * Only children that are not hidden take part in the Tab order.
+     */
+    override val focusChildren: List<Widget> get() = shownChildren
+
+    /**
      * The space between two children, in GUI pixels.
      */
     var gap: Int = 0
@@ -419,7 +471,7 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
         width = width,
         height = height,
         axis = axis,
-        children = childList.map { it.createLayout(measurer) },
+        children = shownChildren.map { it.createLayout(measurer) },
         gap = gap,
         padding = padding,
         mainAlign = mainAlign,
@@ -428,11 +480,12 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
     ).also { layoutBox = it }
 
     /**
-     * Copies the computed bounds into this container and its children.
+     * Copies the computed bounds into this container and its shown children, and gives hidden
+     * children no area.
      */
     override fun applyLayout() {
         super.applyLayout()
-        childList.forEach { it.applyLayout() }
+        childList.forEach { if (it.hidden) it.bounds = Rect.EMPTY else it.applyLayout() }
     }
 
     /**
@@ -443,7 +496,7 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
      */
     override fun offset(dx: Int, dy: Int) {
         super.offset(dx, dy)
-        childList.forEach { it.offset(dx, dy) }
+        shownChildren.forEach { it.offset(dx, dy) }
     }
 
     /**
@@ -455,7 +508,7 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        childList.forEach { it.render(ui, context, mouseX, mouseY) }
+        shownChildren.forEach { it.render(ui, context, mouseX, mouseY) }
     }
 
     /**
@@ -468,7 +521,7 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
      * @return whether a child handled the click
      */
     override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean =
-        childList.any { it.mouseClicked(context, x, y, button) }
+        shownChildren.any { it.mouseClicked(context, x, y, button) }
 
     /**
      * Passes scrolling to the children until one handles it.
@@ -480,7 +533,7 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
      * @return whether a child handled the scrolling
      */
     override fun mouseScrolled(context: UiContext, x: Double, y: Double, amount: Double): Boolean =
-        childList.any { it.mouseScrolled(context, x, y, amount) }
+        shownChildren.any { it.mouseScrolled(context, x, y, amount) }
 }
 
 /**
@@ -523,7 +576,7 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
         val box = layoutBox ?: return
         maxScroll = (box.contentExtent - bounds.height).coerceAtLeast(0)
         scrollOffset = scrollOffset.coerceIn(0, maxScroll)
-        childList.forEach { it.offset(0, -scrollOffset) }
+        shownChildren.forEach { it.offset(0, -scrollOffset) }
     }
 
     /**

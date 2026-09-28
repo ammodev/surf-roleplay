@@ -102,6 +102,36 @@ enum class TextKind {
      * The description of an item, muted and on at most two lines.
      */
     ITEM_DESCRIPTION,
+
+    /**
+     * The title of a popover.
+     */
+    POPOVER_TITLE,
+
+    /**
+     * The description of a popover, muted.
+     */
+    POPOVER_DESCRIPTION,
+
+    /**
+     * The title of a dialog or alert dialog, large and bold.
+     */
+    DIALOG_TITLE,
+
+    /**
+     * The description of a dialog or alert dialog, muted.
+     */
+    DIALOG_DESCRIPTION,
+
+    /**
+     * The title of a sheet or drawer, bold.
+     */
+    SHEET_TITLE,
+
+    /**
+     * The description of a sheet or drawer, muted.
+     */
+    SHEET_DESCRIPTION,
 }
 
 /**

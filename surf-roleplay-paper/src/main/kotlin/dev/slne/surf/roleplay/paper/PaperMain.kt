@@ -10,6 +10,7 @@ import dev.slne.surf.roleplay.paper.handshake.HandshakeListener
 import dev.slne.surf.roleplay.paper.listener.UserConnectionListener
 import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
 import dev.slne.surf.roleplay.paper.screen.PaperScreenService
+import dev.slne.surf.roleplay.paper.toast.PaperToastService
 import dev.slne.surf.roleplay.paper.screen.debug.ScreenDebugCommand
 import dev.slne.surf.roleplay.paper.welcome.WelcomeListener
 import org.bukkit.plugin.java.JavaPlugin
@@ -54,6 +55,7 @@ class PaperMain : SuspendingJavaPlugin() {
         )
         server.pluginManager.registerEvents(WelcomeListener(packetRegistry), this)
         PaperScreenService.INSTANCE.start(this, packetRegistry, config.getInt("screens.max-actions-per-second", 20))
+        PaperToastService.INSTANCE.start(this, packetRegistry, PaperScreenService.INSTANCE.actionLimiter)
         ScreenDebugCommand.register(this)
 
         val userManager = UserManager.INSTANCE as? CoreClientUserManager

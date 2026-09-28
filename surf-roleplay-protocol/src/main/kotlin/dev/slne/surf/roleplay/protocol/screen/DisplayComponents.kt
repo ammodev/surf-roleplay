@@ -122,6 +122,42 @@ enum class TextKind {
      */
     @ProtoNumber(18)
     ITEM_DESCRIPTION,
+
+    /**
+     * The title of a popover.
+     */
+    @ProtoNumber(19)
+    POPOVER_TITLE,
+
+    /**
+     * The description of a popover, muted.
+     */
+    @ProtoNumber(20)
+    POPOVER_DESCRIPTION,
+
+    /**
+     * The title of a dialog or alert dialog, large and bold.
+     */
+    @ProtoNumber(21)
+    DIALOG_TITLE,
+
+    /**
+     * The description of a dialog or alert dialog, muted.
+     */
+    @ProtoNumber(22)
+    DIALOG_DESCRIPTION,
+
+    /**
+     * The title of a sheet or drawer, bold.
+     */
+    @ProtoNumber(23)
+    SHEET_TITLE,
+
+    /**
+     * The description of a sheet or drawer, muted.
+     */
+    @ProtoNumber(24)
+    SHEET_DESCRIPTION,
 }
 
 /**

@@ -1,6 +1,37 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.OverlayContainerElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogCloseElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandListElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.TooltipElement
 import dev.slne.surf.roleplay.api.client.common.screen.EmptyElement
 import dev.slne.surf.roleplay.api.client.common.screen.EmptyHeaderElement
 import dev.slne.surf.roleplay.api.client.common.screen.EmptyMediaElement
@@ -103,6 +134,7 @@ class ServerScreenTree(root: ScreenElement) {
             } ?: return false
 
             is ScreenChange.SetValue -> update(change.targetId) { element -> withValue(element, change.value) } ?: return false
+            is ScreenChange.SetOpen -> update(change.targetId) { element -> withValue(element, change.open.toString()) } ?: return false
             is ScreenChange.SetProgress -> update(change.targetId) { element ->
                 (element as? ProgressElement)?.copy(progress = change.progress)
             } ?: return false
@@ -278,6 +310,37 @@ class ServerScreenTree(root: ScreenElement) {
             is ItemHeaderElement -> container.copy(children = children)
             is ItemFooterElement -> container.copy(children = children)
             is ItemGroupElement -> container.copy(children = children)
+            is PopoverElement -> container.copy(children = children)
+            is PopoverContentElement -> container.copy(children = children)
+            is PopoverHeaderElement -> container.copy(children = children)
+            is HoverCardElement -> container.copy(children = children)
+            is HoverCardContentElement -> container.copy(children = children)
+            is TooltipElement -> container.copy(children = children)
+            is OverlayContainerElement -> container.copy(children = children)
+            is DialogElement -> container.copy(children = children)
+            is DialogContentElement -> container.copy(children = children)
+            is DialogHeaderElement -> container.copy(children = children)
+            is DialogFooterElement -> container.copy(children = children)
+            is DialogCloseElement -> container.copy(children = children)
+            is AlertDialogElement -> container.copy(children = children)
+            is AlertDialogContentElement -> container.copy(children = children)
+            is SheetElement -> container.copy(children = children)
+            is SheetContentElement -> container.copy(children = children)
+            is SheetHeaderElement -> container.copy(children = children)
+            is SheetFooterElement -> container.copy(children = children)
+            is DrawerElement -> container.copy(children = children)
+            is DrawerContentElement -> container.copy(children = children)
+            is CommandElement -> container.copy(children = children)
+            is CommandListElement -> container.copy(children = children)
+            is CommandGroupElement -> container.copy(children = children)
+            is DropdownMenuElement -> container.copy(children = children)
+            is MenuContentElement -> container.copy(children = children)
+            is MenuRadioGroupElement -> container.copy(children = children)
+            is MenuGroupElement -> container.copy(children = children)
+            is MenuSubElement -> container.copy(children = children)
+            is ContextMenuElement -> container.copy(children = children)
+            is MenubarElement -> container.copy(children = children)
+            is MenubarMenuElement -> container.copy(children = children)
         }
     }
 }

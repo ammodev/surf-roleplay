@@ -3,6 +3,49 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
+import dev.slne.surf.roleplay.protocol.screen.DialogNode
+import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.DialogHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.DialogFooterNode
+import dev.slne.surf.roleplay.protocol.screen.DialogCloseNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogMediaNode
+import dev.slne.surf.roleplay.protocol.screen.SheetNode
+import dev.slne.surf.roleplay.protocol.screen.SheetContentNode
+import dev.slne.surf.roleplay.protocol.screen.SheetHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.SheetFooterNode
+import dev.slne.surf.roleplay.protocol.screen.DrawerNode
+import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
+import dev.slne.surf.roleplay.protocol.screen.CommandNode
+import dev.slne.surf.roleplay.protocol.screen.CommandInputNode
+import dev.slne.surf.roleplay.protocol.screen.CommandListNode
+import dev.slne.surf.roleplay.protocol.screen.CommandEmptyNode
+import dev.slne.surf.roleplay.protocol.screen.CommandGroupNode
+import dev.slne.surf.roleplay.protocol.screen.CommandItemNode
+import dev.slne.surf.roleplay.protocol.screen.CommandSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.DropdownMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.MenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuCheckboxItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuRadioGroupNode
+import dev.slne.surf.roleplay.protocol.screen.MenuRadioItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuLabelNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.MenuGroupNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSubNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSubTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.ContextMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverContentNode
+import dev.slne.surf.roleplay.protocol.screen.PopoverHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.HoverCardNode
+import dev.slne.surf.roleplay.protocol.screen.HoverCardContentNode
+import dev.slne.surf.roleplay.protocol.screen.TooltipNode
 import dev.slne.surf.roleplay.protocol.screen.EmptyNode
 import dev.slne.surf.roleplay.protocol.screen.EmptyHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.EmptyMediaNode
@@ -176,6 +219,49 @@ object WidgetFactory {
             is ItemHeaderNode -> container(ItemHeaderWidget(node.id), node.children)
             is ItemFooterNode -> container(ItemFooterWidget(node.id), node.children)
             is ItemGroupNode -> container(ItemGroupWidget(node.id), node.children)
+            is PopoverNode -> container(PopoverWidget(node.id, node.side, node.align), node.children).apply { requestOpen(node.open) }
+            is PopoverContentNode -> container(PopoverContentWidget(node.id), node.children)
+            is PopoverHeaderNode -> container(PopoverHeaderWidget(node.id), node.children)
+            is HoverCardNode -> container(HoverCardWidget(node.id, node.side, node.align, node.openDelay, node.closeDelay), node.children).apply { requestOpen(node.open) }
+            is HoverCardContentNode -> container(PopoverContentWidget(node.id), node.children)
+            is TooltipNode -> container(TooltipWidget(node.id, node.text, node.side), node.children)
+            is DropdownMenuNode -> container(DropdownMenuWidget(node.id, node.side, node.align), node.children).apply { requestOpen(node.open) }
+            is MenuContentNode -> container(MenuContentWidget(node.id), node.children)
+            is MenuItemNode -> MenuItemWidget(node.id, node.text, node.icon, node.shortcut, node.destructive, node.inset).apply { enabled = node.enabled }
+            is MenuCheckboxItemNode -> MenuCheckboxItemWidget(node.id, node.text, node.checked).apply { enabled = node.enabled }
+            is MenuRadioGroupNode -> container(MenuRadioGroupWidget(node.id, node.value), node.children).apply { link() }
+            is MenuRadioItemNode -> MenuRadioItemWidget(node.id, node.text, node.value).apply { enabled = node.enabled }
+            is MenuLabelNode -> MenuLabelWidget(node.id, node.text, node.inset)
+            is MenuSeparatorNode -> MenuSeparatorWidget(node.id)
+            is MenuGroupNode -> container(MenuGroupWidget(node.id), node.children)
+            is MenuSubNode -> container(MenuSubWidget(node.id), node.children).apply { requestOpen(node.open); link() }
+            is MenuSubTriggerNode -> MenuSubTriggerWidget(node.id, node.text, node.icon, node.inset).apply { enabled = node.enabled }
+            is ContextMenuNode -> container(ContextMenuWidget(node.id), node.children).apply { requestOpen(node.open) }
+            is MenubarNode -> container(MenubarWidget(node.id), node.children)
+            is MenubarMenuNode -> container(MenubarMenuWidget(node.id), node.children).apply { requestOpen(node.open) }
+            is MenubarTriggerNode -> MenubarTriggerWidget(node.id, node.text)
+            is CommandNode -> container(CommandWidget(node.id, node.notifySearch), node.children).apply { link() }
+            is CommandInputNode -> CommandInputWidget(node.id, node.placeholder)
+            is CommandListNode -> container(CommandListWidget(node.id), node.children)
+            is CommandEmptyNode -> CommandEmptyWidget(node.id, node.text)
+            is CommandGroupNode -> container(CommandGroupWidget(node.id, node.heading), node.children)
+            is CommandItemNode -> CommandItemWidget(node.id, node.text, node.icon, node.shortcut, node.keywords).apply { enabled = node.enabled }
+            is CommandSeparatorNode -> CommandSeparatorWidget(node.id)
+            is DialogNode -> container(ModalHostWidget(node.id, ModalKind.DIALOG), node.children).apply { requestOpen(node.open) }
+            is DialogContentNode -> container(DialogContentWidget(node.id, node.showCloseButton), node.children)
+            is DialogHeaderNode -> container(DialogHeaderWidget(node.id), node.children)
+            is DialogFooterNode -> container(DialogFooterWidget(node.id), node.children)
+            is DialogCloseNode -> container(DialogCloseWidget(node.id), node.children)
+            is AlertDialogNode -> container(ModalHostWidget(node.id, ModalKind.ALERT_DIALOG), node.children).apply { requestOpen(node.open) }
+            is AlertDialogContentNode -> container(AlertDialogContentWidget(node.id, node.size), node.children)
+            is AlertDialogMediaNode -> AlertDialogMediaWidget(node.id, node.icon)
+            is SheetNode -> container(ModalHostWidget(node.id, ModalKind.SHEET), node.children).apply { requestOpen(node.open) }
+            is SheetContentNode -> container(SheetContentWidget(node.id, node.side, node.showCloseButton), node.children)
+            is SheetHeaderNode -> container(SheetHeaderWidget(node.id), node.children)
+            is SheetFooterNode -> container(SheetFooterWidget(node.id), node.children)
+            is DrawerNode -> container(ModalHostWidget(node.id, ModalKind.DRAWER), node.children).apply { requestOpen(node.open) }
+            is DrawerContentNode -> container(DrawerContentWidget(node.id, node.direction), node.children)
+            is OverlayContainerNode -> container(OverlayContainerWidget(node.id), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -194,6 +280,16 @@ object WidgetFactory {
             is RadioGroupNode -> node.notifyChange
             is SliderNode -> node.notifyChange
             is InputOtpNode -> node.notifyChange
+            is PopoverNode -> node.notifyChange
+            is HoverCardNode -> node.notifyChange
+            is DropdownMenuNode -> node.notifyChange
+            is MenuSubNode -> node.notifyChange
+            is ContextMenuNode -> node.notifyChange
+            is MenubarMenuNode -> node.notifyChange
+            is DialogNode -> node.notifyChange
+            is AlertDialogNode -> node.notifyChange
+            is SheetNode -> node.notifyChange
+            is DrawerNode -> node.notifyChange
             else -> false
         }
         return widget

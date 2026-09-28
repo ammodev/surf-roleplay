@@ -58,14 +58,14 @@ data class TextStyle(
          * @return its style
          */
         fun of(kind: TextKind): TextStyle = when (kind) {
-            TextKind.P, TextKind.SMALL, TextKind.ITEM_TITLE -> TextStyle()
+            TextKind.P, TextKind.SMALL, TextKind.ITEM_TITLE, TextKind.POPOVER_TITLE -> TextStyle()
             TextKind.H1 -> TextStyle(scale = 2f, bold = true)
             TextKind.H2 -> TextStyle(scale = 1.75f, bold = true, padding = Insets(bottom = 4))
             TextKind.H3 -> TextStyle(scale = 1.5f, bold = true)
-            TextKind.H4 -> TextStyle(scale = 1.25f, bold = true)
+            TextKind.H4, TextKind.DIALOG_TITLE -> TextStyle(scale = 1.25f, bold = true)
             TextKind.LEAD -> TextStyle(scale = 1.25f, muted = true)
-            TextKind.LARGE, TextKind.CARD_TITLE -> TextStyle(bold = true)
-            TextKind.MUTED, TextKind.ALERT_DESCRIPTION, TextKind.CARD_DESCRIPTION -> TextStyle(muted = true)
+            TextKind.LARGE, TextKind.CARD_TITLE, TextKind.SHEET_TITLE -> TextStyle(bold = true)
+            TextKind.MUTED, TextKind.ALERT_DESCRIPTION, TextKind.CARD_DESCRIPTION, TextKind.POPOVER_DESCRIPTION, TextKind.DIALOG_DESCRIPTION, TextKind.SHEET_DESCRIPTION -> TextStyle(muted = true)
             TextKind.BLOCKQUOTE -> TextStyle(italic = true, padding = Insets(left = 12))
             TextKind.INLINE_CODE -> TextStyle(padding = Insets(1, 3, 1, 3))
             TextKind.ALERT_TITLE -> TextStyle(maxLines = 1)
@@ -119,6 +119,12 @@ class TextWidget(id: String, val kind: TextKind, var text: String, val maxLines:
      * The colour a surrounding component draws the text in, or `null` for the style's colour.
      */
     var tint: Int? = null
+
+    /**
+     * The placement of the lines a surrounding component asks for, or `null` for the node's and
+     * the style's placement.
+     */
+    var alignOverride: TextAlign? = null
 
     /**
      * The line limit in effect: the node's, or the style's default.
@@ -184,7 +190,7 @@ class TextWidget(id: String, val kind: TextKind, var text: String, val maxLines:
             else -> Unit
         }
         val padding = style.padding
-        val placement = when (align) {
+        val placement = alignOverride ?: when (align) {
             Align.CENTER -> TextAlign.CENTER
             Align.END -> TextAlign.END
             Align.START, Align.STRETCH -> style.align
