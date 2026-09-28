@@ -10,18 +10,37 @@ import dev.slne.surf.roleplay.protocol.screen.ButtonSize
 import dev.slne.surf.roleplay.protocol.screen.ButtonVariant
 import dev.slne.surf.roleplay.protocol.screen.DropdownOption
 import dev.slne.surf.roleplay.protocol.screen.IconColor
+import dev.slne.surf.roleplay.protocol.screen.TextInputType
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import org.lwjgl.glfw.GLFW
 
 /**
- * A piece of styled text, optionally led by an icon.
+ * A piece of styled text, optionally led by an icon. A label with a target focuses the target
+ * when clicked.
  *
  * @param id the id of the widget
  * @property text the text as component JSON
  * @property icon the Lucide name of the leading icon, or `null` for none
+ * @property forId the id of the widget a click focuses, or `null` for none
  */
-class LabelWidget(id: String, var text: String = "", var icon: String? = null) : Widget(id) {
+class LabelWidget(id: String, var text: String = "", var icon: String? = null, val forId: String? = null) : Widget(id) {
+
+    /**
+     * Passes a left click on a label with a target to the target.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param button the mouse button
+     * @return whether the click was on a label with a target
+     */
+    override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
+        val target = forId ?: return false
+        if (!isOver(x, y)) return false
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) context.widget(target)?.labelClicked(context)
+        return true
+    }
 
     /**
      * Returns the size of the icon and the text on one line.
@@ -142,13 +161,15 @@ class ButtonWidget(
 }
 
 /**
- * A single-line text field.
+ * A single-line text field. Password fields draw a mask character for every character, and email
+ * fields are invalid unless they hold an address shape.
  *
  * @param id the id of the widget
  * @property edit the text and cursor, edited under the field's filter
  * @property placeholder the hint shown while the field is empty, as component JSON
  * @property required whether an empty value is invalid
  * @property icon the Lucide name of an icon drawn at the start of the field, or `null` for none
+ * @property type the kind of text the field holds
  */
 open class TextInputWidget(
     id: String,
@@ -156,7 +177,14 @@ open class TextInputWidget(
     var placeholder: String = "",
     val required: Boolean = false,
     var icon: String? = null,
+    val type: TextInputType = TextInputType.TEXT,
 ) : Widget(id) {
+
+    /**
+     * The text as drawn: masked for password fields, otherwise the text itself. It always has the
+     * text's length.
+     */
+    val shownText: String get() = if (type == TextInputType.PASSWORD) PASSWORD_MASK.toString().repeat(edit.text.length) else edit.text
 
     /**
      * The index of the first character that is visible in the field.
@@ -176,7 +204,12 @@ open class TextInputWidget(
     /**
      * Whether the current text satisfies the field's constraints.
      */
-    open val isValid: Boolean get() = !required || edit.text.isNotEmpty()
+    open val isValid: Boolean
+        get() = when {
+            edit.text.isEmpty() -> !required
+            type == TextInputType.EMAIL -> EMAIL.matches(edit.text)
+            else -> true
+        }
 
     /**
      * Whether the field shows itself as invalid: only once it was touched.
@@ -203,15 +236,18 @@ open class TextInputWidget(
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val focused = context.focusedWidget === this
         val tokens = ui.tokens
-        ui.fillRounded(bounds, inputFill(ui))
-        ui.borderRounded(
-            bounds,
-            when {
-                showsInvalid -> tokens.destructive
-                focused -> tokens.ring
-                else -> tokens.input
-            },
-        )
+        if (!embedded) {
+            ui.fillRounded(bounds, inputFill(ui))
+            ui.borderRounded(
+                bounds,
+                when {
+                    showsInvalid -> tokens.destructive
+                    focused -> tokens.ring
+                    else -> tokens.input
+                },
+            )
+        }
+        val shown = shownText
 
         val iconWidth = if (icon != null) UiMetrics.INLINE_ICON + UiMetrics.ICON_GAP else 0
         icon?.let { name ->
@@ -226,12 +262,12 @@ open class TextInputWidget(
                 if (!focused) ui.text(placeholder, textX, textY, tokens.mutedForeground)
             } else {
                 keepCursorVisible(ui, innerWidth)
-                val visible = ui.font.plainSubstrByWidth(edit.text.substring(scrollStart), innerWidth)
+                val visible = ui.font.plainSubstrByWidth(shown.substring(scrollStart), innerWidth)
                 ui.plainText(visible, textX, textY, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
             }
             if (focused && System.currentTimeMillis() / CURSOR_BLINK_MILLIS % 2 == 0L) {
                 keepCursorVisible(ui, innerWidth)
-                val cursorX = textX + ui.plainWidth(edit.text.substring(scrollStart, edit.cursor))
+                val cursorX = textX + ui.plainWidth(shown.substring(scrollStart, edit.cursor))
                 ui.fill(Rect(cursorX, textY - 1, 1, ui.lineHeight + 1), tokens.foreground)
             }
         }
@@ -245,7 +281,7 @@ open class TextInputWidget(
      */
     private fun keepCursorVisible(ui: UiGraphics, innerWidth: Int) {
         scrollStart = scrollStart.coerceIn(0, edit.cursor)
-        while (scrollStart < edit.cursor && ui.plainWidth(edit.text.substring(scrollStart, edit.cursor)) > innerWidth) {
+        while (scrollStart < edit.cursor && ui.plainWidth(shownText.substring(scrollStart, edit.cursor)) > innerWidth) {
             scrollStart++
         }
     }
@@ -325,13 +361,24 @@ open class TextInputWidget(
     }
 
     /**
-     * Holds the cursor timing.
+     * Holds the cursor timing, the password mask and the email shape.
      */
     private companion object {
         /**
          * How long the cursor stays visible or hidden while blinking.
          */
         const val CURSOR_BLINK_MILLIS: Long = 500
+
+        /**
+         * The character drawn for every character of a password.
+         */
+        const val PASSWORD_MASK: Char = '\u2022'
+
+        /**
+         * The shape of an email address: a local part, an at sign, and a domain with a dot,
+         * without whitespace.
+         */
+        val EMAIL = Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")
     }
 }
 
@@ -450,6 +497,17 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
     fun toggle(context: UiContext) {
         checked = !checked
         markChanged(context, immediate = true)
+    }
+
+    /**
+     * Focuses and toggles an enabled box when a label that targets it is clicked.
+     *
+     * @param context the screen showing the widget
+     */
+    override fun labelClicked(context: UiContext) {
+        if (!enabled) return
+        context.focus(this)
+        toggle(context)
     }
 
     /**

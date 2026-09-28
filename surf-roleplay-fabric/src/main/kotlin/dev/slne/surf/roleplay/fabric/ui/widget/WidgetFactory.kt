@@ -11,6 +11,11 @@ import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DropdownNode
 import dev.slne.surf.roleplay.protocol.screen.IconNode
+import dev.slne.surf.roleplay.protocol.screen.InputGroupAddonNode
+import dev.slne.surf.roleplay.protocol.screen.InputGroupNode
+import dev.slne.surf.roleplay.protocol.screen.InputGroupTextNode
+import dev.slne.surf.roleplay.protocol.screen.InputOtpNode
+import dev.slne.surf.roleplay.protocol.screen.TextareaNode
 import dev.slne.surf.roleplay.protocol.screen.ImageNode
 import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
@@ -49,7 +54,7 @@ object WidgetFactory {
             }
 
             is ScrollListNode -> container(ScrollListWidget(node.id), node.children).apply { gap = node.gap }
-            is LabelNode -> LabelWidget(node.id, node.text, node.icon)
+            is LabelNode -> LabelWidget(node.id, node.text, node.icon, node.forId)
             is ButtonNode -> ButtonWidget(node.id, node.text, node.icon, node.submitsInput, node.variant, node.size).apply { enabled = node.enabled }
             is TextInputNode -> TextInputWidget(
                 node.id,
@@ -57,6 +62,7 @@ object WidgetFactory {
                 node.placeholder,
                 node.required,
                 node.icon,
+                node.inputType,
             ).apply { enabled = node.enabled }
 
             is NumberInputNode -> NumberInputWidget(node.id, NumberFilter(node.min, node.max), node.value, node.required)
@@ -73,6 +79,12 @@ object WidgetFactory {
             is ToggleGroupNode -> ToggleGroupWidget(node.id, node.items, node.selected, node.multiple, node.variant, node.size, node.spacing, node.orientation, node.required)
                 .apply { enabled = node.enabled }
             is ProgressNode -> ProgressWidget(node.id, node.progress, node.label)
+            is TextareaNode -> TextareaWidget(node.id, TextEditState(node.value, TextFilter.maxLength(node.maxLength)), node.placeholder, node.rows, node.required)
+                .apply { enabled = node.enabled }
+            is InputGroupNode -> InputGroupWidget(node.id, node.children.map { create(it) })
+            is InputGroupAddonNode -> container(InputGroupAddonWidget(node.id, node.align), node.children)
+            is InputGroupTextNode -> InputGroupTextWidget(node.id, node.text, node.icon)
+            is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
         widget.height = node.height
@@ -82,6 +94,8 @@ object WidgetFactory {
             is CheckboxNode -> node.notifyChange
             is DropdownNode -> node.notifyChange
             is ToggleGroupNode -> node.notifyChange
+            is TextareaNode -> node.notifyChange
+            is InputOtpNode -> node.notifyChange
             else -> false
         }
         return widget

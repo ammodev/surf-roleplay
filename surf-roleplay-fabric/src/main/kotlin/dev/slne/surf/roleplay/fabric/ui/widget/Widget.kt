@@ -72,6 +72,14 @@ interface UiContext {
      *        player paused typing
      */
     fun valueChanged(widget: Widget, immediate: Boolean) = Unit
+
+    /**
+     * Finds a widget of the screen by id.
+     *
+     * @param id the id of the widget
+     * @return the widget, or `null` if the screen has none with that id
+     */
+    fun widget(id: String): Widget? = null
 }
 
 /**
@@ -113,6 +121,33 @@ abstract class Widget(val id: String) {
      * The corners of the widget that are rounded, set by containers that join their children.
      */
     var corners: Corners = Corners.ALL
+
+    /**
+     * Whether the widget is drawn without its own fill and border, because a container around it
+     * draws them.
+     */
+    var embedded: Boolean = false
+
+    /**
+     * The widget whose bounds the focus ring is drawn around while this widget has the focus, or
+     * `null` for this widget itself.
+     */
+    var focusFrame: Widget? = null
+
+    /**
+     * Whether the widget draws its own focus indication, so that the screen draws no focus ring
+     * around it.
+     */
+    open val drawsOwnFocus: Boolean get() = false
+
+    /**
+     * Reacts to a click on a label that targets this widget: focuses it if it is enabled.
+     *
+     * @param context the screen showing the widget
+     */
+    open fun labelClicked(context: UiContext) {
+        if (enabled) context.focus(this)
+    }
 
     /**
      * Whether the widget currently shows itself as invalid.

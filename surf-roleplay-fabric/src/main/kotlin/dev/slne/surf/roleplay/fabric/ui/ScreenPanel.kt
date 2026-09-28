@@ -334,8 +334,8 @@ class ScreenPanel(
             !(open != null && dropdownList(open).contains(mouseX.toDouble(), mouseY.toDouble()))
         ui.clipped(viewport) {
             root.render(ui, this, if (mouseInside) mouseX else HIDDEN, if (mouseInside) mouseY else HIDDEN)
-            focusedWidget?.let { focused ->
-                val b = focused.bounds
+            focusedWidget?.takeUnless { it.drawsOwnFocus }?.let { focused ->
+                val b = (focused.focusFrame ?: focused).bounds
                 ui.borderRounded(Rect(b.x - 1, b.y - 1, b.width + 2, b.height + 2), tokens.ring, tokens.radius + 1)
             }
         }
@@ -565,6 +565,14 @@ class ScreenPanel(
         if (submitsInput) WidgetTree.touchAll(root)
         listener.actionTriggered(this, widget)
     }
+
+    /**
+     * Finds a widget of the tree by id.
+     *
+     * @param id the id of the widget
+     * @return the widget, or `null` if the tree has none with that id
+     */
+    override fun widget(id: String): Widget? = WidgetTree.find(root, id)
 
     /**
      * Reports a changed input to the listener, at once or after the player paused typing.
