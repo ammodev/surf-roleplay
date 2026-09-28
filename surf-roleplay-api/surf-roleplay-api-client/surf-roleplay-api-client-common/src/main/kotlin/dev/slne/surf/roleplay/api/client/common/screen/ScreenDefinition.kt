@@ -104,7 +104,14 @@ fun interface CloseHandler {
  * @property buttonId the id of the clicked button
  * @property values the validated values of the screen's inputs
  */
-data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values: ScreenValues)
+data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values: ScreenValues) {
+    /**
+     * Shows errors of the submitted inputs, as [OpenScreen.showErrors] does.
+     *
+     * @param errors the error of every invalid input, keyed by input id
+     */
+    fun fail(errors: Map<String, Component>) = screen.showErrors(errors)
+}
 
 /**
  * The validated input values of a screen, keyed by input element id.
@@ -214,6 +221,16 @@ interface OpenScreen {
     fun patch(changes: ScreenPatchBuilder.() -> Unit)
 
     /**
+     * Shows the errors of inputs found by a check the server made. Every field that holds an
+     * input with an error shows the error in its error text and is drawn as invalid, and the input
+     * is drawn as invalid until the player changes it. Every other field and input loses its error.
+     * Does nothing for screens without inputs, or if the screen is closed.
+     *
+     * @param errors the error of every invalid input, keyed by input id
+     */
+    fun showErrors(errors: Map<String, Component>)
+
+    /**
      * Closes the screen and every screen opened on top of it. Does nothing if the screen is
      * already closed.
      */
@@ -290,6 +307,15 @@ sealed interface ScreenChange {
      * @property groups the new option groups
      */
     data class SetOptions(val targetId: String, val groups: List<SelectChoiceGroup>) : ScreenChange
+
+    /**
+     * Marks a field or an input as invalid, or clears the mark. An input loses the mark when the
+     * player changes it.
+     *
+     * @property targetId the id of the field or input
+     * @property invalid whether it is invalid
+     */
+    data class SetInvalid(val targetId: String, val invalid: Boolean) : ScreenChange
 }
 
 /**
@@ -396,5 +422,15 @@ class ScreenPatchBuilder {
      */
     fun setOptions(targetId: String, groups: List<SelectChoiceGroup>) {
         recorded += ScreenChange.SetOptions(targetId, groups)
+    }
+
+    /**
+     * Marks a field or an input as invalid, or clears the mark.
+     *
+     * @param targetId the id of the field or input
+     * @param invalid whether it is invalid
+     */
+    fun setInvalid(targetId: String, invalid: Boolean) {
+        recorded += ScreenChange.SetInvalid(targetId, invalid)
     }
 }

@@ -1,6 +1,11 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldSetElement
+import dev.slne.surf.roleplay.api.client.common.screen.FormElement
 import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAddonElement
@@ -86,6 +91,7 @@ class ServerScreenTree(root: ScreenElement) {
                 ElementRules.rule(element)?.withEnabled?.invoke(element, change.enabled)
             } ?: return false
 
+            is ScreenChange.SetInvalid -> if (find(change.targetId) == null) return false else root
             is ScreenChange.SetOptions -> update(change.targetId) { element ->
                 (element as? ComboboxElement)?.let { combobox -> withOptions(combobox, change.groups) }
             } ?: return false
@@ -226,6 +232,11 @@ class ServerScreenTree(root: ScreenElement) {
             is ButtonGroupElement -> container.copy(children = children)
             is InputGroupElement -> container.copy(children = children)
             is InputGroupAddonElement -> container.copy(children = children)
+            is FormElement -> container.copy(children = children)
+            is FieldSetElement -> container.copy(children = children)
+            is FieldGroupElement -> container.copy(children = children)
+            is FieldElement -> container.copy(children = children)
+            is FieldContentElement -> container.copy(children = children)
         }
     }
 }

@@ -3,6 +3,21 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldSetElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.FormElement
+import dev.slne.surf.roleplay.protocol.screen.FieldContentNode
+import dev.slne.surf.roleplay.protocol.screen.FieldGroupNode
+import dev.slne.surf.roleplay.protocol.screen.FieldNode
+import dev.slne.surf.roleplay.protocol.screen.FieldSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.FieldSetNode
+import dev.slne.surf.roleplay.protocol.screen.FieldTextNode
+import dev.slne.surf.roleplay.protocol.screen.FormNode
+import dev.slne.surf.roleplay.protocol.screen.SetInvalid
 import dev.slne.surf.roleplay.api.client.common.screen.CalendarElement
 import dev.slne.surf.roleplay.protocol.screen.CalendarNode
 import dev.slne.surf.roleplay.protocol.screen.CalendarValues
@@ -177,6 +192,13 @@ object ScreenMapper {
                 element.enabled, element.onChange != null,
             )
 
+            is FormElement -> FormNode(element.id, width, height, element.children.map(::toNode), element.submitId)
+            is FieldSetElement -> FieldSetNode(element.id, width, height, element.children.map(::toNode))
+            is FieldGroupElement -> FieldGroupNode(element.id, width, height, element.children.map(::toNode))
+            is FieldElement -> FieldNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation))
+            is FieldContentElement -> FieldContentNode(element.id, width, height, element.children.map(::toNode))
+            is FieldTextElement -> FieldTextNode(element.id, width, height, enumOf(element.kind), text(element.text), element.forId)
+            is FieldSeparatorElement -> FieldSeparatorNode(element.id, width, height, element.text?.let(::text))
             is CalendarElement -> CalendarNode(
                 element.id, width, height, enumOf(element.mode), CalendarValues.format(enumOf(element.mode), element.selected), element.month?.toString(),
                 element.min?.toString(), element.max?.toString(), element.disabled.sorted().map { it.toString() }, element.showOutsideDays,
@@ -219,6 +241,7 @@ object ScreenMapper {
         is ScreenChange.SetProgress -> SetProgress(change.targetId, change.progress)
         is ScreenChange.SetEnabled -> SetEnabled(change.targetId, change.enabled)
         is ScreenChange.SetOptions -> SetOptions(change.targetId, groups(change.groups))
+        is ScreenChange.SetInvalid -> SetInvalid(change.targetId, change.invalid)
     }
 
     /**

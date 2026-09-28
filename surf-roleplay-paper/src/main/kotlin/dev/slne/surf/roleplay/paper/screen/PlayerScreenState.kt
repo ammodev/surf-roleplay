@@ -2,6 +2,10 @@ package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.api.core.util.logger
 import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldTextKind
+import dev.slne.surf.roleplay.api.client.common.screen.FieldTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
@@ -346,6 +350,20 @@ class PlayerScreenState(
     }
 
     /**
+     * Adds the descendants of an element to a list, parents first.
+     *
+     * @param element the element
+     * @param into the list
+     */
+    private fun collectDescendants(element: ScreenElement, into: MutableList<ScreenElement>) {
+        if (element !is ContainerElement) return
+        element.children.forEach { child ->
+            into += child
+            collectDescendants(child, into)
+        }
+    }
+
+    /**
      * Runs the search handler of a combobox for a changed query.
      *
      * @param session the screen the combobox is on
@@ -418,6 +436,13 @@ class PlayerScreenState(
         override fun close() = close(sessionId, notifyClient = true)
 
         /**
+         * Does nothing: only generic screens have inputs.
+         *
+         * @param errors ignored
+         */
+        override fun showErrors(errors: Map<String, Component>) = Unit
+
+        /**
          * Runs the screen's close handler after it was removed from the stack.
          */
         abstract fun closed()
@@ -450,6 +475,26 @@ class PlayerScreenState(
          *
          * @param changes the builder of the changes
          */
+        /**
+         * Shows input errors: every field shows the error of its first input that has one, or
+         * none, and is marked invalid accordingly; every input is marked invalid exactly when it
+         * has an error.
+         *
+         * @param errors the error of every invalid input, keyed by input id
+         */
+        override fun showErrors(errors: Map<String, Component>) {
+            val elements = tree.elements()
+            patch {
+                for (field in elements.filterIsInstance<FieldElement>()) {
+                    val inside = mutableListOf<ScreenElement>().also { collectDescendants(field, it) }
+                    val error = inside.firstNotNullOfOrNull { errors[it.id] }
+                    inside.filterIsInstance<FieldTextElement>().filter { it.kind == FieldTextKind.ERROR }.forEach { setText(it.id, error ?: Component.empty()) }
+                    setInvalid(field.id, error != null)
+                }
+                for (input in elements.filter { ElementRules.input(it) != null }) setInvalid(input.id, input.id in errors)
+            }
+        }
+
         override fun patch(changes: ScreenPatchBuilder.() -> Unit) {
             threadCheck()
             if (!isOpen) return

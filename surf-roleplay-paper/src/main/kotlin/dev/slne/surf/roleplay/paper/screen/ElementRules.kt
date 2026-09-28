@@ -16,6 +16,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldTextElement
 import dev.slne.surf.roleplay.api.client.common.screen.CalendarElement
 import dev.slne.surf.roleplay.protocol.screen.CalendarValues
 import dev.slne.surf.roleplay.protocol.screen.CalendarMode as NodeCalendarMode
@@ -362,6 +364,8 @@ object ElementRules {
             ),
         )
         register(InputGroupTextElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(FieldTextElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(FieldSeparatorElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(
             InputOtpElement::class,
             ElementRule(
