@@ -1,4 +1,4 @@
-package dev.slne.surf.roleplay.fabric.screen
+package dev.slne.surf.roleplay.protocol.screen
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

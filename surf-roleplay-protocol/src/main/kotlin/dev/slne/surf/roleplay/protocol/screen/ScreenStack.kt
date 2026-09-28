@@ -1,7 +1,10 @@
-package dev.slne.surf.roleplay.fabric.screen
+package dev.slne.surf.roleplay.protocol.screen
 
 /**
  * The stack of a player's open server-driven screens, from the bottom screen to the shown one.
+ *
+ * Both the server and the client mod keep one, and both apply [ScreenOpen] and [ScreenClose] to it
+ * with the same rules.
  *
  * @param T the content kept for each screen
  */

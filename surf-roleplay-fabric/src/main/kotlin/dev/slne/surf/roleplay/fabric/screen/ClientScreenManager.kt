@@ -13,6 +13,7 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenClose
 import dev.slne.surf.roleplay.protocol.screen.ScreenClosed
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
+import dev.slne.surf.roleplay.protocol.screen.ScreenStack
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedAction
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedUpdate
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
