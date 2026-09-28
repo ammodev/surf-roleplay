@@ -59,6 +59,12 @@ class LabelWidget(id: String, var text: String = "") : Widget(id) {
 class ButtonWidget(id: String, var text: String = "") : Widget(id) {
 
     /**
+     * Whether the widget can take the keyboard focus, which it can while enabled.
+     */
+    override val focusable: Boolean get() = enabled
+
+
+    /**
      * Returns the size of the caption with the button's padding.
      *
      * @param measurer the text measurer
@@ -99,7 +105,23 @@ class ButtonWidget(id: String, var text: String = "") : Widget(id) {
      */
     override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
         if (!isOver(x, y)) return false
-        if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) context.buttonClicked(this)
+        if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            context.focus(this)
+            context.buttonClicked(this)
+        }
+        return true
+    }
+
+    /**
+     * Activates the button on Enter or Space.
+     *
+     * @param context the screen showing the widget
+     * @param event the key event
+     * @return whether the key was handled
+     */
+    override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
+        if (!enabled || !isActivation(event)) return false
+        context.buttonClicked(this)
         return true
     }
 
@@ -326,6 +348,12 @@ class NumberInputWidget(
 class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = false) : Widget(id) {
 
     /**
+     * Whether the widget can take the keyboard focus, which it can while enabled.
+     */
+    override val focusable: Boolean get() = enabled
+
+
+    /**
      * `true` if the box is checked, `false` otherwise.
      */
     override val inputValue: String get() = checked.toString()
@@ -377,7 +405,23 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
      */
     override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
         if (!isOver(x, y)) return false
-        if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) checked = !checked
+        if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            context.focus(this)
+            checked = !checked
+        }
+        return true
+    }
+
+    /**
+     * Toggles the box on Space.
+     *
+     * @param context the screen showing the widget
+     * @param event the key event
+     * @return whether the key was handled
+     */
+    override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
+        if (!enabled || event.key() != GLFW.GLFW_KEY_SPACE) return false
+        checked = !checked
         return true
     }
 
@@ -424,6 +468,12 @@ class DropdownWidget(
     var selected: String? = null,
     val required: Boolean = false,
 ) : Widget(id) {
+
+    /**
+     * Whether the widget can take the keyboard focus, which it can while enabled.
+     */
+    override val focusable: Boolean get() = enabled
+
 
     /**
      * The value of the selected option, or an empty string if none is selected.
@@ -489,7 +539,23 @@ class DropdownWidget(
      */
     override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
         if (!isOver(x, y)) return false
-        if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) context.openDropdown(this)
+        if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            context.focus(this)
+            context.openDropdown(this)
+        }
+        return true
+    }
+
+    /**
+     * Opens the option list on Enter, Space or Down.
+     *
+     * @param context the screen showing the widget
+     * @param event the key event
+     * @return whether the key was handled
+     */
+    override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
+        if (!enabled || !(isActivation(event) || event.key() == GLFW.GLFW_KEY_DOWN)) return false
+        context.openDropdown(this)
         return true
     }
 
@@ -670,3 +736,12 @@ internal fun drawCheck(ui: UiGraphics, box: Rect, color: Int) {
     for (step in 0 until short) ui.fill(Rect(x + step, y + step - 1, 1, 2), color)
     for (step in 0 until long) ui.fill(Rect(x + short + step, y + short - step - 2, 1, 2), color)
 }
+
+/**
+ * Checks whether a key activates a focused widget: Enter, keypad Enter or Space.
+ *
+ * @param event the key event
+ * @return whether the key activates
+ */
+internal fun isActivation(event: KeyEvent): Boolean =
+    event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER || event.key() == GLFW.GLFW_KEY_SPACE

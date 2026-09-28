@@ -432,21 +432,40 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
 
     /**
      * Passes scrolling to the children first, and otherwise scrolls the list if the mouse is over
-     * it.
+     * it and it can move further in that direction.
      *
      * @param context the screen showing the widget
      * @param x the mouse x position
      * @param y the mouse y position
      * @param amount the scroll amount; positive scrolls up
-     * @return whether the scrolling was handled
+     * @return whether a list moved
      */
     override fun mouseScrolled(context: UiContext, x: Double, y: Double, amount: Double): Boolean {
         if (!isOver(x, y)) return false
         if (super.mouseScrolled(context, x, y, amount)) return true
-        if (maxScroll == 0) return false
-        scrollOffset = (scrollOffset - (amount * UiMetrics.SCROLL_STEP).toInt()).coerceIn(0, maxScroll)
+        val next = (scrollOffset - (amount * UiMetrics.SCROLL_STEP).toInt()).coerceIn(0, maxScroll)
+        if (next == scrollOffset) return false
+        scrollOffset = next
         context.requestLayout()
         return true
+    }
+
+    /**
+     * Scrolls as little as needed to show a descendant widget inside the list.
+     *
+     * @param widget the descendant
+     * @return whether the list scrolled
+     */
+    fun ensureVisible(widget: Widget): Boolean {
+        val top = widget.bounds.y - bounds.y + scrollOffset
+        val bottom = top + widget.bounds.height
+        var next = scrollOffset
+        if (bottom > next + bounds.height) next = bottom - bounds.height
+        if (top < next) next = top
+        next = next.coerceIn(0, maxScroll)
+        val moved = next != scrollOffset
+        scrollOffset = next
+        return moved
     }
 
     /**

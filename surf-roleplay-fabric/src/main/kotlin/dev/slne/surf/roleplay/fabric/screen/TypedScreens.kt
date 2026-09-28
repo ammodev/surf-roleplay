@@ -1,8 +1,8 @@
 package dev.slne.surf.roleplay.fabric.screen
 
-import dev.slne.surf.roleplay.fabric.ui.RoleplayScreenHost
-import dev.slne.surf.roleplay.fabric.ui.ScreenHostListener
-import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
+import dev.slne.surf.roleplay.fabric.ui.PanelStyle
+import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
+import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.LabelWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
@@ -16,7 +16,6 @@ import dev.slne.surf.roleplay.protocol.screen.LabelNode
 import dev.slne.surf.roleplay.protocol.screen.RowNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypes
 import dev.slne.surf.roleplay.protocol.screen.Sizing
-import net.minecraft.client.gui.screens.Screen
 
 /**
  * What a typed screen can ask of its session.
@@ -45,9 +44,9 @@ interface TypedScreenSession {
  */
 interface TypedScreenView {
     /**
-     * The Minecraft screen that shows the view.
+     * The panel that shows the view.
      */
-    val screen: Screen
+    val panel: ScreenPanel
 
     /**
      * Replaces the view's state.
@@ -68,10 +67,10 @@ fun interface TypedScreenFactory {
      * @param title the title as component JSON
      * @param closable whether the player can close the screen with Escape
      * @param state the initial state, encoded with the screen's type
-     * @param tokens the design tokens the screen is drawn with
+     * @param style how the screen is drawn
      * @return the view
      */
-    fun create(session: TypedScreenSession, title: String, closable: Boolean, state: ByteArray, tokens: ThemeTokens): TypedScreenView
+    fun create(session: TypedScreenSession, title: String, closable: Boolean, state: ByteArray, style: PanelStyle): TypedScreenView
 }
 
 /**
@@ -101,25 +100,25 @@ object TypedScreens {
  * @param title the title as component JSON
  * @param closable whether the player can close the screen with Escape
  * @param state the initial state
- * @param tokens the design tokens the screen is drawn with
+ * @param style how the screen is drawn
  */
 class DebugCounterView(
     private val session: TypedScreenSession,
     title: String,
     closable: Boolean,
     state: ByteArray,
-    tokens: ThemeTokens,
-) : TypedScreenView, ScreenHostListener {
+    style: PanelStyle,
+) : TypedScreenView, ScreenPanelListener {
 
     /**
-     * The host that shows the counter.
+     * The panel that shows the counter.
      */
-    private val host = RoleplayScreenHost(title, WidgetFactory.create(tree()), closable, this, tokens)
+    private val host = ScreenPanel(title, WidgetFactory.create(tree()), closable, this, style)
 
     /**
-     * The host that shows the counter.
+     * The panel that shows the counter.
      */
-    override val screen: Screen get() = host
+    override val panel: ScreenPanel get() = host
 
     init {
         update(state)
@@ -161,10 +160,10 @@ class DebugCounterView(
     /**
      * Sends the counter action of a clicked button.
      *
-     * @param host the screen
+     * @param panel the panel
      * @param button the clicked button
      */
-    override fun buttonClicked(host: RoleplayScreenHost, button: ButtonWidget) {
+    override fun buttonClicked(panel: ScreenPanel, button: ButtonWidget) {
         val delta = when (button.id) {
             DECREMENT_ID -> -1
             INCREMENT_ID -> 1
@@ -176,9 +175,9 @@ class DebugCounterView(
     /**
      * Closes the session.
      *
-     * @param host the screen
+     * @param panel the panel
      */
-    override fun closeRequested(host: RoleplayScreenHost) {
+    override fun closeRequested(panel: ScreenPanel) {
         session.requestClose()
     }
 

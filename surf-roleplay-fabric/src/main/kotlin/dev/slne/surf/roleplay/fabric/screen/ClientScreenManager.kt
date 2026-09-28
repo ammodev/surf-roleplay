@@ -4,8 +4,11 @@ import dev.slne.surf.roleplay.fabric.RoleplayClient
 import dev.slne.surf.roleplay.fabric.protocol.ClientPackets
 import dev.slne.surf.roleplay.fabric.protocol.FabricPacketDispatcher
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerState
-import dev.slne.surf.roleplay.fabric.ui.RoleplayScreenHost
-import dev.slne.surf.roleplay.fabric.ui.ScreenHostListener
+import dev.slne.surf.roleplay.fabric.ui.PanelStyle
+import dev.slne.surf.roleplay.fabric.ui.RoleplayScreen
+import dev.slne.surf.roleplay.fabric.ui.ScreenLayers
+import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
+import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
@@ -21,28 +24,22 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.TypedScreenBody
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screens.Screen
 
 /**
  * An open server-driven screen on the client.
  */
 sealed interface ClientScreen {
     /**
-     * The Minecraft screen that shows it.
+     * The panel that shows it.
      */
-    val screen: Screen
+    val panel: ScreenPanel
 
     /**
      * A generic screen showing a widget tree.
      *
-     * @property host the host showing the tree
+     * @property panel the panel showing the tree
      */
-    class Widgets(val host: RoleplayScreenHost) : ClientScreen {
-        /**
-         * The host that shows the tree.
-         */
-        override val screen: Screen get() = host
-    }
+    class Widgets(override val panel: ScreenPanel) : ClientScreen
 
     /**
      * A typed screen implemented in the mod.
@@ -51,9 +48,9 @@ sealed interface ClientScreen {
      */
     class Typed(val view: TypedScreenView) : ClientScreen {
         /**
-         * The screen of the view.
+         * The panel of the view.
          */
-        override val screen: Screen get() = view.screen
+        override val panel: ScreenPanel get() = view.panel
     }
 }
 
@@ -71,9 +68,9 @@ object ClientScreenManager {
     private val stack = ScreenStack<ClientScreen>()
 
     /**
-     * The Minecraft screen this manager showed last, or `null` if it closed it or showed none.
+     * The Minecraft screen that shows the visible panels, created on first use.
      */
-    private var shown: Screen? = null
+    private val screen: RoleplayScreen by lazy { RoleplayScreen() }
 
     /**
      * The state that tells whether the current server is the roleplay server.
@@ -129,13 +126,7 @@ object ClientScreenManager {
         }
         val content = when (val body = packet.body) {
             is WidgetScreenBody -> ClientScreen.Widgets(
-                RoleplayScreenHost(
-                    packet.title,
-                    WidgetFactory.create(body.root),
-                    packet.closable,
-                    WidgetListener(packet.sessionId),
-                    Themes.resolve(packet.theme, packet.variant),
-                ),
+                ScreenPanel(packet.title, WidgetFactory.create(body.root), packet.closable, WidgetListener(packet.sessionId), style(packet)),
             )
 
             is TypedScreenBody -> {
@@ -146,7 +137,7 @@ object ClientScreenManager {
                     return
                 }
                 ClientScreen.Typed(
-                    factory.create(TypedSession(packet.sessionId), packet.title, packet.closable, body.state, Themes.resolve(packet.theme, packet.variant)),
+                    factory.create(TypedSession(packet.sessionId), packet.title, packet.closable, body.state, style(packet)),
                 )
             }
         }
@@ -160,7 +151,7 @@ object ClientScreenManager {
      * @param packet the patch packet
      */
     private fun patch(packet: ScreenPatch) {
-        val host = (stack.find(packet.sessionId)?.content as? ClientScreen.Widgets)?.host ?: run {
+        val host = (stack.find(packet.sessionId)?.content as? ClientScreen.Widgets)?.panel ?: run {
             RoleplayClient.log.debug("Dropped a patch for unknown session {}", packet.sessionId)
             return
         }
@@ -217,44 +208,55 @@ object ClientScreenManager {
     }
 
     /**
-     * Shows the top screen of the stack, or closes the screen this manager showed if the stack is
-     * empty. Another screen that replaced it in the meantime is left alone.
+     * Shows the visible panels of the stack in the roleplay screen, or closes the roleplay screen
+     * if the stack is empty. Another screen that replaced the roleplay screen is left alone when
+     * the stack is empty.
      */
     private fun show() {
         val minecraft = Minecraft.getInstance()
-        val top = stack.top?.content?.screen
-        if (top != null) {
-            if (minecraft.gui.screen() !== top) minecraft.gui.setScreen(top)
-            shown = top
+        val entries = stack.entries
+        if (entries.isEmpty()) {
+            screen.layers = emptyList()
+            if (minecraft.gui.screen() === screen) minecraft.gui.setScreen(null)
             return
         }
-        if (shown != null && minecraft.gui.screen() === shown) minecraft.gui.setScreen(null)
-        shown = null
+        val visible = ScreenLayers.visible(entries.map { it.content.panel.style.presentation })
+        screen.layers = visible.map { entries[it].content.panel }
+        if (minecraft.gui.screen() !== screen) minecraft.gui.setScreen(screen)
     }
+
+    /**
+     * Creates the panel style a screen open asks for.
+     *
+     * @param packet the screen open
+     * @return the style
+     */
+    private fun style(packet: ScreenOpen) =
+        PanelStyle(Themes.resolve(packet.theme, packet.variant), packet.presentation, packet.sheetEdge)
 
     /**
      * Receives what the player does on the generic screen of one session.
      *
      * @property sessionId the session
      */
-    private class WidgetListener(private val sessionId: Int) : ScreenHostListener {
+    private class WidgetListener(private val sessionId: Int) : ScreenPanelListener {
 
         /**
          * Sends a widget action with the screen's input values.
          *
-         * @param host the screen
+         * @param panel the panel
          * @param button the clicked button
          */
-        override fun buttonClicked(host: RoleplayScreenHost, button: ButtonWidget) {
-            ClientPackets.send(Packets.SCREEN_WIDGET_ACTION, ScreenWidgetAction(sessionId, button.id, host.inputValues()))
+        override fun buttonClicked(panel: ScreenPanel, button: ButtonWidget) {
+            ClientPackets.send(Packets.SCREEN_WIDGET_ACTION, ScreenWidgetAction(sessionId, button.id, panel.inputValues()))
         }
 
         /**
          * Closes the session.
          *
-         * @param host the screen
+         * @param panel the panel
          */
-        override fun closeRequested(host: RoleplayScreenHost) {
+        override fun closeRequested(panel: ScreenPanel) {
             closedByPlayer(sessionId)
         }
     }
