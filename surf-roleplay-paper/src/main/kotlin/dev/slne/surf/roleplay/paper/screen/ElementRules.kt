@@ -52,6 +52,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuLinkElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
@@ -606,6 +609,15 @@ object ElementRules {
         )
         register(AccordionItemElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
         register(AccordionTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(NavigationMenuItemElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(
+            NavigationMenuTriggerElement::class,
+            ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }),
+        )
+        register(
+            NavigationMenuLinkElement::class,
+            ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }),
+        )
         register(
             CarouselElement::class,
             ElementRule(

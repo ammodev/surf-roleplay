@@ -1,6 +1,11 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuListElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuLinkElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
@@ -360,6 +365,11 @@ class ServerScreenTree(root: ScreenElement) {
             is CarouselElement -> container.copy(children = children)
             is CarouselContentElement -> container.copy(children = children)
             is CarouselItemElement -> container.copy(children = children)
+            is NavigationMenuElement -> container.copy(children = children)
+            is NavigationMenuListElement -> container.copy(children = children)
+            is NavigationMenuItemElement -> container.copy(children = children)
+            is NavigationMenuContentElement -> container.copy(children = children)
+            is NavigationMenuLinkElement -> container.copy(children = children)
             is DialogContentElement -> container.copy(children = children)
             is DialogHeaderElement -> container.copy(children = children)
             is DialogFooterElement -> container.copy(children = children)

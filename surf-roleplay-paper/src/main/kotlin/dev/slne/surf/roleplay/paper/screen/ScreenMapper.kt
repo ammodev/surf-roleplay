@@ -319,6 +319,18 @@ import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
 import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
 import dev.slne.surf.roleplay.protocol.screen.CarouselPreviousNode
 import dev.slne.surf.roleplay.protocol.screen.CarouselNextNode
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuListElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuLinkElement
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuLinkNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -554,6 +566,12 @@ object ScreenMapper {
             is CarouselItemElement -> CarouselItemNode(element.id, width, height, element.children.map(::toNode), element.basis)
             is CarouselPreviousElement -> CarouselPreviousNode(element.id, width, height, element.enabled)
             is CarouselNextElement -> CarouselNextNode(element.id, width, height, element.enabled)
+            is NavigationMenuElement -> NavigationMenuNode(element.id, width, height, element.children.map(::toNode))
+            is NavigationMenuListElement -> NavigationMenuListNode(element.id, width, height, element.children.map(::toNode))
+            is NavigationMenuItemElement -> NavigationMenuItemNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is NavigationMenuTriggerElement -> NavigationMenuTriggerNode(element.id, width, height, text(element.text), element.enabled)
+            is NavigationMenuContentElement -> NavigationMenuContentNode(element.id, width, height, element.children.map(::toNode))
+            is NavigationMenuLinkElement -> NavigationMenuLinkNode(element.id, width, height, element.children.map(::toNode), element.active, element.enabled)
         }
     }
 

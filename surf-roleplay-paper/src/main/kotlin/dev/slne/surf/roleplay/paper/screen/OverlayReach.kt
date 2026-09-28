@@ -16,6 +16,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenubarMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenubarTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
@@ -122,7 +125,7 @@ class OverlayReach(tree: ServerScreenTree) {
          */
         fun isHost(element: ScreenElement): Boolean = when (element) {
             is PopoverElement, is HoverCardElement, is DropdownMenuElement, is MenuSubElement, is ContextMenuElement,
-            is MenubarMenuElement, is DialogElement, is AlertDialogElement, is SheetElement, is DrawerElement,
+            is MenubarMenuElement, is DialogElement, is AlertDialogElement, is SheetElement, is DrawerElement, is NavigationMenuItemElement,
             -> true
             else -> false
         }
@@ -135,7 +138,7 @@ class OverlayReach(tree: ServerScreenTree) {
          */
         private fun isContent(element: ScreenElement): Boolean = when (element) {
             is PopoverContentElement, is HoverCardContentElement, is MenuContentElement, is DialogContentElement,
-            is AlertDialogContentElement, is SheetContentElement, is DrawerContentElement,
+            is AlertDialogContentElement, is SheetContentElement, is DrawerContentElement, is NavigationMenuContentElement,
             -> true
             else -> false
         }
@@ -151,12 +154,13 @@ class OverlayReach(tree: ServerScreenTree) {
 
         /**
          * Returns whether a widget opens the overlay whose trigger it is part of: a widget with
-         * an action, or a sub-menu or menubar trigger.
+         * an action, or a sub-menu, menubar or navigation menu trigger.
          *
          * @param element the widget
          * @return whether it does
          */
         private fun isOpener(element: ScreenElement): Boolean =
-            element is MenuSubTriggerElement || element is MenubarTriggerElement || ElementRules.rule(element)?.action?.invoke(element) != null
+            element is MenuSubTriggerElement || element is MenubarTriggerElement || element is NavigationMenuTriggerElement ||
+                ElementRules.rule(element)?.action?.invoke(element) != null
     }
 }

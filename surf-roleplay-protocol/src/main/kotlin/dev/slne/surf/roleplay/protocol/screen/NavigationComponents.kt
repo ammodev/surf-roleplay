@@ -878,3 +878,158 @@ data class CarouselNextNode(
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
     @ProtoNumber(4) val enabled: Boolean = true,
 ) : ScreenNode
+
+/**
+ * A navigation menu: a list of items whose triggers open content below them, and links.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children one navigation menu list
+ */
+@Serializable
+@SerialName("navigation_menu")
+data class NavigationMenuNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): NavigationMenuNode = copy(children = children)
+}
+
+/**
+ * The row of the items of a navigation menu.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the navigation menu items
+ */
+@Serializable
+@SerialName("navigation_menu_list")
+data class NavigationMenuListNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): NavigationMenuListNode = copy(children = children)
+}
+
+/**
+ * An item of a navigation menu: a trigger with a content that opens below it on hover or click, or
+ * a link.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children a trigger and a content, or a link
+ * @property open whether the content is open
+ * @property notifyChange whether the mod reports every opening and closing at once
+ */
+@Serializable
+@SerialName("navigation_menu_item")
+data class NavigationMenuItemNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val open: Boolean = false,
+    @ProtoNumber(6) val notifyChange: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): NavigationMenuItemNode = copy(children = children)
+}
+
+/**
+ * The trigger of a navigation menu item: its text and a chevron that turns while the content is
+ * open.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the text
+ * @property enabled whether the trigger can open the content
+ */
+@Serializable
+@SerialName("navigation_menu_trigger")
+data class NavigationMenuTriggerNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+    @ProtoNumber(5) val enabled: Boolean = true,
+) : ScreenNode
+
+/**
+ * The content of a navigation menu item, shown on a surface below its trigger while open.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the links and other content
+ */
+@Serializable
+@SerialName("navigation_menu_content")
+data class NavigationMenuContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): NavigationMenuContentNode = copy(children = children)
+}
+
+/**
+ * A link of a navigation menu: its content, highlighted when hovered or active, that fires an
+ * action when clicked. Directly in an item it is drawn like a trigger.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content of the link, such as a title and a description
+ * @property active whether the link leads to the current page
+ * @property enabled whether the link can be clicked
+ */
+@Serializable
+@SerialName("navigation_menu_link")
+data class NavigationMenuLinkNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val active: Boolean = false,
+    @ProtoNumber(6) val enabled: Boolean = true,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): NavigationMenuLinkNode = copy(children = children)
+}

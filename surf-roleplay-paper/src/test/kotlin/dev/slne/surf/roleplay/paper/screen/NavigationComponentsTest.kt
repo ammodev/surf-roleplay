@@ -10,6 +10,12 @@ import dev.slne.surf.roleplay.api.client.common.screen.collapsible
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.navigationMenu
+import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuList
+import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuContent
+import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuLink
 import dev.slne.surf.roleplay.api.client.common.screen.carousel
 import dev.slne.surf.roleplay.api.client.common.screen.carouselContent
 import dev.slne.surf.roleplay.api.client.common.screen.carouselItem
@@ -56,6 +62,12 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuLinkNode
 import dev.slne.surf.roleplay.protocol.screen.CarouselNode
 import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
 import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
@@ -468,5 +480,69 @@ class NavigationComponentsTest {
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "carousel", "-1")))
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "carousel", "x")))
         assertEquals(listOf("carousel=2"), reports)
+    }
+
+    /**
+     * Opens a screen with a navigation menu of an item with content, an item whose trigger is
+     * disabled, and a link item.
+     *
+     * @return the session id
+     */
+    private fun openNavigation(): Int = state.open(
+        screen(Component.text("Navigation")) {
+            navigationMenu("nav") {
+                navigationMenuList("list") {
+                    navigationMenuItem("services", onChange = { report(it) }) {
+                        navigationMenuTrigger("services_trigger", Component.text("Dienste"))
+                        navigationMenuContent("services_content") {
+                            navigationMenuLink("police", active = true, onClick = { reports += it.buttonId }) { label("police_title", Component.text("Polizei")) }
+                        }
+                    }
+                    navigationMenuItem("locked") {
+                        navigationMenuTrigger("locked_trigger", Component.text("Gesperrt"), enabled = false)
+                        navigationMenuContent("locked_content") {
+                            navigationMenuLink("secret", onClick = { reports += it.buttonId }) { label("secret_title", Component.text("Geheim")) }
+                        }
+                    }
+                    navigationMenuItem("docs_item") {
+                        navigationMenuLink("docs", onClick = { reports += it.buttonId }) { label("docs_title", Component.text("Doku")) }
+                    }
+                }
+            }
+        },
+        null,
+    ).sessionId
+
+    /**
+     * Verifies that a navigation menu maps to its nodes.
+     */
+    @Test
+    fun `navigation menus map to their nodes`() {
+        openNavigation()
+
+        val nav = assertIs<NavigationMenuNode>(assertIs<WidgetScreenBody>((sent.last() as ScreenOpen).body).root)
+        val list = assertIs<NavigationMenuListNode>(nav.children.single())
+        val item = assertIs<NavigationMenuItemNode>(list.children[0])
+        assertTrue(item.notifyChange)
+        assertTrue(assertIs<NavigationMenuTriggerNode>(item.children[0]).text.contains("Dienste"))
+        val link = assertIs<NavigationMenuLinkNode>(assertIs<NavigationMenuContentNode>(item.children[1]).children.single())
+        assertTrue(link.active)
+        assertIs<NavigationMenuLinkNode>(assertIs<NavigationMenuItemNode>(list.children[2]).children.single())
+    }
+
+    /**
+     * Verifies that links fire their handlers, that the open state is reported, and that the
+     * content behind a disabled trigger cannot be reached.
+     */
+    @Test
+    fun `navigation menu links act`() {
+        val session = openNavigation()
+
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChange(session, "services", "true")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "police")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "docs")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleWidgetAction(ScreenWidgetAction(session, "secret")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "locked", "true")))
+        assertEquals(listOf("services=true", "police", "docs"), reports)
     }
 }

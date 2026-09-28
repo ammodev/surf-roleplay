@@ -162,4 +162,32 @@ class NavigationComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that a navigation menu with every part survives a round trip.
+     */
+    @Test
+    fun `navigation menus round-trip`() {
+        val root = NavigationMenuNode(
+            "nav",
+            children = listOf(
+                NavigationMenuListNode(
+                    "list",
+                    children = listOf(
+                        NavigationMenuItemNode(
+                            "item",
+                            open = true,
+                            notifyChange = true,
+                            children = listOf(
+                                NavigationMenuTriggerNode("trigger", text = "\"Dienste\"", enabled = false),
+                                NavigationMenuContentNode("content", children = listOf(NavigationMenuLinkNode("link", active = true, enabled = false, children = listOf(LabelNode("title"))))),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

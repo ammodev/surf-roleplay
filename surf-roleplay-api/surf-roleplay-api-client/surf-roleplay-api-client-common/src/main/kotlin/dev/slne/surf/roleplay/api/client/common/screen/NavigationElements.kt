@@ -1084,3 +1084,176 @@ fun ElementsBuilder.carouselNext(id: String, enabled: Boolean = true) {
     elements += CarouselNextElement(id, enabled)
 }
 
+/**
+ * A navigation menu: a list of items whose triggers open content below them, and links.
+ *
+ * @property id the id of this element
+ * @property children one navigation menu list
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class NavigationMenuElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The row of the items of a navigation menu.
+ *
+ * @property id the id of this element
+ * @property children the navigation menu items
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class NavigationMenuListElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An item of a navigation menu: a trigger with a content that opens below it on hover or click, or
+ * a link.
+ *
+ * @property id the id of this element
+ * @property children a trigger and a content, or a link
+ * @property open whether the content is open
+ * @property onChange whether the mod reports every opening and closing at once
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class NavigationMenuItemElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The trigger of a navigation menu item: its text and a chevron that turns while the content is
+ * open.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property enabled whether the trigger can open the content
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class NavigationMenuTriggerElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val enabled: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * The content of a navigation menu item, shown on a surface below its trigger while open.
+ *
+ * @property id the id of this element
+ * @property children the links and other content
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class NavigationMenuContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A link of a navigation menu: its content, highlighted when hovered or active, that fires an
+ * action when clicked. Directly in an item it is drawn like a trigger.
+ *
+ * @property id the id of this element
+ * @property children the content of the link, such as a title and a description
+ * @property active whether the link leads to the current page
+ * @property enabled whether the link can be clicked
+ * @property onClick the handler run when the player clicks the link, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class NavigationMenuLinkElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val active: Boolean = false,
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a navigation menu. Its child is one [navigationMenuList].
+ *
+ * @param id the id of the menu
+ * @param children the builder of the list
+ */
+fun ElementsBuilder.navigationMenu(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += NavigationMenuElement(id, build(children))
+}
+
+/**
+ * Adds the row of the items of a navigation menu. Its children are [navigationMenuItem]s.
+ *
+ * @param id the id of the list
+ * @param children the builder of the items
+ */
+fun ElementsBuilder.navigationMenuList(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += NavigationMenuListElement(id, build(children))
+}
+
+/**
+ * Adds an item of a navigation menu: a [navigationMenuTrigger] with a [navigationMenuContent],
+ * or a [navigationMenuLink].
+ *
+ * @param id the id of the item
+ * @param onChange the handler run whenever the player opens or closes the content, or `null`
+ *        for none
+ * @param children the builder of the trigger and content, or of the link
+ */
+fun ElementsBuilder.navigationMenuItem(id: String, onChange: ChangeHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += NavigationMenuItemElement(id, build(children), false, onChange)
+}
+
+/**
+ * Adds the trigger of a navigation menu item.
+ *
+ * @param id the id of the trigger
+ * @param text the text
+ * @param enabled whether the trigger can open the content
+ */
+fun ElementsBuilder.navigationMenuTrigger(id: String, text: Component, enabled: Boolean = true) {
+    elements += NavigationMenuTriggerElement(id, text, enabled)
+}
+
+/**
+ * Adds the content of a navigation menu item, shown below its trigger while open.
+ *
+ * @param id the id of the content
+ * @param children the builder of the links and other content
+ */
+fun ElementsBuilder.navigationMenuContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += NavigationMenuContentElement(id, build(children))
+}
+
+/**
+ * Adds a link of a navigation menu. Its children are its content, such as a title and a
+ * description.
+ *
+ * @param id the id of the link
+ * @param active whether the link leads to the current page
+ * @param enabled whether the link can be clicked
+ * @param onClick the handler run when the player clicks the link, or `null` for none
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.navigationMenuLink(id: String, active: Boolean = false, enabled: Boolean = true, onClick: ButtonHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += NavigationMenuLinkElement(id, build(children), active, enabled, onClick)
+}
+

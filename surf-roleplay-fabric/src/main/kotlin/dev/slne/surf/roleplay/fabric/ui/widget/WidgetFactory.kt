@@ -3,6 +3,12 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuLinkNode
 import dev.slne.surf.roleplay.protocol.screen.Sizing
 import dev.slne.surf.roleplay.protocol.screen.SizeMode
 import dev.slne.surf.roleplay.protocol.screen.CarouselNode
@@ -362,6 +368,18 @@ object WidgetFactory {
             is CarouselItemNode -> container(CarouselItemWidget(node.id, node.basis), node.children)
             is CarouselPreviousNode -> CarouselButtonWidget(node.id, next = false, usable = node.enabled, vertical = false)
             is CarouselNextNode -> CarouselButtonWidget(node.id, next = true, usable = node.enabled, vertical = false)
+            is NavigationMenuNode -> container(NavigationMenuWidget(node.id), node.children).apply { items.forEach { it.menu = this } }
+            is NavigationMenuListNode -> container(PathRowWidget(node.id, NAVIGATION_MENU_GAP), node.children)
+            is NavigationMenuItemNode -> NavigationMenuItemWidget(node.id).apply {
+                node.children.mapTo(childList) { child ->
+                    if (child is NavigationMenuLinkNode) navigationMenuLink(child, triggerStyle = true) else create(child)
+                }
+                childList.filterIsInstance<NavigationMenuTriggerWidget>().forEach { it.item = this }
+                requestOpen(node.open)
+            }
+            is NavigationMenuTriggerNode -> NavigationMenuTriggerWidget(node.id, node.text).apply { enabled = node.enabled }
+            is NavigationMenuContentNode -> container(NavigationMenuContentWidget(node.id), node.children)
+            is NavigationMenuLinkNode -> navigationMenuLink(node, triggerStyle = false)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -395,6 +413,7 @@ object WidgetFactory {
             is TabsNode -> node.notifyChange
             is ResizablePanelGroupNode -> node.notifyChange
             is CarouselNode -> node.notifyChange
+            is NavigationMenuItemNode -> node.notifyChange
             else -> false
         }
         return widget
@@ -424,6 +443,25 @@ object WidgetFactory {
      * The space between the items of a pagination.
      */
     private const val PAGINATION_GAP: Int = 2
+
+    /**
+     * The space between the items of a navigation menu.
+     */
+    private const val NAVIGATION_MENU_GAP: Int = 2
+
+    /**
+     * Creates a navigation menu link.
+     *
+     * @param node the link node
+     * @param triggerStyle whether the link is drawn like a trigger, as it is directly in an item
+     * @return the link
+     */
+    private fun navigationMenuLink(node: NavigationMenuLinkNode, triggerStyle: Boolean): NavigationMenuLinkWidget =
+        container(NavigationMenuLinkWidget(node.id, node.active, triggerStyle), node.children).apply {
+            enabled = node.enabled
+            width = node.width
+            height = node.height
+        }
 
     /**
      * Creates a tab list whose triggers are laid out across the orientation of its tabs.
