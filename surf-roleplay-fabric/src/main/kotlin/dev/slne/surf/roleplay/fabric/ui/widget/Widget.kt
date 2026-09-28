@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
+import dev.slne.surf.roleplay.fabric.ui.Corners
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.PanelSizing
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
@@ -49,11 +50,14 @@ interface UiContext {
     fun requestLayout()
 
     /**
-     * Reports that the player clicked a button.
+     * Reports that the player triggered a widget action, such as clicking a button or pressing a
+     * toggle.
      *
-     * @param button the clicked button
+     * @param widget the widget
+     * @param submitsInput whether the action submits the screen's input, which marks every input
+     *        as touched
      */
-    fun buttonClicked(button: ButtonWidget)
+    fun actionTriggered(widget: Widget, submitsInput: Boolean)
 
     /**
      * The text on the system clipboard.
@@ -104,6 +108,11 @@ abstract class Widget(val id: String) {
      * value is shown as invalid.
      */
     var touched: Boolean = false
+
+    /**
+     * The corners of the widget that are rounded, set by containers that join their children.
+     */
+    var corners: Corners = Corners.ALL
 
     /**
      * Whether the widget currently shows itself as invalid.

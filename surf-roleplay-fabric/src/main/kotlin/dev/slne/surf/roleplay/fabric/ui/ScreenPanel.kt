@@ -7,7 +7,6 @@ import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
-import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.DropdownWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.ScrollListWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.UiContext
@@ -29,12 +28,13 @@ import kotlin.math.roundToInt
  */
 interface ScreenPanelListener {
     /**
-     * Called when the player activates an enabled button.
+     * Called when the player triggers a widget action, such as clicking a button or pressing a
+     * toggle.
      *
      * @param panel the panel
-     * @param button the activated button
+     * @param widget the widget
      */
-    fun buttonClicked(panel: ScreenPanel, button: ButtonWidget)
+    fun actionTriggered(panel: ScreenPanel, widget: Widget)
 
     /**
      * Called when the player closes a closable panel with Escape or a click on the backdrop.
@@ -554,14 +554,16 @@ class ScreenPanel(
     }
 
     /**
-     * Reports a button activation to the listener.
+     * Reports a widget action to the listener, first sending pending changes and, for actions that
+     * submit input, marking every input as touched.
      *
-     * @param button the activated button
+     * @param widget the widget
+     * @param submitsInput whether the action submits the screen's input
      */
-    override fun buttonClicked(button: ButtonWidget) {
+    override fun actionTriggered(widget: Widget, submitsInput: Boolean) {
         reportChanges(debouncer.flush())
-        if (button.submitsInput) WidgetTree.touchAll(root)
-        listener.buttonClicked(this, button)
+        if (submitsInput) WidgetTree.touchAll(root)
+        listener.actionTriggered(this, widget)
     }
 
     /**

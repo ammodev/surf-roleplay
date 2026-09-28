@@ -10,7 +10,6 @@ import dev.slne.surf.roleplay.fabric.ui.ScreenLayers
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
-import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
 import dev.slne.surf.roleplay.protocol.Packets
@@ -247,10 +246,10 @@ object ClientScreenManager {
          * Sends a widget action with the screen's input values.
          *
          * @param panel the panel
-         * @param button the clicked button
+         * @param widget the widget that triggered the action
          */
-        override fun buttonClicked(panel: ScreenPanel, button: ButtonWidget) {
-            ClientPackets.send(Packets.SCREEN_WIDGET_ACTION, ScreenWidgetAction(sessionId, button.id, panel.inputValues()))
+        override fun actionTriggered(panel: ScreenPanel, widget: Widget) {
+            ClientPackets.send(Packets.SCREEN_WIDGET_ACTION, ScreenWidgetAction(sessionId, widget.id, panel.inputValues()))
         }
 
         /**

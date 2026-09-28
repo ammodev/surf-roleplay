@@ -6,6 +6,8 @@ import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
+import dev.slne.surf.roleplay.protocol.screen.ButtonSize
+import dev.slne.surf.roleplay.protocol.screen.ButtonVariant
 import dev.slne.surf.roleplay.protocol.screen.DropdownOption
 import dev.slne.surf.roleplay.protocol.screen.IconColor
 import net.minecraft.client.input.CharacterEvent
@@ -61,8 +63,17 @@ class LabelWidget(id: String, var text: String = "", var icon: String? = null) :
  * @property text the caption as component JSON
  * @property icon the Lucide name of the leading icon, or `null` for none
  * @property submitsInput whether a click marks every input of the screen as touched
+ * @property variant the look of the button
+ * @property size the size of the button
  */
-class ButtonWidget(id: String, var text: String = "", var icon: String? = null, val submitsInput: Boolean = true) : Widget(id) {
+class ButtonWidget(
+    id: String,
+    var text: String = "",
+    var icon: String? = null,
+    val submitsInput: Boolean = true,
+    val variant: ButtonVariant = ButtonVariant.DEFAULT,
+    val size: ButtonSize = ButtonSize.DEFAULT,
+) : Widget(id) {
 
     /**
      * Whether the widget can take the keyboard focus, which it can while enabled.
@@ -75,8 +86,7 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null, 
      * @param measurer the text measurer
      * @return the button size
      */
-    override fun contentSize(measurer: TextMeasurer): Size =
-        Size(iconSpace(icon, measurer.width(text)) + measurer.width(text) + 2 * UiMetrics.WIDGET_PADDING, UiMetrics.WIDGET_HEIGHT)
+    override fun contentSize(measurer: TextMeasurer): Size = ButtonStyle.size(size, icon, measurer.width(text))
 
     /**
      * Draws the button, highlighted under the mouse and dimmed when disabled.
@@ -87,20 +97,7 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null, 
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        val tokens = ui.tokens
-        val background = when {
-            !enabled -> ui.disabled(tokens.primary)
-            isOver(mouseX, mouseY) -> ThemeColors.blend(tokens.primary, tokens.background, HOVER_DIM)
-            else -> tokens.primary
-        }
-        ui.fillRounded(bounds, background)
-        ui.clipped(bounds) {
-            val color = if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground)
-            val textWidth = ui.width(text)
-            val groupWidth = iconSpace(icon, textWidth) + textWidth
-            val textX = drawLeadingIcon(ui, icon, bounds.x + (bounds.width - groupWidth) / 2, bounds, color, textWidth)
-            ui.text(text, textX, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
-        }
+        ButtonStyle.draw(ui, bounds, corners, variant, size, text, icon, enabled, isOver(mouseX, mouseY), pressed = false)
     }
 
     /**
@@ -116,7 +113,7 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null, 
         if (!isOver(x, y)) return false
         if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             context.focus(this)
-            context.buttonClicked(this)
+            context.actionTriggered(this, submitsInput)
         }
         return true
     }
@@ -130,7 +127,7 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null, 
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled || !isActivation(event)) return false
-        context.buttonClicked(this)
+        context.actionTriggered(this, submitsInput)
         return true
     }
 
@@ -743,11 +740,6 @@ class IconWidget(id: String, var icon: String, val size: Int, val color: IconCol
  * The opacity of the translucent fill behind inputs, relative to the input token.
  */
 private const val INPUT_FILL_ALPHA: Float = 0.3f
-
-/**
- * How far a hovered button is blended towards the background.
- */
-private const val HOVER_DIM: Float = 0.1f
 
 /**
  * How far a hovered dropdown is blended towards the accent colour.

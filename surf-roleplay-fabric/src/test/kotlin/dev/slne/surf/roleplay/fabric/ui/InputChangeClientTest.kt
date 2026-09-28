@@ -37,7 +37,7 @@ class InputChangeClientTest {
         override fun openDropdown(dropdown: DropdownWidget) = Unit
         override fun closeDropdown() = Unit
         override fun requestLayout() = Unit
-        override fun buttonClicked(button: ButtonWidget) = Unit
+        override fun actionTriggered(widget: Widget, submitsInput: Boolean) = Unit
         override fun valueChanged(widget: Widget, immediate: Boolean) {
             reported += "${widget.id}:$immediate"
         }

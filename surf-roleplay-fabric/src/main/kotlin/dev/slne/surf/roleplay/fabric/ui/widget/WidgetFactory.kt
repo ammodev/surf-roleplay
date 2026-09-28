@@ -1,7 +1,12 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupTextNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
+import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ToggleNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DropdownNode
@@ -45,7 +50,7 @@ object WidgetFactory {
 
             is ScrollListNode -> container(ScrollListWidget(node.id), node.children).apply { gap = node.gap }
             is LabelNode -> LabelWidget(node.id, node.text, node.icon)
-            is ButtonNode -> ButtonWidget(node.id, node.text, node.icon, node.submitsInput).apply { enabled = node.enabled }
+            is ButtonNode -> ButtonWidget(node.id, node.text, node.icon, node.submitsInput, node.variant, node.size).apply { enabled = node.enabled }
             is TextInputNode -> TextInputWidget(
                 node.id,
                 TextEditState(node.value, TextFilter.maxLength(node.maxLength)),
@@ -61,6 +66,12 @@ object WidgetFactory {
             is DropdownNode -> DropdownWidget(node.id, node.options, node.selected, node.required).apply { enabled = node.enabled }
             is ImageNode -> ImageWidget(node.id, node.texture)
             is IconNode -> IconWidget(node.id, node.icon, node.size, node.color)
+            is ButtonGroupNode -> container(ButtonGroupWidget(node.id, node.orientation), node.children)
+            is ButtonGroupTextNode -> ButtonGroupTextWidget(node.id, node.text, node.icon)
+            is ButtonGroupSeparatorNode -> ButtonGroupSeparatorWidget(node.id)
+            is ToggleNode -> ToggleWidget(node.id, node.text, node.icon, node.pressed, node.variant, node.size).apply { enabled = node.enabled }
+            is ToggleGroupNode -> ToggleGroupWidget(node.id, node.items, node.selected, node.multiple, node.variant, node.size, node.spacing, node.orientation, node.required)
+                .apply { enabled = node.enabled }
             is ProgressNode -> ProgressWidget(node.id, node.progress, node.label)
         }
         widget.width = node.width
@@ -70,6 +81,7 @@ object WidgetFactory {
             is NumberInputNode -> node.notifyChange
             is CheckboxNode -> node.notifyChange
             is DropdownNode -> node.notifyChange
+            is ToggleGroupNode -> node.notifyChange
             else -> false
         }
         return widget
