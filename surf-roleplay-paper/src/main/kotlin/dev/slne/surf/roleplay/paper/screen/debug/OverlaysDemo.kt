@@ -52,6 +52,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.menuSubTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.menubar
 import dev.slne.surf.roleplay.api.client.common.screen.menubarMenu
 import dev.slne.surf.roleplay.api.client.common.screen.menubarTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.overlayContainer
 import dev.slne.surf.roleplay.api.client.common.screen.popover
 import dev.slne.surf.roleplay.api.client.common.screen.popoverContent
 import dev.slne.surf.roleplay.api.client.common.screen.popoverDescription
@@ -395,6 +396,23 @@ object OverlaysDemo {
                     }
                 }
             }
+        }
+        row("phone_row", gap = 8) {
+            overlayContainer("phone", ElementSize.fixed(120), ElementSize.fixed(180)) {
+                column("phone_screen", width = ElementSize.grow(), height = ElementSize.grow(), gap = 6, padding = dev.slne.surf.roleplay.api.client.common.screen.Spacing(8, 8, 8, 8), crossAlign = Alignment.STRETCH) {
+                    text("phone_title", Component.text("Handy"), TextKind.LARGE)
+                    drawer("phone_drawer") {
+                        button("phone_drawer_trigger", Component.text("Nachrichten"), submitsInput = false, variant = ButtonVariant.OUTLINE)
+                        drawerContent("phone_drawer_content") {
+                            sheetHeader("phone_drawer_header") {
+                                sheetTitle("phone_drawer_title", Component.text("Neue Nachricht"))
+                                sheetDescription("phone_drawer_description", Component.text("Von: Leitstelle"))
+                            }
+                        }
+                    }
+                }
+            }
+            text("phone_hint", Component.text("Dialoge, Sheets und Drawer bleiben in ihrem Overlay-Container, hier einem Handy."), TextKind.MUTED, width = ElementSize.grow())
         }
         row("drawers_row", gap = 6) {
             listOf(OverlaySide.BOTTOM, OverlaySide.TOP).forEach { side ->
