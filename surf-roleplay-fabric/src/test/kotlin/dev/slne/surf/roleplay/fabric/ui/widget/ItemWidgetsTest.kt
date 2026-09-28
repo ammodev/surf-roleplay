@@ -184,4 +184,27 @@ class ItemWidgetsTest {
         assertEquals(200, WidgetTree.find(group, "a")!!.bounds.width)
         assertEquals(200, WidgetTree.find(group, "b")!!.bounds.width)
     }
+
+    /**
+     * Verifies that an item measured at a width is as tall as its laid-out content, with a
+     * description that wraps beside an action.
+     */
+    @Test
+    fun `measured item fits its wrapped description`() {
+        val node = ItemNode(
+            "item",
+            children = listOf(
+                ItemContentNode("content", children = listOf(TextNode("description", kind = TextKind.ITEM_DESCRIPTION, text = "aa bb cc dd ee ff gg hh ii jj"))),
+                ItemActionsNode("actions", children = listOf(ButtonNode("open", text = "Open"))),
+            ),
+        )
+        val widget = WidgetFactory.create(node)
+        val layout = widget.createLayout(measurer)
+        val measured = FlexLayout.measure(layout, 120)
+        FlexLayout.layout(layout, Rect(0, 0, 120, measured.height))
+        widget.applyLayout()
+
+        val description = WidgetTree.find(widget, "description")!!.bounds
+        assertEquals(measured.height - ItemWidget.padding(ItemSize.DEFAULT).bottom, description.bottom)
+    }
 }

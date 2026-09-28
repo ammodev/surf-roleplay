@@ -5,6 +5,9 @@ import dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.fabric.ui.widget.FieldTextWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.LabelWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.TextListWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.TextWidget
+import dev.slne.surf.roleplay.protocol.screen.TextKind
 import dev.slne.surf.roleplay.protocol.screen.FieldTextKind
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -104,5 +107,17 @@ class TextWrapTest {
 
         assertEquals(Size(25, 3 * 9 + 2 * TextBlock.LINE_GAP), FlexLayout.measure(description.createLayout(measurer), 25))
         assertEquals(Size.ZERO, FlexLayout.measure(error.createLayout(measurer), 25))
+    }
+
+    /**
+     * Verifies that wrapping texts report their longest word as their narrowest width, including
+     * padding, icons and the scale of headings.
+     */
+    @Test
+    fun `wrapping texts report their longest word as narrowest width`() {
+        assertEquals(20, LabelWidget("l", "aa bbbb cc").createLayout(measurer).minWidth)
+        assertEquals(20, FieldTextWidget("d", FieldTextKind.DESCRIPTION, "aa bbbb cc", null).createLayout(measurer).minWidth)
+        assertEquals(40, TextWidget("h", TextKind.H1, "\"aa bbbb cc\"").createLayout(measurer).minWidth)
+        assertEquals(TextListWidget.INDENT + 20, TextListWidget("list", listOf("aa bbbb", "cc"), false).createLayout(measurer).minWidth)
     }
 }

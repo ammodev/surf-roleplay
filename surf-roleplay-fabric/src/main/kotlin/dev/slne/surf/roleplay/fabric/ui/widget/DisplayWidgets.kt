@@ -144,7 +144,10 @@ class TextWidget(id: String, val kind: TextKind, var text: String, val maxLines:
      * @param measurer the text measurer
      * @return the layout box
      */
-    override fun createLayout(measurer: TextMeasurer): LayoutBox = wrappingLayout(measurer) { wrappedSize(measurer, it) }
+    override fun createLayout(measurer: TextMeasurer): LayoutBox {
+        val word = ceil(measurer.longestWordWidth(styledText) * style.scale).toInt() + style.padding.left + style.padding.right
+        return wrappingLayout(measurer, word) { wrappedSize(measurer, it) }
+    }
 
     /**
      * Computes the size of the text wrapped to a width, with the style's scale and padding.
@@ -226,7 +229,8 @@ class TextListWidget(id: String, val items: List<String>, val ordered: Boolean) 
      * @param measurer the text measurer
      * @return the layout box
      */
-    override fun createLayout(measurer: TextMeasurer): LayoutBox = wrappingLayout(measurer) { wrappedSize(measurer, it) }
+    override fun createLayout(measurer: TextMeasurer): LayoutBox =
+        wrappingLayout(measurer, INDENT + (items.maxOfOrNull { measurer.longestWordWidth(it) } ?: 0)) { wrappedSize(measurer, it) }
 
     /**
      * Computes the size of the list with its items wrapped beside the indent.

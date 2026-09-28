@@ -129,4 +129,61 @@ class WrappingLayoutTest {
 
         assertEquals(Rect(70, 0, 70, 10), b.bounds)
     }
+
+    /**
+     * Verifies that measuring a row gives a growing text the width layout gives it, so that the
+     * measured height is the laid-out height.
+     */
+    @Test
+    fun `measured row height matches the laid-out growing text`() {
+        val fixed = LayoutBox(width = Sizing.fixed(40), height = Sizing.fixed(10))
+        val text = text(5, width = Sizing.grow())
+        val row = LayoutBox(axis = Axis.HORIZONTAL, children = listOf(fixed, text))
+
+        assertEquals(20, FlexLayout.measure(row, 100).height)
+    }
+
+    /**
+     * Verifies that a growing sibling does not make a fitting text shrink while measuring, since
+     * layout gives the growing sibling only what the text leaves.
+     */
+    @Test
+    fun `growing sibling does not shrink a fitting text`() {
+        val text = text(3)
+        val grow = LayoutBox(width = Sizing.grow(), content = Size(50, 10))
+        val row = LayoutBox(axis = Axis.HORIZONTAL, children = listOf(text, grow))
+
+        assertEquals(10, FlexLayout.measure(row, 100).height)
+    }
+
+    /**
+     * Verifies that a row does not shrink a text below its narrowest width, its longest word, and
+     * takes the shrink from a text that can give it.
+     */
+    @Test
+    fun `row shrinks texts no further than their longest word`() {
+        val word = LayoutBox(
+            measureContent = { limit -> if (limit >= 60) Size(60, 10) else Size(limit.coerceAtLeast(5), 10 * ((60 + limit - 1) / limit.coerceAtLeast(1))) },
+            minWidth = 60,
+        )
+        val sentence = text(10)
+        val row = LayoutBox(axis = Axis.HORIZONTAL, children = listOf(word, sentence))
+
+        FlexLayout.layout(row, Rect(0, 0, 100, 100))
+
+        assertEquals(60, word.bounds.width)
+        assertEquals(40, sentence.bounds.width)
+    }
+
+    /**
+     * Verifies that a box can be measured at exactly a width, ignoring its own fixed width, as
+     * when a fixed root is laid out narrower than it asks for.
+     */
+    @Test
+    fun `fixed box measured at a smaller width wraps its texts`() {
+        val column = LayoutBox(width = Sizing.fixed(200), axis = Axis.VERTICAL, children = listOf(text(10)))
+
+        assertEquals(Size(200, 10), FlexLayout.measure(column))
+        assertEquals(Size(100, 20), FlexLayout.measureAt(column, 100))
+    }
 }

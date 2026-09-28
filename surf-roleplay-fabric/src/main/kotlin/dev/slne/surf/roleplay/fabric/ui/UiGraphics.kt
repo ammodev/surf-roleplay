@@ -69,6 +69,16 @@ interface TextMeasurer {
      */
     fun lineWidths(json: String, maxWidth: Int): List<Int> =
         TextWrap.lines(PlainText.of(json), maxWidth, ::plainWidth).map(::plainWidth)
+
+    /**
+     * Measures the widest word of a text given as component JSON, which is the narrowest width
+     * the text can wrap to without breaking a word.
+     *
+     * @param json the component JSON
+     * @return the width of the widest word
+     */
+    fun longestWordWidth(json: String): Int =
+        PlainText.of(json).split(' ', '\n').maxOfOrNull(::plainWidth) ?: 0
 }
 
 /**
@@ -107,6 +117,18 @@ class FontTextMeasurer(private val font: Font) : TextMeasurer {
      */
     override fun lineWidths(json: String, maxWidth: Int): List<Int> =
         font.splitIgnoringLanguage(ScreenText.parse(json), maxWidth.coerceAtLeast(1)).map { font.width(it) }.ifEmpty { listOf(0) }
+
+    /**
+     * Measures the widest word of a text with the font, in the text's outer style.
+     *
+     * @param json the component JSON
+     * @return the width of the widest word
+     */
+    override fun longestWordWidth(json: String): Int {
+        val component = ScreenText.parse(json)
+        val style = component.style
+        return component.string.split(' ', '\n').maxOfOrNull { font.width(FormattedText.of(it, style)) } ?: 0
+    }
 }
 
 /**

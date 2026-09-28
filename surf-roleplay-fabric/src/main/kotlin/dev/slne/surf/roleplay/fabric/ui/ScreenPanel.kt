@@ -246,7 +246,7 @@ class ScreenPanel(
             horizontalSheet || root.width.mode == SizeMode.GROW -> maxWidth
             else -> FlexLayout.measure(box, maxWidth).width.coerceAtMost(maxWidth)
         }
-        val contentHeight = PanelSizing.contentHeight(root.height.mode, FlexLayout.measure(box, contentWidth).height, maxHeight)
+        val contentHeight = PanelSizing.contentHeight(root.height.mode, FlexLayout.measureAt(box, contentWidth).height, maxHeight)
         val viewportHeight = if (verticalSheet) maxHeight else contentHeight.coerceAtMost(maxHeight)
         scroll.update(contentHeight, viewportHeight)
 

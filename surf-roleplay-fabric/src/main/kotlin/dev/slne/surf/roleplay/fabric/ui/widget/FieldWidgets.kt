@@ -182,7 +182,8 @@ class FieldTextWidget(id: String, val kind: FieldTextKind, var text: String, val
      * @param measurer the text measurer
      * @return the layout box
      */
-    override fun createLayout(measurer: TextMeasurer): LayoutBox = wrappingLayout(measurer) { wrappedSize(measurer, it) }
+    override fun createLayout(measurer: TextMeasurer): LayoutBox =
+        wrappingLayout(measurer, if (shown) measurer.longestWordWidth(text) else 0) { wrappedSize(measurer, it) }
 
     /**
      * Computes the size of the text wrapped to a width, or nothing for an empty error.

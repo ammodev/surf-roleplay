@@ -58,7 +58,8 @@ class LabelWidget(id: String, var text: String = "", var icon: String? = null, v
      * @param measurer the text measurer
      * @return the layout box
      */
-    override fun createLayout(measurer: TextMeasurer): LayoutBox = wrappingLayout(measurer) { wrappedSize(measurer, it) }
+    override fun createLayout(measurer: TextMeasurer): LayoutBox =
+        wrappingLayout(measurer, iconSpace(icon, measurer.width(text)) + measurer.longestWordWidth(text)) { wrappedSize(measurer, it) }
 
     /**
      * Computes the size of the icon and the text wrapped to a width.
