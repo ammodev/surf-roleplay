@@ -301,7 +301,8 @@ sealed interface ScreenChange {
 
     /**
      * Replaces the options of a combobox, keeping its selection and the query the player typed.
-     * Selected options missing from the new groups are kept in an extra group at the end.
+     * The player's client keeps showing selected options that are missing from the new groups, and
+     * the server keeps accepting every option it offered before.
      *
      * @property targetId the id of the combobox
      * @property groups the new option groups

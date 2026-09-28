@@ -121,8 +121,9 @@ class ServerScreenTree(root: ScreenElement) {
         ElementRules.input(element)?.withValue?.invoke(element, value)
 
     /**
-     * Returns a combobox with new options. Selected options missing from the new groups are kept
-     * in an extra group without heading at the end, so that the selection stays valid.
+     * Returns a combobox with new options. Options offered before and missing from the new groups
+     * are kept in an extra group without heading at the end, so that an option the player chose
+     * from an earlier result stays valid.
      *
      * @param combobox the combobox
      * @param groups the new option groups
@@ -130,7 +131,7 @@ class ServerScreenTree(root: ScreenElement) {
      */
     private fun withOptions(combobox: ComboboxElement, groups: List<SelectChoiceGroup>): ComboboxElement? {
         val present = groups.flatMap { group -> group.options.map { it.value } }.toSet()
-        val kept = combobox.groups.flatMap { it.options }.filter { it.value in combobox.selected && it.value !in present }
+        val kept = combobox.groups.flatMap { it.options }.filter { it.value !in present }
         val merged = if (kept.isEmpty()) groups else groups + SelectChoiceGroup(null, kept)
         return runCatching { combobox.copy(groups = merged) }.getOrNull()
     }

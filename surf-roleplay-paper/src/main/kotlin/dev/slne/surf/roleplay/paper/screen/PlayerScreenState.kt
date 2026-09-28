@@ -342,7 +342,7 @@ class PlayerScreenState(
         val rule = ElementRules.input(element) ?: return Outcome.Rejected("widget ${ScreenActionValidator.display(id)} is not an input")
         val handler = rule.onChange(element) ?: return Outcome.Rejected("input ${ScreenActionValidator.display(id)} does not report changes")
         if (!ElementRules.isEnabled(element)) return Outcome.Rejected("input ${ScreenActionValidator.display(id)} is disabled")
-        rule.violation(element, packet.value)?.let { return Outcome.Rejected("input ${ScreenActionValidator.display(id)}: $it") }
+        rule.violation(element, packet.value)?.let { return Outcome.Rejected("input ${ScreenActionValidator.display(id)}: $it", suspicious = false) }
         session.tree.storeValues(mapOf(id to packet.value))
         val values = session.tree.elements().mapNotNull { e -> ElementRules.input(e)?.current?.invoke(e)?.let { e.id to it } }.toMap()
         runHandler("change of '$id'") { handler.onChange(ScreenInputChange(session, id, packet.value, ScreenValues(values))) }
@@ -470,12 +470,6 @@ class PlayerScreenState(
         val tree = ServerScreenTree(definition.root)
 
         /**
-         * Applies changes to the server's tree and sends the ones that applied to the client.
-         * Changes that do not apply are logged.
-         *
-         * @param changes the builder of the changes
-         */
-        /**
          * Shows input errors: every field shows the error of its first input that has one, or
          * none, and is marked invalid accordingly; every input is marked invalid exactly when it
          * has an error.
@@ -495,6 +489,12 @@ class PlayerScreenState(
             }
         }
 
+        /**
+         * Applies changes to the server's tree and sends the ones that applied to the client.
+         * Changes that do not apply are logged.
+         *
+         * @param changes the builder of the changes
+         */
         override fun patch(changes: ScreenPatchBuilder.() -> Unit) {
             threadCheck()
             if (!isOpen) return

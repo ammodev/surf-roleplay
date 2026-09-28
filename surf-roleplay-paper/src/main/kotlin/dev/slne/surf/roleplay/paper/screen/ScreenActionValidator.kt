@@ -67,6 +67,13 @@ object ScreenActionValidator {
             }
             values[id] = value.value
         }
+        if (action.submitsInput) {
+            for (element in tree.elements()) {
+                val rule = ElementRules.input(element) ?: continue
+                if (!ElementRules.isEnabled(element)) continue
+                rule.violation(element, values.getValue(element.id))?.let { return Result.Rejected("input ${display(element.id)}: $it") }
+            }
+        }
         return Result.Accepted(values)
     }
 

@@ -145,6 +145,11 @@ object ElementRules {
     }
 
     /**
+     * The largest number of characters of a text input or textarea without its own limit.
+     */
+    const val MAX_TEXT_LENGTH: Int = 4096
+
+    /**
      * The shape of an email address: a local part, an at sign, and a domain with a dot, without
      * whitespace.
      */
@@ -154,12 +159,12 @@ object ElementRules {
      * Checks a text value against a length limit and required.
      *
      * @param value the text
-     * @param maxLength the maximum number of characters, or `null` for no limit
+     * @param maxLength the maximum number of characters, or `null` for [MAX_TEXT_LENGTH]
      * @param required whether an empty value is invalid
      * @return a description of the violated constraint, or `null` if the value is valid
      */
     fun textViolation(value: String, maxLength: Int?, required: Boolean): String? = when {
-        maxLength != null && value.length > maxLength -> "value is too long"
+        value.length > (maxLength ?: MAX_TEXT_LENGTH) -> "value is too long"
         required && value.isEmpty() -> "value is required"
         else -> null
     }
