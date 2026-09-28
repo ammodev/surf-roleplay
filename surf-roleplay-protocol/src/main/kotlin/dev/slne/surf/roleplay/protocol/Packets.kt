@@ -1,6 +1,7 @@
 package dev.slne.surf.roleplay.protocol
 
 import dev.slne.surf.roleplay.protocol.packets.ClientHello
+import dev.slne.surf.roleplay.protocol.packets.Welcome
 
 /**
  * The registry of every [PacketType] of the roleplay protocol.
@@ -19,9 +20,20 @@ object Packets {
     )
 
     /**
+     * The welcome the server sends once the player is in the world, which marks the server as the
+     * roleplay server for the client mod.
+     */
+    val WELCOME: PacketType<Welcome> = PacketType(
+        "welcome",
+        PacketDirection.CLIENTBOUND,
+        setOf(ConnectionPhase.PLAY),
+        Welcome.serializer(),
+    )
+
+    /**
      * Every packet type of the protocol.
      */
-    val all: List<PacketType<*>> = listOf(HELLO)
+    val all: List<PacketType<*>> = listOf(HELLO, WELCOME)
 
     /**
      * The packet types keyed by their channel id.

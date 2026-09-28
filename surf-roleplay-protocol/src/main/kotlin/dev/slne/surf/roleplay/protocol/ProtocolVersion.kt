@@ -5,7 +5,7 @@ package dev.slne.surf.roleplay.protocol
  *
  * A client and a server can talk to each other only if both report the same version.
  */
-const val PROTOCOL_VERSION: Int = 1
+const val PROTOCOL_VERSION: Int = 2
 
 /**
  * The namespace of every payload channel of the roleplay protocol.
