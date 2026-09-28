@@ -9,7 +9,8 @@ import dev.slne.surf.roleplay.protocol.screen.InputValue
  * submitted value belongs to an input of the tree, is submitted once and keeps its value if the
  * input is disabled. For a button that submits input, every value must also satisfy its input's
  * constraints. For a button that does not, values that break their constraints are ignored and
- * their inputs keep their current value.
+ * their inputs keep their current value, except the value of the clicked widget itself, such as a
+ * toggle's new state, which must always satisfy its constraints.
  */
 object ScreenActionValidator {
 
@@ -62,7 +63,7 @@ object ScreenActionValidator {
             }
             val violation = ElementRules.input(element)!!.violation(element, value.value)
             if (violation != null) {
-                if (action.submitsInput) return Result.Rejected("input ${display(id)}: $violation")
+                if (action.submitsInput || id == widgetId) return Result.Rejected("input ${display(id)}: $violation")
                 continue
             }
             values[id] = value.value
