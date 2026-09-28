@@ -3,6 +3,9 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.CalendarElement
+import dev.slne.surf.roleplay.protocol.screen.CalendarNode
+import dev.slne.surf.roleplay.protocol.screen.CalendarValues
 import dev.slne.surf.roleplay.api.client.common.screen.RadioGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.SliderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
@@ -172,6 +175,12 @@ object ScreenMapper {
             is TextareaElement -> TextareaNode(
                 element.id, width, height, element.value, text(element.placeholder), element.rows, element.maxLength, element.required,
                 element.enabled, element.onChange != null,
+            )
+
+            is CalendarElement -> CalendarNode(
+                element.id, width, height, enumOf(element.mode), CalendarValues.format(enumOf(element.mode), element.selected), element.month?.toString(),
+                element.min?.toString(), element.max?.toString(), element.disabled.sorted().map { it.toString() }, element.showOutsideDays,
+                enumOf(element.captionLayout), element.required, element.enabled, element.onChange != null,
             )
 
             is SwitchElement -> SwitchNode(element.id, width, height, element.checked, enumOf(element.size), element.enabled, element.onChange != null)

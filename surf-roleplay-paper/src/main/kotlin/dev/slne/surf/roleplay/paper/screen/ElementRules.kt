@@ -16,6 +16,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.CalendarElement
+import dev.slne.surf.roleplay.protocol.screen.CalendarValues
+import dev.slne.surf.roleplay.protocol.screen.CalendarMode as NodeCalendarMode
 import dev.slne.surf.roleplay.api.client.common.screen.RadioGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.SliderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
@@ -233,6 +236,30 @@ object ElementRules {
     }
 
     /**
+     * Returns the protocol mode of a calendar.
+     *
+     * @param calendar the calendar
+     * @return the mode with the same name
+     */
+    private fun modeOf(calendar: CalendarElement): NodeCalendarMode = NodeCalendarMode.valueOf(calendar.mode.name)
+
+    /**
+     * Checks the dates a calendar would have selected: the mode's value form, every date within
+     * the limits, no newly selected disabled date, and at least one date if required.
+     *
+     * @param calendar the calendar
+     * @param value the value in the calendar's value form
+     * @return a description of the violated constraint, or `null` if the value is valid
+     */
+    private fun calendarViolation(calendar: CalendarElement, value: String): String? {
+        val dates = CalendarValues.parse(modeOf(calendar), value) ?: return "value is not a date selection"
+        if (calendar.required && dates.isEmpty()) return "value is required"
+        if (dates.any { calendar.min != null && it.isBefore(calendar.min) || calendar.max != null && it.isAfter(calendar.max) }) return "a date is out of range"
+        if (dates.any { it in calendar.disabled && it !in calendar.selected }) return "a disabled date was selected"
+        return null
+    }
+
+    /**
      * Splits a comma-separated list value into its non-empty parts.
      *
      * @param value the list value
@@ -344,6 +371,19 @@ object ElementRules {
                     current = { it.value },
                     violation = { e, v -> otpViolation(e, v) },
                     withValue = { e, v -> if (otpViolation(e.copy(required = false), v) == null) e.copy(value = v) else null },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            CalendarElement::class,
+            ElementRule(
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { e -> CalendarValues.format(modeOf(e), e.selected) },
+                    violation = { e, v -> calendarViolation(e, v) },
+                    withValue = { e, v -> CalendarValues.parse(modeOf(e), v)?.let { runCatching { e.copy(selected = it) }.getOrNull() } },
                     onChange = { it.onChange },
                 ),
             ),

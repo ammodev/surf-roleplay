@@ -1,6 +1,7 @@
 package dev.slne.surf.roleplay.api.client.common.screen
 
 import net.kyori.adventure.text.Component
+import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -111,7 +112,8 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
  * @property all the values in their string form: text for text inputs, a decimal number or an
  *           empty string for number inputs, `true` or `false` for checkboxes, switches and
  *           toggles, the option value or an empty string for selects, native selects and radio
- *           groups, and comma-separated values for comboboxes, toggle groups and sliders
+ *           groups, comma-separated values for comboboxes, toggle groups and sliders, and
+ *           ISO dates for calendars
  */
 class ScreenValues(val all: Map<String, String>) {
 
@@ -146,6 +148,15 @@ class ScreenValues(val all: Map<String, String>) {
      * @return the values in ascending order, or `null` if the screen has no such slider
      */
     fun numbers(id: String): List<Double>? = all[id]?.split(',')?.mapNotNull { it.trim().toDoubleOrNull() }
+
+    /**
+     * Returns the selected dates of a calendar.
+     *
+     * @param id the calendar id
+     * @return the dates in ascending order, a range as its first and last date, or `null` if the
+     *         screen has no such calendar
+     */
+    fun dates(id: String): List<LocalDate>? = all[id]?.split(',', '/')?.mapNotNull { runCatching { LocalDate.parse(it.trim()) }.getOrNull() }
 
     /**
      * Returns the selected option of a select, native select, radio group or single combobox.
