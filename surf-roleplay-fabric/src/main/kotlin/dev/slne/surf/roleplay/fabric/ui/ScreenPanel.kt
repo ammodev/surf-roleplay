@@ -232,7 +232,6 @@ class ScreenPanel(
         layoutPending = false
         val measurer = FontTextMeasurer(font).also { this.measurer = it }
         val box = root.createLayout(measurer)
-        val preferred = FlexLayout.measure(box)
         val chromeX = 2 * UiMetrics.PANEL_PADDING
         val chromeY = 2 * UiMetrics.PANEL_PADDING + UiMetrics.TITLE_BAR_HEIGHT
         val sheet = style.presentation == Presentation.SHEET
@@ -245,9 +244,9 @@ class ScreenPanel(
         val titleWidth = font.width(ScreenText.parse(titleJson)) + chromeX
         val contentWidth = when {
             horizontalSheet || root.width.mode == SizeMode.GROW -> maxWidth
-            else -> preferred.width.coerceAtMost(maxWidth)
+            else -> FlexLayout.measure(box, maxWidth).width.coerceAtMost(maxWidth)
         }
-        val contentHeight = PanelSizing.contentHeight(root.height.mode, preferred.height, maxHeight)
+        val contentHeight = PanelSizing.contentHeight(root.height.mode, FlexLayout.measure(box, contentWidth).height, maxHeight)
         val viewportHeight = if (verticalSheet) maxHeight else contentHeight.coerceAtMost(maxHeight)
         scroll.update(contentHeight, viewportHeight)
 

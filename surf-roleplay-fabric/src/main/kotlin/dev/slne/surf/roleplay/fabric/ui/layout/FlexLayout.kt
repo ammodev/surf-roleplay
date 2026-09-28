@@ -102,6 +102,9 @@ enum class Axis {
  * @property crossAlign how a container places its children across its axis
  * @property scrolls whether a container's children may extend beyond it along its axis, to be
  *           scrolled into view
+ * @property measureContent computes the size a leaf's content needs when it may be at most the
+ *           given width wide, for content such as wrapping text; `null` uses [content] at every
+ *           width
  */
 class LayoutBox(
     val width: Sizing = Sizing.FIT,
@@ -114,7 +117,13 @@ class LayoutBox(
     val mainAlign: Align = Align.START,
     val crossAlign: Align = Align.START,
     val scrolls: Boolean = false,
+    val measureContent: ((Int) -> Size)? = null,
 ) {
+    /**
+     * The sizes measured for this box, keyed by the width that was available.
+     */
+    internal val measured: MutableMap<Int, Size> = HashMap(4)
+
     /**
      * The area the box was laid out in.
      */
@@ -132,13 +141,21 @@ class LayoutBox(
 /**
  * Computes the positions and sizes of a tree of [LayoutBox]es.
  *
- * Along a container's axis, children with a fixed or fitting size get that size, and growing
- * children share what is left by weight. Children that do not fit keep their size and overflow
- * the container. Across the axis, growing children and children of a stretching container fill
- * the container; other children keep their size, clamped to the container when they fit their
- * content.
+ * Sizes are computed height-for-width: a container passes the width it can give to its children
+ * when it measures them, so that wrapping content grows taller in narrow containers. Along a
+ * container's axis, children with a fixed or fitting size get that size, and growing children
+ * share what is left by weight. In a row, children whose content wraps shrink towards their
+ * narrowest width before the row overflows; children that still do not fit keep their size and
+ * overflow the container. Across the axis, growing children and children of a stretching
+ * container fill the container; other children keep their size, clamped to the container when
+ * they fit their content.
  */
 object FlexLayout {
+
+    /**
+     * The width available to a box that has no width limit.
+     */
+    const val UNBOUNDED: Int = Int.MAX_VALUE / 4
 
     /**
      * Lays out a root box within an area, sized by its own sizing and centered in the area. The
@@ -159,9 +176,8 @@ object FlexLayout {
      * @param area the area to lay the root out in
      */
     fun layoutRoot(root: LayoutBox, area: Rect) {
-        val preferred = measure(root)
-        val width = resolveRoot(root.width, preferred.width, area.width)
-        val height = resolveRoot(root.height, preferred.height, area.height)
+        val width = resolveRoot(root.width, measure(root, area.width).width, area.width)
+        val height = resolveRoot(root.height, measure(root, width).height, area.height)
         layout(root, Rect(area.x + (area.width - width) / 2, area.y + (area.height - height) / 2, width, height))
     }
 
@@ -187,20 +203,22 @@ object FlexLayout {
 
         val children = box.children
         val gaps = box.gap * (children.size - 1).coerceAtLeast(0)
-        val preferred = children.map { measure(it) }
-        val mainSizes = IntArray(children.size)
-        var fixedTotal = 0
-        var weightTotal = 0
-        children.forEachIndexed { index, child ->
-            val sizing = child.sizing(axis)
-            if (sizing.mode == SizeMode.GROW && !box.scrolls) {
-                weightTotal += sizing.value.coerceAtLeast(1)
-            } else {
-                mainSizes[index] = preferred[index].along(axis)
-                fixedTotal += mainSizes[index]
+        val crossSizes = IntArray(children.size)
+        val mainSizes = if (axis == Axis.HORIZONTAL) {
+            rowWidths(box, innerMain)
+        } else {
+            IntArray(children.size) { index ->
+                val child = children[index]
+                crossSizes[index] = crossSize(box, child, measure(child, innerCross).width, innerCross)
+                if (growsAlong(box, child, axis)) 0 else measure(child, crossSizes[index]).height
             }
         }
 
+        var fixedTotal = 0
+        var weightTotal = 0
+        children.forEachIndexed { index, child ->
+            if (growsAlong(box, child, axis)) weightTotal += child.sizing(axis).value.coerceAtLeast(1) else fixedTotal += mainSizes[index]
+        }
         val remaining = (innerMain - gaps - fixedTotal).coerceAtLeast(0)
         if (weightTotal > 0) distributeGrowth(box, axis, remaining, weightTotal, mainSizes)
 
@@ -213,19 +231,13 @@ object FlexLayout {
         }
 
         children.forEachIndexed { index, child ->
-            val crossSizing = child.sizing(axis.other())
-            val preferredCross = preferred[index].along(axis.other())
-            val crossSize = when {
-                crossSizing.mode == SizeMode.GROW || box.crossAlign == Align.STRETCH -> innerCross
-                crossSizing.mode == SizeMode.FIXED -> crossSizing.value
-                else -> preferredCross.coerceAtMost(innerCross)
-            }
+            val mainSize = mainSizes[index]
+            val crossSize = if (axis == Axis.HORIZONTAL) crossSize(box, child, measure(child, mainSize).height, innerCross) else crossSizes[index]
             val crossOffset = when (box.crossAlign) {
                 Align.CENTER -> (innerCross - crossSize) / 2
                 Align.END -> innerCross - crossSize
                 Align.START, Align.STRETCH -> 0
             }
-            val mainSize = mainSizes[index]
             val childArea = if (axis == Axis.HORIZONTAL) {
                 Rect(cursor, innerCrossStart + crossOffset, mainSize, crossSize)
             } else {
@@ -240,38 +252,118 @@ object FlexLayout {
     }
 
     /**
-     * Computes the size a box prefers: its fixed size, or the size its content or children need.
-     * A growing box prefers the size its content needs.
+     * Computes the size a box prefers when it may be at most a given width wide: its fixed size,
+     * or the size its content or children need. A growing box prefers the size its content needs.
+     * Content that cannot become narrower may still exceed the width.
      *
      * @param box the box
+     * @param maxWidth the width available to the box
      * @return the preferred size
      */
-    fun measure(box: LayoutBox): Size {
-        val natural = naturalSize(box)
-        return Size(
+    fun measure(box: LayoutBox, maxWidth: Int = UNBOUNDED): Size {
+        val limit = if (box.width.mode == SizeMode.FIXED) box.width.value else maxWidth.coerceIn(0, UNBOUNDED)
+        box.measured[limit]?.let { return it }
+        val natural = naturalSize(box, limit)
+        val size = Size(
             if (box.width.mode == SizeMode.FIXED) box.width.value else natural.width,
             if (box.height.mode == SizeMode.FIXED) box.height.value else natural.height,
         )
+        box.measured[limit] = size
+        return size
     }
 
     /**
-     * Computes the size a box's content or children need, ignoring its own sizing.
+     * Computes the size a box's content or children need at a width, ignoring its own sizing.
      *
      * @param box the box
+     * @param limit the width available to the box
      * @return the size of a leaf's content, or of a container's children with gaps and padding
      */
-    private fun naturalSize(box: LayoutBox): Size {
-        val axis = box.axis ?: return box.content
-        val sizes = box.children.map { measure(it) }
-        val main = sizes.sumOf { it.along(axis) } + box.gap * (sizes.size - 1).coerceAtLeast(0)
-        val cross = sizes.maxOfOrNull { it.along(axis.other()) } ?: 0
+    private fun naturalSize(box: LayoutBox, limit: Int): Size {
+        val axis = box.axis ?: return box.measureContent?.invoke(limit) ?: box.content
         val padding = box.padding
+        val paddingX = padding.left + padding.right
+        val paddingY = padding.top + padding.bottom
+        val inner = if (limit >= UNBOUNDED) UNBOUNDED else (limit - paddingX).coerceAtLeast(0)
+        val gaps = box.gap * (box.children.size - 1).coerceAtLeast(0)
         return if (axis == Axis.HORIZONTAL) {
-            Size(main + padding.left + padding.right, cross + padding.top + padding.bottom)
+            val widths = rowWidths(box, inner, measuring = true)
+            val height = box.children.indices.maxOfOrNull { measure(box.children[it], widths[it]).height } ?: 0
+            Size(widths.sum() + gaps + paddingX, height + paddingY)
         } else {
-            Size(cross + padding.left + padding.right, main + padding.top + padding.bottom)
+            val sizes = box.children.map { measure(it, inner) }
+            Size((sizes.maxOfOrNull { it.width } ?: 0) + paddingX, sizes.sumOf { it.height } + gaps + paddingY)
         }
     }
+
+    /**
+     * Computes the widths of a row's children. Every child gets the width it prefers within the
+     * row; if they do not fit, fitting children whose content can become narrower shrink in
+     * proportion to how much they can shrink, down to their narrowest width. While laying out,
+     * growing children get no width here, since they share the rest afterwards.
+     *
+     * @param box the row
+     * @param inner the width inside the row's padding
+     * @param measuring whether the row is being measured, in which case growing children count
+     *        with their preferred width
+     * @return the widths of the children
+     */
+    private fun rowWidths(box: LayoutBox, inner: Int, measuring: Boolean = false): IntArray {
+        val children = box.children
+        val widths = IntArray(children.size)
+        val shrinkable = IntArray(children.size)
+        children.forEachIndexed { index, child ->
+            if (!measuring && growsAlong(box, child, Axis.HORIZONTAL)) return@forEachIndexed
+            widths[index] = measure(child, inner).width
+            if (child.width.mode == SizeMode.FIT && inner < UNBOUNDED) {
+                shrinkable[index] = (widths[index] - measure(child, 0).width).coerceAtLeast(0)
+            }
+        }
+        if (inner >= UNBOUNDED || box.scrolls) return widths
+        val gaps = box.gap * (children.size - 1).coerceAtLeast(0)
+        val overflow = widths.sum() + gaps - inner
+        val shrinkTotal = shrinkable.sum()
+        if (overflow <= 0 || shrinkTotal == 0) return widths
+        val shrinkBy = overflow.coerceAtMost(shrinkTotal)
+        var taken = 0
+        val last = shrinkable.indexOfLast { it > 0 }
+        children.indices.forEach { index ->
+            if (shrinkable[index] == 0) return@forEach
+            val share = if (index == last) shrinkBy - taken else (shrinkBy.toLong() * shrinkable[index] / shrinkTotal).toInt()
+            widths[index] -= share
+            taken += share
+        }
+        return widths
+    }
+
+    /**
+     * Returns the size of a child across its container's axis.
+     *
+     * @param box the container
+     * @param child the child
+     * @param preferred the child's preferred size across the axis
+     * @param innerCross the size inside the container across the axis
+     * @return the child's cross size
+     */
+    private fun crossSize(box: LayoutBox, child: LayoutBox, preferred: Int, innerCross: Int): Int {
+        val axis = box.axis ?: return preferred
+        val sizing = child.sizing(axis.other())
+        return when {
+            sizing.mode == SizeMode.GROW || box.crossAlign == Align.STRETCH -> innerCross
+            sizing.mode == SizeMode.FIXED -> sizing.value
+            else -> preferred.coerceAtMost(innerCross)
+        }
+    }
+
+    /**
+     * Returns whether a child grows along its container's axis.
+     *
+     * @param box the container
+     * @param child the child
+     * @param axis the container's axis
+     * @return whether the child shares the container's remaining space
+     */
+    private fun growsAlong(box: LayoutBox, child: LayoutBox, axis: Axis): Boolean = child.sizing(axis).mode == SizeMode.GROW && !box.scrolls
 
     /**
      * Shares space among a container's growing children by weight. The rounding leftover goes to
@@ -313,14 +405,6 @@ object FlexLayout {
      * @return the width sizing for [Axis.HORIZONTAL], the height sizing otherwise
      */
     private fun LayoutBox.sizing(axis: Axis): Sizing = if (axis == Axis.HORIZONTAL) width else height
-
-    /**
-     * Returns this size's extent along an axis.
-     *
-     * @param axis the axis
-     * @return the width for [Axis.HORIZONTAL], the height otherwise
-     */
-    private fun Size.along(axis: Axis): Int = if (axis == Axis.HORIZONTAL) width else height
 
     /**
      * Returns the axis perpendicular to this one.
