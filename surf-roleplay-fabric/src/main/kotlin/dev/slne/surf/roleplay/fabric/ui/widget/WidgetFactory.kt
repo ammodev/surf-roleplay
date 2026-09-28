@@ -5,6 +5,8 @@ import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupSeparatorNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupTextNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
+import dev.slne.surf.roleplay.protocol.screen.CalendarNode
+import dev.slne.surf.roleplay.protocol.screen.CalendarValues
 import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ToggleNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
@@ -88,6 +90,11 @@ object WidgetFactory {
             is ToggleGroupNode -> ToggleGroupWidget(node.id, node.items, node.selected, node.multiple, node.variant, node.size, node.spacing, node.orientation, node.required)
                 .apply { enabled = node.enabled }
             is ProgressNode -> ProgressWidget(node.id, node.progress, node.label)
+            is CalendarNode -> CalendarWidget(
+                node.id, node.mode, CalendarValues.parse(node.mode, node.value).orEmpty(), node.month?.let(CalendarValues::month),
+                node.min?.let(CalendarValues::date), node.max?.let(CalendarValues::date), node.disabled.mapNotNull(CalendarValues::date).toSet(),
+                node.showOutsideDays, node.captionLayout, node.required,
+            ).apply { enabled = node.enabled }
             is SwitchNode -> SwitchWidget(node.id, node.checked, node.size).apply { enabled = node.enabled }
             is RadioGroupNode -> RadioGroupWidget(node.id, node.options, node.selected, node.orientation, node.required).apply { enabled = node.enabled }
             is SliderNode -> SliderWidget(node.id, node.values, node.min, node.max, node.step, node.orientation).apply { enabled = node.enabled }
@@ -110,6 +117,7 @@ object WidgetFactory {
             is ToggleGroupNode -> node.notifyChange
             is TextareaNode -> node.notifyChange
             is SwitchNode -> node.notifyChange
+            is CalendarNode -> node.notifyChange
             is RadioGroupNode -> node.notifyChange
             is SliderNode -> node.notifyChange
             is InputOtpNode -> node.notifyChange
