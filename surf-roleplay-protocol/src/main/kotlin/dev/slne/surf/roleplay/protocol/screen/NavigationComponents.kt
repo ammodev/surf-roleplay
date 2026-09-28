@@ -758,3 +758,123 @@ data class ResizableHandleNode(
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
     @ProtoNumber(4) val withHandle: Boolean = false,
 ) : ScreenNode
+
+/**
+ * A carousel: a content of slides with buttons to the previous and next slide.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children one carousel content and the previous and next buttons
+ * @property orientation whether the slides move sideways or up and down
+ * @property loop whether the last slide is followed by the first
+ * @property index the index of the first shown slide
+ * @property notifyChange whether the mod reports every change of the shown slide at once
+ */
+@Serializable
+@SerialName("carousel")
+data class CarouselNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val orientation: Orientation = Orientation.HORIZONTAL,
+    @ProtoNumber(6) val loop: Boolean = false,
+    @ProtoNumber(7) val index: Int = 0,
+    @ProtoNumber(8) val notifyChange: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CarouselNode = copy(children = children)
+}
+
+/**
+ * The content of a carousel: its slides in a row or a column, of which the part from the current
+ * slide on is shown.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the carousel items
+ */
+@Serializable
+@SerialName("carousel_content")
+data class CarouselContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CarouselContentNode = copy(children = children)
+}
+
+/**
+ * A slide of a carousel, taking a share of the content.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content of the slide, stacked
+ * @property basis the share of the content the slide takes, in percent
+ */
+@Serializable
+@SerialName("carousel_item")
+data class CarouselItemNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val basis: Double = 100.0,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CarouselItemNode = copy(children = children)
+}
+
+/**
+ * The button that shows the previous slide of a carousel: a round outline button with an arrow.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property enabled whether the button can be used
+ */
+@Serializable
+@SerialName("carousel_previous")
+data class CarouselPreviousNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val enabled: Boolean = true,
+) : ScreenNode
+
+/**
+ * The button that shows the next slide of a carousel: a round outline button with an arrow.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property enabled whether the button can be used
+ */
+@Serializable
+@SerialName("carousel_next")
+data class CarouselNextNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val enabled: Boolean = true,
+) : ScreenNode

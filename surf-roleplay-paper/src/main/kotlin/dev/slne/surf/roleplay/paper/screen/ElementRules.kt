@@ -52,6 +52,11 @@ import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselNextElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbLinkElement
@@ -601,6 +606,23 @@ object ElementRules {
         )
         register(AccordionItemElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
         register(AccordionTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            CarouselElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { it.index.toString() },
+                    violation = { e, v ->
+                        val slides = e.children.filterIsInstance<CarouselContentElement>().sumOf { content -> content.children.count { it is CarouselItemElement } }
+                        val index = v.toIntOrNull()
+                        if (index == null || index < 0 || index >= slides) "value is not a slide" else null
+                    },
+                    withValue = { e, v -> e.copy(index = v.toInt()) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(CarouselPreviousElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
+        register(CarouselNextElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
         register(
             ResizablePanelGroupElement::class,
             ElementRule(

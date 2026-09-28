@@ -1,6 +1,9 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
@@ -354,6 +357,9 @@ class ServerScreenTree(root: ScreenElement) {
             is ScrollAreaElement -> container.copy(children = children)
             is ResizablePanelGroupElement -> container.copy(children = children)
             is ResizablePanelElement -> container.copy(children = children)
+            is CarouselElement -> container.copy(children = children)
+            is CarouselContentElement -> container.copy(children = children)
+            is CarouselItemElement -> container.copy(children = children)
             is DialogContentElement -> container.copy(children = children)
             is DialogHeaderElement -> container.copy(children = children)
             is DialogFooterElement -> container.copy(children = children)

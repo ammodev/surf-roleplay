@@ -10,6 +10,11 @@ import dev.slne.surf.roleplay.api.client.common.screen.collapsible
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.carousel
+import dev.slne.surf.roleplay.api.client.common.screen.carouselContent
+import dev.slne.surf.roleplay.api.client.common.screen.carouselItem
+import dev.slne.surf.roleplay.api.client.common.screen.carouselNext
+import dev.slne.surf.roleplay.api.client.common.screen.carouselPrevious
 import dev.slne.surf.roleplay.api.client.common.screen.resizableHandle
 import dev.slne.surf.roleplay.api.client.common.screen.resizablePanel
 import dev.slne.surf.roleplay.api.client.common.screen.resizablePanelGroup
@@ -51,6 +56,11 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import dev.slne.surf.roleplay.protocol.screen.CarouselNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNextNode
 import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
@@ -410,5 +420,53 @@ class NavigationComponentsTest {
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "100")))
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "a,b")))
         assertEquals(listOf("group=45.5,54.5"), reports)
+    }
+
+    /**
+     * Opens a screen with a looping carousel of three slides of half the content each.
+     *
+     * @return the session id
+     */
+    private fun openCarousel(): Int = state.open(
+        screen(Component.text("Karussell")) {
+            carousel("carousel", ElementSize.fixed(160), loop = true, onChange = { report(it) }) {
+                carouselContent("content") {
+                    for (i in 0 until 3) carouselItem("slide$i", basis = 50.0) { label("text$i", Component.text("$i")) }
+                }
+                carouselPrevious("prev")
+                carouselNext("next")
+            }
+        },
+        null,
+    ).sessionId
+
+    /**
+     * Verifies that a carousel maps to its nodes with its settings.
+     */
+    @Test
+    fun `carousels map to their nodes`() {
+        openCarousel()
+
+        val carousel = assertIs<CarouselNode>(assertIs<WidgetScreenBody>((sent.last() as ScreenOpen).body).root)
+        assertTrue(carousel.loop)
+        assertTrue(carousel.notifyChange)
+        assertEquals(160, carousel.width.value)
+        assertEquals(50.0, assertIs<CarouselItemNode>(assertIs<CarouselContentNode>(carousel.children[0]).children[0]).basis)
+        assertIs<CarouselPreviousNode>(carousel.children[1])
+        assertIs<CarouselNextNode>(carousel.children[2])
+    }
+
+    /**
+     * Verifies that the index of a carousel must name a slide.
+     */
+    @Test
+    fun `carousel indexes are validated`() {
+        val session = openCarousel()
+
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChange(session, "carousel", "2")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "carousel", "3")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "carousel", "-1")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "carousel", "x")))
+        assertEquals(listOf("carousel=2"), reports)
     }
 }

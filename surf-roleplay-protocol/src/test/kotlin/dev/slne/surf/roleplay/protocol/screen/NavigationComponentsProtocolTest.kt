@@ -141,4 +141,25 @@ class NavigationComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that a carousel survives a round trip.
+     */
+    @Test
+    fun `carousels round-trip`() {
+        val root = CarouselNode(
+            "carousel",
+            orientation = Orientation.VERTICAL,
+            loop = true,
+            index = 2,
+            notifyChange = true,
+            children = listOf(
+                CarouselContentNode("content", children = listOf(CarouselItemNode("item", basis = 50.0, children = listOf(LabelNode("a"))))),
+                CarouselPreviousNode("prev", enabled = false),
+                CarouselNextNode("next"),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

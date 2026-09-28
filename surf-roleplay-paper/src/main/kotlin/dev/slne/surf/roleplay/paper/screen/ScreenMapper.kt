@@ -309,6 +309,16 @@ import dev.slne.surf.roleplay.api.client.common.screen.ResizableHandleElement
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
 import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselNextElement
+import dev.slne.surf.roleplay.protocol.screen.CarouselNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNextNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -539,6 +549,11 @@ object ScreenMapper {
             is ResizablePanelGroupElement -> ResizablePanelGroupNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation), element.onChange != null)
             is ResizablePanelElement -> ResizablePanelNode(element.id, width, height, element.children.map(::toNode), element.defaultSize, element.minSize, element.maxSize)
             is ResizableHandleElement -> ResizableHandleNode(element.id, width, height, element.withHandle)
+            is CarouselElement -> CarouselNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation), element.loop, element.index, element.onChange != null)
+            is CarouselContentElement -> CarouselContentNode(element.id, width, height, element.children.map(::toNode))
+            is CarouselItemElement -> CarouselItemNode(element.id, width, height, element.children.map(::toNode), element.basis)
+            is CarouselPreviousElement -> CarouselPreviousNode(element.id, width, height, element.enabled)
+            is CarouselNextElement -> CarouselNextNode(element.id, width, height, element.enabled)
         }
     }
 

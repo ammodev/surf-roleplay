@@ -3,6 +3,13 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.Sizing
+import dev.slne.surf.roleplay.protocol.screen.SizeMode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNextNode
 import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
@@ -332,6 +339,29 @@ object WidgetFactory {
             }
             is ResizablePanelNode -> container(ResizablePanelWidget(node.id, node.defaultSize, node.minSize, node.maxSize), node.children)
             is ResizableHandleNode -> ResizableHandleWidget(node.id, node.withHandle)
+            is CarouselNode -> CarouselWidget(node.id, node.orientation, node.loop).apply {
+                val parts = node.children.map { child ->
+                    when (child) {
+                        is CarouselContentNode -> container(CarouselContentWidget(child.id, node.orientation), child.children).apply {
+                            width = child.width
+                            height = child.height
+                            if (node.orientation == Orientation.HORIZONTAL && width.mode == SizeMode.FIT) width = Sizing.grow()
+                            if (node.orientation == Orientation.VERTICAL && height.mode == SizeMode.FIT) height = Sizing.grow()
+                        }
+                        is CarouselPreviousNode -> CarouselButtonWidget(child.id, next = false, usable = child.enabled, vertical = node.orientation == Orientation.VERTICAL)
+                        is CarouselNextNode -> CarouselButtonWidget(child.id, next = true, usable = child.enabled, vertical = node.orientation == Orientation.VERTICAL)
+                        else -> create(child)
+                    }
+                }
+                childList += parts.filter { it is CarouselButtonWidget && !it.next }
+                childList += parts.filter { !(it is CarouselButtonWidget) }
+                childList += parts.filter { it is CarouselButtonWidget && it.next }
+                show(node.index)
+            }
+            is CarouselContentNode -> container(CarouselContentWidget(node.id, Orientation.HORIZONTAL), node.children)
+            is CarouselItemNode -> container(CarouselItemWidget(node.id, node.basis), node.children)
+            is CarouselPreviousNode -> CarouselButtonWidget(node.id, next = false, usable = node.enabled, vertical = false)
+            is CarouselNextNode -> CarouselButtonWidget(node.id, next = true, usable = node.enabled, vertical = false)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -364,6 +394,7 @@ object WidgetFactory {
             is AccordionNode -> node.notifyChange
             is TabsNode -> node.notifyChange
             is ResizablePanelGroupNode -> node.notifyChange
+            is CarouselNode -> node.notifyChange
             else -> false
         }
         return widget

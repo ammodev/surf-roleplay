@@ -930,3 +930,157 @@ fun ElementsBuilder.resizableHandle(id: String, withHandle: Boolean = false) {
     elements += ResizableHandleElement(id, withHandle)
 }
 
+/**
+ * A carousel: a content of slides with buttons to the previous and next slide.
+ *
+ * @property id the id of this element
+ * @property children one carousel content and the previous and next buttons
+ * @property orientation whether the slides move sideways or up and down
+ * @property loop whether the last slide is followed by the first
+ * @property index the index of the first shown slide
+ * @property onChange whether the mod reports every change of the shown slide at once
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CarouselElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val orientation: Orientation = Orientation.HORIZONTAL,
+    val loop: Boolean = false,
+    val index: Int = 0,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The content of a carousel: its slides in a row or a column, of which the part from the current
+ * slide on is shown.
+ *
+ * @property id the id of this element
+ * @property children the carousel items
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CarouselContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A slide of a carousel, taking a share of the content.
+ *
+ * @property id the id of this element
+ * @property children the content of the slide, stacked
+ * @property basis the share of the content the slide takes, in percent
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CarouselItemElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val basis: Double = 100.0,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The button that shows the previous slide of a carousel: a round outline button with an arrow.
+ *
+ * @property id the id of this element
+ * @property enabled whether the button can be used
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CarouselPreviousElement(
+    override val id: String,
+    val enabled: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * The button that shows the next slide of a carousel: a round outline button with an arrow.
+ *
+ * @property id the id of this element
+ * @property enabled whether the button can be used
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CarouselNextElement(
+    override val id: String,
+    val enabled: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * Adds a carousel. Its children are one [carouselContent], a [carouselPrevious] and a
+ * [carouselNext].
+ *
+ * @param id the id of the carousel
+ * @param width how wide the carousel is laid out, with its buttons
+ * @param orientation whether the slides move sideways or up and down
+ * @param loop whether the last slide is followed by the first
+ * @param index the index of the slide shown first
+ * @param height how tall the carousel is laid out; a vertical carousel needs a fixed height
+ * @param onChange the handler run whenever the player shows another slide, with its index, or
+ *        `null` for none
+ * @param children the builder of the content and the buttons
+ */
+fun ElementsBuilder.carousel(
+    id: String,
+    width: ElementSize,
+    orientation: Orientation = Orientation.HORIZONTAL,
+    loop: Boolean = false,
+    index: Int = 0,
+    height: ElementSize = ElementSize.FIT,
+    onChange: ChangeHandler? = null,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += CarouselElement(id, build(children), orientation, loop, index, onChange, width, height)
+}
+
+/**
+ * Adds the content of a carousel. Its children are [carouselItem]s.
+ *
+ * @param id the id of the content
+ * @param children the builder of the slides
+ */
+fun ElementsBuilder.carouselContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += CarouselContentElement(id, build(children))
+}
+
+/**
+ * Adds a slide of a carousel.
+ *
+ * @param id the id of the slide
+ * @param basis the share of the content the slide takes, in percent
+ * @param children the builder of the content of the slide
+ */
+fun ElementsBuilder.carouselItem(id: String, basis: Double = 100.0, children: ElementsBuilder.() -> Unit) {
+    elements += CarouselItemElement(id, build(children), basis)
+}
+
+/**
+ * Adds the button that shows the previous slide of a carousel.
+ *
+ * @param id the id of the button
+ * @param enabled whether the button can be used
+ */
+fun ElementsBuilder.carouselPrevious(id: String, enabled: Boolean = true) {
+    elements += CarouselPreviousElement(id, enabled)
+}
+
+/**
+ * Adds the button that shows the next slide of a carousel.
+ *
+ * @param id the id of the button
+ * @param enabled whether the button can be used
+ */
+fun ElementsBuilder.carouselNext(id: String, enabled: Boolean = true) {
+    elements += CarouselNextElement(id, enabled)
+}
+
