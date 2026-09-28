@@ -64,6 +64,9 @@ class RoleplayScreenHost(
             requestLayout()
         }
 
+    /**
+     * The widget that receives keyboard input, or `null` if none does.
+     */
     override var focusedWidget: Widget? = null
         private set
 
@@ -82,6 +85,9 @@ class RoleplayScreenHost(
      */
     private var panel: Rect = Rect.EMPTY
 
+    /**
+     * The text on the system clipboard.
+     */
     override var clipboard: String
         get() = minecraft.keyboardHandler.clipboard
         set(value) {

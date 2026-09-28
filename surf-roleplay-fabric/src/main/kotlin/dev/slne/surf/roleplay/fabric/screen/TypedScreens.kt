@@ -112,6 +112,9 @@ class DebugCounterView(
      */
     private val host = RoleplayScreenHost(title, WidgetFactory.create(tree()), closable, this)
 
+    /**
+     * The host that shows the counter.
+     */
     override val screen: Screen get() = host
 
     init {

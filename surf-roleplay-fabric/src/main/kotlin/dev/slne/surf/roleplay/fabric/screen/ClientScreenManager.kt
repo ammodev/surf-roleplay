@@ -37,6 +37,9 @@ sealed interface ClientScreen {
      * @property host the host showing the tree
      */
     class Widgets(val host: RoleplayScreenHost) : ClientScreen {
+        /**
+         * The host that shows the tree.
+         */
         override val screen: Screen get() = host
     }
 
@@ -46,6 +49,9 @@ sealed interface ClientScreen {
      * @property view the view of the screen
      */
     class Typed(val view: TypedScreenView) : ClientScreen {
+        /**
+         * The screen of the view.
+         */
         override val screen: Screen get() = view.screen
     }
 }

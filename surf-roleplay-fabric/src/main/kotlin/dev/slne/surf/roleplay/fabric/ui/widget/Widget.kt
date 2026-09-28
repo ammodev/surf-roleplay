@@ -240,6 +240,9 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
      */
     val childList: MutableList<Widget> = mutableListOf()
 
+    /**
+     * The child widgets, in layout order.
+     */
     override val children: List<Widget> get() = childList
 
     /**
@@ -359,6 +362,9 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
  * @param id the id of the widget
  */
 class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
+    /**
+     * Always `true`: the list scrolls its children.
+     */
     override val scrolls: Boolean get() = true
 
     init {

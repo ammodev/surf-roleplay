@@ -249,8 +249,14 @@ class PlayerScreenState(
      * @property closable whether the player can close the screen with Escape
      */
     private abstract inner class Session(override val sessionId: Int, val closable: Boolean) : OpenScreen {
+        /**
+         * The player who sees the screen.
+         */
         override val viewer: UUID get() = this@PlayerScreenState.viewer
 
+        /**
+         * Whether this session is still on the player's stack.
+         */
         override val isOpen: Boolean get() = stack.find(sessionId)?.content === this
 
         /**

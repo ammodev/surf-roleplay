@@ -39,6 +39,9 @@ interface TextMeasurer {
  * @property font the font
  */
 class FontTextMeasurer(private val font: Font) : TextMeasurer {
+    /**
+     * The height of one line of the font.
+     */
     override val lineHeight: Int get() = font.lineHeight
 
     /**

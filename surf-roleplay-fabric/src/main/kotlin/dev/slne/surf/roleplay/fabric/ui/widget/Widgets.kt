@@ -131,8 +131,14 @@ open class TextInputWidget(
      */
     private var scrollStart: Int = 0
 
+    /**
+     * Whether the field can be focused, which it can while enabled.
+     */
     override val focusable: Boolean get() = enabled
 
+    /**
+     * The field's text.
+     */
     override val inputValue: String get() = edit.text
 
     /**
@@ -301,6 +307,9 @@ class NumberInputWidget(
     required: Boolean = false,
 ) : TextInputWidget(id, TextEditState(initial?.toString() ?: "", filter), required = required) {
 
+    /**
+     * Whether the text is empty and optional, or a number within the range.
+     */
     override val isValid: Boolean get() = filter.isValid(edit.text, required)
 }
 
@@ -313,6 +322,9 @@ class NumberInputWidget(
  */
 class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = false) : Widget(id) {
 
+    /**
+     * `true` if the box is checked, `false` otherwise.
+     */
     override val inputValue: String get() = checked.toString()
 
     /**
@@ -404,6 +416,9 @@ class DropdownWidget(
     val required: Boolean = false,
 ) : Widget(id) {
 
+    /**
+     * The value of the selected option, or an empty string if none is selected.
+     */
     override val inputValue: String get() = selected ?: ""
 
     /**
