@@ -87,6 +87,7 @@ class PaperScreenService : ScreenService, Listener {
         registry.dispatcher.on(Packets.SCREEN_WIDGET_ACTION, onPlayerThread { state, packet -> report(state, state.handleWidgetAction(packet)) })
         registry.dispatcher.on(Packets.SCREEN_TYPED_ACTION, onPlayerThread { state, packet -> report(state, state.handleTypedAction(packet)) })
         registry.dispatcher.on(Packets.SCREEN_CLOSED, onPlayerThread { state, packet -> report(state, state.handleClosed(packet)) })
+        registry.dispatcher.on(Packets.SCREEN_INPUT_CHANGE, onPlayerThread { state, packet -> report(state, state.handleInputChange(packet)) })
         plugin.server.pluginManager.registerEvents(this, plugin)
     }
 

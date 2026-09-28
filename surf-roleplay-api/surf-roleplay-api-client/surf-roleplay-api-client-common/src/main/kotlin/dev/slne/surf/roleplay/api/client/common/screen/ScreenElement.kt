@@ -265,6 +265,8 @@ data class ButtonElement(
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
  * @property icon the Lucide name of an icon drawn at the start of the field, or `null` for none
+ * @property onChange the handler run on every validated change, or `null` to send the value only
+ *           with the next action
  */
 data class TextInputElement(
     override val id: String,
@@ -276,6 +278,7 @@ data class TextInputElement(
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
     val icon: String? = null,
+    val onChange: ChangeHandler? = null,
 ) : ScreenElement
 
 /**
@@ -289,6 +292,8 @@ data class TextInputElement(
  * @property enabled whether the player can edit the field
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @property onChange the handler run on every validated change, or `null` to send the value only
+ *           with the next action
  */
 data class NumberInputElement(
     override val id: String,
@@ -299,6 +304,7 @@ data class NumberInputElement(
     val enabled: Boolean = true,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
+    val onChange: ChangeHandler? = null,
 ) : ScreenElement
 
 /**
@@ -310,6 +316,8 @@ data class NumberInputElement(
  * @property enabled whether the player can toggle the box
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @property onChange the handler run on every validated change, or `null` to send the value only
+ *           with the next action
  */
 data class CheckboxElement(
     override val id: String,
@@ -318,6 +326,7 @@ data class CheckboxElement(
     val enabled: Boolean = true,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
+    val onChange: ChangeHandler? = null,
 ) : ScreenElement
 
 /**
@@ -330,6 +339,8 @@ data class CheckboxElement(
  * @property enabled whether the player can change the selection
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @property onChange the handler run on every validated change, or `null` to send the value only
+ *           with the next action
  */
 data class DropdownElement(
     override val id: String,
@@ -339,6 +350,7 @@ data class DropdownElement(
     val enabled: Boolean = true,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
+    val onChange: ChangeHandler? = null,
 ) : ScreenElement
 
 /**

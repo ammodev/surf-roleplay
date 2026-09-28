@@ -238,6 +238,7 @@ open class ElementsBuilder {
      * @param width how wide the input is laid out
      * @param height how tall the input is laid out
      * @param icon the Lucide name of an icon drawn at the start of the field, or `null` for none
+     * @param onChange the handler run on every validated change, or `null`
      */
     fun textInput(
         id: String,
@@ -249,8 +250,9 @@ open class ElementsBuilder {
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
         icon: String? = null,
+        onChange: ChangeHandler? = null,
     ) {
-        elements += TextInputElement(id, value, placeholder, maxLength, required, enabled, width, height, icon)
+        elements += TextInputElement(id, value, placeholder, maxLength, required, enabled, width, height, icon, onChange)
     }
 
     /**
@@ -264,6 +266,7 @@ open class ElementsBuilder {
      * @param enabled whether the player can edit the input
      * @param width how wide the input is laid out
      * @param height how tall the input is laid out
+     * @param onChange the handler run on every validated change, or `null`
      */
     fun numberInput(
         id: String,
@@ -274,8 +277,9 @@ open class ElementsBuilder {
         enabled: Boolean = true,
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
+        onChange: ChangeHandler? = null,
     ) {
-        elements += NumberInputElement(id, value, min, max, required, enabled, width, height)
+        elements += NumberInputElement(id, value, min, max, required, enabled, width, height, onChange)
     }
 
     /**
@@ -287,6 +291,7 @@ open class ElementsBuilder {
      * @param enabled whether the player can toggle the box
      * @param width how wide the checkbox is laid out
      * @param height how tall the checkbox is laid out
+     * @param onChange the handler run on every validated change, or `null`
      */
     fun checkbox(
         id: String,
@@ -295,8 +300,9 @@ open class ElementsBuilder {
         enabled: Boolean = true,
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
+        onChange: ChangeHandler? = null,
     ) {
-        elements += CheckboxElement(id, label, checked, enabled, width, height)
+        elements += CheckboxElement(id, label, checked, enabled, width, height, onChange)
     }
 
     /**
@@ -309,6 +315,7 @@ open class ElementsBuilder {
      * @param enabled whether the player can change the selection
      * @param width how wide the dropdown is laid out
      * @param height how tall the dropdown is laid out
+     * @param onChange the handler run on every validated change, or `null`
      */
     fun dropdown(
         id: String,
@@ -318,8 +325,9 @@ open class ElementsBuilder {
         enabled: Boolean = true,
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
+        onChange: ChangeHandler? = null,
     ) {
-        elements += DropdownElement(id, options, selected, required, enabled, width, height)
+        elements += DropdownElement(id, options, selected, required, enabled, width, height, onChange)
     }
 
     /**

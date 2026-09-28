@@ -93,16 +93,18 @@ object ScreenMapper {
             is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput, element.icon)
             is TextInputElement -> TextInputNode(
                 element.id, width, height, element.value, text(element.placeholder), element.maxLength, element.required, element.enabled, element.icon,
+                element.onChange != null,
             )
 
             is NumberInputElement -> NumberInputNode(
                 element.id, width, height, element.value, element.min, element.max, element.required, element.enabled,
+                element.onChange != null,
             )
 
-            is CheckboxElement -> CheckboxNode(element.id, width, height, text(element.label), element.checked, element.enabled)
+            is CheckboxElement -> CheckboxNode(element.id, width, height, text(element.label), element.checked, element.enabled, element.onChange != null)
             is DropdownElement -> DropdownNode(
                 element.id, width, height, element.options.map { DropdownOption(it.value, text(it.label)) },
-                element.selected, element.required, element.enabled,
+                element.selected, element.required, element.enabled, element.onChange != null,
             )
 
             is ImageElement -> ImageNode(element.id, width, height, element.texture.asString())

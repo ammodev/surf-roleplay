@@ -63,6 +63,28 @@ fun interface ButtonHandler {
 }
 
 /**
+ * Handles a change of an input that reports its changes at once.
+ */
+fun interface ChangeHandler {
+    /**
+     * Handles a change. It runs only after the new value passed the input's constraints.
+     *
+     * @param change the change
+     */
+    fun onChange(change: ScreenInputChange)
+}
+
+/**
+ * A validated change of an input's value.
+ *
+ * @property screen the screen the input is on
+ * @property inputId the id of the changed input
+ * @property value the new value, in the string form of [ScreenValues.all]
+ * @property values the values of every input of the screen after the change
+ */
+data class ScreenInputChange(val screen: OpenScreen, val inputId: String, val value: String, val values: ScreenValues)
+
+/**
  * Handles the closing of a screen.
  */
 fun interface CloseHandler {

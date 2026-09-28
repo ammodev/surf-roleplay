@@ -1,18 +1,12 @@
 package dev.slne.surf.roleplay.paper.screen
 
-import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
-import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
-import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
-import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
 import dev.slne.surf.roleplay.api.client.common.screen.RowElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollListElement
-import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
 
 /**
  * The server's copy of an open generic screen's element tree.
@@ -75,14 +69,7 @@ class ServerScreenTree(root: ScreenElement) {
             }
 
             is ScreenChange.SetText -> update(change.targetId) { element ->
-                when (element) {
-                    is LabelElement -> element.copy(text = change.text)
-                    is ButtonElement -> element.copy(text = change.text)
-                    is CheckboxElement -> element.copy(label = change.text)
-                    is ProgressElement -> element.copy(label = change.text)
-                    is TextInputElement -> element.copy(placeholder = change.text)
-                    else -> null
-                }
+                ElementRules.rule(element)?.withText?.invoke(element, change.text)
             } ?: return false
 
             is ScreenChange.SetValue -> update(change.targetId) { element -> withValue(element, change.value) } ?: return false
@@ -91,14 +78,7 @@ class ServerScreenTree(root: ScreenElement) {
             } ?: return false
 
             is ScreenChange.SetEnabled -> update(change.targetId) { element ->
-                when (element) {
-                    is ButtonElement -> element.copy(enabled = change.enabled)
-                    is TextInputElement -> element.copy(enabled = change.enabled)
-                    is NumberInputElement -> element.copy(enabled = change.enabled)
-                    is CheckboxElement -> element.copy(enabled = change.enabled)
-                    is DropdownElement -> element.copy(enabled = change.enabled)
-                    else -> null
-                }
+                ElementRules.rule(element)?.withEnabled?.invoke(element, change.enabled)
             } ?: return false
         }
         root = updated
@@ -122,13 +102,8 @@ class ServerScreenTree(root: ScreenElement) {
      * @param value the value in its string form
      * @return the updated element, or `null`
      */
-    private fun withValue(element: ScreenElement, value: String): ScreenElement? = when (element) {
-        is TextInputElement -> element.copy(value = value)
-        is NumberInputElement -> if (value.isEmpty()) element.copy(value = null) else value.toLongOrNull()?.let { element.copy(value = it) }
-        is CheckboxElement -> element.copy(checked = value == "true")
-        is DropdownElement -> element.copy(selected = value.takeIf { candidate -> element.options.any { it.value == candidate } })
-        else -> null
-    }
+    private fun withValue(element: ScreenElement, value: String): ScreenElement? =
+        ElementRules.input(element)?.withValue?.invoke(element, value)
 
     /**
      * Rebuilds the tree with one element updated.

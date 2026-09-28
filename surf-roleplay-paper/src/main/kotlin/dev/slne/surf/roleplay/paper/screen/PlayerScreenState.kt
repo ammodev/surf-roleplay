@@ -3,6 +3,8 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.api.core.util.logger
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPatchBuilder
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
@@ -308,6 +310,30 @@ class PlayerScreenState(
                 Outcome.Accepted
             }
         }
+    }
+
+    /**
+     * Validates a change of an input that reports its changes, stores the new value and runs the
+     * input's change handler.
+     *
+     * @param packet the change
+     * @return the outcome
+     */
+    fun handleInputChange(packet: ScreenInputChangePacket): Outcome {
+        threadCheck()
+        if (!limiter.tryAcquire(viewer)) return Outcome.Rejected("rate limit exceeded")
+        val session = topSession(packet.sessionId) as? GenericSession
+            ?: return Outcome.Rejected("session ${packet.sessionId} is not the top generic screen", suspicious = false)
+        val id = packet.widgetId
+        val element = session.tree.find(id) ?: return Outcome.Rejected("unknown input ${ScreenActionValidator.display(id)}")
+        val rule = ElementRules.input(element) ?: return Outcome.Rejected("widget ${ScreenActionValidator.display(id)} is not an input")
+        val handler = rule.onChange(element) ?: return Outcome.Rejected("input ${ScreenActionValidator.display(id)} does not report changes")
+        if (!ElementRules.isEnabled(element)) return Outcome.Rejected("input ${ScreenActionValidator.display(id)} is disabled")
+        rule.violation(element, packet.value)?.let { return Outcome.Rejected("input ${ScreenActionValidator.display(id)}: $it") }
+        session.tree.storeValues(mapOf(id to packet.value))
+        val values = session.tree.elements().mapNotNull { e -> ElementRules.input(e)?.current?.invoke(e)?.let { e.id to it } }.toMap()
+        runHandler("change of '$id'") { handler.onChange(ScreenInputChange(session, id, packet.value, ScreenValues(values))) }
+        return Outcome.Accepted
     }
 
     /**
