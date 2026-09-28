@@ -4,8 +4,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownChoice
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.ImageElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
@@ -20,8 +21,9 @@ import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownOption
+import dev.slne.surf.roleplay.protocol.screen.SelectGroup
+import dev.slne.surf.roleplay.protocol.screen.SelectNode
+import dev.slne.surf.roleplay.protocol.screen.SelectOption
 import dev.slne.surf.roleplay.protocol.screen.ImageNode
 import dev.slne.surf.roleplay.protocol.screen.InsertNode
 import dev.slne.surf.roleplay.protocol.screen.Insets
@@ -84,7 +86,7 @@ class ScreenMapperTest {
                 TextInputElement("name", "Max", Component.text("Name"), 16, required = true, enabled = false),
                 NumberInputElement("age", 30, 18, 99, required = true),
                 CheckboxElement("agree", Component.text("Ja"), checked = true),
-                DropdownElement("city", listOf(DropdownChoice("north", Component.text("Nord"))), "north", required = true),
+                SelectElement("city", listOf(SelectChoiceGroup(null, listOf(SelectChoice("north", Component.text("Nord"))))), "north", required = true),
                 ImageElement("logo", Key.key("surf-roleplay", "textures/gui/logo.png")),
                 ProgressElement("load", 0.5f, Component.text("50")),
             ),
@@ -104,7 +106,7 @@ class ScreenMapperTest {
                 TextInputNode("name", value = "Max", placeholder = json("Name"), maxLength = 16, required = true, enabled = false),
                 NumberInputNode("age", value = 30, min = 18, max = 99, required = true),
                 CheckboxNode("agree", label = json("Ja"), checked = true),
-                DropdownNode("city", options = listOf(DropdownOption("north", json("Nord"))), selected = "north", required = true),
+                SelectNode("city", groups = listOf(SelectGroup(options = listOf(SelectOption("north", json("Nord"))))), selected = "north", placeholder = ScreenMapper.text(Component.empty()), required = true),
                 ImageNode("logo", texture = "surf-roleplay:textures/gui/logo.png"),
                 ProgressNode("load", progress = 0.5f, label = json("50")),
             ),

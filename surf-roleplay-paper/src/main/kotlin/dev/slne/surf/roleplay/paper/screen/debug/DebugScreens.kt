@@ -7,7 +7,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownChoice
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
+import dev.slne.surf.roleplay.api.client.common.screen.select
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
@@ -57,8 +58,8 @@ class DebugScreens(private val plugin: Plugin) {
             column("root", width = ElementSize.fixed(320), gap = 6, crossAlign = Alignment.STRETCH) {
                 label("heading", Component.text("Alle Elemente", NamedTextColor.GOLD, TextDecoration.BOLD), icon = "info")
                 row("theme_row", gap = 6, crossAlign = Alignment.CENTER) {
-                    dropdown("theme", THEMES, selected = theme, width = ElementSize.grow())
-                    dropdown("variant", VARIANTS, selected = variant.name, width = ElementSize.fixed(90))
+                    select("theme", THEMES, selected = theme, width = ElementSize.grow())
+                    select("variant", VARIANTS, selected = variant.name, width = ElementSize.fixed(90))
                     button("apply_theme", Component.text("Anwenden"), submitsInput = false, icon = "palette") { click ->
                         val chosenTheme = click.values.selected("theme") ?: ScreenThemes.DEFAULT
                         val chosenVariant = click.values.selected("variant")?.let(ScreenVariant::valueOf) ?: ScreenVariant.DARK
@@ -75,7 +76,7 @@ class DebugScreens(private val plugin: Plugin) {
                 }
                 row("city_row", gap = 6, crossAlign = Alignment.CENTER) {
                     label("city_label", Component.text("Stadt"), width = ElementSize.fixed(60))
-                    dropdown("city", CITIES, required = true, width = ElementSize.grow())
+                    select("city", CITIES, required = true, width = ElementSize.grow())
                 }
                 checkbox("rules", Component.text("Ich akzeptiere die Regeln"))
                 scrollList("list", height = ElementSize.fixed(60), gap = 2) {
@@ -213,29 +214,29 @@ class DebugScreens(private val plugin: Plugin) {
      */
     private companion object {
         /**
-         * The options of the demo's city dropdown.
+         * The options of the demo's city select.
          */
         val CITIES = listOf(
-            DropdownChoice("north", Component.text("Nordhafen")),
-            DropdownChoice("south", Component.text("Südstadt")),
-            DropdownChoice("old", Component.text("Altstadt")),
+            SelectChoice("north", Component.text("Nordhafen")),
+            SelectChoice("south", Component.text("Südstadt")),
+            SelectChoice("old", Component.text("Altstadt")),
         )
 
         /**
-         * The themes offered by the demo's theme dropdown.
+         * The themes offered by the demo's theme select.
          */
         val THEMES = listOf(
-            DropdownChoice(ScreenThemes.DEFAULT, Component.text("Standard")),
-            DropdownChoice(ScreenThemes.SAR, Component.text("Rettungsdienst")),
-            DropdownChoice(ScreenThemes.POLICE, Component.text("Polizei")),
+            SelectChoice(ScreenThemes.DEFAULT, Component.text("Standard")),
+            SelectChoice(ScreenThemes.SAR, Component.text("Rettungsdienst")),
+            SelectChoice(ScreenThemes.POLICE, Component.text("Polizei")),
         )
 
         /**
-         * The variants offered by the demo's variant dropdown.
+         * The variants offered by the demo's variant select.
          */
         val VARIANTS = listOf(
-            DropdownChoice(ScreenVariant.DARK.name, Component.text("Dunkel")),
-            DropdownChoice(ScreenVariant.LIGHT.name, Component.text("Hell")),
+            SelectChoice(ScreenVariant.DARK.name, Component.text("Dunkel")),
+            SelectChoice(ScreenVariant.LIGHT.name, Component.text("Hell")),
         )
 
         /**

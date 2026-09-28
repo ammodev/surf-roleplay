@@ -35,9 +35,9 @@ class ScreenProtocolTest {
                     TextInputNode("name", value = "Max", placeholder = """{"text":"Name"}""", maxLength = 16, required = true),
                     NumberInputNode("age", value = 30, min = 18, max = 99, required = true, enabled = false),
                     CheckboxNode("agree", label = """{"text":"Ja"}""", checked = true),
-                    DropdownNode(
+                    SelectNode(
                         "city",
-                        options = listOf(DropdownOption("north", """{"text":"Nord"}"""), DropdownOption("south", """{"text":"Süd"}""")),
+                        groups = listOf(SelectGroup(options = listOf(SelectOption("north", """{"text":"Nord"}"""), SelectOption("south", """{"text":"Süd"}""")))),
                         selected = "south",
                         required = true,
                     ),

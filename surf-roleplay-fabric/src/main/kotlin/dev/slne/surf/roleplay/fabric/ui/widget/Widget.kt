@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
+import dev.slne.surf.roleplay.fabric.ui.Corners
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.PanelSizing
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
@@ -32,16 +33,21 @@ interface UiContext {
     fun focus(widget: Widget?)
 
     /**
-     * Shows a dropdown's option list above everything else, replacing any open list.
-     *
-     * @param dropdown the dropdown whose options to show
+     * The open popover, or `null` if none is open.
      */
-    fun openDropdown(dropdown: DropdownWidget)
+    val popover: Popover? get() = null
 
     /**
-     * Hides the open dropdown option list, if any.
+     * Shows a popover above the screen's content, replacing any open popover.
+     *
+     * @param popover the popover
      */
-    fun closeDropdown()
+    fun openPopover(popover: Popover) = Unit
+
+    /**
+     * Closes the open popover, if any.
+     */
+    fun closePopover() = Unit
 
     /**
      * Asks the screen to lay its tree out again before the next frame.
@@ -49,16 +55,45 @@ interface UiContext {
     fun requestLayout()
 
     /**
-     * Reports that the player clicked a button.
+     * Reports that the player triggered a widget action, such as clicking a button or pressing a
+     * toggle.
      *
-     * @param button the clicked button
+     * @param widget the widget
+     * @param submitsInput whether the action submits the screen's input, which marks every input
+     *        as touched
      */
-    fun buttonClicked(button: ButtonWidget)
+    fun actionTriggered(widget: Widget, submitsInput: Boolean)
 
     /**
      * The text on the system clipboard.
      */
     var clipboard: String
+
+    /**
+     * Reports that the player changed an input's value.
+     *
+     * @param widget the input
+     * @param immediate whether to report the change at once; otherwise it is reported after the
+     *        player paused typing
+     */
+    fun valueChanged(widget: Widget, immediate: Boolean) = Unit
+
+    /**
+     * Reports that the player changed the typed query of a combobox; it is reported after the
+     * player paused typing.
+     *
+     * @param widget the combobox
+     * @param query the query
+     */
+    fun searchChanged(widget: Widget, query: String) = Unit
+
+    /**
+     * Finds a widget of the screen by id.
+     *
+     * @param id the id of the widget
+     * @return the widget, or `null` if the screen has none with that id
+     */
+    fun widget(id: String): Widget? = null
 }
 
 /**
@@ -84,6 +119,73 @@ abstract class Widget(val id: String) {
      * Whether the widget can be used. Disabled widgets ignore input and are drawn dimmed.
      */
     var enabled: Boolean = true
+
+    /**
+     * Whether the mod reports every change of the widget's value at once.
+     */
+    var notifyChange: Boolean = false
+
+    /**
+     * Whether the player changed the widget's value or tried to submit it, after which an invalid
+     * value is shown as invalid.
+     */
+    var touched: Boolean = false
+
+    /**
+     * The corners of the widget that are rounded, set by containers that join their children.
+     */
+    var corners: Corners = Corners.ALL
+
+    /**
+     * Whether the widget is drawn without its own fill and border, because a container around it
+     * draws them.
+     */
+    var embedded: Boolean = false
+
+    /**
+     * The widget whose bounds the focus ring is drawn around while this widget has the focus, or
+     * `null` for this widget itself.
+     */
+    var focusFrame: Widget? = null
+
+    /**
+     * Whether the widget draws its own focus indication, so that the screen draws no focus ring
+     * around it.
+     */
+    open val drawsOwnFocus: Boolean get() = false
+
+    /**
+     * Reacts to a click on a label that targets this widget: focuses it if it is enabled.
+     *
+     * @param context the screen showing the widget
+     */
+    open fun labelClicked(context: UiContext) {
+        if (enabled) context.focus(this)
+    }
+
+    /**
+     * Whether a check the server made marked the widget as invalid. The mark is cleared when the
+     * player changes the widget's value.
+     */
+    var serverInvalid: Boolean = false
+
+    /**
+     * Whether the widget currently shows itself as invalid: while the server marks it invalid.
+     */
+    open val showsInvalid: Boolean get() = serverInvalid
+
+    /**
+     * Records that the player changed the widget's value and reports the change if the widget
+     * asked for change events.
+     *
+     * @param context the screen showing the widget
+     * @param immediate whether to report the change at once
+     */
+    fun markChanged(context: UiContext, immediate: Boolean) {
+        touched = true
+        serverInvalid = false
+        if (notifyChange) context.valueChanged(this, immediate)
+    }
 
     /**
      * The area the widget occupies on screen, set by the last layout.
@@ -161,6 +263,21 @@ abstract class Widget(val id: String) {
      * @return whether the click was handled
      */
     open fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean = false
+
+    /**
+     * Whether a click that focuses this widget starts a drag, after which mouse movement with the
+     * button held goes to [mouseDragged].
+     */
+    open val draggable: Boolean get() = false
+
+    /**
+     * Handles mouse movement with the button held after a click on this widget started a drag.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     */
+    open fun mouseDragged(context: UiContext, x: Double, y: Double) = Unit
 
     /**
      * Handles mouse wheel scrolling.

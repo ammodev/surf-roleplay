@@ -3,7 +3,7 @@ package dev.slne.surf.roleplay.fabric.screen
 import dev.slne.surf.roleplay.fabric.ui.PanelStyle
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
-import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.LabelWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetTree
@@ -161,10 +161,10 @@ class DebugCounterView(
      * Sends the counter action of a clicked button.
      *
      * @param panel the panel
-     * @param button the clicked button
+     * @param widget the widget that triggered the action
      */
-    override fun buttonClicked(panel: ScreenPanel, button: ButtonWidget) {
-        val delta = when (button.id) {
+    override fun actionTriggered(panel: ScreenPanel, widget: Widget) {
+        val delta = when (widget.id) {
             DECREMENT_ID -> -1
             INCREMENT_ID -> 1
             else -> return

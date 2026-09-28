@@ -6,20 +6,40 @@ import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
-import dev.slne.surf.roleplay.protocol.screen.DropdownOption
+import dev.slne.surf.roleplay.protocol.screen.ButtonSize
+import dev.slne.surf.roleplay.protocol.screen.ButtonVariant
 import dev.slne.surf.roleplay.protocol.screen.IconColor
+import dev.slne.surf.roleplay.protocol.screen.TextInputType
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import org.lwjgl.glfw.GLFW
 
 /**
- * A piece of styled text, optionally led by an icon.
+ * A piece of styled text, optionally led by an icon. A label with a target focuses the target
+ * when clicked.
  *
  * @param id the id of the widget
  * @property text the text as component JSON
  * @property icon the Lucide name of the leading icon, or `null` for none
+ * @property forId the id of the widget a click focuses, or `null` for none
  */
-class LabelWidget(id: String, var text: String = "", var icon: String? = null) : Widget(id) {
+class LabelWidget(id: String, var text: String = "", var icon: String? = null, val forId: String? = null) : Widget(id) {
+
+    /**
+     * Passes a left click on a label with a target to the target.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param button the mouse button
+     * @return whether the click was on a label with a target
+     */
+    override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
+        val target = forId ?: return false
+        if (!isOver(x, y)) return false
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) context.widget(target)?.labelClicked(context)
+        return true
+    }
 
     /**
      * Returns the size of the icon and the text on one line.
@@ -60,8 +80,18 @@ class LabelWidget(id: String, var text: String = "", var icon: String? = null) :
  * @param id the id of the widget
  * @property text the caption as component JSON
  * @property icon the Lucide name of the leading icon, or `null` for none
+ * @property submitsInput whether a click marks every input of the screen as touched
+ * @property variant the look of the button
+ * @property size the size of the button
  */
-class ButtonWidget(id: String, var text: String = "", var icon: String? = null) : Widget(id) {
+class ButtonWidget(
+    id: String,
+    var text: String = "",
+    var icon: String? = null,
+    val submitsInput: Boolean = true,
+    val variant: ButtonVariant = ButtonVariant.DEFAULT,
+    val size: ButtonSize = ButtonSize.DEFAULT,
+) : Widget(id) {
 
     /**
      * Whether the widget can take the keyboard focus, which it can while enabled.
@@ -74,8 +104,7 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null) 
      * @param measurer the text measurer
      * @return the button size
      */
-    override fun contentSize(measurer: TextMeasurer): Size =
-        Size(iconSpace(icon, measurer.width(text)) + measurer.width(text) + 2 * UiMetrics.WIDGET_PADDING, UiMetrics.WIDGET_HEIGHT)
+    override fun contentSize(measurer: TextMeasurer): Size = ButtonStyle.size(size, icon, measurer.width(text))
 
     /**
      * Draws the button, highlighted under the mouse and dimmed when disabled.
@@ -86,20 +115,7 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null) 
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        val tokens = ui.tokens
-        val background = when {
-            !enabled -> ui.disabled(tokens.primary)
-            isOver(mouseX, mouseY) -> ThemeColors.blend(tokens.primary, tokens.background, HOVER_DIM)
-            else -> tokens.primary
-        }
-        ui.fillRounded(bounds, background)
-        ui.clipped(bounds) {
-            val color = if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground)
-            val textWidth = ui.width(text)
-            val groupWidth = iconSpace(icon, textWidth) + textWidth
-            val textX = drawLeadingIcon(ui, icon, bounds.x + (bounds.width - groupWidth) / 2, bounds, color, textWidth)
-            ui.text(text, textX, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
-        }
+        ButtonStyle.draw(ui, bounds, corners, variant, size, text, icon, enabled, isOver(mouseX, mouseY), pressed = false)
     }
 
     /**
@@ -115,7 +131,7 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null) 
         if (!isOver(x, y)) return false
         if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             context.focus(this)
-            context.buttonClicked(this)
+            context.actionTriggered(this, submitsInput)
         }
         return true
     }
@@ -129,7 +145,7 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null) 
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled || !isActivation(event)) return false
-        context.buttonClicked(this)
+        context.actionTriggered(this, submitsInput)
         return true
     }
 
@@ -144,13 +160,15 @@ class ButtonWidget(id: String, var text: String = "", var icon: String? = null) 
 }
 
 /**
- * A single-line text field.
+ * A single-line text field. Password fields draw a mask character for every character, and email
+ * fields are invalid unless they hold an address shape.
  *
  * @param id the id of the widget
  * @property edit the text and cursor, edited under the field's filter
  * @property placeholder the hint shown while the field is empty, as component JSON
  * @property required whether an empty value is invalid
  * @property icon the Lucide name of an icon drawn at the start of the field, or `null` for none
+ * @property type the kind of text the field holds
  */
 open class TextInputWidget(
     id: String,
@@ -158,7 +176,14 @@ open class TextInputWidget(
     var placeholder: String = "",
     val required: Boolean = false,
     var icon: String? = null,
+    val type: TextInputType = TextInputType.TEXT,
 ) : Widget(id) {
+
+    /**
+     * The text as drawn: masked for password fields, otherwise the text itself. It always has the
+     * text's length.
+     */
+    val shownText: String get() = if (type == TextInputType.PASSWORD) PASSWORD_MASK.toString().repeat(edit.text.length) else edit.text
 
     /**
      * The index of the first character that is visible in the field.
@@ -178,7 +203,17 @@ open class TextInputWidget(
     /**
      * Whether the current text satisfies the field's constraints.
      */
-    open val isValid: Boolean get() = !required || edit.text.isNotEmpty()
+    open val isValid: Boolean
+        get() = when {
+            edit.text.isEmpty() -> !required
+            type == TextInputType.EMAIL -> EMAIL.matches(edit.text)
+            else -> true
+        }
+
+    /**
+     * Whether the field shows itself as invalid: while the server marks it invalid, or only once it was touched.
+     */
+    override val showsInvalid: Boolean get() = serverInvalid || touched && !isValid
 
     /**
      * Returns the default input size.
@@ -200,15 +235,18 @@ open class TextInputWidget(
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val focused = context.focusedWidget === this
         val tokens = ui.tokens
-        ui.fillRounded(bounds, inputFill(ui))
-        ui.borderRounded(
-            bounds,
-            when {
-                !isValid -> tokens.destructive
-                focused -> tokens.ring
-                else -> tokens.input
-            },
-        )
+        if (!embedded) {
+            ui.fillRounded(bounds, inputFill(ui))
+            ui.borderRounded(
+                bounds,
+                when {
+                    showsInvalid -> tokens.destructive
+                    focused -> tokens.ring
+                    else -> tokens.input
+                },
+            )
+        }
+        val shown = shownText
 
         val iconWidth = if (icon != null) UiMetrics.INLINE_ICON + UiMetrics.ICON_GAP else 0
         icon?.let { name ->
@@ -223,12 +261,12 @@ open class TextInputWidget(
                 if (!focused) ui.text(placeholder, textX, textY, tokens.mutedForeground)
             } else {
                 keepCursorVisible(ui, innerWidth)
-                val visible = ui.font.plainSubstrByWidth(edit.text.substring(scrollStart), innerWidth)
+                val visible = ui.font.plainSubstrByWidth(shown.substring(scrollStart), innerWidth)
                 ui.plainText(visible, textX, textY, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
             }
             if (focused && System.currentTimeMillis() / CURSOR_BLINK_MILLIS % 2 == 0L) {
                 keepCursorVisible(ui, innerWidth)
-                val cursorX = textX + ui.plainWidth(edit.text.substring(scrollStart, edit.cursor))
+                val cursorX = textX + ui.plainWidth(shown.substring(scrollStart, edit.cursor))
                 ui.fill(Rect(cursorX, textY - 1, 1, ui.lineHeight + 1), tokens.foreground)
             }
         }
@@ -242,7 +280,7 @@ open class TextInputWidget(
      */
     private fun keepCursorVisible(ui: UiGraphics, innerWidth: Int) {
         scrollStart = scrollStart.coerceIn(0, edit.cursor)
-        while (scrollStart < edit.cursor && ui.plainWidth(edit.text.substring(scrollStart, edit.cursor)) > innerWidth) {
+        while (scrollStart < edit.cursor && ui.plainWidth(shownText.substring(scrollStart, edit.cursor)) > innerWidth) {
             scrollStart++
         }
     }
@@ -275,12 +313,12 @@ open class TextInputWidget(
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
         if (event.isPaste) {
-            edit.insert(context.clipboard.replace("\n", "").replace("\r", ""))
+            if (edit.insert(context.clipboard.replace("\n", "").replace("\r", ""))) markChanged(context, immediate = false)
             return true
         }
         when (event.key()) {
-            GLFW.GLFW_KEY_BACKSPACE -> edit.backspace()
-            GLFW.GLFW_KEY_DELETE -> edit.delete()
+            GLFW.GLFW_KEY_BACKSPACE -> if (edit.backspace()) markChanged(context, immediate = false)
+            GLFW.GLFW_KEY_DELETE -> if (edit.delete()) markChanged(context, immediate = false)
             GLFW.GLFW_KEY_LEFT -> edit.moveCursor(-1)
             GLFW.GLFW_KEY_RIGHT -> edit.moveCursor(1)
             GLFW.GLFW_KEY_HOME -> edit.cursor = 0
@@ -299,7 +337,7 @@ open class TextInputWidget(
      */
     override fun charTyped(context: UiContext, event: CharacterEvent): Boolean {
         if (!enabled || !event.isAllowedChatCharacter) return false
-        edit.insert(event.codepointAsString())
+        if (edit.insert(event.codepointAsString())) markChanged(context, immediate = false)
         return true
     }
 
@@ -322,13 +360,24 @@ open class TextInputWidget(
     }
 
     /**
-     * Holds the cursor timing.
+     * Holds the cursor timing, the password mask and the email shape.
      */
     private companion object {
         /**
          * How long the cursor stays visible or hidden while blinking.
          */
         const val CURSOR_BLINK_MILLIS: Long = 500
+
+        /**
+         * The character drawn for every character of a password.
+         */
+        const val PASSWORD_MASK: Char = '\u2022'
+
+        /**
+         * The shape of an email address: a local part, an at sign, and a domain with a dot,
+         * without whitespace.
+         */
+        val EMAIL = Regex("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")
     }
 }
 
@@ -395,15 +444,15 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val size = UiMetrics.CHECKBOX_SIZE
         val box = Rect(bounds.x, bounds.y + (bounds.height - size) / 2, size, size)
-        val hovered = enabled && isOver(mouseX, mouseY)
         val tokens = ui.tokens
         val radius = CHECKBOX_RADIUS
         if (checked) {
             ui.fillRounded(box, if (enabled) tokens.primary else ui.disabled(tokens.primary), radius)
-            drawCheck(ui, box, if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground))
+            val mark = size - 2
+            ui.icon("check", Rect(box.x + 1, box.y + 1, mark, mark), if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground))
         } else {
             ui.fillRounded(box, inputFill(ui), radius)
-            ui.borderRounded(box, if (hovered) tokens.ring else tokens.input, radius)
+            ui.borderRounded(box, if (showsInvalid) tokens.destructive else if (enabled) tokens.input else ui.disabled(tokens.input), radius)
         }
         ui.text(label, box.right + LABEL_GAP, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
     }
@@ -421,7 +470,7 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
         if (!isOver(x, y)) return false
         if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             context.focus(this)
-            checked = !checked
+            toggle(context)
         }
         return true
     }
@@ -435,8 +484,29 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled || event.key() != GLFW.GLFW_KEY_SPACE) return false
-        checked = !checked
+        toggle(context)
         return true
+    }
+
+    /**
+     * Toggles the box and reports the change.
+     *
+     * @param context the screen showing the widget
+     */
+    fun toggle(context: UiContext) {
+        checked = !checked
+        markChanged(context, immediate = true)
+    }
+
+    /**
+     * Focuses and toggles an enabled box when a label that targets it is clicked.
+     *
+     * @param context the screen showing the widget
+     */
+    override fun labelClicked(context: UiContext) {
+        if (!enabled) return
+        context.focus(this)
+        toggle(context)
     }
 
     /**
@@ -465,131 +535,6 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
          * The space between the box and the label.
          */
         const val LABEL_GAP: Int = 4
-    }
-}
-
-/**
- * A choice of one option, whose list opens above the screen when clicked.
- *
- * @param id the id of the widget
- * @property options the options, in display order
- * @property selected the value of the selected option, or `null` if none is selected
- * @property required whether having no selection is invalid
- */
-class DropdownWidget(
-    id: String,
-    val options: List<DropdownOption> = emptyList(),
-    var selected: String? = null,
-    val required: Boolean = false,
-) : Widget(id) {
-
-    /**
-     * Whether the widget can take the keyboard focus, which it can while enabled.
-     */
-    override val focusable: Boolean get() = enabled
-
-    /**
-     * The value of the selected option, or an empty string if none is selected.
-     */
-    override val inputValue: String get() = selected ?: ""
-
-    /**
-     * Whether the selection satisfies the widget's constraints.
-     */
-    val isValid: Boolean get() = !required || selected != null
-
-    /**
-     * The label of the selected option, or `null` if none is selected.
-     */
-    private val selectedLabel: String? get() = options.firstOrNull { it.value == selected }?.label
-
-    /**
-     * Returns the width of the widest option with the arrow, and the widget height.
-     *
-     * @param measurer the text measurer
-     * @return the dropdown size
-     */
-    override fun contentSize(measurer: TextMeasurer): Size {
-        val widest = options.maxOfOrNull { measurer.width(it.label) } ?: 0
-        val width = maxOf(UiMetrics.INPUT_WIDTH, widest + 2 * UiMetrics.WIDGET_PADDING + measurer.plainWidth(ARROW) + 4)
-        return Size(width, UiMetrics.WIDGET_HEIGHT)
-    }
-
-    /**
-     * Draws the selected option, or a dash when nothing is selected, and an arrow.
-     *
-     * @param ui the graphics to draw with
-     * @param context the screen showing the widget
-     * @param mouseX the mouse x position
-     * @param mouseY the mouse y position
-     */
-    override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        val hovered = enabled && isOver(mouseX, mouseY)
-        val tokens = ui.tokens
-        ui.fillRounded(bounds, if (hovered) ThemeColors.blend(inputFill(ui), tokens.accent, HOVER_ACCENT) else inputFill(ui))
-        ui.borderRounded(bounds, if (!isValid) tokens.destructive else tokens.input)
-        val textY = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
-        val color = if (enabled) tokens.foreground else ui.disabled(tokens.foreground)
-        ui.clipped(bounds) {
-            val label = selectedLabel
-            if (label != null) {
-                ui.text(label, bounds.x + UiMetrics.WIDGET_PADDING, textY, color)
-            } else {
-                ui.plainText("-", bounds.x + UiMetrics.WIDGET_PADDING, textY, tokens.mutedForeground)
-            }
-            ui.plainText(ARROW, bounds.right - UiMetrics.WIDGET_PADDING - ui.plainWidth(ARROW), textY, color)
-        }
-    }
-
-    /**
-     * Opens the option list of an enabled dropdown when it is left-clicked.
-     *
-     * @param context the screen showing the widget
-     * @param x the mouse x position
-     * @param y the mouse y position
-     * @param button the mouse button
-     * @return whether the click was on this dropdown
-     */
-    override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
-        if (!isOver(x, y)) return false
-        if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-            context.focus(this)
-            context.openDropdown(this)
-        }
-        return true
-    }
-
-    /**
-     * Opens the option list on Enter, Space or Down.
-     *
-     * @param context the screen showing the widget
-     * @param event the key event
-     * @return whether the key was handled
-     */
-    override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
-        if (!enabled || !(isActivation(event) || event.key() == GLFW.GLFW_KEY_DOWN)) return false
-        context.openDropdown(this)
-        return true
-    }
-
-    /**
-     * Selects the option with the given value, or clears the selection for an empty or unknown
-     * value.
-     *
-     * @param value the value of the option to select
-     */
-    override fun applyValue(value: String) {
-        selected = value.takeIf { candidate -> options.any { it.value == candidate } }
-    }
-
-    /**
-     * Holds the arrow glyph.
-     */
-    private companion object {
-        /**
-         * The glyph that marks the widget as a dropdown.
-         */
-        const val ARROW: String = "▼"
     }
 }
 
@@ -713,16 +658,6 @@ class IconWidget(id: String, var icon: String, val size: Int, val color: IconCol
 private const val INPUT_FILL_ALPHA: Float = 0.3f
 
 /**
- * How far a hovered button is blended towards the background.
- */
-private const val HOVER_DIM: Float = 0.1f
-
-/**
- * How far a hovered dropdown is blended towards the accent colour.
- */
-private const val HOVER_ACCENT: Float = 0.6f
-
-/**
  * The opacity of a progress bar's track, relative to the primary colour.
  */
 private const val TRACK_ALPHA: Float = 0.2f
@@ -733,7 +668,7 @@ private const val TRACK_ALPHA: Float = 0.2f
 private const val CHECKBOX_RADIUS: Int = 2
 
 /**
- * Returns the translucent fill drawn behind text inputs, checkboxes and dropdowns.
+ * Returns the translucent fill drawn behind text inputs, checkboxes and selects.
  *
  * @param ui the graphics, whose tokens define the colour
  * @return the ARGB fill colour
@@ -741,21 +676,6 @@ private const val CHECKBOX_RADIUS: Int = 2
 internal fun inputFill(ui: UiGraphics): Int =
     ThemeColors.withAlpha(ui.tokens.input, ((ui.tokens.input ushr 24) / 255f) * INPUT_FILL_ALPHA)
 
-/**
- * Draws a check mark inside a checkbox's box.
- *
- * @param ui the graphics to draw with
- * @param box the box
- * @param color the ARGB colour of the mark
- */
-internal fun drawCheck(ui: UiGraphics, box: Rect, color: Int) {
-    val x = box.x + box.width / 4
-    val y = box.y + box.height / 2
-    val short = box.width / 4
-    val long = box.width / 2
-    for (step in 0 until short) ui.fill(Rect(x + step, y + step - 1, 1, 2), color)
-    for (step in 0 until long) ui.fill(Rect(x + short + step, y + short - step - 2, 1, 2), color)
-}
 
 /**
  * Checks whether a key activates a focused widget: Enter, keypad Enter or Space.

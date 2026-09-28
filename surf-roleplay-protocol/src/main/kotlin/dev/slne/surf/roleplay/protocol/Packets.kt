@@ -4,6 +4,7 @@ import dev.slne.surf.roleplay.protocol.packets.ClientHello
 import dev.slne.surf.roleplay.protocol.packets.Welcome
 import dev.slne.surf.roleplay.protocol.screen.ScreenClose
 import dev.slne.surf.roleplay.protocol.screen.ScreenClosed
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedAction
@@ -108,6 +109,16 @@ object Packets {
     )
 
     /**
+     * Reports a change of an input that asked for change events.
+     */
+    val SCREEN_INPUT_CHANGE: PacketType<ScreenInputChange> = PacketType(
+        "screen_input_change",
+        PacketDirection.SERVERBOUND,
+        setOf(ConnectionPhase.PLAY),
+        ScreenInputChange.serializer(),
+    )
+
+    /**
      * Every packet type of the protocol.
      */
     val all: List<PacketType<*>> = listOf(
@@ -120,6 +131,7 @@ object Packets {
         SCREEN_WIDGET_ACTION,
         SCREEN_TYPED_ACTION,
         SCREEN_CLOSED,
+        SCREEN_INPUT_CHANGE,
     )
 
     /**

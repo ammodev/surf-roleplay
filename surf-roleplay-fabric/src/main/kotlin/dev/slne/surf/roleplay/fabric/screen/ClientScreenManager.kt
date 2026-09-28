@@ -10,11 +10,12 @@ import dev.slne.surf.roleplay.fabric.ui.ScreenLayers
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
-import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
 import dev.slne.surf.roleplay.protocol.Packets
 import dev.slne.surf.roleplay.protocol.screen.ScreenClose
 import dev.slne.surf.roleplay.protocol.screen.ScreenClosed
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.ScreenStack
@@ -245,10 +246,10 @@ object ClientScreenManager {
          * Sends a widget action with the screen's input values.
          *
          * @param panel the panel
-         * @param button the clicked button
+         * @param widget the widget that triggered the action
          */
-        override fun buttonClicked(panel: ScreenPanel, button: ButtonWidget) {
-            ClientPackets.send(Packets.SCREEN_WIDGET_ACTION, ScreenWidgetAction(sessionId, button.id, panel.inputValues()))
+        override fun actionTriggered(panel: ScreenPanel, widget: Widget) {
+            ClientPackets.send(Packets.SCREEN_WIDGET_ACTION, ScreenWidgetAction(sessionId, widget.id, panel.inputValues()))
         }
 
         /**
@@ -258,6 +259,28 @@ object ClientScreenManager {
          */
         override fun closeRequested(panel: ScreenPanel) {
             closedByPlayer(sessionId)
+        }
+
+        /**
+         * Sends the new value of an input that reports its changes.
+         *
+         * @param panel the panel
+         * @param widget the input
+         */
+        override fun valueChanged(panel: ScreenPanel, widget: Widget) {
+            val value = widget.inputValue ?: return
+            ClientPackets.send(Packets.SCREEN_INPUT_CHANGE, ScreenInputChange(sessionId, widget.id, value))
+        }
+
+        /**
+         * Sends a changed combobox query as a search event.
+         *
+         * @param panel the panel
+         * @param widget the combobox
+         * @param query the query
+         */
+        override fun searchChanged(panel: ScreenPanel, widget: Widget, query: String) {
+            ClientPackets.send(Packets.SCREEN_INPUT_CHANGE, ScreenInputChange(sessionId, widget.id, widget.inputValue ?: "", query))
         }
     }
 

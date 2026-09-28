@@ -5,7 +5,7 @@ import dev.slne.surf.roleplay.fabric.ui.widget.WidgetTree
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownNode
+import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
 import dev.slne.surf.roleplay.protocol.screen.NumberInputNode
 import dev.slne.surf.roleplay.protocol.screen.Presentation
@@ -82,7 +82,7 @@ class ScreenMechanicsTest {
 
     /**
      * A tree with a label, a text input, a disabled number input, a checkbox, a scroll list with a
-     * button, a dropdown and a final button.
+     * button, a select and a final button.
      */
     private val tree = WidgetFactory.create(
         ColumnNode(
@@ -93,7 +93,7 @@ class ScreenMechanicsTest {
                 NumberInputNode("age", enabled = false),
                 CheckboxNode("agree"),
                 ScrollListNode("list", children = listOf(ButtonNode("open"))),
-                DropdownNode("city"),
+                SelectNode("city"),
                 ButtonNode("submit"),
             ),
         ),

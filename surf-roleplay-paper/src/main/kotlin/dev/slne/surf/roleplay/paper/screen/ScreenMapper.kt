@@ -2,9 +2,58 @@ package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldSetElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.FormElement
+import dev.slne.surf.roleplay.protocol.screen.FieldContentNode
+import dev.slne.surf.roleplay.protocol.screen.FieldGroupNode
+import dev.slne.surf.roleplay.protocol.screen.FieldNode
+import dev.slne.surf.roleplay.protocol.screen.FieldSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.FieldSetNode
+import dev.slne.surf.roleplay.protocol.screen.FieldTextNode
+import dev.slne.surf.roleplay.protocol.screen.FormNode
+import dev.slne.surf.roleplay.protocol.screen.SetInvalid
+import dev.slne.surf.roleplay.api.client.common.screen.CalendarElement
+import dev.slne.surf.roleplay.protocol.screen.CalendarNode
+import dev.slne.surf.roleplay.protocol.screen.CalendarValues
+import dev.slne.surf.roleplay.api.client.common.screen.RadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.SliderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
+import dev.slne.surf.roleplay.protocol.screen.RadioGroupNode
+import dev.slne.surf.roleplay.protocol.screen.RadioOption
+import dev.slne.surf.roleplay.protocol.screen.SliderNode
+import dev.slne.surf.roleplay.protocol.screen.SwitchNode
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAddonElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextareaElement
+import dev.slne.surf.roleplay.protocol.screen.InputGroupAddonNode
+import dev.slne.surf.roleplay.protocol.screen.InputGroupNode
+import dev.slne.surf.roleplay.protocol.screen.InputGroupTextNode
+import dev.slne.surf.roleplay.protocol.screen.InputOtpNode
+import dev.slne.surf.roleplay.protocol.screen.TextareaNode
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.ToggleElement
+import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupElement
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupTextNode
+import dev.slne.surf.roleplay.protocol.screen.ToggleGroupItem
+import dev.slne.surf.roleplay.protocol.screen.ToggleNode
+import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
+import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSizeMode
 import dev.slne.surf.roleplay.api.client.common.screen.IconElement
@@ -23,8 +72,12 @@ import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownOption
+import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
+import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
+import dev.slne.surf.roleplay.protocol.screen.SelectGroup
+import dev.slne.surf.roleplay.protocol.screen.SelectNode
+import dev.slne.surf.roleplay.protocol.screen.SelectOption
+import dev.slne.surf.roleplay.protocol.screen.SetOptions
 import dev.slne.surf.roleplay.protocol.screen.IconColor
 import dev.slne.surf.roleplay.protocol.screen.IconNode
 import dev.slne.surf.roleplay.protocol.screen.ImageNode
@@ -89,25 +142,87 @@ object ScreenMapper {
             )
 
             is ScrollListElement -> ScrollListNode(element.id, width, height, element.children.map(::toNode), element.gap)
-            is LabelElement -> LabelNode(element.id, width, height, text(element.text), element.icon)
-            is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput, element.icon)
+            is LabelElement -> LabelNode(element.id, width, height, text(element.text), element.icon, element.forId)
+            is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput, element.icon, enumOf(element.variant), enumOf(element.size))
             is TextInputElement -> TextInputNode(
                 element.id, width, height, element.value, text(element.placeholder), element.maxLength, element.required, element.enabled, element.icon,
+                element.onChange != null, enumOf(element.type),
             )
 
             is NumberInputElement -> NumberInputNode(
                 element.id, width, height, element.value, element.min, element.max, element.required, element.enabled,
+                element.onChange != null,
             )
 
-            is CheckboxElement -> CheckboxNode(element.id, width, height, text(element.label), element.checked, element.enabled)
-            is DropdownElement -> DropdownNode(
-                element.id, width, height, element.options.map { DropdownOption(it.value, text(it.label)) },
-                element.selected, element.required, element.enabled,
+            is CheckboxElement -> CheckboxNode(element.id, width, height, text(element.label), element.checked, element.enabled, element.onChange != null)
+            is SelectElement -> SelectNode(
+                element.id, width, height, groups(element.groups), element.selected, text(element.placeholder), enumOf(element.size), element.required,
+                element.enabled, element.onChange != null,
+            )
+
+            is NativeSelectElement -> NativeSelectNode(
+                element.id, width, height, groups(element.groups), element.selected, enumOf(element.size), element.required, element.enabled,
+                element.onChange != null,
+            )
+
+            is ComboboxElement -> ComboboxNode(
+                element.id, width, height, groups(element.groups), element.selected, element.multiple, text(element.placeholder), text(element.emptyText),
+                element.showClear, element.required, element.enabled, element.onChange != null, element.onSearch != null,
             )
 
             is ImageElement -> ImageNode(element.id, width, height, element.texture.asString())
             is ProgressElement -> ProgressNode(element.id, width, height, element.progress, element.label?.let(::text))
             is IconElement -> IconNode(element.id, width, height, element.icon, element.size, tint(element.tint))
+            is ButtonGroupElement -> ButtonGroupNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation))
+            is ButtonGroupTextElement -> ButtonGroupTextNode(element.id, width, height, text(element.text), element.icon)
+            is ButtonGroupSeparatorElement -> ButtonGroupSeparatorNode(element.id, width, height)
+            is ToggleElement -> ToggleNode(
+                element.id, width, height, text(element.text), element.icon, element.pressed, enumOf(element.variant), enumOf(element.size), element.enabled,
+            )
+
+            is ToggleGroupElement -> ToggleGroupNode(
+                element.id, width, height,
+                element.items.map { ToggleGroupItem(it.value, text(it.text), it.icon, it.enabled) },
+                element.multiple, element.selected, enumOf(element.variant), enumOf(element.size), element.spacing,
+                enumOf(element.orientation), element.enabled, element.required, element.onChange != null,
+            )
+
+            is TextareaElement -> TextareaNode(
+                element.id, width, height, element.value, text(element.placeholder), element.rows, element.maxLength, element.required,
+                element.enabled, element.onChange != null,
+            )
+
+            is FormElement -> FormNode(element.id, width, height, element.children.map(::toNode), element.submitId)
+            is FieldSetElement -> FieldSetNode(element.id, width, height, element.children.map(::toNode))
+            is FieldGroupElement -> FieldGroupNode(element.id, width, height, element.children.map(::toNode))
+            is FieldElement -> FieldNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation))
+            is FieldContentElement -> FieldContentNode(element.id, width, height, element.children.map(::toNode))
+            is FieldTextElement -> FieldTextNode(element.id, width, height, enumOf(element.kind), text(element.text), element.forId)
+            is FieldSeparatorElement -> FieldSeparatorNode(element.id, width, height, element.text?.let(::text))
+            is CalendarElement -> CalendarNode(
+                element.id, width, height, enumOf(element.mode), CalendarValues.format(enumOf(element.mode), element.selected), element.month?.toString(),
+                element.min?.toString(), element.max?.toString(), element.disabled.sorted().map { it.toString() }, element.showOutsideDays,
+                enumOf(element.captionLayout), element.required, element.enabled, element.onChange != null,
+            )
+
+            is SwitchElement -> SwitchNode(element.id, width, height, element.checked, enumOf(element.size), element.enabled, element.onChange != null)
+            is RadioGroupElement -> RadioGroupNode(
+                element.id, width, height, element.options.map { RadioOption(it.value, text(it.label), it.enabled) }, element.selected,
+                enumOf(element.orientation), element.required, element.enabled, element.onChange != null,
+            )
+
+            is SliderElement -> SliderNode(
+                element.id, width, height, element.values, element.min, element.max, element.step, enumOf(element.orientation), element.enabled,
+                element.onChange != null,
+            )
+
+            is InputGroupElement -> InputGroupNode(element.id, width, height, element.children.map(::toNode))
+            is InputGroupAddonElement -> InputGroupAddonNode(element.id, width, height, element.children.map(::toNode), enumOf(element.align))
+            is InputGroupTextElement -> InputGroupTextNode(element.id, width, height, text(element.text), element.icon)
+            is InputOtpElement -> InputOtpNode(
+                element.id, width, height, element.value, element.length, element.groups, enumOf(element.pattern), element.required,
+                element.enabled, element.onChange != null,
+            )
         }
     }
 
@@ -125,7 +240,27 @@ object ScreenMapper {
         is ScreenChange.SetValue -> SetValue(change.targetId, change.value)
         is ScreenChange.SetProgress -> SetProgress(change.targetId, change.progress)
         is ScreenChange.SetEnabled -> SetEnabled(change.targetId, change.enabled)
+        is ScreenChange.SetOptions -> SetOptions(change.targetId, groups(change.groups))
+        is ScreenChange.SetInvalid -> SetInvalid(change.targetId, change.invalid)
     }
+
+    /**
+     * Maps option groups to their protocol form.
+     *
+     * @param groups the option groups
+     * @return the protocol groups
+     */
+    fun groups(groups: List<SelectChoiceGroup>): List<SelectGroup> =
+        groups.map { group -> SelectGroup(group.label?.let(::text), group.options.map { SelectOption(it.value, text(it.label), it.enabled) }) }
+
+    /**
+     * Maps an API enum constant to the protocol enum constant of the same name.
+     *
+     * @param T the protocol enum
+     * @param value the API constant
+     * @return the protocol constant
+     */
+    inline fun <reified T : Enum<T>> enumOf(value: Enum<*>): T = enumValueOf(value.name)
 
     /**
      * Maps an icon tint.

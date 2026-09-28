@@ -4,8 +4,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownChoice
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
@@ -41,7 +42,7 @@ class ServerScreenTreeTest {
                         TextInputElement("name"),
                         NumberInputElement("age"),
                         CheckboxElement("agree"),
-                        DropdownElement("city", listOf(DropdownChoice("north", Component.text("Nord")))),
+                        SelectElement("city", listOf(SelectChoiceGroup(null, listOf(SelectChoice("north", Component.text("Nord")))))),
                     ),
                 ),
                 ProgressElement("load", 0f),
@@ -77,7 +78,7 @@ class ServerScreenTreeTest {
         assertEquals("Erika", assertIs<TextInputElement>(tree.find("name")).value)
         assertEquals(42L, assertIs<NumberInputElement>(tree.find("age")).value)
         assertEquals(true, assertIs<CheckboxElement>(tree.find("agree")).checked)
-        assertEquals("north", assertIs<DropdownElement>(tree.find("city")).selected)
+        assertEquals("north", assertIs<SelectElement>(tree.find("city")).selected)
         assertEquals(0.5f, assertIs<ProgressElement>(tree.find("load")).progress)
         assertEquals(false, assertIs<ButtonElement>(tree.find("ok")).enabled)
     }

@@ -80,6 +80,30 @@ class RoleplayScreen : Screen(Component.empty()) {
     }
 
     /**
+     * Passes mouse movement with a button held to the top panel.
+     *
+     * @param event the mouse event
+     * @param dragX the horizontal movement
+     * @param dragY the vertical movement
+     * @return `true`
+     */
+    override fun mouseDragged(event: MouseButtonEvent, dragX: Double, dragY: Double): Boolean {
+        top?.mouseDragged(event.x(), event.y())
+        return true
+    }
+
+    /**
+     * Ends a drag in every panel when a mouse button is released.
+     *
+     * @param event the mouse event
+     * @return `true`
+     */
+    override fun mouseReleased(event: MouseButtonEvent): Boolean {
+        layers.forEach { it.mouseReleased() }
+        return true
+    }
+
+    /**
      * Passes wheel scrolling to the top panel.
      *
      * @param mouseX the mouse x position

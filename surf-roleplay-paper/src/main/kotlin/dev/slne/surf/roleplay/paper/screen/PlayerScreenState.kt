@@ -1,8 +1,17 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.api.core.util.logger
+import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldTextKind
+import dev.slne.surf.roleplay.api.client.common.screen.FieldTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPatchBuilder
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
@@ -10,7 +19,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenValues
-import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.Packets
@@ -29,6 +37,11 @@ import net.kyori.adventure.text.Component
 import java.util.UUID
 
 private val log = logger()
+
+/**
+ * The longest combobox query accepted in a search event.
+ */
+private const val MAX_QUERY_LENGTH: Int = 256
 
 /**
  * Sends clientbound screen packets to one player.
@@ -301,13 +314,71 @@ class PlayerScreenState(
             is ScreenActionValidator.Result.Rejected -> Outcome.Rejected(result.reason)
             is ScreenActionValidator.Result.Accepted -> {
                 session.tree.storeValues(result.values)
-                val button = session.tree.find(packet.widgetId) as ButtonElement
+                val widget = session.tree.find(packet.widgetId)!!
+                val action = ElementRules.rule(widget)!!.action(widget)!!
                 runHandler("click on '${packet.widgetId}'") {
-                    button.onClick?.onClick(ScreenClick(session, packet.widgetId, ScreenValues(result.values)))
+                    action.handler?.onClick(ScreenClick(session, packet.widgetId, ScreenValues(result.values)))
                 }
                 Outcome.Accepted
             }
         }
+    }
+
+    /**
+     * Validates a change of an input that reports its changes, stores the new value and runs the
+     * input's change handler.
+     *
+     * @param packet the change
+     * @return the outcome
+     */
+    fun handleInputChange(packet: ScreenInputChangePacket): Outcome {
+        threadCheck()
+        if (!limiter.tryAcquire(viewer)) return Outcome.Rejected("rate limit exceeded")
+        val session = topSession(packet.sessionId) as? GenericSession
+            ?: return Outcome.Rejected("session ${packet.sessionId} is not the top generic screen", suspicious = false)
+        val id = packet.widgetId
+        val element = session.tree.find(id) ?: return Outcome.Rejected("unknown input ${ScreenActionValidator.display(id)}")
+        packet.query?.let { query -> return handleSearch(session, element, query) }
+        val rule = ElementRules.input(element) ?: return Outcome.Rejected("widget ${ScreenActionValidator.display(id)} is not an input")
+        val handler = rule.onChange(element) ?: return Outcome.Rejected("input ${ScreenActionValidator.display(id)} does not report changes")
+        if (!ElementRules.isEnabled(element)) return Outcome.Rejected("input ${ScreenActionValidator.display(id)} is disabled")
+        rule.violation(element, packet.value)?.let { return Outcome.Rejected("input ${ScreenActionValidator.display(id)}: $it", suspicious = false) }
+        session.tree.storeValues(mapOf(id to packet.value))
+        val values = session.tree.elements().mapNotNull { e -> ElementRules.input(e)?.current?.invoke(e)?.let { e.id to it } }.toMap()
+        runHandler("change of '$id'") { handler.onChange(ScreenInputChange(session, id, packet.value, ScreenValues(values))) }
+        return Outcome.Accepted
+    }
+
+    /**
+     * Adds the descendants of an element to a list, parents first.
+     *
+     * @param element the element
+     * @param into the list
+     */
+    private fun collectDescendants(element: ScreenElement, into: MutableList<ScreenElement>) {
+        if (element !is ContainerElement) return
+        element.children.forEach { child ->
+            into += child
+            collectDescendants(child, into)
+        }
+    }
+
+    /**
+     * Runs the search handler of a combobox for a changed query.
+     *
+     * @param session the screen the combobox is on
+     * @param element the element the query was reported for
+     * @param query the typed query
+     * @return the outcome
+     */
+    private fun handleSearch(session: GenericSession, element: ScreenElement, query: String): Outcome {
+        val id = ScreenActionValidator.display(element.id)
+        val combobox = element as? ComboboxElement ?: return Outcome.Rejected("widget $id is not a combobox")
+        val handler = combobox.onSearch ?: return Outcome.Rejected("combobox $id does not report searches")
+        if (!combobox.enabled) return Outcome.Rejected("combobox $id is disabled")
+        if (query.length > MAX_QUERY_LENGTH) return Outcome.Rejected("query of combobox $id is too long")
+        runHandler("search of '${element.id}'") { handler.onSearch(ScreenSearch(session, element.id, query)) }
+        return Outcome.Accepted
     }
 
     /**
@@ -365,6 +436,13 @@ class PlayerScreenState(
         override fun close() = close(sessionId, notifyClient = true)
 
         /**
+         * Does nothing: only generic screens have inputs.
+         *
+         * @param errors ignored
+         */
+        override fun showErrors(errors: Map<String, Component>) = Unit
+
+        /**
          * Runs the screen's close handler after it was removed from the stack.
          */
         abstract fun closed()
@@ -390,6 +468,26 @@ class PlayerScreenState(
          * The server's copy of the screen's tree.
          */
         val tree = ServerScreenTree(definition.root)
+
+        /**
+         * Shows input errors: every field shows the error of its first input that has one, or
+         * none, and is marked invalid accordingly; every input is marked invalid exactly when it
+         * has an error.
+         *
+         * @param errors the error of every invalid input, keyed by input id
+         */
+        override fun showErrors(errors: Map<String, Component>) {
+            val elements = tree.elements()
+            patch {
+                for (field in elements.filterIsInstance<FieldElement>()) {
+                    val inside = mutableListOf<ScreenElement>().also { collectDescendants(field, it) }
+                    val error = inside.firstNotNullOfOrNull { errors[it.id] }
+                    inside.filterIsInstance<FieldTextElement>().filter { it.kind == FieldTextKind.ERROR }.forEach { setText(it.id, error ?: Component.empty()) }
+                    setInvalid(field.id, error != null)
+                }
+                for (input in elements.filter { ElementRules.input(it) != null }) setInvalid(input.id, input.id in errors)
+            }
+        }
 
         /**
          * Applies changes to the server's tree and sends the ones that applied to the client.

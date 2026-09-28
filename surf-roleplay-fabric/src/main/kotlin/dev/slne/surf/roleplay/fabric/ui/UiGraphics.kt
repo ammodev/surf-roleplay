@@ -79,9 +79,10 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param rect the rectangle
      * @param color the ARGB colour
      * @param radius the corner radius
+     * @param corners the corners that are rounded
      */
-    fun fillRounded(rect: Rect, color: Int, radius: Int = tokens.radius) {
-        RoundedShape.spans(rect, radius).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
+    fun fillRounded(rect: Rect, color: Int, radius: Int = tokens.radius, corners: Corners = Corners.ALL) {
+        RoundedShape.spans(rect, radius, corners).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
     }
 
     /**
@@ -90,9 +91,10 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param rect the rectangle
      * @param color the ARGB colour
      * @param radius the corner radius
+     * @param corners the corners that are rounded
      */
-    fun borderRounded(rect: Rect, color: Int, radius: Int = tokens.radius) {
-        RoundedShape.borderSpans(rect, radius).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
+    fun borderRounded(rect: Rect, color: Int, radius: Int = tokens.radius, corners: Corners = Corners.ALL) {
+        RoundedShape.borderSpans(rect, radius, corners).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
     }
 
     /**

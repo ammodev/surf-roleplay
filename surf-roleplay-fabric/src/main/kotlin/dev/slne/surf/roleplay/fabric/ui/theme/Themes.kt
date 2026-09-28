@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
  * @property foreground the colour of regular text
  * @property card the colour of panels
  * @property cardForeground the colour of text on panels
- * @property popover the colour of floating surfaces such as dropdown lists
+ * @property popover the colour of floating surfaces such as option lists
  * @property popoverForeground the colour of text on floating surfaces
  * @property primary the colour of primary actions
  * @property primaryForeground the colour of text on primary actions
@@ -171,5 +171,18 @@ object ThemeColors {
             result = result or ((a + (b - a) * t).roundToInt() shl shift)
         }
         return result
+    }
+
+    /**
+     * Checks whether a colour is dark.
+     *
+     * @param color the ARGB colour
+     * @return whether its relative luminance is below one half
+     */
+    fun isDark(color: Int): Boolean {
+        val r = (color ushr 16) and 0xFF
+        val g = (color ushr 8) and 0xFF
+        val b = color and 0xFF
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128
     }
 }

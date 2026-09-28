@@ -1,18 +1,22 @@
 package dev.slne.surf.roleplay.paper.screen
 
-import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
-import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.FieldSetElement
+import dev.slne.surf.roleplay.api.client.common.screen.FormElement
+import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAddonElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
-import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
-import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
 import dev.slne.surf.roleplay.api.client.common.screen.RowElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollListElement
-import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
 
 /**
  * The server's copy of an open generic screen's element tree.
@@ -75,14 +79,7 @@ class ServerScreenTree(root: ScreenElement) {
             }
 
             is ScreenChange.SetText -> update(change.targetId) { element ->
-                when (element) {
-                    is LabelElement -> element.copy(text = change.text)
-                    is ButtonElement -> element.copy(text = change.text)
-                    is CheckboxElement -> element.copy(label = change.text)
-                    is ProgressElement -> element.copy(label = change.text)
-                    is TextInputElement -> element.copy(placeholder = change.text)
-                    else -> null
-                }
+                ElementRules.rule(element)?.withText?.invoke(element, change.text)
             } ?: return false
 
             is ScreenChange.SetValue -> update(change.targetId) { element -> withValue(element, change.value) } ?: return false
@@ -91,14 +88,12 @@ class ServerScreenTree(root: ScreenElement) {
             } ?: return false
 
             is ScreenChange.SetEnabled -> update(change.targetId) { element ->
-                when (element) {
-                    is ButtonElement -> element.copy(enabled = change.enabled)
-                    is TextInputElement -> element.copy(enabled = change.enabled)
-                    is NumberInputElement -> element.copy(enabled = change.enabled)
-                    is CheckboxElement -> element.copy(enabled = change.enabled)
-                    is DropdownElement -> element.copy(enabled = change.enabled)
-                    else -> null
-                }
+                ElementRules.rule(element)?.withEnabled?.invoke(element, change.enabled)
+            } ?: return false
+
+            is ScreenChange.SetInvalid -> if (find(change.targetId) == null) return false else root
+            is ScreenChange.SetOptions -> update(change.targetId) { element ->
+                (element as? ComboboxElement)?.let { combobox -> withOptions(combobox, change.groups) }
             } ?: return false
         }
         root = updated
@@ -122,12 +117,23 @@ class ServerScreenTree(root: ScreenElement) {
      * @param value the value in its string form
      * @return the updated element, or `null`
      */
-    private fun withValue(element: ScreenElement, value: String): ScreenElement? = when (element) {
-        is TextInputElement -> element.copy(value = value)
-        is NumberInputElement -> if (value.isEmpty()) element.copy(value = null) else value.toLongOrNull()?.let { element.copy(value = it) }
-        is CheckboxElement -> element.copy(checked = value == "true")
-        is DropdownElement -> element.copy(selected = value.takeIf { candidate -> element.options.any { it.value == candidate } })
-        else -> null
+    private fun withValue(element: ScreenElement, value: String): ScreenElement? =
+        ElementRules.input(element)?.withValue?.invoke(element, value)
+
+    /**
+     * Returns a combobox with new options. Options offered before and missing from the new groups
+     * are kept in an extra group without heading at the end, so that an option the player chose
+     * from an earlier result stays valid.
+     *
+     * @param combobox the combobox
+     * @param groups the new option groups
+     * @return the updated combobox, or `null` if the new option values repeat
+     */
+    private fun withOptions(combobox: ComboboxElement, groups: List<SelectChoiceGroup>): ComboboxElement? {
+        val present = groups.flatMap { group -> group.options.map { it.value } }.toSet()
+        val kept = combobox.groups.flatMap { it.options }.filter { it.value !in present }
+        val merged = if (kept.isEmpty()) groups else groups + SelectChoiceGroup(null, kept)
+        return runCatching { combobox.copy(groups = merged) }.getOrNull()
     }
 
     /**
@@ -224,6 +230,14 @@ class ServerScreenTree(root: ScreenElement) {
             is RowElement -> container.copy(children = children)
             is ColumnElement -> container.copy(children = children)
             is ScrollListElement -> container.copy(children = children)
+            is ButtonGroupElement -> container.copy(children = children)
+            is InputGroupElement -> container.copy(children = children)
+            is InputGroupAddonElement -> container.copy(children = children)
+            is FormElement -> container.copy(children = children)
+            is FieldSetElement -> container.copy(children = children)
+            is FieldGroupElement -> container.copy(children = children)
+            is FieldElement -> container.copy(children = children)
+            is FieldContentElement -> container.copy(children = children)
         }
     }
 }

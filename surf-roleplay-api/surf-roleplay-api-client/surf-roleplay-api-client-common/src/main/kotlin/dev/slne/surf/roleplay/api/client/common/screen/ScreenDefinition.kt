@@ -1,6 +1,7 @@
 package dev.slne.surf.roleplay.api.client.common.screen
 
 import net.kyori.adventure.text.Component
+import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -63,6 +64,28 @@ fun interface ButtonHandler {
 }
 
 /**
+ * Handles a change of an input that reports its changes at once.
+ */
+fun interface ChangeHandler {
+    /**
+     * Handles a change. It runs only after the new value passed the input's constraints.
+     *
+     * @param change the change
+     */
+    fun onChange(change: ScreenInputChange)
+}
+
+/**
+ * A validated change of an input's value.
+ *
+ * @property screen the screen the input is on
+ * @property inputId the id of the changed input
+ * @property value the new value, in the string form of [ScreenValues.all]
+ * @property values the values of every input of the screen after the change
+ */
+data class ScreenInputChange(val screen: OpenScreen, val inputId: String, val value: String, val values: ScreenValues)
+
+/**
  * Handles the closing of a screen.
  */
 fun interface CloseHandler {
@@ -81,14 +104,23 @@ fun interface CloseHandler {
  * @property buttonId the id of the clicked button
  * @property values the validated values of the screen's inputs
  */
-data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values: ScreenValues)
+data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values: ScreenValues) {
+    /**
+     * Shows errors of the submitted inputs, as [OpenScreen.showErrors] does.
+     *
+     * @param errors the error of every invalid input, keyed by input id
+     */
+    fun fail(errors: Map<String, Component>) = screen.showErrors(errors)
+}
 
 /**
  * The validated input values of a screen, keyed by input element id.
  *
  * @property all the values in their string form: text for text inputs, a decimal number or an
- *           empty string for number inputs, `true` or `false` for checkboxes, and the option value
- *           or an empty string for dropdowns
+ *           empty string for number inputs, `true` or `false` for checkboxes, switches and
+ *           toggles, the option value or an empty string for selects, native selects and radio
+ *           groups, comma-separated values for comboboxes, toggle groups and sliders, and
+ *           ISO dates for calendars
  */
 class ScreenValues(val all: Map<String, String>) {
 
@@ -117,13 +149,38 @@ class ScreenValues(val all: Map<String, String>) {
     fun checked(id: String): Boolean? = all[id]?.let { it == "true" }
 
     /**
-     * Returns the selected option of a dropdown.
+     * Returns the thumb values of a slider.
      *
-     * @param id the dropdown id
+     * @param id the slider id
+     * @return the values in ascending order, or `null` if the screen has no such slider
+     */
+    fun numbers(id: String): List<Double>? = all[id]?.split(',')?.mapNotNull { it.trim().toDoubleOrNull() }
+
+    /**
+     * Returns the selected dates of a calendar.
+     *
+     * @param id the calendar id
+     * @return the dates in ascending order, a range as its first and last date, or `null` if the
+     *         screen has no such calendar
+     */
+    fun dates(id: String): List<LocalDate>? = all[id]?.split(',', '/')?.mapNotNull { runCatching { LocalDate.parse(it.trim()) }.getOrNull() }
+
+    /**
+     * Returns the selected option of a select, native select, radio group or single combobox.
+     *
+     * @param id the input id
      * @return the value of the selected option, or `null` if nothing is selected or the screen
-     *         has no such dropdown
+     *         has no such input
      */
     fun selected(id: String): String? = all[id]?.takeIf { it.isNotEmpty() }
+
+    /**
+     * Returns the selected values of a combobox or toggle group.
+     *
+     * @param id the input id
+     * @return the selected values, or `null` if the screen has no such input
+     */
+    fun list(id: String): List<String>? = all[id]?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
 
     /**
      * Returns a readable description of the values.
@@ -162,6 +219,16 @@ interface OpenScreen {
      * @param changes the builder that records the changes
      */
     fun patch(changes: ScreenPatchBuilder.() -> Unit)
+
+    /**
+     * Shows the errors of inputs found by a check the server made. Every field that holds an
+     * input with an error shows the error in its error text and is drawn as invalid, and the input
+     * is drawn as invalid until the player changes it. Every other field and input loses its error.
+     * Does nothing for screens without inputs, or if the screen is closed.
+     *
+     * @param errors the error of every invalid input, keyed by input id
+     */
+    fun showErrors(errors: Map<String, Component>)
 
     /**
      * Closes the screen and every screen opened on top of it. Does nothing if the screen is
@@ -231,6 +298,25 @@ sealed interface ScreenChange {
      * @property enabled whether the element can be used
      */
     data class SetEnabled(val targetId: String, val enabled: Boolean) : ScreenChange
+
+    /**
+     * Replaces the options of a combobox, keeping its selection and the query the player typed.
+     * The player's client keeps showing selected options that are missing from the new groups, and
+     * the server keeps accepting every option it offered before.
+     *
+     * @property targetId the id of the combobox
+     * @property groups the new option groups
+     */
+    data class SetOptions(val targetId: String, val groups: List<SelectChoiceGroup>) : ScreenChange
+
+    /**
+     * Marks a field or an input as invalid, or clears the mark. An input loses the mark when the
+     * player changes it.
+     *
+     * @property targetId the id of the field or input
+     * @property invalid whether it is invalid
+     */
+    data class SetInvalid(val targetId: String, val invalid: Boolean) : ScreenChange
 }
 
 /**
@@ -327,5 +413,25 @@ class ScreenPatchBuilder {
      */
     fun setEnabled(targetId: String, enabled: Boolean) {
         recorded += ScreenChange.SetEnabled(targetId, enabled)
+    }
+
+    /**
+     * Replaces the options of a combobox.
+     *
+     * @param targetId the id of the combobox
+     * @param groups the new option groups
+     */
+    fun setOptions(targetId: String, groups: List<SelectChoiceGroup>) {
+        recorded += ScreenChange.SetOptions(targetId, groups)
+    }
+
+    /**
+     * Marks a field or an input as invalid, or clears the mark.
+     *
+     * @param targetId the id of the field or input
+     * @param invalid whether it is invalid
+     */
+    fun setInvalid(targetId: String, invalid: Boolean) {
+        recorded += ScreenChange.SetInvalid(targetId, invalid)
     }
 }

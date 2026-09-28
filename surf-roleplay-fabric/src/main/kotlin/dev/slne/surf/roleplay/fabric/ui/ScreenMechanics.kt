@@ -185,3 +185,54 @@ class KeyRepeatFilter {
         val ACTIVATION_KEYS = setOf(257, 335, 32)
     }
 }
+
+/**
+ * Holds back change reports of text inputs until the player paused typing.
+ *
+ * @property delayMillis how long a value must stay unchanged before it is reported
+ * @property clock returns the current time in milliseconds
+ */
+class ChangeDebouncer(private val delayMillis: Long, private val clock: () -> Long = System::currentTimeMillis) {
+
+    /**
+     * The time of the last change of every pending key.
+     */
+    private val pending = LinkedHashMap<String, Long>()
+
+    /**
+     * Records a change.
+     *
+     * @param key the id of the changed widget
+     */
+    fun changed(key: String) {
+        pending[key] = clock()
+    }
+
+    /**
+     * Returns and forgets the keys that stayed unchanged for the delay.
+     *
+     * @return the due keys, in the order they first changed
+     */
+    fun due(): List<String> {
+        val now = clock()
+        val ready = pending.filterValues { now - it >= delayMillis }.keys.toList()
+        ready.forEach { pending.remove(it) }
+        return ready
+    }
+
+    /**
+     * Returns and forgets every pending key.
+     *
+     * @return the pending keys
+     */
+    fun flush(): List<String> = pending.keys.toList().also { pending.clear() }
+
+    /**
+     * Drops a waiting key without releasing it.
+     *
+     * @param key the key
+     */
+    fun cancel(key: String) {
+        pending.remove(key)
+    }
+}

@@ -3,8 +3,9 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownChoice
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
@@ -30,7 +31,7 @@ class ScreenActionValidatorTest {
                 TextInputElement("name", maxLength = 5, required = true),
                 NumberInputElement("age", min = 18, max = 99),
                 CheckboxElement("agree"),
-                DropdownElement("city", listOf(DropdownChoice("north", Component.text("Nord"))), required = true),
+                SelectElement("city", listOf(SelectChoiceGroup(null, listOf(SelectChoice("north", Component.text("Nord"))))), required = true),
                 TextInputElement("locked", value = "fest", enabled = false),
                 ButtonElement("ok", Component.text("OK")),
                 ButtonElement("off", Component.text("Aus"), enabled = false),
@@ -142,10 +143,10 @@ class ScreenActionValidatorTest {
     }
 
     /**
-     * Verifies that dropdowns accept only their options, and no selection only when optional.
+     * Verifies that selects accept only their options, and no selection only when optional.
      */
     @Test
-    fun `dropdowns accept only their options`() {
+    fun `selects accept only their options`() {
         assertRejected(validate(values = valid.replace("city", "south")), "option")
         assertRejected(validate(values = valid.replace("city", "")), "required")
     }

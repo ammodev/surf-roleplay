@@ -34,6 +34,14 @@ data class Rect(val x: Int, val y: Int, val width: Int, val height: Int) {
     fun contains(px: Double, py: Double): Boolean = px >= x && px < right && py >= y && py < bottom
 
     /**
+     * Returns this rectangle enlarged on every side.
+     *
+     * @param amount the distance to enlarge each side by
+     * @return the enlarged rectangle
+     */
+    fun grow(amount: Int): Rect = Rect(x - amount, y - amount, width + 2 * amount, height + 2 * amount)
+
+    /**
      * Holds the empty rectangle.
      */
     companion object {

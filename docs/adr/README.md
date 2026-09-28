@@ -58,3 +58,6 @@ Create the next record with `/surf:new-adr`.
 | [0049](0049-the-server-picks-a-named-theme-and-variant-per-screen.md) | The server picks a named theme and variant per screen | Accepted | 2026-09-28 |
 | [0050](0050-the-mod-bundles-lucide-icons-rasterised-at-build-time.md) | The mod bundles Lucide icons rasterised at build time | Accepted | 2026-09-28 |
 | [0051](0051-the-screen-framework-covers-the-shadcn-component-registry.md) | The screen framework covers the shadcn component registry | Accepted | 2026-09-28 |
+| [0052](0052-screen-inputs-submit-with-actions-and-can-send-change-events.md) | Screen inputs submit with actions and can send change events | Accepted | 2026-09-28 |
+| [0053](0053-dates-are-shown-in-german-and-sent-as-iso-dates.md) | Dates are shown in German and sent as ISO dates | Accepted | 2026-09-28 |
+| [0054](0054-comboboxes-filter-on-the-client-with-an-optional-search-event.md) | Comboboxes filter on the client with an optional search event | Accepted | 2026-09-28 |

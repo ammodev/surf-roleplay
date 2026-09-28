@@ -274,6 +274,7 @@ data class ScrollListNode(
  * @property height how tall this node is laid out
  * @property text the text as component JSON
  * @property icon the name of a Lucide icon drawn before the text, or `null` for none
+ * @property forId the id of the input that a click on the label focuses, or `null` for none
  */
 @Serializable
 @SerialName("label")
@@ -283,6 +284,7 @@ data class LabelNode(
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
     @ProtoNumber(4) val text: String = "",
     @ProtoNumber(5) val icon: String? = null,
+    @ProtoNumber(6) val forId: String? = null,
 ) : ScreenNode
 
 /**
@@ -296,6 +298,8 @@ data class LabelNode(
  * @property submitsInput whether a click requires every input of the screen to be valid; a button
  *           that does not submit input, such as a back button, is accepted with invalid inputs
  * @property icon the name of a Lucide icon drawn before the caption, or `null` for none
+ * @property variant the look of the button
+ * @property size the size of the button
  */
 @Serializable
 @SerialName("button")
@@ -307,6 +311,8 @@ data class ButtonNode(
     @ProtoNumber(5) val enabled: Boolean = true,
     @ProtoNumber(6) val submitsInput: Boolean = true,
     @ProtoNumber(7) val icon: String? = null,
+    @ProtoNumber(8) val variant: ButtonVariant = ButtonVariant.DEFAULT,
+    @ProtoNumber(9) val size: ButtonSize = ButtonSize.DEFAULT,
 ) : ScreenNode
 
 /**
@@ -321,6 +327,8 @@ data class ButtonNode(
  * @property required whether an empty value is invalid
  * @property enabled whether the player can edit the field
  * @property icon the name of a Lucide icon drawn at the start of the field, or `null` for none
+ * @property notifyChange whether the mod reports every change of the value at once
+ * @property inputType the kind of text the field holds
  */
 @Serializable
 @SerialName("text_input")
@@ -334,6 +342,8 @@ data class TextInputNode(
     @ProtoNumber(7) val required: Boolean = false,
     @ProtoNumber(8) val enabled: Boolean = true,
     @ProtoNumber(9) val icon: String? = null,
+    @ProtoNumber(10) val notifyChange: Boolean = false,
+    @ProtoNumber(11) val inputType: TextInputType = TextInputType.TEXT,
 ) : ScreenNode
 
 /**
@@ -347,6 +357,7 @@ data class TextInputNode(
  * @property max the largest allowed number, or `null` for no upper bound
  * @property required whether an empty value is invalid
  * @property enabled whether the player can edit the field
+ * @property notifyChange whether the mod reports every change of the value at once
  */
 @Serializable
 @SerialName("number_input")
@@ -359,6 +370,7 @@ data class NumberInputNode(
     @ProtoNumber(6) val max: Long? = null,
     @ProtoNumber(7) val required: Boolean = false,
     @ProtoNumber(8) val enabled: Boolean = true,
+    @ProtoNumber(9) val notifyChange: Boolean = false,
 ) : ScreenNode
 
 /**
@@ -370,6 +382,7 @@ data class NumberInputNode(
  * @property label the label as component JSON
  * @property checked whether the box is checked
  * @property enabled whether the player can toggle the box
+ * @property notifyChange whether the mod reports every change of the value at once
  */
 @Serializable
 @SerialName("checkbox")
@@ -380,42 +393,8 @@ data class CheckboxNode(
     @ProtoNumber(4) val label: String = "",
     @ProtoNumber(5) val checked: Boolean = false,
     @ProtoNumber(6) val enabled: Boolean = true,
+    @ProtoNumber(7) val notifyChange: Boolean = false,
 ) : ScreenNode
-
-/**
- * A choice of one option from a list.
- *
- * @property id the id of this node
- * @property width how wide this node is laid out
- * @property height how tall this node is laid out
- * @property options the options, in display order
- * @property selected the value of the selected option, or `null` if none is selected
- * @property required whether having no selection is invalid
- * @property enabled whether the player can change the selection
- */
-@Serializable
-@SerialName("dropdown")
-data class DropdownNode(
-    @ProtoNumber(1) override val id: String,
-    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
-    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
-    @ProtoNumber(4) val options: List<DropdownOption> = emptyList(),
-    @ProtoNumber(5) val selected: String? = null,
-    @ProtoNumber(6) val required: Boolean = false,
-    @ProtoNumber(7) val enabled: Boolean = true,
-) : ScreenNode
-
-/**
- * One option of a [DropdownNode].
- *
- * @property value the value submitted when this option is selected
- * @property label the label shown for this option, as component JSON
- */
-@Serializable
-data class DropdownOption(
-    @ProtoNumber(1) val value: String,
-    @ProtoNumber(2) val label: String,
-)
 
 /**
  * A texture drawn over the node's whole area.

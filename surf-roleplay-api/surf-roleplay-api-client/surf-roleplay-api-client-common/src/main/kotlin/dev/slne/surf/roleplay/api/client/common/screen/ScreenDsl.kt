@@ -175,9 +175,17 @@ open class ElementsBuilder {
      * @param width how wide the label is laid out
      * @param height how tall the label is laid out
      * @param icon the Lucide name of an icon drawn before the text, or `null` for none
+     * @param forId the id of the input that a click on the label focuses, or `null` for none
      */
-    fun label(id: String, text: Component, width: ElementSize = ElementSize.FIT, height: ElementSize = ElementSize.FIT, icon: String? = null) {
-        elements += LabelElement(id, text, width, height, icon)
+    fun label(
+        id: String,
+        text: Component,
+        width: ElementSize = ElementSize.FIT,
+        height: ElementSize = ElementSize.FIT,
+        icon: String? = null,
+        forId: String? = null,
+    ) {
+        elements += LabelElement(id, text, width, height, icon, forId)
     }
 
     /**
@@ -211,6 +219,8 @@ open class ElementsBuilder {
      * @param height how tall the button is laid out
      * @param submitsInput whether a click requires every input of the screen to be valid
      * @param icon the Lucide name of an icon drawn before the caption, or `null` for none
+     * @param variant the look of the button
+     * @param size the size of the button
      * @param onClick the handler run on a validated click, or `null` for none
      */
     fun button(
@@ -221,9 +231,11 @@ open class ElementsBuilder {
         height: ElementSize = ElementSize.FIT,
         submitsInput: Boolean = true,
         icon: String? = null,
+        variant: ButtonVariant = ButtonVariant.DEFAULT,
+        size: ButtonSize = ButtonSize.DEFAULT,
         onClick: ButtonHandler? = null,
     ) {
-        elements += ButtonElement(id, text, enabled, onClick, width, height, submitsInput, icon)
+        elements += ButtonElement(id, text, enabled, onClick, width, height, submitsInput, icon, variant, size)
     }
 
     /**
@@ -238,6 +250,8 @@ open class ElementsBuilder {
      * @param width how wide the input is laid out
      * @param height how tall the input is laid out
      * @param icon the Lucide name of an icon drawn at the start of the field, or `null` for none
+     * @param type the kind of text the input holds
+     * @param onChange the handler run on every validated change, or `null`
      */
     fun textInput(
         id: String,
@@ -249,8 +263,10 @@ open class ElementsBuilder {
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
         icon: String? = null,
+        type: TextInputType = TextInputType.TEXT,
+        onChange: ChangeHandler? = null,
     ) {
-        elements += TextInputElement(id, value, placeholder, maxLength, required, enabled, width, height, icon)
+        elements += TextInputElement(id, value, placeholder, maxLength, required, enabled, width, height, icon, onChange, type)
     }
 
     /**
@@ -264,6 +280,7 @@ open class ElementsBuilder {
      * @param enabled whether the player can edit the input
      * @param width how wide the input is laid out
      * @param height how tall the input is laid out
+     * @param onChange the handler run on every validated change, or `null`
      */
     fun numberInput(
         id: String,
@@ -274,8 +291,9 @@ open class ElementsBuilder {
         enabled: Boolean = true,
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
+        onChange: ChangeHandler? = null,
     ) {
-        elements += NumberInputElement(id, value, min, max, required, enabled, width, height)
+        elements += NumberInputElement(id, value, min, max, required, enabled, width, height, onChange)
     }
 
     /**
@@ -287,6 +305,7 @@ open class ElementsBuilder {
      * @param enabled whether the player can toggle the box
      * @param width how wide the checkbox is laid out
      * @param height how tall the checkbox is laid out
+     * @param onChange the handler run on every validated change, or `null`
      */
     fun checkbox(
         id: String,
@@ -295,31 +314,9 @@ open class ElementsBuilder {
         enabled: Boolean = true,
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
+        onChange: ChangeHandler? = null,
     ) {
-        elements += CheckboxElement(id, label, checked, enabled, width, height)
-    }
-
-    /**
-     * Adds a dropdown.
-     *
-     * @param id the id of the dropdown
-     * @param options the options, in display order
-     * @param selected the value of the initially selected option, or `null` for none
-     * @param required whether having no selection is invalid
-     * @param enabled whether the player can change the selection
-     * @param width how wide the dropdown is laid out
-     * @param height how tall the dropdown is laid out
-     */
-    fun dropdown(
-        id: String,
-        options: List<DropdownChoice>,
-        selected: String? = null,
-        required: Boolean = false,
-        enabled: Boolean = true,
-        width: ElementSize = ElementSize.FIT,
-        height: ElementSize = ElementSize.FIT,
-    ) {
-        elements += DropdownElement(id, options, selected, required, enabled, width, height)
+        elements += CheckboxElement(id, label, checked, enabled, width, height, onChange)
     }
 
     /**

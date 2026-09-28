@@ -215,6 +215,7 @@ data class ScrollListElement(
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
  * @property icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @property forId the id of the input that a click on the label focuses, or `null` for none
  */
 data class LabelElement(
     override val id: String,
@@ -222,6 +223,7 @@ data class LabelElement(
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
     val icon: String? = null,
+    val forId: String? = null,
 ) : ScreenElement
 
 /**
@@ -241,6 +243,8 @@ data class LabelElement(
  * @property height how tall this element is laid out
  * @property submitsInput whether a click requires every input of the screen to be valid
  * @property icon the Lucide name of an icon drawn before the caption, or `null` for none
+ * @property variant the look of the button
+ * @property size the size of the button
  */
 data class ButtonElement(
     override val id: String,
@@ -251,6 +255,8 @@ data class ButtonElement(
     override val height: ElementSize = ElementSize.FIT,
     val submitsInput: Boolean = true,
     val icon: String? = null,
+    val variant: ButtonVariant = ButtonVariant.DEFAULT,
+    val size: ButtonSize = ButtonSize.DEFAULT,
 ) : ScreenElement
 
 /**
@@ -265,6 +271,9 @@ data class ButtonElement(
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
  * @property icon the Lucide name of an icon drawn at the start of the field, or `null` for none
+ * @property onChange the handler run on every validated change, or `null` to send the value only
+ *           with the next action
+ * @property type the kind of text the field holds; email fields accept only an address shape
  */
 data class TextInputElement(
     override val id: String,
@@ -276,6 +285,8 @@ data class TextInputElement(
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
     val icon: String? = null,
+    val onChange: ChangeHandler? = null,
+    val type: TextInputType = TextInputType.TEXT,
 ) : ScreenElement
 
 /**
@@ -289,6 +300,8 @@ data class TextInputElement(
  * @property enabled whether the player can edit the field
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @property onChange the handler run on every validated change, or `null` to send the value only
+ *           with the next action
  */
 data class NumberInputElement(
     override val id: String,
@@ -299,6 +312,7 @@ data class NumberInputElement(
     val enabled: Boolean = true,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
+    val onChange: ChangeHandler? = null,
 ) : ScreenElement
 
 /**
@@ -310,6 +324,8 @@ data class NumberInputElement(
  * @property enabled whether the player can toggle the box
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @property onChange the handler run on every validated change, or `null` to send the value only
+ *           with the next action
  */
 data class CheckboxElement(
     override val id: String,
@@ -318,36 +334,8 @@ data class CheckboxElement(
     val enabled: Boolean = true,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
+    val onChange: ChangeHandler? = null,
 ) : ScreenElement
-
-/**
- * A choice of one option from a list.
- *
- * @property id the id of this element
- * @property options the options, in display order
- * @property selected the value of the initially selected option, or `null` for none
- * @property required whether having no selection is invalid
- * @property enabled whether the player can change the selection
- * @property width how wide this element is laid out
- * @property height how tall this element is laid out
- */
-data class DropdownElement(
-    override val id: String,
-    val options: List<DropdownChoice>,
-    val selected: String? = null,
-    val required: Boolean = false,
-    val enabled: Boolean = true,
-    override val width: ElementSize = ElementSize.FIT,
-    override val height: ElementSize = ElementSize.FIT,
-) : ScreenElement
-
-/**
- * One option of a [DropdownElement].
- *
- * @property value the value reported when this option is selected
- * @property label the label shown for this option
- */
-data class DropdownChoice(val value: String, val label: Component)
 
 /**
  * A texture drawn over the element's area.

@@ -1,6 +1,7 @@
 package dev.slne.surf.roleplay.fabric.screen
 
 import dev.slne.surf.roleplay.fabric.ui.widget.ContainerWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.ComboboxWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.ProgressWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
@@ -10,6 +11,8 @@ import dev.slne.surf.roleplay.protocol.screen.PatchOperation
 import dev.slne.surf.roleplay.protocol.screen.RemoveNode
 import dev.slne.surf.roleplay.protocol.screen.ReplaceNode
 import dev.slne.surf.roleplay.protocol.screen.SetEnabled
+import dev.slne.surf.roleplay.protocol.screen.SetInvalid
+import dev.slne.surf.roleplay.protocol.screen.SetOptions
 import dev.slne.surf.roleplay.protocol.screen.SetProgress
 import dev.slne.surf.roleplay.protocol.screen.SetText
 import dev.slne.surf.roleplay.protocol.screen.SetValue
@@ -85,6 +88,8 @@ object ScreenPatcher {
             }
 
             is SetEnabled -> (WidgetTree.find(root, operation.targetId) ?: return root to false).enabled = operation.enabled
+            is SetOptions -> (WidgetTree.find(root, operation.targetId) as? ComboboxWidget ?: return root to false).replaceOptions(operation.groups)
+            is SetInvalid -> (WidgetTree.find(root, operation.targetId) ?: return root to false).serverInvalid = operation.invalid
         }
         return root to true
     }
@@ -103,5 +108,7 @@ object ScreenPatcher {
         is SetValue -> operation.targetId
         is SetProgress -> operation.targetId
         is SetEnabled -> operation.targetId
+        is SetOptions -> operation.targetId
+        is SetInvalid -> operation.targetId
     }
 }
