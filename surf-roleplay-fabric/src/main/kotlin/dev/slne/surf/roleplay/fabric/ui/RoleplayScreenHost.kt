@@ -311,6 +311,16 @@ class RoleplayScreenHost(
     }
 
     /**
+     * Reacts to a change inside the tree: drops the focus and the open dropdown list if their
+     * widgets left the tree, and lays the tree out again.
+     */
+    fun treeChanged() {
+        focusedWidget?.let { if (WidgetTree.find(root, it.id) !== it) focusedWidget = null }
+        dropdown?.let { if (WidgetTree.find(root, it.id) !== it) dropdown = null }
+        requestLayout()
+    }
+
+    /**
      * Returns the input values of every input widget of the tree.
      *
      * @return the input values, in tree order

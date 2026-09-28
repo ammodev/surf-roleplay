@@ -2,9 +2,9 @@ package dev.slne.surf.roleplay.fabric
 
 import dev.slne.surf.roleplay.fabric.handshake.ClientHandshake
 import dev.slne.surf.roleplay.fabric.protocol.FabricPacketRegistry
+import dev.slne.surf.roleplay.fabric.screen.ClientScreenManager
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerDetection
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerState
-import dev.slne.surf.roleplay.fabric.ui.dev.DevScreenCommand
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
 import org.slf4j.LoggerFactory
@@ -40,14 +40,14 @@ object RoleplayClient : ClientModInitializer {
 
     /**
      * Initialises the mod on the client: registers the roleplay payload channels, the mod
-     * handshake, the roleplay server detection and, in development, the toolkit test command, and
-     * logs the mod version.
+     * handshake, the roleplay server detection and the server-driven screens, and logs the mod
+     * version.
      */
     override fun onInitializeClient() {
         FabricPacketRegistry.register()
         ClientHandshake.register()
         RoleplayServerDetection.register(serverState)
-        if (FabricLoader.getInstance().isDevelopmentEnvironment) DevScreenCommand.register()
+        ClientScreenManager.register(serverState)
         log.info("Surf Roleplay {} initialised", modVersion)
     }
 }
