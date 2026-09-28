@@ -5,10 +5,35 @@ import dev.slne.surf.roleplay.fabric.ui.icon.LucideIndex
 import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
+import dev.slne.surf.roleplay.fabric.ui.text.TextBlock
+import dev.slne.surf.roleplay.fabric.ui.text.TextWrap
+import dev.slne.surf.roleplay.fabric.ui.widget.PlainText
 import net.minecraft.client.gui.Font
+import net.minecraft.locale.Language
+import net.minecraft.network.chat.FormattedText
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
+
+/**
+ * How the lines of a text are placed within its width.
+ */
+enum class TextAlign {
+    /**
+     * At the left edge.
+     */
+    START,
+
+    /**
+     * Centered.
+     */
+    CENTER,
+
+    /**
+     * At the right edge.
+     */
+    END,
+}
 
 /**
  * Measures texts for layout.
@@ -34,6 +59,26 @@ interface TextMeasurer {
      * @return the width in GUI pixels
      */
     fun plainWidth(text: String): Int
+
+    /**
+     * Measures the lines of a text given as component JSON wrapped to a width.
+     *
+     * @param json the component JSON
+     * @param maxWidth the largest width of a line
+     * @return the width of every line, at least one
+     */
+    fun lineWidths(json: String, maxWidth: Int): List<Int> =
+        TextWrap.lines(PlainText.of(json), maxWidth, ::plainWidth).map(::plainWidth)
+
+    /**
+     * Measures the widest word of a text given as component JSON, which is the narrowest width
+     * the text can wrap to without breaking a word.
+     *
+     * @param json the component JSON
+     * @return the width of the widest word
+     */
+    fun longestWordWidth(json: String): Int =
+        PlainText.of(json).split(' ', '\n').maxOfOrNull(::plainWidth) ?: 0
 }
 
 /**
@@ -62,6 +107,28 @@ class FontTextMeasurer(private val font: Font) : TextMeasurer {
      * @return the width in GUI pixels
      */
     override fun plainWidth(text: String): Int = font.width(text)
+
+    /**
+     * Measures the lines of a text wrapped to a width by the font.
+     *
+     * @param json the component JSON
+     * @param maxWidth the largest width of a line
+     * @return the width of every line, at least one
+     */
+    override fun lineWidths(json: String, maxWidth: Int): List<Int> =
+        font.splitIgnoringLanguage(ScreenText.parse(json), maxWidth.coerceAtLeast(1)).map { font.width(it) }.ifEmpty { listOf(0) }
+
+    /**
+     * Measures the widest word of a text with the font, in the text's outer style.
+     *
+     * @param json the component JSON
+     * @return the width of the widest word
+     */
+    override fun longestWordWidth(json: String): Int {
+        val component = ScreenText.parse(json)
+        val style = component.style
+        return component.string.split(' ', '\n').maxOfOrNull { font.width(FormattedText.of(it, style)) } ?: 0
+    }
 }
 
 /**
@@ -140,6 +207,61 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
+     * Draws a text given as component JSON wrapped to a width, line by line from a top edge. With
+     * a line limit, the last shown line of a longer text ends with an ellipsis.
+     *
+     * @param json the component JSON
+     * @param x the left edge
+     * @param y the top edge
+     * @param maxWidth the largest width of a line
+     * @param color the ARGB color of unstyled parts
+     * @param maxLines the largest number of lines drawn, or `0` for no limit
+     * @param align how each line is placed within the width
+     * @param scale the factor the font is drawn larger by; the text wraps at the width divided by
+     *        it
+     */
+    fun wrappedText(json: String, x: Int, y: Int, maxWidth: Int, color: Int, maxLines: Int = 0, align: TextAlign = TextAlign.START, scale: Float = 1f) {
+        if (scale != 1f) {
+            val pose = graphics.pose()
+            pose.pushMatrix()
+            pose.translate(x.toFloat(), y.toFloat())
+            pose.scale(scale, scale)
+            try {
+                wrappedText(json, 0, 0, (maxWidth / scale).toInt(), color, maxLines, align)
+            } finally {
+                pose.popMatrix()
+            }
+            return
+        }
+        val width = maxWidth.coerceAtLeast(1)
+        val lines = font.splitIgnoringLanguage(ScreenText.parse(json), width)
+        val clamped = maxLines > 0 && lines.size > maxLines
+        val shown = if (clamped) lines.take(maxLines) else lines
+        shown.forEachIndexed { index, line ->
+            val text = if (clamped && index == shown.lastIndex) ellipsized(line, width) else line
+            val sequence = Language.getInstance().getVisualOrder(text)
+            val lineWidth = font.width(sequence)
+            val lineX = when (align) {
+                TextAlign.START -> x
+                TextAlign.CENTER -> x + (width - lineWidth) / 2
+                TextAlign.END -> x + width - lineWidth
+            }
+            graphics.text(font, sequence, lineX, y + index * (lineHeight + TextBlock.LINE_GAP), color, false)
+        }
+    }
+
+    /**
+     * Shortens a line so that it fits a width together with an ellipsis, and appends the
+     * ellipsis.
+     *
+     * @param line the line
+     * @param width the width
+     * @return the shortened line with the ellipsis
+     */
+    private fun ellipsized(line: FormattedText, width: Int): FormattedText =
+        FormattedText.composite(font.substrByWidth(line, (width - font.width(ELLIPSIS)).coerceAtLeast(0)), FormattedText.of(ELLIPSIS))
+
+    /**
      * Draws a text given as component JSON centered in a rectangle.
      *
      * @param json the component JSON
@@ -201,6 +323,27 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
+     * Draws a Lucide icon tinted with a colour, turned around the centre of its square.
+     *
+     * @param name the Lucide name of the icon
+     * @param rect the area to draw the icon in
+     * @param color the ARGB tint
+     * @param degrees the angle in degrees clockwise
+     */
+    fun rotatedIcon(name: String, rect: Rect, color: Int, degrees: Float) {
+        val pose = graphics.pose()
+        pose.pushMatrix()
+        try {
+            pose.translate(rect.x + rect.width / 2f, rect.y + rect.height / 2f)
+            pose.rotate(Math.toRadians(degrees.toDouble()).toFloat())
+            pose.translate(-rect.width / 2f, -rect.height / 2f)
+            icon(name, Rect(0, 0, rect.width, rect.height), color)
+        } finally {
+            pose.popMatrix()
+        }
+    }
+
+    /**
      * Runs drawing code that is clipped to a rectangle.
      *
      * @param rect the rectangle to clip to
@@ -216,10 +359,58 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
+     * Runs drawing code that is clipped to a rectangle with rounded corners, one row at a time.
+     *
+     * @param rect the rectangle to clip to
+     * @param radius the corner radius; half the side of a square clips to a circle
+     * @param block the drawing code, run once for every row
+     */
+    fun clippedRound(rect: Rect, radius: Int, block: () -> Unit) {
+        RoundedShape.spans(rect, radius).forEach { span -> clipped(Rect(span.x0, span.y, span.x1 - span.x0, 1), block) }
+    }
+
+    /**
+     * Draws a dashed one-pixel border along the inside of a rectangle.
+     *
+     * @param rect the rectangle
+     * @param color the ARGB colour
+     * @param dash the length of a dash
+     * @param space the length of the space between two dashes
+     */
+    fun dashedBorder(rect: Rect, color: Int, dash: Int = 3, space: Int = 2) {
+        if (rect.width <= 0 || rect.height <= 0) return
+        val step = dash + space
+        var x = rect.x
+        while (x < rect.right) {
+            val length = minOf(dash, rect.right - x)
+            fill(Rect(x, rect.y, length, 1), color)
+            fill(Rect(x, rect.bottom - 1, length, 1), color)
+            x += step
+        }
+        var y = rect.y
+        while (y < rect.bottom) {
+            val length = minOf(dash, rect.bottom - y)
+            fill(Rect(rect.x, y, 1, length), color)
+            fill(Rect(rect.right - 1, y, 1, length), color)
+            y += step
+        }
+    }
+
+    /**
      * Starts a new drawing layer on top of everything drawn so far.
      */
     fun nextLayer() {
         graphics.nextStratum()
+    }
+
+    /**
+     * Holds the ellipsis of clamped texts.
+     */
+    private companion object {
+        /**
+         * The ellipsis that ends a clamped text.
+         */
+        const val ELLIPSIS: String = "…"
     }
 
 }

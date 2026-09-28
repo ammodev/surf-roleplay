@@ -375,7 +375,7 @@ object InputsDemo {
     /**
      * The themes offered by the theme select.
      */
-    private val THEMES = listOf(
+    internal val THEMES = listOf(
         SelectChoice(ScreenThemes.DEFAULT, Component.text("Standard")),
         SelectChoice(ScreenThemes.SAR, Component.text("Rettungsdienst")),
         SelectChoice(ScreenThemes.POLICE, Component.text("Polizei")),
@@ -384,7 +384,7 @@ object InputsDemo {
     /**
      * The variants offered by the variant select.
      */
-    private val VARIANTS = listOf(
+    internal val VARIANTS = listOf(
         SelectChoice(ScreenVariant.DARK.name, Component.text("Dunkel")),
         SelectChoice(ScreenVariant.LIGHT.name, Component.text("Hell")),
     )

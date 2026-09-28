@@ -1,7 +1,36 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
+import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyMediaNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyContentNode
+import dev.slne.surf.roleplay.protocol.screen.ItemNode
+import dev.slne.surf.roleplay.protocol.screen.ItemMediaNode
+import dev.slne.surf.roleplay.protocol.screen.ItemContentNode
+import dev.slne.surf.roleplay.protocol.screen.ItemActionsNode
+import dev.slne.surf.roleplay.protocol.screen.ItemHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.ItemFooterNode
+import dev.slne.surf.roleplay.protocol.screen.ItemGroupNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
+import dev.slne.surf.roleplay.protocol.screen.CardActionNode
+import dev.slne.surf.roleplay.protocol.screen.CardContentNode
+import dev.slne.surf.roleplay.protocol.screen.CardFooterNode
+import dev.slne.surf.roleplay.protocol.screen.CardHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.CardNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarNode
+import dev.slne.surf.roleplay.protocol.screen.BadgeNode
+import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
+import dev.slne.surf.roleplay.protocol.screen.KbdGroupNode
+import dev.slne.surf.roleplay.protocol.screen.KbdNode
+import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.TextListNode
+import dev.slne.surf.roleplay.protocol.screen.TextNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupSeparatorNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupTextNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
@@ -118,6 +147,35 @@ object WidgetFactory {
             is InputGroupNode -> InputGroupWidget(node.id, node.children.map { create(it) })
             is InputGroupAddonNode -> container(InputGroupAddonWidget(node.id, node.align), node.children)
             is InputGroupTextNode -> InputGroupTextWidget(node.id, node.text, node.icon)
+            is TextNode -> TextWidget(node.id, node.kind, node.text, node.maxLines, node.align)
+            is TextListNode -> TextListWidget(node.id, node.items, node.ordered)
+            is SeparatorNode -> SeparatorWidget(node.id, node.orientation)
+            is KbdNode -> KbdWidget(node.id, node.text, node.icon)
+            is KbdGroupNode -> container(KbdGroupWidget(node.id), node.children)
+            is BadgeNode -> BadgeWidget(node.id, node.text, node.icon, node.variant)
+            is SkeletonNode -> SkeletonWidget(node.id, node.round)
+            is SpinnerNode -> SpinnerWidget(node.id, node.size, node.color)
+            is AspectRatioNode -> container(AspectRatioWidget(node.id, node.ratio), node.children)
+            is AvatarNode -> AvatarWidget(node.id, AvatarWidget.playerId(node.playerId), node.texture, node.fallback, node.size, node.badge, node.badgeIcon)
+            is AvatarGroupNode -> container(AvatarGroupWidget(node.id), node.children)
+            is AvatarGroupCountNode -> AvatarGroupCountWidget(node.id, node.text, node.icon)
+            is AlertNode -> container(AlertWidget(node.id, node.variant, node.icon), node.children)
+            is CardNode -> container(CardWidget(node.id), node.children)
+            is CardHeaderNode -> container(CardHeaderWidget(node.id), node.children)
+            is CardActionNode -> container(CardActionWidget(node.id), node.children)
+            is CardContentNode -> container(CardContentWidget(node.id), node.children)
+            is CardFooterNode -> container(CardFooterWidget(node.id), node.children)
+            is EmptyNode -> container(EmptyWidget(node.id, node.outline), node.children)
+            is EmptyHeaderNode -> container(EmptyHeaderWidget(node.id), node.children)
+            is EmptyMediaNode -> container(EmptyMediaWidget(node.id, node.variant, node.icon), node.children)
+            is EmptyContentNode -> container(EmptyContentWidget(node.id), node.children)
+            is ItemNode -> container(ItemWidget(node.id, node.variant, node.size, node.clickable), node.children)
+            is ItemMediaNode -> container(ItemMediaWidget(node.id, node.variant, node.icon), node.children)
+            is ItemContentNode -> container(ItemContentWidget(node.id), node.children)
+            is ItemActionsNode -> container(ItemActionsWidget(node.id), node.children)
+            is ItemHeaderNode -> container(ItemHeaderWidget(node.id), node.children)
+            is ItemFooterNode -> container(ItemFooterWidget(node.id), node.children)
+            is ItemGroupNode -> container(ItemGroupWidget(node.id), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width

@@ -105,6 +105,65 @@ import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.protocol.screen.Presentation
 import dev.slne.surf.roleplay.protocol.screen.SheetEdge
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
+import dev.slne.surf.roleplay.api.client.common.screen.TextElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextListElement
+import dev.slne.surf.roleplay.api.client.common.screen.SeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.KbdElement
+import dev.slne.surf.roleplay.api.client.common.screen.KbdGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
+import dev.slne.surf.roleplay.protocol.screen.TextNode
+import dev.slne.surf.roleplay.protocol.screen.TextListNode
+import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.KbdNode
+import dev.slne.surf.roleplay.protocol.screen.KbdGroupNode
+import dev.slne.surf.roleplay.protocol.screen.BadgeNode
+import dev.slne.surf.roleplay.api.client.common.screen.SkeletonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SpinnerElement
+import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
+import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupCountElement
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarSource
+import dev.slne.surf.roleplay.protocol.screen.AvatarNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
+import dev.slne.surf.roleplay.api.client.common.screen.AlertElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardFooterElement
+import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.CardNode
+import dev.slne.surf.roleplay.protocol.screen.CardHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.CardActionNode
+import dev.slne.surf.roleplay.protocol.screen.CardContentNode
+import dev.slne.surf.roleplay.protocol.screen.CardFooterNode
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyMediaElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemMediaElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemActionsElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemGroupElement
+import dev.slne.surf.roleplay.protocol.screen.EmptyNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyMediaNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyContentNode
+import dev.slne.surf.roleplay.protocol.screen.ItemNode
+import dev.slne.surf.roleplay.protocol.screen.ItemMediaNode
+import dev.slne.surf.roleplay.protocol.screen.ItemContentNode
+import dev.slne.surf.roleplay.protocol.screen.ItemActionsNode
+import dev.slne.surf.roleplay.protocol.screen.ItemHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.ItemFooterNode
+import dev.slne.surf.roleplay.protocol.screen.ItemGroupNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -223,6 +282,39 @@ object ScreenMapper {
                 element.id, width, height, element.value, element.length, element.groups, enumOf(element.pattern), element.required,
                 element.enabled, element.onChange != null,
             )
+            is TextElement -> TextNode(element.id, width, height, enumOf(element.kind), text(element.text), element.maxLines, align(element.align))
+            is TextListElement -> TextListNode(element.id, width, height, element.items.map(::text), element.ordered)
+            is SeparatorElement -> SeparatorNode(element.id, width, height, enumOf(element.orientation))
+            is KbdElement -> KbdNode(element.id, width, height, text(element.text), element.icon)
+            is KbdGroupElement -> KbdGroupNode(element.id, width, height, element.children.map(::toNode))
+            is BadgeElement -> BadgeNode(element.id, width, height, text(element.text), element.icon, enumOf(element.variant))
+            is SkeletonElement -> SkeletonNode(element.id, width, height, element.round)
+            is SpinnerElement -> SpinnerNode(element.id, width, height, element.size, tint(element.tint))
+            is AspectRatioElement -> AspectRatioNode(element.id, width, height, element.children.map(::toNode), element.ratio)
+            is AvatarElement -> AvatarNode(
+                element.id, width, height, (element.source as? AvatarSource.Player)?.playerId?.toString(),
+                (element.source as? AvatarSource.Texture)?.texture?.asString(), text(element.fallback), enumOf(element.size),
+                element.badge, element.badgeIcon,
+            )
+            is AvatarGroupElement -> AvatarGroupNode(element.id, width, height, element.children.map(::toNode))
+            is AvatarGroupCountElement -> AvatarGroupCountNode(element.id, width, height, text(element.text), element.icon)
+            is AlertElement -> AlertNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant), element.icon)
+            is CardElement -> CardNode(element.id, width, height, element.children.map(::toNode))
+            is CardHeaderElement -> CardHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is CardActionElement -> CardActionNode(element.id, width, height, element.children.map(::toNode))
+            is CardContentElement -> CardContentNode(element.id, width, height, element.children.map(::toNode))
+            is CardFooterElement -> CardFooterNode(element.id, width, height, element.children.map(::toNode))
+            is EmptyElement -> EmptyNode(element.id, width, height, element.children.map(::toNode), element.outline)
+            is EmptyHeaderElement -> EmptyHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is EmptyMediaElement -> EmptyMediaNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant), element.icon)
+            is EmptyContentElement -> EmptyContentNode(element.id, width, height, element.children.map(::toNode))
+            is ItemElement -> ItemNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant), enumOf(element.size), element.onClick != null)
+            is ItemMediaElement -> ItemMediaNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant), element.icon)
+            is ItemContentElement -> ItemContentNode(element.id, width, height, element.children.map(::toNode))
+            is ItemActionsElement -> ItemActionsNode(element.id, width, height, element.children.map(::toNode))
+            is ItemHeaderElement -> ItemHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is ItemFooterElement -> ItemFooterNode(element.id, width, height, element.children.map(::toNode))
+            is ItemGroupElement -> ItemGroupNode(element.id, width, height, element.children.map(::toNode))
         }
     }
 

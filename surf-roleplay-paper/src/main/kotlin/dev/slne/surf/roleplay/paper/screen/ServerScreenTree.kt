@@ -1,5 +1,25 @@
 package dev.slne.surf.roleplay.paper.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyMediaElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemMediaElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemActionsElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.KbdGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.FieldContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
@@ -238,6 +258,26 @@ class ServerScreenTree(root: ScreenElement) {
             is FieldGroupElement -> container.copy(children = children)
             is FieldElement -> container.copy(children = children)
             is FieldContentElement -> container.copy(children = children)
+            is KbdGroupElement -> container.copy(children = children)
+            is AspectRatioElement -> container.copy(children = children)
+            is AvatarGroupElement -> container.copy(children = children)
+            is AlertElement -> container.copy(children = children)
+            is CardElement -> container.copy(children = children)
+            is CardHeaderElement -> container.copy(children = children)
+            is CardActionElement -> container.copy(children = children)
+            is CardContentElement -> container.copy(children = children)
+            is CardFooterElement -> container.copy(children = children)
+            is EmptyElement -> container.copy(children = children)
+            is EmptyHeaderElement -> container.copy(children = children)
+            is EmptyMediaElement -> container.copy(children = children)
+            is EmptyContentElement -> container.copy(children = children)
+            is ItemElement -> container.copy(children = children)
+            is ItemMediaElement -> container.copy(children = children)
+            is ItemContentElement -> container.copy(children = children)
+            is ItemActionsElement -> container.copy(children = children)
+            is ItemHeaderElement -> container.copy(children = children)
+            is ItemFooterElement -> container.copy(children = children)
+            is ItemGroupElement -> container.copy(children = children)
         }
     }
 }

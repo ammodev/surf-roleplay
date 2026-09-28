@@ -226,6 +226,18 @@ abstract class Widget(val id: String) {
         LayoutBox(width = width, height = height, content = contentSize(measurer)).also { layoutBox = it }
 
     /**
+     * Creates the layout box of a leaf whose size follows the width it gets, such as a wrapping
+     * text.
+     *
+     * @param measurer the text measurer
+     * @param minWidth the narrowest width the widget can take without breaking a word
+     * @param measure computes the content size for the largest width the widget may take
+     * @return the layout box
+     */
+    protected fun wrappingLayout(measurer: TextMeasurer, minWidth: Int, measure: (Int) -> Size): LayoutBox =
+        LayoutBox(width = width, height = height, content = contentSize(measurer), measureContent = measure, minWidth = minWidth).also { layoutBox = it }
+
+    /**
      * Copies the bounds computed for the layout boxes into this widget and its children.
      */
     open fun applyLayout() {

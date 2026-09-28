@@ -2,7 +2,10 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
+import dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout
+import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
+import dev.slne.surf.roleplay.fabric.ui.text.TextBlock
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
@@ -47,11 +50,33 @@ class LabelWidget(id: String, var text: String = "", var icon: String? = null, v
      * @param measurer the text measurer
      * @return the text size
      */
-    override fun contentSize(measurer: TextMeasurer): Size =
-        Size(iconSpace(icon, measurer.width(text)) + measurer.width(text), maxOf(measurer.lineHeight, if (icon != null) UiMetrics.INLINE_ICON else 0))
+    override fun contentSize(measurer: TextMeasurer): Size = wrappedSize(measurer, FlexLayout.UNBOUNDED)
 
     /**
-     * Draws the text, vertically centered in the widget.
+     * Creates a layout box whose text wraps to the width the label gets.
+     *
+     * @param measurer the text measurer
+     * @return the layout box
+     */
+    override fun createLayout(measurer: TextMeasurer): LayoutBox =
+        wrappingLayout(measurer, iconSpace(icon, measurer.width(text)) + measurer.longestWordWidth(text)) { wrappedSize(measurer, it) }
+
+    /**
+     * Computes the size of the icon and the text wrapped to a width.
+     *
+     * @param measurer the text measurer
+     * @param maxWidth the largest width of the label
+     * @return the size
+     */
+    private fun wrappedSize(measurer: TextMeasurer, maxWidth: Int): Size {
+        val space = iconSpace(icon, measurer.width(text))
+        val block = TextBlock.size(measurer, text, (maxWidth - space).coerceAtLeast(1))
+        return Size(space + block.width, maxOf(block.height, if (icon != null) UiMetrics.INLINE_ICON else 0))
+    }
+
+    /**
+     * Draws the text wrapped to the widget's width, vertically centered in the widget, with the
+     * icon beside its first line.
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -60,8 +85,12 @@ class LabelWidget(id: String, var text: String = "", var icon: String? = null, v
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val color = ui.tokens.foreground
-        val textX = drawLeadingIcon(ui, icon, bounds.x, bounds, color, ui.width(text))
-        ui.text(text, textX, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
+        val space = iconSpace(icon, ui.width(text))
+        val textWidth = (bounds.width - space).coerceAtLeast(1)
+        val blockHeight = TextBlock.height(ui, ui.lineWidths(text, textWidth).size)
+        val top = bounds.y + ((bounds.height - blockHeight + 1) / 2).coerceAtLeast(0)
+        val textX = drawLeadingIcon(ui, icon, bounds.x, Rect(bounds.x, top, space, ui.lineHeight), color, ui.width(text))
+        ui.wrappedText(text, textX, top, textWidth, color)
     }
 
     /**
@@ -577,14 +606,26 @@ class ImageWidget(id: String, var texture: String = "") : Widget(id) {
 class ProgressWidget(id: String, var progress: Float = 0f, var label: String? = null) : Widget(id) {
 
     /**
-     * Returns the default bar size, widened to fit the label.
+     * Returns the default bar size: a thin bar, or one tall enough for the label and widened to
+     * fit it.
      *
      * @param measurer the text measurer
      * @return the bar size
      */
     override fun contentSize(measurer: TextMeasurer): Size {
-        val labelWidth = label?.let { measurer.width(it) + 2 * UiMetrics.WIDGET_PADDING } ?: 0
+        val text = label ?: return Size(UiMetrics.PROGRESS_WIDTH, BAR_HEIGHT)
+        val labelWidth = measurer.width(text) + 2 * UiMetrics.WIDGET_PADDING
         return Size(maxOf(UiMetrics.PROGRESS_WIDTH, labelWidth), maxOf(UiMetrics.PROGRESS_HEIGHT, measurer.lineHeight + 2))
+    }
+
+    /**
+     * Holds the bar height.
+     */
+    companion object {
+        /**
+         * The height of a bar without a label.
+         */
+        const val BAR_HEIGHT: Int = 4
     }
 
     /**

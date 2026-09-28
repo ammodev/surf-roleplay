@@ -3,7 +3,10 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout
+import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
+import dev.slne.surf.roleplay.fabric.ui.text.TextBlock
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.FieldTextKind
@@ -166,13 +169,34 @@ class FieldTextWidget(id: String, val kind: FieldTextKind, var text: String, val
     private val shown: Boolean get() = kind != FieldTextKind.ERROR || PlainText.of(text).isNotEmpty()
 
     /**
-     * Returns the size of the text on one line, or nothing for an empty error.
+     * Returns the size of the text on as few lines as it needs, or nothing for an empty error.
      *
      * @param measurer the text measurer
      * @return the size
      */
-    override fun contentSize(measurer: TextMeasurer): Size =
-        if (shown) Size(measurer.width(text), measurer.lineHeight + if (kind == FieldTextKind.LEGEND) LEGEND_SPACE else 0) else Size.ZERO
+    override fun contentSize(measurer: TextMeasurer): Size = wrappedSize(measurer, FlexLayout.UNBOUNDED)
+
+    /**
+     * Creates a layout box whose text wraps to the width the widget gets.
+     *
+     * @param measurer the text measurer
+     * @return the layout box
+     */
+    override fun createLayout(measurer: TextMeasurer): LayoutBox =
+        wrappingLayout(measurer, if (shown) measurer.longestWordWidth(text) else 0) { wrappedSize(measurer, it) }
+
+    /**
+     * Computes the size of the text wrapped to a width, or nothing for an empty error.
+     *
+     * @param measurer the text measurer
+     * @param maxWidth the largest width of the text
+     * @return the size
+     */
+    private fun wrappedSize(measurer: TextMeasurer, maxWidth: Int): Size {
+        if (!shown) return Size.ZERO
+        val block = TextBlock.size(measurer, text, maxWidth.coerceAtLeast(1))
+        return Size(block.width, block.height + if (kind == FieldTextKind.LEGEND) LEGEND_SPACE else 0)
+    }
 
     /**
      * Draws the text in its kind's colour: muted descriptions, destructive errors, and labels and
@@ -192,7 +216,9 @@ class FieldTextWidget(id: String, val kind: FieldTextKind, var text: String, val
             FieldTextKind.LABEL, FieldTextKind.TITLE -> if (fieldInvalid) tokens.destructive else tokens.foreground
             FieldTextKind.LEGEND, FieldTextKind.LEGEND_LABEL -> tokens.foreground
         }
-        ui.text(text, bounds.x, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
+        val textHeight = bounds.height - if (kind == FieldTextKind.LEGEND) LEGEND_SPACE else 0
+        val blockHeight = TextBlock.height(ui, ui.lineWidths(text, bounds.width.coerceAtLeast(1)).size)
+        ui.wrappedText(text, bounds.x, bounds.y + ((textHeight - blockHeight + 1) / 2).coerceAtLeast(0), bounds.width, color)
     }
 
     /**
