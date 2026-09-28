@@ -67,3 +67,4 @@ Create the next record with `/surf:new-adr`.
 | [0058](0058-toasts-travel-in-their-own-packets-and-show-over-the-hud.md) | Toasts travel in their own packets and show over the HUD | Accepted | 2026-09-28 |
 | [0059](0059-holding-a-key-shows-a-cursor-over-the-hud.md) | Holding a key shows a cursor over the HUD | Accepted | 2026-09-28 |
 | [0060](0060-modal-overlays-stay-inside-their-nearest-container.md) | Modal overlays stay inside their nearest container | Accepted | 2026-09-28 |
+| [0061](0061-content-of-an-unreachable-overlay-rejects-input.md) | Content of an unreachable overlay rejects input | Accepted | 2026-09-28 |
