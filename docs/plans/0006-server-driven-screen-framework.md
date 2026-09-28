@@ -1,6 +1,6 @@
 # Plan 0006: Server-driven screen framework
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-28
 - **Accepted proposal:** A hybrid server-driven screen framework (generic widget trees and typed screens) with a public server API, an own mod UI toolkit, and roleplay-server scoping of the mod
 - **Decision records:** ADR-0032, ADR-0033, ADR-0034, ADR-0035, ADR-0036, ADR-0037, ADR-0038, ADR-0039, ADR-0040 (superseded during step 1 by ADR-0041), ADR-0041
