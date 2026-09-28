@@ -4,6 +4,8 @@ import com.google.auto.service.AutoService
 import dev.slne.surf.api.core.util.logger
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
+import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import dev.slne.surf.roleplay.paper.protocol.PacketHandler
 import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
@@ -187,14 +189,54 @@ class PaperScreenService : ScreenService, Listener {
      * @param player the player
      * @param definition the screen
      * @param parent the open screen to open on top of, or `null`
+     * @param presentation how the screen is shown relative to the screens below it
+     * @param sheetSide the window edge a sheet is attached to
      * @return the open screen
      * @throws IllegalArgumentException if [parent] is not an open screen of [player]
      * @throws IllegalStateException if the calling thread does not own the player, or the player
      *         is leaving
      */
-    override fun open(player: Player, definition: ScreenDefinition, parent: OpenScreen?): OpenScreen {
+    override fun open(
+        player: Player,
+        definition: ScreenDefinition,
+        parent: OpenScreen?,
+        presentation: ScreenPresentation,
+        sheetSide: SheetSide,
+    ): OpenScreen {
         val state = state(player)
-        return state.open(definition, parentSession(state, player, parent))
+        return state.open(definition, parentSession(state, player, parent), presentation, sheetSide)
+    }
+
+    /**
+     * Opens a confirmation dialog for a player over a parent screen.
+     *
+     * @param player the player
+     * @param parent the open screen to show the dialog over, or `null`
+     * @param title the dialog's title
+     * @param text the question
+     * @param confirmLabel the caption of the confirm button
+     * @param cancelLabel the caption of the cancel button
+     * @param destructive whether confirming destroys something
+     * @param onConfirm the handler run on confirmation
+     * @param onCancel the handler run when the dialog closes without confirmation
+     * @return the open dialog
+     * @throws IllegalArgumentException if [parent] is not an open screen of [player]
+     * @throws IllegalStateException if the calling thread does not own the player, or the player
+     *         is leaving
+     */
+    override fun confirm(
+        player: Player,
+        parent: OpenScreen?,
+        title: Component,
+        text: Component,
+        confirmLabel: Component,
+        cancelLabel: Component,
+        destructive: Boolean,
+        onConfirm: () -> Unit,
+        onCancel: () -> Unit,
+    ): OpenScreen {
+        val state = state(player)
+        return ConfirmDialog.open(state, parentSession(state, player, parent), title, text, confirmLabel, cancelLabel, destructive, onConfirm, onCancel)
     }
 
     /**

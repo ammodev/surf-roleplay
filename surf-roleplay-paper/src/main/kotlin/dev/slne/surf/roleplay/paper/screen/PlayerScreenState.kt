@@ -5,6 +5,10 @@ import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPatchBuilder
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
+import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenValues
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.protocol.Packet
@@ -119,17 +123,47 @@ class PlayerScreenState(
      *
      * @param definition the screen
      * @param parentSessionId the session to open on top of, or `null` to replace every open screen
+     * @param presentation how the screen is shown relative to the screens below it
+     * @param sheetSide the window edge a sheet is attached to
      * @return the open screen
      * @throws IllegalStateException if the player left
      */
-    fun open(definition: ScreenDefinition, parentSessionId: Int?): OpenScreen {
+    fun open(
+        definition: ScreenDefinition,
+        parentSessionId: Int?,
+        presentation: ScreenPresentation = ScreenPresentation.SCREEN,
+        sheetSide: SheetSide = SheetSide.RIGHT,
+    ): OpenScreen {
         checkUsable()
         val session = GenericSession(nextSessionId++, definition)
         push(
             session,
-            ScreenOpen(session.sessionId, parentSessionId, ScreenMapper.text(definition.title), definition.closable, WidgetScreenBody(ScreenMapper.toNode(definition.root))),
+            ScreenOpen(
+                sessionId = session.sessionId,
+                parentSessionId = parentSessionId,
+                title = ScreenMapper.text(definition.title),
+                closable = definition.closable,
+                body = WidgetScreenBody(ScreenMapper.toNode(definition.root)),
+                theme = definition.theme,
+                variant = ScreenMapper.variant(definition.variant),
+                presentation = ScreenMapper.presentation(presentation),
+                sheetEdge = ScreenMapper.sheetEdge(sheetSide),
+            ),
         )
         return session
+    }
+
+    /**
+     * Returns the theme and variant of an open generic screen.
+     *
+     * @param sessionId the session
+     * @return the theme name and variant, or the default theme in dark if the session is not an
+     *         open generic screen
+     */
+    fun themeOf(sessionId: Int?): Pair<String, ScreenVariant> {
+        threadCheck()
+        val definition = (sessionId?.let { stack.find(it)?.content } as? GenericSession)?.definition
+        return (definition?.theme ?: ScreenThemes.DEFAULT) to (definition?.variant ?: ScreenVariant.DARK)
     }
 
     /**
@@ -339,7 +373,7 @@ class PlayerScreenState(
      * @param sessionId the session id
      * @property definition the screen's definition
      */
-    private inner class GenericSession(sessionId: Int, private val definition: ScreenDefinition) :
+    private inner class GenericSession(sessionId: Int, val definition: ScreenDefinition) :
         Session(sessionId, definition.closable) {
 
         /**

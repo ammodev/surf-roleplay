@@ -42,6 +42,12 @@ import dev.slne.surf.roleplay.protocol.screen.SetValue
 import dev.slne.surf.roleplay.protocol.screen.SizeMode
 import dev.slne.surf.roleplay.protocol.screen.Sizing
 import dev.slne.surf.roleplay.protocol.screen.TextInputNode
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
+import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
+import dev.slne.surf.roleplay.protocol.screen.Presentation
+import dev.slne.surf.roleplay.protocol.screen.SheetEdge
+import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -114,6 +120,42 @@ object ScreenMapper {
         is ScreenChange.SetValue -> SetValue(change.targetId, change.value)
         is ScreenChange.SetProgress -> SetProgress(change.targetId, change.progress)
         is ScreenChange.SetEnabled -> SetEnabled(change.targetId, change.enabled)
+    }
+
+    /**
+     * Maps a theme variant.
+     *
+     * @param variant the variant
+     * @return the protocol variant
+     */
+    fun variant(variant: ScreenVariant): ThemeVariant = when (variant) {
+        ScreenVariant.DARK -> ThemeVariant.DARK
+        ScreenVariant.LIGHT -> ThemeVariant.LIGHT
+    }
+
+    /**
+     * Maps a presentation.
+     *
+     * @param presentation the presentation
+     * @return the protocol presentation
+     */
+    fun presentation(presentation: ScreenPresentation): Presentation = when (presentation) {
+        ScreenPresentation.SCREEN -> Presentation.SCREEN
+        ScreenPresentation.DIALOG -> Presentation.DIALOG
+        ScreenPresentation.SHEET -> Presentation.SHEET
+    }
+
+    /**
+     * Maps a sheet side.
+     *
+     * @param side the side
+     * @return the protocol sheet edge
+     */
+    fun sheetEdge(side: SheetSide): SheetEdge = when (side) {
+        SheetSide.RIGHT -> SheetEdge.RIGHT
+        SheetSide.LEFT -> SheetEdge.LEFT
+        SheetSide.TOP -> SheetEdge.TOP
+        SheetSide.BOTTOM -> SheetEdge.BOTTOM
     }
 
     /**
