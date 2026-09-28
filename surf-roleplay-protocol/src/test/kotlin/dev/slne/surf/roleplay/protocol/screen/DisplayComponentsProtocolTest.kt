@@ -38,4 +38,21 @@ class DisplayComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that skeletons, spinners and aspect ratio boxes survive a round trip.
+     */
+    @Test
+    fun `loading components round-trip`() {
+        val root = ColumnNode(
+            "root",
+            children = listOf(
+                SkeletonNode("skeleton", width = Sizing.fixed(40), round = true),
+                SpinnerNode("spinner", size = 14, color = IconColor.MUTED),
+                AspectRatioNode("ratio", ratio = 16f / 9f, children = listOf(ImageNode("image", texture = "minecraft:x"))),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

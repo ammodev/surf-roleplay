@@ -327,3 +327,88 @@ fun ElementsBuilder.kbdGroup(id: String, children: ElementsBuilder.() -> Unit) {
 fun ElementsBuilder.badge(id: String, text: Component, icon: String? = null, variant: BadgeVariant = BadgeVariant.DEFAULT) {
     elements += BadgeElement(id, text, icon, variant)
 }
+
+/**
+ * A placeholder that pulses while content is loading.
+ *
+ * @property id the id of this element
+ * @property round whether the placeholder is a circle or pill instead of a rounded rectangle
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SkeletonElement(
+    override val id: String,
+    val round: Boolean = false,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A turning loading indicator.
+ *
+ * @property id the id of this element
+ * @property size the side length of the indicator when it fits its content
+ * @property tint the theme colour the indicator is drawn in
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SpinnerElement(
+    override val id: String,
+    val size: Int = 10,
+    val tint: IconTint = IconTint.FOREGROUND,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A box whose height follows its width in a fixed ratio, filled by its content.
+ *
+ * @property id the id of this element
+ * @property ratio the width divided by the height
+ * @property children the content, drawn over the whole box
+ * @property width how wide this element is laid out
+ * @property height ignored, since the ratio sets the height
+ */
+data class AspectRatioElement(
+    override val id: String,
+    val ratio: Float,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.grow(),
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a pulsing placeholder.
+ *
+ * @param id the id of the placeholder
+ * @param width how wide the placeholder is laid out
+ * @param height how tall the placeholder is laid out
+ * @param round whether the placeholder is a circle or pill
+ */
+fun ElementsBuilder.skeleton(id: String, width: ElementSize, height: ElementSize, round: Boolean = false) {
+    elements += SkeletonElement(id, round, width, height)
+}
+
+/**
+ * Adds a loading indicator.
+ *
+ * @param id the id of the indicator
+ * @param size the side length of the indicator
+ * @param tint the theme colour the indicator is drawn in
+ */
+fun ElementsBuilder.spinner(id: String, size: Int = 10, tint: IconTint = IconTint.FOREGROUND) {
+    elements += SpinnerElement(id, size, tint)
+}
+
+/**
+ * Adds a box whose height follows its width.
+ *
+ * @param id the id of the box
+ * @param ratio the width divided by the height
+ * @param width how wide the box is laid out
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.aspectRatio(id: String, ratio: Float, width: ElementSize = ElementSize.grow(), children: ElementsBuilder.() -> Unit) {
+    require(ratio > 0f) { "An aspect ratio must be positive, got $ratio" }
+    elements += AspectRatioElement(id, ratio, build(children), width)
+}

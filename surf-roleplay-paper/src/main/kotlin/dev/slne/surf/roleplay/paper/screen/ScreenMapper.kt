@@ -117,6 +117,12 @@ import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
 import dev.slne.surf.roleplay.protocol.screen.KbdNode
 import dev.slne.surf.roleplay.protocol.screen.KbdGroupNode
 import dev.slne.surf.roleplay.protocol.screen.BadgeNode
+import dev.slne.surf.roleplay.api.client.common.screen.SkeletonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SpinnerElement
+import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
+import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -241,6 +247,9 @@ object ScreenMapper {
             is KbdElement -> KbdNode(element.id, width, height, text(element.text), element.icon)
             is KbdGroupElement -> KbdGroupNode(element.id, width, height, element.children.map(::toNode))
             is BadgeElement -> BadgeNode(element.id, width, height, text(element.text), element.icon, enumOf(element.variant))
+            is SkeletonElement -> SkeletonNode(element.id, width, height, element.round)
+            is SpinnerElement -> SpinnerNode(element.id, width, height, element.size, tint(element.tint))
+            is AspectRatioElement -> AspectRatioNode(element.id, width, height, element.children.map(::toNode), element.ratio)
         }
     }
 

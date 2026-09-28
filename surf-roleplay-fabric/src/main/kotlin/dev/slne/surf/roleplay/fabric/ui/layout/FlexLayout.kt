@@ -4,6 +4,7 @@ import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.Insets
 import dev.slne.surf.roleplay.protocol.screen.SizeMode
 import dev.slne.surf.roleplay.protocol.screen.Sizing
+import kotlin.math.roundToInt
 
 /**
  * A rectangle in GUI pixels.
@@ -105,6 +106,9 @@ enum class Axis {
  * @property measureContent computes the size a leaf's content needs when it may be at most the
  *           given width wide, for content such as wrapping text; `null` uses [content] at every
  *           width
+ * @property aspectRatio for a container whose height follows its width, the width divided by the
+ *           height, and `0` otherwise; such a container is as wide as it may be and lays out every
+ *           child over its whole inner area
  */
 class LayoutBox(
     val width: Sizing = Sizing.FIT,
@@ -118,6 +122,7 @@ class LayoutBox(
     val crossAlign: Align = Align.START,
     val scrolls: Boolean = false,
     val measureContent: ((Int) -> Size)? = null,
+    val aspectRatio: Float = 0f,
 ) {
     /**
      * The sizes measured for this box, keyed by the width that was available.
@@ -202,6 +207,12 @@ object FlexLayout {
         val innerCross = (if (axis == Axis.HORIZONTAL) area.height - padding.top - padding.bottom else area.width - padding.left - padding.right).coerceAtLeast(0)
 
         val children = box.children
+        if (box.aspectRatio > 0f) {
+            val inner = Rect(area.x + padding.left, area.y + padding.top, (area.width - padding.left - padding.right).coerceAtLeast(0), (area.height - padding.top - padding.bottom).coerceAtLeast(0))
+            children.forEach { layout(it, inner) }
+            box.contentExtent = if (axis == Axis.HORIZONTAL) area.width else area.height
+            return
+        }
         val gaps = box.gap * (children.size - 1).coerceAtLeast(0)
         val crossSizes = IntArray(children.size)
         val mainSizes = if (axis == Axis.HORIZONTAL) {
@@ -264,6 +275,10 @@ object FlexLayout {
         val limit = if (box.width.mode == SizeMode.FIXED) box.width.value else maxWidth.coerceIn(0, UNBOUNDED)
         box.measured[limit]?.let { return it }
         val natural = naturalSize(box, limit)
+        if (box.aspectRatio > 0f) {
+            val width = if (box.width.mode == SizeMode.FIXED || limit < UNBOUNDED) limit else natural.width
+            return Size(width, (width / box.aspectRatio).roundToInt()).also { box.measured[limit] = it }
+        }
         val size = Size(
             if (box.width.mode == SizeMode.FIXED) box.width.value else natural.width,
             if (box.height.mode == SizeMode.FIXED) box.height.value else natural.height,

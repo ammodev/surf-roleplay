@@ -1,7 +1,10 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.BadgeNode
+import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
 import dev.slne.surf.roleplay.protocol.screen.KbdGroupNode
 import dev.slne.surf.roleplay.protocol.screen.KbdNode
@@ -130,6 +133,9 @@ object WidgetFactory {
             is KbdNode -> KbdWidget(node.id, node.text, node.icon)
             is KbdGroupNode -> container(KbdGroupWidget(node.id), node.children)
             is BadgeNode -> BadgeWidget(node.id, node.text, node.icon, node.variant)
+            is SkeletonNode -> SkeletonWidget(node.id, node.round)
+            is SpinnerNode -> SpinnerWidget(node.id, node.size, node.color)
+            is AspectRatioNode -> container(AspectRatioWidget(node.id, node.ratio), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width

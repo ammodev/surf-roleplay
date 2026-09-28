@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.paper.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
 import dev.slne.surf.roleplay.api.client.common.screen.KbdGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.FieldContentElement
@@ -240,6 +241,7 @@ class ServerScreenTree(root: ScreenElement) {
             is FieldElement -> container.copy(children = children)
             is FieldContentElement -> container.copy(children = children)
             is KbdGroupElement -> container.copy(children = children)
+            is AspectRatioElement -> container.copy(children = children)
         }
     }
 }

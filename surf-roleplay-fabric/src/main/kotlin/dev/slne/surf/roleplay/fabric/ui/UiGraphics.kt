@@ -301,6 +301,27 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
+     * Draws a Lucide icon tinted with a colour, turned around the centre of its square.
+     *
+     * @param name the Lucide name of the icon
+     * @param rect the area to draw the icon in
+     * @param color the ARGB tint
+     * @param degrees the angle in degrees clockwise
+     */
+    fun rotatedIcon(name: String, rect: Rect, color: Int, degrees: Float) {
+        val pose = graphics.pose()
+        pose.pushMatrix()
+        try {
+            pose.translate(rect.x + rect.width / 2f, rect.y + rect.height / 2f)
+            pose.rotate(Math.toRadians(degrees.toDouble()).toFloat())
+            pose.translate(-rect.width / 2f, -rect.height / 2f)
+            icon(name, Rect(0, 0, rect.width, rect.height), color)
+        } finally {
+            pose.popMatrix()
+        }
+    }
+
+    /**
      * Runs drawing code that is clipped to a rectangle.
      *
      * @param rect the rectangle to clip to

@@ -290,3 +290,66 @@ data class BadgeNode(
     @ProtoNumber(5) val icon: String? = null,
     @ProtoNumber(6) val variant: BadgeVariant = BadgeVariant.DEFAULT,
 ) : ScreenNode
+
+/**
+ * A placeholder that pulses while content is loading.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property round whether the placeholder is a circle or pill instead of a rounded rectangle
+ */
+@Serializable
+@SerialName("skeleton")
+data class SkeletonNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val round: Boolean = false,
+) : ScreenNode
+
+/**
+ * A turning loading indicator.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property size the side length of the indicator when it fits its content
+ * @property color the theme colour the indicator is drawn in
+ */
+@Serializable
+@SerialName("spinner")
+data class SpinnerNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val size: Int = 10,
+    @ProtoNumber(5) val color: IconColor = IconColor.FOREGROUND,
+) : ScreenNode
+
+/**
+ * A box whose height follows its width in a fixed ratio, filled by its content.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out; ignored, since the ratio sets it
+ * @property children the content, drawn over the whole box
+ * @property ratio the width divided by the height
+ */
+@Serializable
+@SerialName("aspect_ratio")
+data class AspectRatioNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val ratio: Float = 1f,
+) : ContainerNode {
+    /**
+     * Returns a copy of this box with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): AspectRatioNode = copy(children = children)
+}

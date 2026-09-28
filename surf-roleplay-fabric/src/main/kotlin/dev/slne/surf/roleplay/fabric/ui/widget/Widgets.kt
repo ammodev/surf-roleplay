@@ -605,14 +605,26 @@ class ImageWidget(id: String, var texture: String = "") : Widget(id) {
 class ProgressWidget(id: String, var progress: Float = 0f, var label: String? = null) : Widget(id) {
 
     /**
-     * Returns the default bar size, widened to fit the label.
+     * Returns the default bar size: a thin bar, or one tall enough for the label and widened to
+     * fit it.
      *
      * @param measurer the text measurer
      * @return the bar size
      */
     override fun contentSize(measurer: TextMeasurer): Size {
-        val labelWidth = label?.let { measurer.width(it) + 2 * UiMetrics.WIDGET_PADDING } ?: 0
+        val text = label ?: return Size(UiMetrics.PROGRESS_WIDTH, BAR_HEIGHT)
+        val labelWidth = measurer.width(text) + 2 * UiMetrics.WIDGET_PADDING
         return Size(maxOf(UiMetrics.PROGRESS_WIDTH, labelWidth), maxOf(UiMetrics.PROGRESS_HEIGHT, measurer.lineHeight + 2))
+    }
+
+    /**
+     * Holds the bar height.
+     */
+    companion object {
+        /**
+         * The height of a bar without a label.
+         */
+        const val BAR_HEIGHT: Int = 4
     }
 
     /**

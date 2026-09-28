@@ -21,6 +21,17 @@ import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
 import dev.slne.surf.roleplay.protocol.screen.SizeMode
 import dev.slne.surf.roleplay.protocol.screen.TextListNode
 import dev.slne.surf.roleplay.protocol.screen.TextNode
+import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
+import dev.slne.surf.roleplay.api.client.common.screen.IconTint
+import dev.slne.surf.roleplay.api.client.common.screen.aspectRatio
+import dev.slne.surf.roleplay.api.client.common.screen.skeleton
+import dev.slne.surf.roleplay.api.client.common.screen.spinner
+import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
+import dev.slne.surf.roleplay.protocol.screen.IconColor
+import dev.slne.surf.roleplay.protocol.screen.ImageNode
+import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -94,5 +105,33 @@ class DisplayComponentsTest {
         assertEquals(Component.text("Z"), (ElementRules.rule(text)!!.withText(text, Component.text("Z")) as TextElement).text)
         assertEquals(Component.text("Z"), (ElementRules.rule(key)!!.withText(key, Component.text("Z")) as KbdElement).text)
         assertEquals(Component.text("Z"), (ElementRules.rule(badge)!!.withText(badge, Component.text("Z")) as BadgeElement).text)
+    }
+
+    /**
+     * Verifies that skeletons, spinners and aspect ratio boxes map to their nodes, and that an
+     * aspect ratio box grows by default.
+     */
+    @Test
+    fun `loading components map to their nodes`() {
+        val root = assertIs<ColumnNode>(
+            map {
+                skeleton("skeleton", ElementSize.fixed(40), ElementSize.fixed(8), round = true)
+                spinner("spinner", size = 14, tint = IconTint.MUTED)
+                aspectRatio("ratio", 16f / 9f) {
+                    image("image", Key.key("minecraft", "textures/block/stone.png"))
+                }
+            },
+        )
+
+        val skeleton = assertIs<SkeletonNode>(root.children[0])
+        assertEquals(40, skeleton.width.value)
+        assertEquals(true, skeleton.round)
+        val spinner = assertIs<SpinnerNode>(root.children[1])
+        assertEquals(14, spinner.size)
+        assertEquals(IconColor.MUTED, spinner.color)
+        val ratio = assertIs<AspectRatioNode>(root.children[2])
+        assertEquals(16f / 9f, ratio.ratio)
+        assertEquals(SizeMode.GROW, ratio.width.mode)
+        assertIs<ImageNode>(ratio.children.single())
     }
 }
