@@ -6,6 +6,7 @@ import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.fabric.ui.theme.RoleplayTheme
 import dev.slne.surf.roleplay.protocol.screen.DropdownOption
+import dev.slne.surf.roleplay.protocol.screen.IconColor
 import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import org.lwjgl.glfw.GLFW
@@ -576,5 +577,36 @@ class ProgressWidget(id: String, var progress: Float = 0f, var label: String? = 
      */
     override fun applyText(json: String) {
         label = json
+    }
+}
+
+/**
+ * A Lucide icon drawn square within the widget's area.
+ *
+ * @param id the id of the widget
+ * @property icon the Lucide name of the icon
+ * @property size the side length used when the widget fits its content
+ * @property color the theme token the icon is tinted with
+ */
+class IconWidget(id: String, var icon: String, val size: Int, val color: IconColor) : Widget(id) {
+
+    /**
+     * Returns a square of the icon's size.
+     *
+     * @param measurer the text measurer
+     * @return the icon size
+     */
+    override fun contentSize(measurer: TextMeasurer): Size = Size(size, size)
+
+    /**
+     * Draws a placeholder square in the icon's area.
+     *
+     * @param ui the graphics to draw with
+     * @param context the screen showing the widget
+     * @param mouseX the mouse x position
+     * @param mouseY the mouse y position
+     */
+    override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
+        ui.border(bounds, RoleplayTheme.TEXT_MUTED)
     }
 }

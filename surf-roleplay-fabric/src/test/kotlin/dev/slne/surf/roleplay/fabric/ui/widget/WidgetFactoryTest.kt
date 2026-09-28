@@ -99,4 +99,18 @@ class WidgetFactoryTest {
         assertEquals(Align.STRETCH, list.crossAlign)
         assertEquals(dev.slne.surf.roleplay.fabric.ui.theme.RoleplayTheme.SCROLL_BAR_WIDTH + 2, list.padding.right)
     }
+
+    /**
+     * Verifies that an icon node becomes an icon widget with its name, size and colour.
+     */
+    @Test
+    fun `icon nodes become icon widgets`() {
+        val widget = assertIs<IconWidget>(
+            WidgetFactory.create(dev.slne.surf.roleplay.protocol.screen.IconNode("i", icon = "shield", size = 24, color = dev.slne.surf.roleplay.protocol.screen.IconColor.PRIMARY)),
+        )
+
+        assertEquals("shield", widget.icon)
+        assertEquals(24, widget.size)
+        assertEquals(dev.slne.surf.roleplay.protocol.screen.IconColor.PRIMARY, widget.color)
+    }
 }

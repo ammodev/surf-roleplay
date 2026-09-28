@@ -5,6 +5,7 @@ import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DropdownNode
+import dev.slne.surf.roleplay.protocol.screen.IconNode
 import dev.slne.surf.roleplay.protocol.screen.ImageNode
 import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
@@ -58,6 +59,7 @@ object WidgetFactory {
             is CheckboxNode -> CheckboxWidget(node.id, node.label, node.checked).apply { enabled = node.enabled }
             is DropdownNode -> DropdownWidget(node.id, node.options, node.selected, node.required).apply { enabled = node.enabled }
             is ImageNode -> ImageWidget(node.id, node.texture)
+            is IconNode -> IconWidget(node.id, node.icon, node.size, node.color)
             is ProgressNode -> ProgressWidget(node.id, node.progress, node.label)
         }
         widget.width = node.width
