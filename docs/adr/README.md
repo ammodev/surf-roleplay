@@ -37,3 +37,4 @@ Create the next record with `/surf:new-adr`.
 | [0028](0028-every-packet-has-its-own-payload-channel.md) | Every packet has its own payload channel | Accepted | 2026-09-27 |
 | [0029](0029-the-mod-handshake-runs-in-the-configuration-phase.md) | The mod handshake runs in the configuration phase | Accepted | 2026-09-27 |
 | [0030](0030-the-client-mod-depends-on-fabric-language-kotlin.md) | The client mod depends on Fabric Language Kotlin | Accepted | 2026-09-27 |
+| [0031](0031-the-local-dev-stack-runs-fully-in-docker-compose.md) | The local dev stack runs fully in Docker Compose | Accepted | 2026-09-28 |
