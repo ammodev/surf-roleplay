@@ -9,6 +9,7 @@ import dev.slne.surf.roleplay.paper.handshake.HandshakeEvaluator
 import dev.slne.surf.roleplay.paper.handshake.HandshakeListener
 import dev.slne.surf.roleplay.paper.listener.UserConnectionListener
 import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
+import dev.slne.surf.roleplay.paper.welcome.WelcomeListener
 import org.bukkit.plugin.java.JavaPlugin
 
 /**
@@ -31,9 +32,9 @@ class PaperMain : SuspendingJavaPlugin() {
     }
 
     /**
-     * Enables the client instance, registers the roleplay payload channels and the mod handshake,
-     * and registers the listener that acquires a hold on the roleplay user of every player logging
-     * in and releases it when the player's connection closes.
+     * Enables the client instance, registers the roleplay payload channels, the mod handshake and
+     * the welcome sender, and registers the listener that acquires a hold on the roleplay user of
+     * every player logging in and releases it when the player's connection closes.
      *
      * @throws IllegalStateException if the registered user manager is not the client user manager
      */
@@ -48,6 +49,7 @@ class PaperMain : SuspendingJavaPlugin() {
             HandshakeListener(packetRegistry, handshakeConfig, HandshakeEvaluator(handshakeConfig.allowedMods)),
             this,
         )
+        server.pluginManager.registerEvents(WelcomeListener(packetRegistry), this)
 
         val userManager = UserManager.INSTANCE as? CoreClientUserManager
             ?: error(
