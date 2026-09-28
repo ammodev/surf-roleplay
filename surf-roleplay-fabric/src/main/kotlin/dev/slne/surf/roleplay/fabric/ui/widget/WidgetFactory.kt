@@ -3,6 +3,7 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
@@ -321,6 +322,7 @@ object WidgetFactory {
             is PaginationPreviousNode -> PaginationLinkWidget(node.id, node.text, false, PaginationLinkKind.PREVIOUS).apply { enabled = node.enabled }
             is PaginationNextNode -> PaginationLinkWidget(node.id, node.text, false, PaginationLinkKind.NEXT).apply { enabled = node.enabled }
             is PaginationEllipsisNode -> EllipsisWidget(node.id, PaginationLinkWidget.HEIGHT, clickable = false)
+            is ScrollAreaNode -> container(ScrollAreaWidget(node.id, node.orientation), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width

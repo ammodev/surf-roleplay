@@ -34,6 +34,14 @@ interface UiContext {
     fun focus(widget: Widget?)
 
     /**
+     * Makes a widget receive the mouse movement while the button that was just pressed stays
+     * held, without giving it the focus.
+     *
+     * @param widget the widget to drag
+     */
+    fun beginDrag(widget: Widget) = Unit
+
+    /**
      * Whether the focus ring is shown: after the player used the keyboard, and not after a mouse
      * click.
      */
@@ -545,7 +553,7 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
  *
  * @param id the id of the widget
  */
-class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
+class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL), ScrollContainer {
     /**
      * Always `true`: the list scrolls its children.
      */
@@ -640,7 +648,7 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
      * @param widget the descendant
      * @return whether the list scrolled
      */
-    fun ensureVisible(widget: Widget): Boolean {
+    override fun ensureVisible(widget: Widget): Boolean {
         val top = widget.bounds.y - bounds.y + scrollOffset
         val bottom = top + widget.bounds.height
         var next = scrollOffset

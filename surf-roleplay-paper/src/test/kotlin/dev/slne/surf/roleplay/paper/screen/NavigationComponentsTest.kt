@@ -10,6 +10,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.collapsible
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
+import dev.slne.surf.roleplay.api.client.common.screen.ScrollOrientation
+import dev.slne.surf.roleplay.api.client.common.screen.scrollArea
 import dev.slne.surf.roleplay.api.client.common.screen.breadcrumb
 import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbList
 import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbItem
@@ -45,6 +48,8 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
+import dev.slne.surf.roleplay.protocol.screen.ScrollOrientation as NodeScrollOrientation
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
@@ -331,5 +336,24 @@ class NavigationComponentsTest {
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleWidgetAction(ScreenWidgetAction(session, "prev")))
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleWidgetAction(ScreenWidgetAction(session, "page")))
         assertEquals(listOf("home", "p1", "next"), reports)
+    }
+
+    /**
+     * Verifies that a scroll area maps to its node with its size and orientation.
+     */
+    @Test
+    fun `scroll areas map to their nodes`() {
+        state.open(
+            screen(Component.text("Scroll")) {
+                scrollArea("area", ElementSize.fixed(120), ElementSize.fixed(80), ScrollOrientation.BOTH) { label("text", Component.text("Lang")) }
+            },
+            null,
+        )
+
+        val area = assertIs<ScrollAreaNode>(assertIs<WidgetScreenBody>((sent.last() as ScreenOpen).body).root)
+        assertEquals(NodeScrollOrientation.BOTH, area.orientation)
+        assertEquals(120, area.width.value)
+        assertEquals(80, area.height.value)
+        assertEquals(1, area.children.size)
     }
 }

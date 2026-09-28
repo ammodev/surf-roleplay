@@ -762,3 +762,61 @@ fun ElementsBuilder.paginationEllipsis(id: String) {
     elements += PaginationEllipsisElement(id)
 }
 
+/**
+ * The directions a scroll area scrolls in.
+ */
+enum class ScrollOrientation {
+    /**
+     * Up and down; the content is as wide as the area.
+     */
+    VERTICAL,
+
+    /**
+     * Left and right; the content is as tall as the area.
+     */
+    HORIZONTAL,
+
+    /**
+     * In both directions.
+     */
+    BOTH,
+}
+
+/**
+ * A scroll area: its content, stacked, scrolled inside the area with the wheel or by dragging thin
+ * scroll bars.
+ *
+ * @property id the id of this element
+ * @property children the content, stacked
+ * @property orientation the directions the area scrolls in
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ScrollAreaElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val orientation: ScrollOrientation = ScrollOrientation.VERTICAL,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a scroll area: its content, stacked, scrolled inside the area with the wheel or by
+ * dragging thin scroll bars.
+ *
+ * @param id the id of the area
+ * @param width how wide the area is laid out, usually fixed
+ * @param height how tall the area is laid out, usually fixed
+ * @param orientation the directions the area scrolls in
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.scrollArea(
+    id: String,
+    width: ElementSize,
+    height: ElementSize,
+    orientation: ScrollOrientation = ScrollOrientation.VERTICAL,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += ScrollAreaElement(id, build(children), orientation, width, height)
+}
+

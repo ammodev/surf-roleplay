@@ -14,7 +14,7 @@ import dev.slne.surf.roleplay.fabric.ui.widget.KeyInterceptor
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayContainerWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayHostWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Popover
-import dev.slne.surf.roleplay.fabric.ui.widget.ScrollListWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.ScrollContainer
 import dev.slne.surf.roleplay.fabric.ui.widget.UiContext
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetTree
@@ -156,6 +156,11 @@ class ScreenPanel(
      * The widget that receives mouse movement while the button is held, or `null` if none does.
      */
     private var dragTarget: Widget? = null
+
+    /**
+     * The widget that asked to be dragged during the current click, or `null` if none did.
+     */
+    private var requestedDrag: Widget? = null
 
     /**
      * Whether the tree must be laid out before the next frame.
@@ -374,8 +379,8 @@ class ScreenPanel(
         style.presentation == Presentation.SHEET && System.currentTimeMillis() - openedAt < SLIDE_MILLIS
 
     /**
-     * Scrolls the scroll lists around the focused widget, innermost first, so that the widget is
-     * visible inside them.
+     * Scrolls the scroll lists and scroll areas around the focused widget, innermost first, so
+     * that the widget is visible inside them.
      *
      * @return whether a list scrolled, in which case the panel must be laid out again
      */
@@ -385,7 +390,7 @@ class ScreenPanel(
         var current: Widget = focused
         while (true) {
             val parent = WidgetTree.parentOf(root, current.id) ?: break
-            if (parent is ScrollListWidget) moved = parent.ensureVisible(focused) || moved
+            if (parent is ScrollContainer) moved = parent.ensureVisible(focused) || moved
             current = parent
         }
         return moved
@@ -541,14 +546,26 @@ class ScreenPanel(
     }
 
     /**
-     * Starts a drag on the focused widget after a left click on it, if it can be dragged.
+     * Starts a drag after a left click on the widget that asked for one, or else on the focused
+     * widget, if it can be dragged.
      *
      * @param x the mouse x position
      * @param y the mouse y position
      * @param button the mouse button
      */
     private fun startDrag(x: Double, y: Double, button: Int) {
-        dragTarget = focusedWidget?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
+        val requested = requestedDrag
+        requestedDrag = null
+        dragTarget = (requested ?: focusedWidget)?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
+    }
+
+    /**
+     * Makes a widget receive the mouse movement while the pressed button stays held.
+     *
+     * @param widget the widget to drag
+     */
+    override fun beginDrag(widget: Widget) {
+        requestedDrag = widget
     }
 
     /**

@@ -112,4 +112,14 @@ class NavigationComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that a scroll area survives a round trip.
+     */
+    @Test
+    fun `scroll areas round-trip`() {
+        val root = ScrollAreaNode("area", width = Sizing.fixed(100), height = Sizing.fixed(60), orientation = ScrollOrientation.BOTH, children = listOf(LabelNode("text")))
+
+        assertEquals(root, roundTrip(root))
+    }
 }

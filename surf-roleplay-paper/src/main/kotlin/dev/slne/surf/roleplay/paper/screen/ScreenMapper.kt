@@ -301,6 +301,8 @@ import dev.slne.surf.roleplay.protocol.screen.PaginationLinkNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationPreviousNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationNextNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationEllipsisNode
+import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
+import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -527,6 +529,7 @@ object ScreenMapper {
             is PaginationPreviousElement -> PaginationPreviousNode(element.id, width, height, text(element.text), element.enabled)
             is PaginationNextElement -> PaginationNextNode(element.id, width, height, text(element.text), element.enabled)
             is PaginationEllipsisElement -> PaginationEllipsisNode(element.id, width, height)
+            is ScrollAreaElement -> ScrollAreaNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation))
         }
     }
 

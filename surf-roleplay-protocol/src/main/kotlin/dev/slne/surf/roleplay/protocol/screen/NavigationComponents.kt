@@ -626,3 +626,55 @@ data class PaginationEllipsisNode(
     @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
 ) : ScreenNode
+
+/**
+ * The directions a scroll area scrolls in.
+ */
+@Serializable
+enum class ScrollOrientation {
+    /**
+     * Up and down; the content is as wide as the area.
+     */
+    @ProtoNumber(0)
+    VERTICAL,
+
+    /**
+     * Left and right; the content is as tall as the area.
+     */
+    @ProtoNumber(1)
+    HORIZONTAL,
+
+    /**
+     * In both directions.
+     */
+    @ProtoNumber(2)
+    BOTH,
+}
+
+/**
+ * A scroll area: its content, stacked, scrolled inside the area with the wheel or by dragging thin
+ * scroll bars.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, stacked
+ * @property orientation the directions the area scrolls in
+ */
+@Serializable
+@SerialName("scroll_area")
+data class ScrollAreaNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val orientation: ScrollOrientation = ScrollOrientation.VERTICAL,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ScrollAreaNode = copy(children = children)
+}
