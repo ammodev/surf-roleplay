@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.fabric.ui
 
+import dev.slne.surf.roleplay.fabric.screen.ScreenRules
 import dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
@@ -204,7 +205,7 @@ class RoleplayScreenHost(
         val open = dropdown
         if (open != null) {
             val list = dropdownList(open)
-            if (list.contains(event.x(), event.y())) {
+            if (open.enabled && list.contains(event.x(), event.y())) {
                 val index = ((event.y() - list.y) / OPTION_HEIGHT).toInt()
                 open.options.getOrNull(index)?.let { open.selected = it.value }
             }
@@ -261,8 +262,8 @@ class RoleplayScreenHost(
     override fun shouldCloseOnEsc(): Boolean = closable
 
     /**
-     * Reports a close request to the listener instead of closing directly, so that the owner
-     * decides which screen to show next.
+     * Reports a close request to the listener, which decides which screen is shown next. The
+     * screen does not close itself.
      */
     override fun onClose() {
         listener.closeRequested(this)
@@ -318,11 +319,11 @@ class RoleplayScreenHost(
 
     /**
      * Reacts to a change inside the tree: drops the focus and the open dropdown list if their
-     * widgets left the tree, and lays the tree out again.
+     * widgets left the tree or were disabled, and lays the tree out again.
      */
     fun treeChanged() {
-        focusedWidget?.let { if (WidgetTree.find(root, it.id) !== it) focusedWidget = null }
-        dropdown?.let { if (WidgetTree.find(root, it.id) !== it) dropdown = null }
+        focusedWidget?.let { if (!ScreenRules.isStillUsable(root, it)) focusedWidget = null }
+        dropdown?.let { if (!ScreenRules.isStillUsable(root, it)) dropdown = null }
         requestLayout()
     }
 

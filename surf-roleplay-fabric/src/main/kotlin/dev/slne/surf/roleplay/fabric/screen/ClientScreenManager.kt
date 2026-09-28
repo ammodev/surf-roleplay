@@ -97,20 +97,35 @@ object ClientScreenManager {
     }
 
     /**
-     * Runs a packet handler only while the roleplay server is active.
+     * Runs a packet handler only while the roleplay server is active. An exception thrown by the
+     * handler is logged and the packet dropped.
      *
      * @param handler the handler
      */
     private inline fun ifActive(handler: () -> Unit) {
-        if (serverState.isActive) handler() else RoleplayClient.log.debug("Dropped a screen packet outside the roleplay server")
+        if (!serverState.isActive) {
+            RoleplayClient.log.debug("Dropped a screen packet outside the roleplay server")
+            return
+        }
+        try {
+            handler()
+        } catch (exception: RuntimeException) {
+            RoleplayClient.log.error("Failed to handle a screen packet", exception)
+        }
     }
 
     /**
-     * Opens a screen from the server and shows it.
+     * Opens a screen from the server and shows it. An open whose parent is no longer open is
+     * dropped and reported as closed.
      *
      * @param packet the open packet
      */
     private fun open(packet: ScreenOpen) {
+        if (ScreenRules.isStaleOpen(stack, packet.parentSessionId)) {
+            RoleplayClient.log.debug("Dropped session {}: its parent {} is closed", packet.sessionId, packet.parentSessionId)
+            ClientPackets.send(Packets.SCREEN_CLOSED, ScreenClosed(packet.sessionId))
+            return
+        }
         val content = when (val body = packet.body) {
             is WidgetScreenBody -> ClientScreen.Widgets(
                 RoleplayScreenHost(packet.title, WidgetFactory.create(body.root), packet.closable, WidgetListener(packet.sessionId)),

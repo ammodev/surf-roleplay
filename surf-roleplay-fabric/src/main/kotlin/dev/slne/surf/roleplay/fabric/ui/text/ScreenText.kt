@@ -12,7 +12,7 @@ import net.minecraft.network.chat.ComponentSerialization
  * Turns the component JSON of screen texts into vanilla components.
  *
  * Parsed texts are cached. Text that is not valid component JSON is shown as its raw string in
- * red, so that a broken text is visible instead of silently missing.
+ * red.
  */
 object ScreenText {
 
