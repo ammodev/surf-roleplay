@@ -74,18 +74,19 @@ object InputsDemo {
      * @param variant the light or dark variant of the theme
      */
     fun open(player: Player, theme: String = ScreenThemes.DEFAULT, variant: ScreenVariant = ScreenVariant.DARK) {
-        ScreenService.open(player, definition(player::sendMessage, theme, variant))
+        ScreenService.open(player, definition(player::sendMessage, { chosenTheme, chosenVariant -> open(player, chosenTheme, chosenVariant) }, theme, variant))
     }
 
     /**
      * Builds the page.
      *
      * @param report sends a report of an action or change to the player
+     * @param reopen opens the page again in another theme and variant
      * @param theme the name of the theme
      * @param variant the variant of the theme
      * @return the page
      */
-    fun definition(report: (Component) -> Unit, theme: String, variant: ScreenVariant): ScreenDefinition {
+    fun definition(report: (Component) -> Unit, reopen: (String, ScreenVariant) -> Unit, theme: String, variant: ScreenVariant): ScreenDefinition {
         val changed = ChangeHandler { change ->
             report(Component.text("${change.inputId} geändert: \"${change.value}\"", NamedTextColor.GRAY))
         }
@@ -96,6 +97,13 @@ object InputsDemo {
             this.theme = theme
             this.variant = variant
             column("root", width = ElementSize.fixed(380), gap = 10, crossAlign = Alignment.STRETCH) {
+                row("theme_row", gap = 4, crossAlign = Alignment.CENTER) {
+                    select("theme", THEMES, selected = theme, width = ElementSize.grow())
+                    select("variant", VARIANTS, selected = variant.name, width = ElementSize.fixed(90))
+                    button("apply_theme", Component.text("Anwenden"), submitsInput = false, icon = "palette", variant = ButtonVariant.OUTLINE) { click ->
+                        reopen(click.values.selected("theme") ?: ScreenThemes.DEFAULT, click.values.selected("variant")?.let(ScreenVariant::valueOf) ?: ScreenVariant.DARK)
+                    }
+                }
                 buttons(clicked)
                 toggles(clicked, changed)
                 texts(clicked, changed)
@@ -341,7 +349,7 @@ object InputsDemo {
                 }
             }
             row("account_actions", gap = 4, mainAlign = Alignment.END, width = ElementSize.grow()) {
-                button("account_send", Component.text("Speichern"), icon = "check") { click ->
+                button("account_send", Component.text("Speichern"), submitsInput = false, icon = "check") { click ->
                     if (click.values.text("account_name") == "Max") {
                         click.fail(mapOf("account_name" to Component.text("Dieser Name ist vergeben.")))
                     } else {
@@ -362,6 +370,23 @@ object InputsDemo {
             listOf(SelectChoice("apple", Component.text("Apfel")), SelectChoice("pear", Component.text("Birne"), enabled = false), SelectChoice("plum", Component.text("Pflaume"))),
         ),
         SelectChoiceGroup(Component.text("Gemüse"), listOf(SelectChoice("carrot", Component.text("Möhre")), SelectChoice("pea", Component.text("Erbse")))),
+    )
+
+    /**
+     * The themes offered by the theme select.
+     */
+    private val THEMES = listOf(
+        SelectChoice(ScreenThemes.DEFAULT, Component.text("Standard")),
+        SelectChoice(ScreenThemes.SAR, Component.text("Rettungsdienst")),
+        SelectChoice(ScreenThemes.POLICE, Component.text("Polizei")),
+    )
+
+    /**
+     * The variants offered by the variant select.
+     */
+    private val VARIANTS = listOf(
+        SelectChoice(ScreenVariant.DARK.name, Component.text("Dunkel")),
+        SelectChoice(ScreenVariant.LIGHT.name, Component.text("Hell")),
     )
 
     /**

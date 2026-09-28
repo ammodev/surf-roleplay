@@ -39,7 +39,7 @@ class InputsDemoTest {
             ActionRateLimiter(100),
         )
 
-        state.open(InputsDemo.definition({ }, ScreenThemes.DEFAULT, ScreenVariant.DARK), null)
+        state.open(InputsDemo.definition({ }, { _, _ -> }, ScreenThemes.DEFAULT, ScreenVariant.DARK), null)
 
         assertIs<ScreenOpen>(sent.single())
     }
