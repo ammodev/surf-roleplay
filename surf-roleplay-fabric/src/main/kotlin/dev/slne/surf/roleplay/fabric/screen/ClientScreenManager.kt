@@ -11,10 +11,12 @@ import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
 import dev.slne.surf.roleplay.protocol.Packets
 import dev.slne.surf.roleplay.protocol.screen.ScreenClose
 import dev.slne.surf.roleplay.protocol.screen.ScreenClosed
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.ScreenStack
@@ -258,6 +260,17 @@ object ClientScreenManager {
          */
         override fun closeRequested(panel: ScreenPanel) {
             closedByPlayer(sessionId)
+        }
+
+        /**
+         * Sends the new value of an input that reports its changes.
+         *
+         * @param panel the panel
+         * @param widget the input
+         */
+        override fun valueChanged(panel: ScreenPanel, widget: Widget) {
+            val value = widget.inputValue ?: return
+            ClientPackets.send(Packets.SCREEN_INPUT_CHANGE, ScreenInputChange(sessionId, widget.id, value))
         }
     }
 

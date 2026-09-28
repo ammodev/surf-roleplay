@@ -45,7 +45,7 @@ object WidgetFactory {
 
             is ScrollListNode -> container(ScrollListWidget(node.id), node.children).apply { gap = node.gap }
             is LabelNode -> LabelWidget(node.id, node.text, node.icon)
-            is ButtonNode -> ButtonWidget(node.id, node.text, node.icon).apply { enabled = node.enabled }
+            is ButtonNode -> ButtonWidget(node.id, node.text, node.icon, node.submitsInput).apply { enabled = node.enabled }
             is TextInputNode -> TextInputWidget(
                 node.id,
                 TextEditState(node.value, TextFilter.maxLength(node.maxLength)),
@@ -65,6 +65,13 @@ object WidgetFactory {
         }
         widget.width = node.width
         widget.height = node.height
+        widget.notifyChange = when (node) {
+            is TextInputNode -> node.notifyChange
+            is NumberInputNode -> node.notifyChange
+            is CheckboxNode -> node.notifyChange
+            is DropdownNode -> node.notifyChange
+            else -> false
+        }
         return widget
     }
 
@@ -128,6 +135,13 @@ object WidgetTree {
         visit(root) { widget -> widget.inputValue?.let { values += InputValue(widget.id, it) } }
         return values
     }
+
+    /**
+     * Marks every widget of a tree as touched, so that invalid inputs show as invalid.
+     *
+     * @param root the root of the tree
+     */
+    fun touchAll(root: Widget) = visit(root) { it.touched = true }
 
     /**
      * Calls a function for every widget of a tree, parents before children.

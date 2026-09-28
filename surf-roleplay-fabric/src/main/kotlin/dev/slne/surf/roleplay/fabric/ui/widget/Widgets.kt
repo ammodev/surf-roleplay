@@ -60,8 +60,9 @@ class LabelWidget(id: String, var text: String = "", var icon: String? = null) :
  * @param id the id of the widget
  * @property text the caption as component JSON
  * @property icon the Lucide name of the leading icon, or `null` for none
+ * @property submitsInput whether a click marks every input of the screen as touched
  */
-class ButtonWidget(id: String, var text: String = "", var icon: String? = null) : Widget(id) {
+class ButtonWidget(id: String, var text: String = "", var icon: String? = null, val submitsInput: Boolean = true) : Widget(id) {
 
     /**
      * Whether the widget can take the keyboard focus, which it can while enabled.
@@ -181,6 +182,11 @@ open class TextInputWidget(
     open val isValid: Boolean get() = !required || edit.text.isNotEmpty()
 
     /**
+     * Whether the field shows itself as invalid: only once it was touched.
+     */
+    override val showsInvalid: Boolean get() = touched && !isValid
+
+    /**
      * Returns the default input size.
      *
      * @param measurer the text measurer
@@ -204,7 +210,7 @@ open class TextInputWidget(
         ui.borderRounded(
             bounds,
             when {
-                !isValid -> tokens.destructive
+                showsInvalid -> tokens.destructive
                 focused -> tokens.ring
                 else -> tokens.input
             },
@@ -275,12 +281,12 @@ open class TextInputWidget(
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
         if (event.isPaste) {
-            edit.insert(context.clipboard.replace("\n", "").replace("\r", ""))
+            if (edit.insert(context.clipboard.replace("\n", "").replace("\r", ""))) markChanged(context, immediate = false)
             return true
         }
         when (event.key()) {
-            GLFW.GLFW_KEY_BACKSPACE -> edit.backspace()
-            GLFW.GLFW_KEY_DELETE -> edit.delete()
+            GLFW.GLFW_KEY_BACKSPACE -> if (edit.backspace()) markChanged(context, immediate = false)
+            GLFW.GLFW_KEY_DELETE -> if (edit.delete()) markChanged(context, immediate = false)
             GLFW.GLFW_KEY_LEFT -> edit.moveCursor(-1)
             GLFW.GLFW_KEY_RIGHT -> edit.moveCursor(1)
             GLFW.GLFW_KEY_HOME -> edit.cursor = 0
@@ -299,7 +305,7 @@ open class TextInputWidget(
      */
     override fun charTyped(context: UiContext, event: CharacterEvent): Boolean {
         if (!enabled || !event.isAllowedChatCharacter) return false
-        edit.insert(event.codepointAsString())
+        if (edit.insert(event.codepointAsString())) markChanged(context, immediate = false)
         return true
     }
 
@@ -421,7 +427,7 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
         if (!isOver(x, y)) return false
         if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             context.focus(this)
-            checked = !checked
+            toggle(context)
         }
         return true
     }
@@ -435,8 +441,18 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled || event.key() != GLFW.GLFW_KEY_SPACE) return false
-        checked = !checked
+        toggle(context)
         return true
+    }
+
+    /**
+     * Toggles the box and reports the change.
+     *
+     * @param context the screen showing the widget
+     */
+    fun toggle(context: UiContext) {
+        checked = !checked
+        markChanged(context, immediate = true)
     }
 
     /**
@@ -499,6 +515,22 @@ class DropdownWidget(
     val isValid: Boolean get() = !required || selected != null
 
     /**
+     * Whether the dropdown shows itself as invalid: only once it was touched.
+     */
+    override val showsInvalid: Boolean get() = touched && !isValid
+
+    /**
+     * Selects an option chosen by the player and reports the change.
+     *
+     * @param value the value of the chosen option
+     * @param context the screen showing the widget
+     */
+    fun choose(value: String, context: UiContext) {
+        selected = value
+        markChanged(context, immediate = true)
+    }
+
+    /**
      * The label of the selected option, or `null` if none is selected.
      */
     private val selectedLabel: String? get() = options.firstOrNull { it.value == selected }?.label
@@ -527,7 +559,7 @@ class DropdownWidget(
         val hovered = enabled && isOver(mouseX, mouseY)
         val tokens = ui.tokens
         ui.fillRounded(bounds, if (hovered) ThemeColors.blend(inputFill(ui), tokens.accent, HOVER_ACCENT) else inputFill(ui))
-        ui.borderRounded(bounds, if (!isValid) tokens.destructive else tokens.input)
+        ui.borderRounded(bounds, if (showsInvalid) tokens.destructive else tokens.input)
         val textY = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
         val color = if (enabled) tokens.foreground else ui.disabled(tokens.foreground)
         ui.clipped(bounds) {

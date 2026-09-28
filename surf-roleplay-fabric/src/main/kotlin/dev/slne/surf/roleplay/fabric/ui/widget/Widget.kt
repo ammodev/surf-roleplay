@@ -59,6 +59,15 @@ interface UiContext {
      * The text on the system clipboard.
      */
     var clipboard: String
+
+    /**
+     * Reports that the player changed an input's value.
+     *
+     * @param widget the input
+     * @param immediate whether to report the change at once; otherwise it is reported after the
+     *        player paused typing
+     */
+    fun valueChanged(widget: Widget, immediate: Boolean) = Unit
 }
 
 /**
@@ -84,6 +93,34 @@ abstract class Widget(val id: String) {
      * Whether the widget can be used. Disabled widgets ignore input and are drawn dimmed.
      */
     var enabled: Boolean = true
+
+    /**
+     * Whether the mod reports every change of the widget's value at once.
+     */
+    var notifyChange: Boolean = false
+
+    /**
+     * Whether the player changed the widget's value or tried to submit it, after which an invalid
+     * value is shown as invalid.
+     */
+    var touched: Boolean = false
+
+    /**
+     * Whether the widget currently shows itself as invalid.
+     */
+    open val showsInvalid: Boolean get() = false
+
+    /**
+     * Records that the player changed the widget's value and reports the change if the widget
+     * asked for change events.
+     *
+     * @param context the screen showing the widget
+     * @param immediate whether to report the change at once
+     */
+    fun markChanged(context: UiContext, immediate: Boolean) {
+        touched = true
+        if (notifyChange) context.valueChanged(this, immediate)
+    }
 
     /**
      * The area the widget occupies on screen, set by the last layout.

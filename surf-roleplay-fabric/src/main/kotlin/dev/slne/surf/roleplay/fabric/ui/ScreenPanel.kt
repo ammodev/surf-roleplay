@@ -42,6 +42,14 @@ interface ScreenPanelListener {
      * @param panel the panel
      */
     fun closeRequested(panel: ScreenPanel)
+
+    /**
+     * Called when an input that reports its changes changed its value.
+     *
+     * @param panel the panel
+     * @param widget the input
+     */
+    fun valueChanged(panel: ScreenPanel, widget: Widget) = Unit
 }
 
 /**
@@ -125,6 +133,11 @@ class ScreenPanel(
      * The vertical scroll position of the content.
      */
     private val scroll = PanelScroll()
+
+    /**
+     * The text inputs whose changes wait for the player to pause typing.
+     */
+    private val debouncer = ChangeDebouncer(CHANGE_DELAY_MILLIS)
 
     /**
      * The area of the panel including its title bar, set by the last layout.
@@ -307,6 +320,7 @@ class ScreenPanel(
      * @param active whether this panel receives input; inactive panels ignore the mouse
      */
     fun render(graphics: GuiGraphicsExtractor, font: Font, mouseX: Int, mouseY: Int, active: Boolean) {
+        reportChanges(debouncer.due())
         val ui = UiGraphics(graphics, font, tokens)
         ui.fillRounded(panel, tokens.card)
         ui.borderRounded(panel, tokens.border)
@@ -423,7 +437,7 @@ class ScreenPanel(
             val list = dropdownList(open)
             if (open.enabled && list.contains(x, y)) {
                 val index = ((y - list.y - 1) / OPTION_HEIGHT).toInt()
-                open.options.getOrNull(index)?.let { open.selected = it.value }
+                open.options.getOrNull(index)?.let { open.choose(it.value, this) }
             }
             dropdown = null
             return true
@@ -482,7 +496,7 @@ class ScreenPanel(
             GLFW.GLFW_KEY_UP -> highlighted = (highlighted - 1).coerceAtLeast(0)
             GLFW.GLFW_KEY_DOWN -> highlighted = (highlighted + 1).coerceAtMost(open.options.lastIndex)
             GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER, GLFW.GLFW_KEY_SPACE -> {
-                open.options.getOrNull(highlighted)?.let { open.selected = it.value }
+                open.options.getOrNull(highlighted)?.let { open.choose(it.value, this) }
                 dropdown = null
             }
 
@@ -545,7 +559,28 @@ class ScreenPanel(
      * @param button the activated button
      */
     override fun buttonClicked(button: ButtonWidget) {
+        reportChanges(debouncer.flush())
+        if (button.submitsInput) WidgetTree.touchAll(root)
         listener.buttonClicked(this, button)
+    }
+
+    /**
+     * Reports a changed input to the listener, at once or after the player paused typing.
+     *
+     * @param widget the input
+     * @param immediate whether to report at once
+     */
+    override fun valueChanged(widget: Widget, immediate: Boolean) {
+        if (immediate) listener.valueChanged(this, widget) else debouncer.changed(widget.id)
+    }
+
+    /**
+     * Reports the changes of inputs that are still in the tree.
+     *
+     * @param ids the ids of the changed inputs
+     */
+    private fun reportChanges(ids: List<String>) {
+        ids.forEach { id -> WidgetTree.find(root, id)?.let { listener.valueChanged(this, it) } }
     }
 
     /**
@@ -591,6 +626,11 @@ class ScreenPanel(
          * How long a sheet takes to slide in, in milliseconds.
          */
         const val SLIDE_MILLIS: Long = 160
+
+        /**
+         * How long a text input's value must stay unchanged before its change is reported.
+         */
+        const val CHANGE_DELAY_MILLIS: Long = 250
 
         /**
          * The space kept around a widget that is scrolled into view.
