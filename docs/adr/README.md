@@ -46,4 +46,5 @@ Create the next record with `/surf:new-adr`.
 | [0037](0037-screen-actions-are-validated-against-the-server-held-screen.md) | Screen actions are validated against the server-held screen | Accepted | 2026-09-28 |
 | [0038](0038-the-screen-api-is-public-in-surf-roleplay-api.md) | The screen API is public in surf-roleplay-api | Accepted | 2026-09-28 |
 | [0039](0039-the-mod-ui-is-built-on-an-own-toolkit.md) | The mod UI is built on an own toolkit | Accepted | 2026-09-28 |
-| [0040](0040-the-mod-is-active-only-on-servers-that-announce-the-roleplay-protocol.md) | The mod is active only on servers that announce the roleplay protocol | Accepted | 2026-09-28 |
+| [0040](0040-the-mod-is-active-only-on-servers-that-announce-the-roleplay-protocol.md) | The mod is active only on servers that announce the roleplay protocol | Superseded by ADR-0041 | 2026-09-28 |
+| [0041](0041-the-mod-is-active-only-after-the-roleplay-server-welcomes-it.md) | The mod is active only after the roleplay server welcomes it | Accepted | 2026-09-28 |

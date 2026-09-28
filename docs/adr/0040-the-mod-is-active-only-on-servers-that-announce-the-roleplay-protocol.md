@@ -1,9 +1,9 @@
 # ADR-0040: The mod is active only on servers that announce the roleplay protocol
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0041
 - **Date:** 2026-09-28
 - **Supersedes:** none
-- **Superseded by:** none
+- **Superseded by:** ADR-0041
 
 ## Context
 
