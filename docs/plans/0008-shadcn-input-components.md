@@ -1,6 +1,6 @@
 # Plan 0008: shadcn input components
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-28
 - **Accepted proposal:** Port the 17 input components of the shadcn registry (button, button-group, input-group, textarea, switch, radio-group, slider, toggle, toggle-group, input-otp, native-select, select, combobox, calendar, field, form, label) as native screen nodes with change events, pre-accepted under the standing autonomy for shadcn-faithful components
 - **Decision records:** ADR-0051, ADR-0052, ADR-0053, ADR-0054
