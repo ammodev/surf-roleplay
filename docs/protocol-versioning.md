@@ -14,6 +14,11 @@ understand every packet the other sends.
 - The payload body is the packet's kotlinx.serialization ProtoBuf encoding, with no extra
   framing.
 - Every property of a packet class carries an explicit `@ProtoNumber`.
+- A sealed type, such as a screen node or a patch operation, is encoded with its subclass's
+  `@SerialName` and the subclass's own encoding. Every subclass carries an explicit `@SerialName`.
+- Every enum constant carries an explicit `@ProtoNumber`.
+- A typed screen's state and actions are ProtoBuf bytes inside screen packets. Their classes are
+  defined with their `ScreenType` in the protocol module and follow the same rules as packets.
 - Decoders skip fields whose number they do not know. A field that a reader expects and does not
   find takes its default value. If it has no default, decoding fails.
 
@@ -29,12 +34,16 @@ Bump the version for any of these:
 - changing a field's type, or whether it is nullable or a list
 - reusing a field number that was released with a different meaning
 - changing what an existing field means, even if its type stays the same
+- adding, removing or renaming a screen type, a screen node kind or a patch operation kind, or
+  changing a `@SerialName` of a sealed subclass
+- adding an enum constant, or changing an enum constant's `@ProtoNumber`
 
 ## Changes that keep the version
 
 - adding a field with a new, never-used `@ProtoNumber` and a default value
 - removing a field that has a default value. Its number is retired and never reused.
-- renaming a Kotlin property or class without changing its `@ProtoNumber`, type or packet name
+- renaming a Kotlin property or class without changing its `@ProtoNumber`, type, `@SerialName` or
+  packet name
 - changing code that does not affect the bytes on the wire, such as handlers, validation or logging
 
 If in doubt, bump. A needless bump forces an update. A missing bump lets incompatible builds talk
