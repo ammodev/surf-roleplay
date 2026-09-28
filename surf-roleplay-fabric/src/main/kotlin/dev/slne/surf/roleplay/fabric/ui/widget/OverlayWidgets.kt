@@ -44,7 +44,7 @@ abstract class OverlayHostWidget(id: String, axis: Axis = Axis.HORIZONTAL) : Con
     /**
      * The triggers: every child but the content.
      */
-    val triggers: List<Widget> get() = childList.filter { it !is OverlayContentWidget }
+    val triggers: List<Widget> get() = childList.filter { it !is OverlayContentWidget && !it.hidden }
 
     /**
      * Whether the overlay is open.
