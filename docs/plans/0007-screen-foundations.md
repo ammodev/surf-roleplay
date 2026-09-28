@@ -1,6 +1,6 @@
 # Plan 0007: Screen foundations
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-28
 - **Accepted proposal:** Panel scrolling, browser-like keyboard navigation, dialog and sheet presentation with a confirmation helper, per-screen themes (default, sar, police in light and dark) and bundled Lucide icons, as the foundation for porting the shadcn component registry
 - **Decision records:** ADR-0046, ADR-0047, ADR-0048, ADR-0049, ADR-0050, ADR-0051
