@@ -1,6 +1,8 @@
 package dev.slne.surf.roleplay.api.client.common.screen
 
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
+import java.util.UUID
 
 /**
  * The style of a text: a typography style, or the title or description of a display component.
@@ -411,4 +413,140 @@ fun ElementsBuilder.spinner(id: String, size: Int = 10, tint: IconTint = IconTin
 fun ElementsBuilder.aspectRatio(id: String, ratio: Float, width: ElementSize = ElementSize.grow(), children: ElementsBuilder.() -> Unit) {
     require(ratio > 0f) { "An aspect ratio must be positive, got $ratio" }
     elements += AspectRatioElement(id, ratio, build(children), width)
+}
+
+/**
+ * The size of an avatar.
+ */
+enum class AvatarSize {
+    /**
+     * The regular size.
+     */
+    DEFAULT,
+
+    /**
+     * A small size.
+     */
+    SM,
+
+    /**
+     * A large size.
+     */
+    LG,
+}
+
+/**
+ * Where the picture of an avatar comes from.
+ */
+sealed interface AvatarSource {
+    /**
+     * The face of a player's skin.
+     *
+     * @property playerId the UUID of the player
+     */
+    data class Player(val playerId: UUID) : AvatarSource
+
+    /**
+     * A texture from a resource pack.
+     *
+     * @property texture the identifier of the texture
+     */
+    data class Texture(val texture: Key) : AvatarSource
+}
+
+/**
+ * A round picture of a person, with a fallback text while no picture is available.
+ *
+ * @property id the id of this element
+ * @property fallback the text shown while no picture is available, such as initials
+ * @property source where the picture comes from, or `null` to always show the fallback
+ * @property size the size of the avatar
+ * @property badge whether a small badge is drawn at the bottom right
+ * @property badgeIcon the Lucide name of an icon in the badge, or `null` for a plain dot
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class AvatarElement(
+    override val id: String,
+    val fallback: Component,
+    val source: AvatarSource? = null,
+    val size: AvatarSize = AvatarSize.DEFAULT,
+    val badge: Boolean = false,
+    val badgeIcon: String? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A row of overlapping avatars.
+ *
+ * @property id the id of this element
+ * @property children the avatars and an optional count, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class AvatarGroupElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The count of further people at the end of an avatar group.
+ *
+ * @property id the id of this element
+ * @property text the count, such as `+3`
+ * @property icon the Lucide name of an icon shown instead of the text, or `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class AvatarGroupCountElement(
+    override val id: String,
+    val text: Component,
+    val icon: String? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * Adds an avatar.
+ *
+ * @param id the id of the avatar
+ * @param fallback the text shown while no picture is available
+ * @param source where the picture comes from, or `null` to always show the fallback
+ * @param size the size of the avatar
+ * @param badge whether a small badge is drawn at the bottom right; an icon implies a badge
+ * @param badgeIcon the Lucide name of an icon in the badge, or `null` for a plain dot
+ */
+fun ElementsBuilder.avatar(
+    id: String,
+    fallback: Component,
+    source: AvatarSource? = null,
+    size: AvatarSize = AvatarSize.DEFAULT,
+    badge: Boolean = false,
+    badgeIcon: String? = null,
+) {
+    elements += AvatarElement(id, fallback, source, size, badge || badgeIcon != null, badgeIcon)
+}
+
+/**
+ * Adds a row of overlapping avatars.
+ *
+ * @param id the id of the group
+ * @param children the builder of the avatars and the count
+ */
+fun ElementsBuilder.avatarGroup(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += AvatarGroupElement(id, build(children))
+}
+
+/**
+ * Adds the count at the end of an avatar group.
+ *
+ * @param id the id of the count
+ * @param text the count
+ * @param icon the Lucide name of an icon shown instead of the text, or `null` for none
+ */
+fun ElementsBuilder.avatarGroupCount(id: String, text: Component, icon: String? = null) {
+    elements += AvatarGroupCountElement(id, text, icon)
 }

@@ -31,13 +31,23 @@ import dev.slne.surf.roleplay.protocol.screen.IconColor
 import dev.slne.surf.roleplay.protocol.screen.ImageNode
 import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
 import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarSize
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarSource
+import dev.slne.surf.roleplay.api.client.common.screen.avatar
+import dev.slne.surf.roleplay.api.client.common.screen.avatarGroup
+import dev.slne.surf.roleplay.api.client.common.screen.avatarGroupCount
+import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarNode
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import dev.slne.surf.roleplay.api.client.common.screen.screen as buildScreen
 import dev.slne.surf.roleplay.protocol.screen.Align as NodeAlign
+import dev.slne.surf.roleplay.protocol.screen.AvatarSize as NodeAvatarSize
 import dev.slne.surf.roleplay.protocol.screen.BadgeVariant as NodeBadgeVariant
 import dev.slne.surf.roleplay.protocol.screen.Orientation as NodeOrientation
 import dev.slne.surf.roleplay.protocol.screen.TextKind as NodeTextKind
@@ -133,5 +143,37 @@ class DisplayComponentsTest {
         assertEquals(16f / 9f, ratio.ratio)
         assertEquals(SizeMode.GROW, ratio.width.mode)
         assertIs<ImageNode>(ratio.children.single())
+    }
+
+    /**
+     * Verifies that avatars map their player, texture and fallback sources, and that groups hold
+     * avatars and a count.
+     */
+    @Test
+    fun `avatars map to their nodes`() {
+        val player = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5")
+        val root = assertIs<ColumnNode>(
+            map {
+                avatarGroup("group") {
+                    avatar("player", Component.text("NO"), AvatarSource.Player(player), AvatarSize.LG, badgeIcon = "check")
+                    avatar("texture", Component.text("AP"), AvatarSource.Texture(Key.key("minecraft", "textures/item/apple.png")), AvatarSize.SM)
+                    avatar("fallback", Component.text("CN"))
+                    avatarGroupCount("count", Component.text("+3"))
+                }
+            },
+        )
+
+        val group = assertIs<AvatarGroupNode>(root.children.single())
+        val playerNode = assertIs<AvatarNode>(group.children[0])
+        assertEquals(player.toString(), playerNode.playerId)
+        assertEquals(NodeAvatarSize.LG, playerNode.size)
+        assertEquals(true, playerNode.badge)
+        assertEquals("check", playerNode.badgeIcon)
+        val textureNode = assertIs<AvatarNode>(group.children[1])
+        assertEquals("minecraft:textures/item/apple.png", textureNode.texture)
+        assertEquals(null, textureNode.playerId)
+        val fallbackNode = assertIs<AvatarNode>(group.children[2])
+        assertEquals(null, fallbackNode.texture)
+        assertIs<AvatarGroupCountNode>(group.children[3])
     }
 }

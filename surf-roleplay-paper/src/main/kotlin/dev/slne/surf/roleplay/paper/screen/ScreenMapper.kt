@@ -123,6 +123,13 @@ import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
 import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
 import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupCountElement
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarSource
+import dev.slne.surf.roleplay.protocol.screen.AvatarNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -250,6 +257,13 @@ object ScreenMapper {
             is SkeletonElement -> SkeletonNode(element.id, width, height, element.round)
             is SpinnerElement -> SpinnerNode(element.id, width, height, element.size, tint(element.tint))
             is AspectRatioElement -> AspectRatioNode(element.id, width, height, element.children.map(::toNode), element.ratio)
+            is AvatarElement -> AvatarNode(
+                element.id, width, height, (element.source as? AvatarSource.Player)?.playerId?.toString(),
+                (element.source as? AvatarSource.Texture)?.texture?.asString(), text(element.fallback), enumOf(element.size),
+                element.badge, element.badgeIcon,
+            )
+            is AvatarGroupElement -> AvatarGroupNode(element.id, width, height, element.children.map(::toNode))
+            is AvatarGroupCountElement -> AvatarGroupCountNode(element.id, width, height, text(element.text), element.icon)
         }
     }
 

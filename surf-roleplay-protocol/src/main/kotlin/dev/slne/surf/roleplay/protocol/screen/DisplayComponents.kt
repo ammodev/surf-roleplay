@@ -353,3 +353,99 @@ data class AspectRatioNode(
      */
     override fun withChildren(children: List<ScreenNode>): AspectRatioNode = copy(children = children)
 }
+
+/**
+ * The size of an avatar.
+ */
+@Serializable
+enum class AvatarSize {
+    /**
+     * The regular size.
+     */
+    @ProtoNumber(0)
+    DEFAULT,
+
+    /**
+     * A small size.
+     */
+    @ProtoNumber(1)
+    SM,
+
+    /**
+     * A large size.
+     */
+    @ProtoNumber(2)
+    LG,
+}
+
+/**
+ * A round picture of a person: the face of a player's skin, or a resource-pack texture, with a
+ * fallback text while no picture is available.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property playerId the UUID of the player whose face is shown, or `null`
+ * @property texture the identifier of the texture shown when no player is named, or `null`
+ * @property fallback the text shown while no picture is available, as component JSON
+ * @property size the size of the avatar
+ * @property badge whether a small badge is drawn at the bottom right
+ * @property badgeIcon the Lucide name of an icon in the badge, or `null` for a plain dot
+ */
+@Serializable
+@SerialName("avatar")
+data class AvatarNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val playerId: String? = null,
+    @ProtoNumber(5) val texture: String? = null,
+    @ProtoNumber(6) val fallback: String = "",
+    @ProtoNumber(7) val size: AvatarSize = AvatarSize.DEFAULT,
+    @ProtoNumber(8) val badge: Boolean = false,
+    @ProtoNumber(9) val badgeIcon: String? = null,
+) : ScreenNode
+
+/**
+ * A row of overlapping avatars.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the avatars and an optional count, in order
+ */
+@Serializable
+@SerialName("avatar_group")
+data class AvatarGroupNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this group with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): AvatarGroupNode = copy(children = children)
+}
+
+/**
+ * The count of further people at the end of an avatar group, drawn like an avatar.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the count as component JSON, such as `+3`
+ * @property icon the Lucide name of an icon shown instead of the text, or `null` for none
+ */
+@Serializable
+@SerialName("avatar_group_count")
+data class AvatarGroupCountNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+    @ProtoNumber(5) val icon: String? = null,
+) : ScreenNode

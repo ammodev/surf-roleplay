@@ -337,6 +337,17 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
+     * Runs drawing code that is clipped to a rectangle with rounded corners, one row at a time.
+     *
+     * @param rect the rectangle to clip to
+     * @param radius the corner radius; half the side of a square clips to a circle
+     * @param block the drawing code, run once for every row
+     */
+    fun clippedRound(rect: Rect, radius: Int, block: () -> Unit) {
+        RoundedShape.spans(rect, radius).forEach { span -> clipped(Rect(span.x0, span.y, span.x1 - span.x0, 1), block) }
+    }
+
+    /**
      * Starts a new drawing layer on top of everything drawn so far.
      */
     fun nextLayer() {

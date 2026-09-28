@@ -55,4 +55,21 @@ class DisplayComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that avatars, avatar groups and counts survive a round trip.
+     */
+    @Test
+    fun `avatars round-trip`() {
+        val root = AvatarGroupNode(
+            "group",
+            children = listOf(
+                AvatarNode("player", playerId = "069a79f4-44e9-4726-a5be-fca90e38aaf5", fallback = "\"NO\"", size = AvatarSize.LG, badge = true, badgeIcon = "check"),
+                AvatarNode("texture", texture = "minecraft:textures/item/apple.png", fallback = "\"AP\"", size = AvatarSize.SM),
+                AvatarGroupCountNode("count", text = "\"+3\""),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }
