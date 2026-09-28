@@ -177,6 +177,36 @@ import dev.slne.surf.roleplay.protocol.screen.HoverCardNode
 import dev.slne.surf.roleplay.protocol.screen.HoverCardContentNode
 import dev.slne.surf.roleplay.protocol.screen.TooltipNode
 import dev.slne.surf.roleplay.protocol.screen.SetOpen
+import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuCheckboxItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarTriggerElement
+import dev.slne.surf.roleplay.protocol.screen.DropdownMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.MenuRadioGroupNode
+import dev.slne.surf.roleplay.protocol.screen.MenuGroupNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSubNode
+import dev.slne.surf.roleplay.protocol.screen.ContextMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuCheckboxItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuRadioItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuLabelNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSubTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarTriggerNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -337,6 +367,23 @@ object ScreenMapper {
             )
             is HoverCardContentElement -> HoverCardContentNode(element.id, width, height, element.children.map(::toNode))
             is TooltipElement -> TooltipNode(element.id, width, height, element.children.map(::toNode), text(element.text), enumOf(element.side))
+            is DropdownMenuElement -> DropdownMenuNode(element.id, width, height, element.children.map(::toNode), element.open, enumOf(element.side), align(element.align), element.onChange != null)
+            is MenuContentElement -> MenuContentNode(element.id, width, height, element.children.map(::toNode))
+            is MenuItemElement -> MenuItemNode(
+                element.id, width, height, text(element.text), element.icon, element.shortcut?.let(::text), element.destructive, element.inset, element.enabled,
+            )
+            is MenuCheckboxItemElement -> MenuCheckboxItemNode(element.id, width, height, text(element.text), element.checked, element.enabled)
+            is MenuRadioGroupElement -> MenuRadioGroupNode(element.id, width, height, element.children.map(::toNode), element.value)
+            is MenuRadioItemElement -> MenuRadioItemNode(element.id, width, height, text(element.text), element.value, element.enabled)
+            is MenuLabelElement -> MenuLabelNode(element.id, width, height, text(element.text), element.inset)
+            is MenuSeparatorElement -> MenuSeparatorNode(element.id, width, height)
+            is MenuGroupElement -> MenuGroupNode(element.id, width, height, element.children.map(::toNode))
+            is MenuSubElement -> MenuSubNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is MenuSubTriggerElement -> MenuSubTriggerNode(element.id, width, height, text(element.text), element.icon, element.inset, element.enabled)
+            is ContextMenuElement -> ContextMenuNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is MenubarElement -> MenubarNode(element.id, width, height, element.children.map(::toNode))
+            is MenubarMenuElement -> MenubarMenuNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is MenubarTriggerElement -> MenubarTriggerNode(element.id, width, height, text(element.text))
         }
     }
 

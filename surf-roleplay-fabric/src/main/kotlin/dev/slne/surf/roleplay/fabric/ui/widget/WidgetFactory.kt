@@ -3,6 +3,21 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.DropdownMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.MenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuCheckboxItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuRadioGroupNode
+import dev.slne.surf.roleplay.protocol.screen.MenuRadioItemNode
+import dev.slne.surf.roleplay.protocol.screen.MenuLabelNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.MenuGroupNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSubNode
+import dev.slne.surf.roleplay.protocol.screen.MenuSubTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.ContextMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.MenubarTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.PopoverNode
 import dev.slne.surf.roleplay.protocol.screen.PopoverContentNode
 import dev.slne.surf.roleplay.protocol.screen.PopoverHeaderNode
@@ -188,6 +203,21 @@ object WidgetFactory {
             is HoverCardNode -> container(HoverCardWidget(node.id, node.side, node.align, node.openDelay, node.closeDelay), node.children).apply { requestOpen(node.open) }
             is HoverCardContentNode -> container(PopoverContentWidget(node.id), node.children)
             is TooltipNode -> container(TooltipWidget(node.id, node.text, node.side), node.children)
+            is DropdownMenuNode -> container(DropdownMenuWidget(node.id, node.side, node.align), node.children).apply { requestOpen(node.open) }
+            is MenuContentNode -> container(MenuContentWidget(node.id), node.children)
+            is MenuItemNode -> MenuItemWidget(node.id, node.text, node.icon, node.shortcut, node.destructive, node.inset).apply { enabled = node.enabled }
+            is MenuCheckboxItemNode -> MenuCheckboxItemWidget(node.id, node.text, node.checked).apply { enabled = node.enabled }
+            is MenuRadioGroupNode -> container(MenuRadioGroupWidget(node.id, node.value), node.children).apply { link() }
+            is MenuRadioItemNode -> MenuRadioItemWidget(node.id, node.text, node.value).apply { enabled = node.enabled }
+            is MenuLabelNode -> MenuLabelWidget(node.id, node.text, node.inset)
+            is MenuSeparatorNode -> MenuSeparatorWidget(node.id)
+            is MenuGroupNode -> container(MenuGroupWidget(node.id), node.children)
+            is MenuSubNode -> container(MenuSubWidget(node.id), node.children).apply { requestOpen(node.open); link() }
+            is MenuSubTriggerNode -> MenuSubTriggerWidget(node.id, node.text, node.icon, node.inset).apply { enabled = node.enabled }
+            is ContextMenuNode -> container(ContextMenuWidget(node.id), node.children).apply { requestOpen(node.open) }
+            is MenubarNode -> container(MenubarWidget(node.id), node.children)
+            is MenubarMenuNode -> container(MenubarMenuWidget(node.id), node.children).apply { requestOpen(node.open) }
+            is MenubarTriggerNode -> MenubarTriggerWidget(node.id, node.text)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -208,6 +238,10 @@ object WidgetFactory {
             is InputOtpNode -> node.notifyChange
             is PopoverNode -> node.notifyChange
             is HoverCardNode -> node.notifyChange
+            is DropdownMenuNode -> node.notifyChange
+            is MenuSubNode -> node.notifyChange
+            is ContextMenuNode -> node.notifyChange
+            is MenubarMenuNode -> node.notifyChange
             else -> false
         }
         return widget

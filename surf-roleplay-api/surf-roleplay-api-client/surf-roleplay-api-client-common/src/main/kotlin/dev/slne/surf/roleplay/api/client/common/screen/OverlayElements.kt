@@ -277,3 +277,486 @@ const val POPOVER_WIDTH: Int = 144
  * The default width of hover card contents, in GUI pixels.
  */
 const val HOVER_CARD_WIDTH: Int = 128
+
+/**
+ * A dropdown menu: its triggers, and a menu content that opens next to them when a trigger is
+ * clicked.
+ *
+ * @property id the id of this element
+ * @property children the triggers and one menu content
+ * @property open whether the menu is open
+ * @property side the side of the triggers the menu opens on
+ * @property align how the menu is aligned along that side
+ * @property onChange the handler run whenever the player opens or closes the menu, or `null`
+ *           for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DropdownMenuElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val side: OverlaySide = OverlaySide.BOTTOM,
+    val align: Alignment = Alignment.CENTER,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The content of a menu: a stack of items, labels, separators, groups and sub-menus on a bordered
+ * surface.
+ *
+ * @property id the id of this element
+ * @property children the items, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An item of a menu that fires a widget action and closes the menu when chosen.
+ *
+ * @property id the id of this element
+ * @property text the text as component JSON
+ * @property icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @property shortcut a keyboard shortcut shown at the end of the item as component JSON, or
+ *           `null` for none
+ * @property destructive whether the item is drawn in the destructive colour
+ * @property inset whether the text is indented as if it had an icon
+ * @property enabled whether the item can be used
+ * @property onClick the handler run when the player chooses the item, or `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuItemElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val icon: String? = null,
+    val shortcut: Component? = null,
+    val destructive: Boolean = false,
+    val inset: Boolean = false,
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * An item of a menu with a check mark; choosing it flips the mark and fires a widget action
+ * carrying the new state.
+ *
+ * @property id the id of this element
+ * @property text the text as component JSON
+ * @property checked whether the item is checked
+ * @property enabled whether the item can be used
+ * @property onToggle the handler run with the new state when the player chooses the item, or
+ *           `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuCheckboxItemElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val checked: Boolean = false,
+    val enabled: Boolean = true,
+    val onToggle: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A group of radio items of which one is chosen; choosing an item fires the group's widget action
+ * carrying its value.
+ *
+ * @property id the id of this element
+ * @property children the radio items, in order
+ * @property value the value of the chosen item, or empty for none
+ * @property onSelect the handler run with the new value when the player chooses an item, or
+ *           `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuRadioGroupElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val value: String = "",
+    val onSelect: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An item of a radio group, marked with a dot while it is chosen.
+ *
+ * @property id the id of this element
+ * @property text the text as component JSON
+ * @property value the value the item stands for
+ * @property enabled whether the item can be used
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuRadioItemElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val value: String = "",
+    val enabled: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A heading inside a menu.
+ *
+ * @property id the id of this element
+ * @property text the text as component JSON
+ * @property inset whether the text is indented as if it had an icon
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuLabelElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val inset: Boolean = false,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A line between parts of a menu.
+ *
+ * @property id the id of this element
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuSeparatorElement(
+    override val id: String,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A group of related menu items.
+ *
+ * @property id the id of this element
+ * @property children the items, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuGroupElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A sub-menu: its sub trigger, and a menu content that opens beside the trigger.
+ *
+ * @property id the id of this element
+ * @property children the sub trigger and one menu content
+ * @property open whether the menu is open
+ * @property onChange the handler run whenever the player opens or closes the menu, or `null`
+ *           for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuSubElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The item of a menu that opens a sub-menu, marked with an arrow.
+ *
+ * @property id the id of this element
+ * @property text the text as component JSON
+ * @property icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @property inset whether the text is indented as if it had an icon
+ * @property enabled whether the item can be used
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenuSubTriggerElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val icon: String? = null,
+    val inset: Boolean = false,
+    val enabled: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A context menu: an area, and a menu content that opens at the mouse on a right click in the area.
+ *
+ * @property id the id of this element
+ * @property children the area and one menu content
+ * @property open whether the menu is open
+ * @property onChange the handler run whenever the player opens or closes the menu, or `null`
+ *           for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ContextMenuElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A horizontal bar of menus, as at the top of an application.
+ *
+ * @property id the id of this element
+ * @property children the menus, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenubarElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A menu of a menubar: its trigger, and a menu content that opens below it.
+ *
+ * @property id the id of this element
+ * @property children the menubar trigger and one menu content
+ * @property open whether the menu is open
+ * @property onChange the handler run whenever the player opens or closes the menu, or `null`
+ *           for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenubarMenuElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The trigger of a menubar menu, a text that is highlighted while its menu is open.
+ *
+ * @property id the id of this element
+ * @property text the text as component JSON
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class MenubarTriggerElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * Adds a dropdown menu. Its children are its triggers and one [menuContent].
+ *
+ * @param id the id of the menu
+ * @param side the side of the triggers the menu opens on
+ * @param align how the menu is aligned along that side
+ * @param onChange the handler run whenever the player opens or closes the menu, or `null` for
+ *        none
+ * @param children the builder of the triggers and the content
+ */
+fun ElementsBuilder.dropdownMenu(
+    id: String,
+    side: OverlaySide = OverlaySide.BOTTOM,
+    align: Alignment = Alignment.CENTER,
+    onChange: ChangeHandler? = null,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += DropdownMenuElement(id, build(children), false, side, align, onChange)
+}
+
+/**
+ * Adds the content of a menu.
+ *
+ * @param id the id of the content
+ * @param children the builder of the entries
+ */
+fun ElementsBuilder.menuContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += MenuContentElement(id, build(children))
+}
+
+/**
+ * Adds a menu item.
+ *
+ * @param id the id of the item
+ * @param text the text
+ * @param icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @param shortcut a shortcut shown at the end, or `null` for none
+ * @param destructive whether the item is drawn in the destructive colour
+ * @param inset whether the text is indented as if it had an icon
+ * @param enabled whether the item can be chosen
+ * @param onClick the handler run when the player chooses the item, or `null` for none
+ */
+fun ElementsBuilder.menuItem(
+    id: String,
+    text: Component,
+    icon: String? = null,
+    shortcut: Component? = null,
+    destructive: Boolean = false,
+    inset: Boolean = false,
+    enabled: Boolean = true,
+    onClick: ButtonHandler? = null,
+) {
+    elements += MenuItemElement(id, text, icon, shortcut, destructive, inset, enabled, onClick)
+}
+
+/**
+ * Adds a menu item with a check mark. Its handler reads the new state with
+ * [ScreenValues.checked].
+ *
+ * @param id the id of the item
+ * @param text the text
+ * @param checked whether the item starts checked
+ * @param enabled whether the item can be chosen
+ * @param onToggle the handler run with the new state when the player chooses the item, or `null`
+ *        for none
+ */
+fun ElementsBuilder.menuCheckboxItem(id: String, text: Component, checked: Boolean = false, enabled: Boolean = true, onToggle: ButtonHandler? = null) {
+    elements += MenuCheckboxItemElement(id, text, checked, enabled, onToggle)
+}
+
+/**
+ * Adds a radio group to a menu. Its handler reads the chosen value with [ScreenValues.text].
+ *
+ * @param id the id of the group
+ * @param value the value of the item chosen at first, or empty for none
+ * @param onSelect the handler run with the new value when the player chooses an item, or `null`
+ *        for none
+ * @param children the builder of the radio items
+ */
+fun ElementsBuilder.menuRadioGroup(id: String, value: String = "", onSelect: ButtonHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += MenuRadioGroupElement(id, build(children), value, onSelect)
+}
+
+/**
+ * Adds an item to a menu radio group.
+ *
+ * @param id the id of the item
+ * @param text the text
+ * @param value the value the item stands for
+ * @param enabled whether the item can be chosen
+ */
+fun ElementsBuilder.menuRadioItem(id: String, text: Component, value: String, enabled: Boolean = true) {
+    elements += MenuRadioItemElement(id, text, value, enabled)
+}
+
+/**
+ * Adds a heading to a menu.
+ *
+ * @param id the id of the label
+ * @param text the text
+ * @param inset whether the text is indented as if it had an icon
+ */
+fun ElementsBuilder.menuLabel(id: String, text: Component, inset: Boolean = false) {
+    elements += MenuLabelElement(id, text, inset)
+}
+
+/**
+ * Adds a line between parts of a menu.
+ *
+ * @param id the id of the separator
+ */
+fun ElementsBuilder.menuSeparator(id: String) {
+    elements += MenuSeparatorElement(id)
+}
+
+/**
+ * Adds a group of related menu entries.
+ *
+ * @param id the id of the group
+ * @param children the builder of the entries
+ */
+fun ElementsBuilder.menuGroup(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += MenuGroupElement(id, build(children))
+}
+
+/**
+ * Adds a sub-menu. Its children are one [menuSubTrigger] and one [menuContent].
+ *
+ * @param id the id of the sub-menu
+ * @param onChange the handler run whenever the player opens or closes the sub-menu, or `null`
+ *        for none
+ * @param children the builder of the trigger and the content
+ */
+fun ElementsBuilder.menuSub(id: String, onChange: ChangeHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += MenuSubElement(id, build(children), false, onChange)
+}
+
+/**
+ * Adds the trigger of a sub-menu.
+ *
+ * @param id the id of the trigger
+ * @param text the text
+ * @param icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @param inset whether the text is indented as if it had an icon
+ * @param enabled whether the trigger can be used
+ */
+fun ElementsBuilder.menuSubTrigger(id: String, text: Component, icon: String? = null, inset: Boolean = false, enabled: Boolean = true) {
+    elements += MenuSubTriggerElement(id, text, icon, inset, enabled)
+}
+
+/**
+ * Adds a context menu. Its children are the area a right click opens the menu in, and one
+ * [menuContent].
+ *
+ * @param id the id of the context menu
+ * @param onChange the handler run whenever the player opens or closes the menu, or `null` for
+ *        none
+ * @param children the builder of the area and the content
+ */
+fun ElementsBuilder.contextMenu(id: String, onChange: ChangeHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += ContextMenuElement(id, build(children), false, onChange)
+}
+
+/**
+ * Adds a menubar.
+ *
+ * @param id the id of the menubar
+ * @param children the builder of the menus
+ */
+fun ElementsBuilder.menubar(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += MenubarElement(id, build(children))
+}
+
+/**
+ * Adds a menu to a menubar. Its children are one [menubarTrigger] and one [menuContent].
+ *
+ * @param id the id of the menu
+ * @param onChange the handler run whenever the player opens or closes the menu, or `null` for
+ *        none
+ * @param children the builder of the trigger and the content
+ */
+fun ElementsBuilder.menubarMenu(id: String, onChange: ChangeHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += MenubarMenuElement(id, build(children), false, onChange)
+}
+
+/**
+ * Adds the trigger of a menubar menu.
+ *
+ * @param id the id of the trigger
+ * @param text the text
+ */
+fun ElementsBuilder.menubarTrigger(id: String, text: Component) {
+    elements += MenubarTriggerElement(id, text)
+}

@@ -29,10 +29,11 @@ open class OverlayContentWidget(id: String) : ContainerWidget(id, Axis.VERTICAL)
  * state is the widget's input value, `true` or `false`.
  *
  * @param id the id of the widget
+ * @param axis the axis the triggers are laid out along
  */
-abstract class OverlayHostWidget(id: String) : ContainerWidget(id, Axis.HORIZONTAL) {
+abstract class OverlayHostWidget(id: String, axis: Axis = Axis.HORIZONTAL) : ContainerWidget(id, axis) {
     init {
-        crossAlign = Align.CENTER
+        crossAlign = if (axis == Axis.HORIZONTAL) Align.CENTER else Align.STRETCH
     }
 
     /**

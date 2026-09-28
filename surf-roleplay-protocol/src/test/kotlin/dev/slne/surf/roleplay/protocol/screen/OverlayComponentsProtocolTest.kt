@@ -61,4 +61,33 @@ class OverlayComponentsProtocolTest {
 
         assertEquals(patch, ProtocolCodec.decode(Packets.SCREEN_PATCH.channel, ProtocolCodec.encode(Packets.SCREEN_PATCH, patch)))
     }
+
+    /**
+     * Verifies that dropdown menus, context menus and menubars with every part survive a round
+     * trip.
+     */
+    @Test
+    fun `menus round-trip`() {
+        val content = MenuContentNode(
+            "content",
+            children = listOf(
+                MenuLabelNode("label", text = "\"Konto\"", inset = true),
+                MenuGroupNode("group", children = listOf(MenuItemNode("item", text = "\"Profil\"", icon = "user", shortcut = "\"P\"", destructive = true, enabled = false))),
+                MenuSeparatorNode("sep"),
+                MenuCheckboxItemNode("check", text = "\"Status\"", checked = true),
+                MenuRadioGroupNode("radio", value = "a", children = listOf(MenuRadioItemNode("a", text = "\"A\"", value = "a"))),
+                MenuSubNode("sub", open = true, notifyChange = true, children = listOf(MenuSubTriggerNode("sub_trigger", text = "\"Mehr\""), MenuContentNode("sub_content"))),
+            ),
+        )
+        val root = ColumnNode(
+            "root",
+            children = listOf(
+                DropdownMenuNode("menu", side = OverlaySide.TOP, align = Align.END, children = listOf(ButtonNode("trigger"), content)),
+                ContextMenuNode("ctx", children = listOf(LabelNode("area"), MenuContentNode("ctx_content"))),
+                MenubarNode("bar", children = listOf(MenubarMenuNode("file", children = listOf(MenubarTriggerNode("file_trigger", text = "\"Datei\""), MenuContentNode("file_content"))))),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

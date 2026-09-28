@@ -1,6 +1,14 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverHeaderElement
@@ -291,6 +299,14 @@ class ServerScreenTree(root: ScreenElement) {
             is HoverCardElement -> container.copy(children = children)
             is HoverCardContentElement -> container.copy(children = children)
             is TooltipElement -> container.copy(children = children)
+            is DropdownMenuElement -> container.copy(children = children)
+            is MenuContentElement -> container.copy(children = children)
+            is MenuRadioGroupElement -> container.copy(children = children)
+            is MenuGroupElement -> container.copy(children = children)
+            is MenuSubElement -> container.copy(children = children)
+            is ContextMenuElement -> container.copy(children = children)
+            is MenubarElement -> container.copy(children = children)
+            is MenubarMenuElement -> container.copy(children = children)
         }
     }
 }
