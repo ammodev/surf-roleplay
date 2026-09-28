@@ -11,6 +11,10 @@ import dev.slne.surf.roleplay.protocol.screen.InputValue
  * constraints. For a button that does not, values that break their constraints are ignored and
  * their inputs keep their current value, except the value of the clicked widget itself, such as a
  * toggle's new state, which must always satisfy its constraints.
+ *
+ * Inside an overlay the player cannot reach, the clicked widget is rejected and every input must
+ * keep its value; an overlay the player cannot open must not be reported as opened (see
+ * [OverlayReach]).
  */
 object ScreenActionValidator {
 
@@ -47,6 +51,8 @@ object ScreenActionValidator {
         val action = ElementRules.rule(widget)?.action?.invoke(widget)
             ?: return Result.Rejected("widget ${display(widgetId)} is not a button")
         if (!ElementRules.isEnabled(widget)) return Result.Rejected("button ${display(widgetId)} is disabled")
+        val reach = OverlayReach(tree)
+        if (!reach.isReachable(widget)) return Result.Rejected("the player cannot reach button ${display(widgetId)}")
 
         val values = LinkedHashMap<String, String>()
         tree.elements().forEach { element -> ElementRules.input(element)?.current?.invoke(element)?.let { values[element.id] = it } }
@@ -57,6 +63,10 @@ object ScreenActionValidator {
             if (!seen.add(id)) return Result.Rejected("input ${display(id)} was submitted twice")
             val element = tree.find(id) ?: return Result.Rejected("unknown input ${display(id)}")
             val current = ElementRules.input(element)?.current?.invoke(element) ?: return Result.Rejected("widget ${display(id)} is not an input")
+            if (value.value != current && !reach.isReachable(element)) return Result.Rejected("the player cannot reach input ${display(id)}")
+            if (OverlayReach.isHost(element) && value.value == "true" && current != "true" && !reach.canOpen(element)) {
+                return Result.Rejected("overlay ${display(id)} cannot be opened")
+            }
             if (!ElementRules.isEnabled(element)) {
                 if (value.value != current) return Result.Rejected("input ${display(id)} is disabled but its value changed")
                 continue

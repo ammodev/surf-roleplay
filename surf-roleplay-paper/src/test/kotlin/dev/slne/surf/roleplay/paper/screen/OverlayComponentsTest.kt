@@ -165,4 +165,27 @@ class OverlayComponentsTest {
         val patch = assertIs<ScreenPatch>(sent.last())
         assertEquals(listOf(SetOpen("popover", false)), patch.operations)
     }
+
+    /**
+     * Verifies that a change event cannot open an overlay whose trigger is disabled, nor change an
+     * input inside it.
+     */
+    @Test
+    fun `change events respect unreachable overlays`() {
+        val session = state.open(
+            screen(Component.text("Gesperrt")) {
+                column("root") {
+                    popover("locked", onChange = { changes += it }) {
+                        button("locked_trigger", Component.text("Öffnen"), enabled = false)
+                        popoverContent("locked_content") { textInput("note", onChange = { changes += it }) }
+                    }
+                }
+            },
+            null,
+        ).sessionId
+
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChangePacket(session, "locked", "true")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChangePacket(session, "note", "x")))
+        assertEquals(emptyList(), changes)
+    }
 }

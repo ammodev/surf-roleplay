@@ -327,7 +327,8 @@ class PlayerScreenState(
 
     /**
      * Validates a change of an input that reports its changes, stores the new value and runs the
-     * input's change handler.
+     * input's change handler. Changes of inputs inside an overlay the player cannot reach, and the
+     * opening of an overlay the player cannot open, are rejected.
      *
      * @param packet the change
      * @return the outcome
@@ -339,11 +340,16 @@ class PlayerScreenState(
             ?: return Outcome.Rejected("session ${packet.sessionId} is not the top generic screen", suspicious = false)
         val id = packet.widgetId
         val element = session.tree.find(id) ?: return Outcome.Rejected("unknown input ${ScreenActionValidator.display(id)}")
+        val reach = OverlayReach(session.tree)
+        if (!reach.isReachable(element)) return Outcome.Rejected("the player cannot reach input ${ScreenActionValidator.display(id)}")
         packet.query?.let { query -> return handleSearch(session, element, query) }
         val rule = ElementRules.input(element) ?: return Outcome.Rejected("widget ${ScreenActionValidator.display(id)} is not an input")
         val handler = rule.onChange(element) ?: return Outcome.Rejected("input ${ScreenActionValidator.display(id)} does not report changes")
         if (!ElementRules.isEnabled(element)) return Outcome.Rejected("input ${ScreenActionValidator.display(id)} is disabled")
         rule.violation(element, packet.value)?.let { return Outcome.Rejected("input ${ScreenActionValidator.display(id)}: $it", suspicious = false) }
+        if (OverlayReach.isHost(element) && packet.value == "true" && rule.current(element) != "true" && !reach.canOpen(element)) {
+            return Outcome.Rejected("overlay ${ScreenActionValidator.display(id)} cannot be opened")
+        }
         session.tree.storeValues(mapOf(id to packet.value))
         val values = session.tree.elements().mapNotNull { e -> ElementRules.input(e)?.current?.invoke(e)?.let { e.id to it } }.toMap()
         runHandler("change of '$id'") { handler.onChange(ScreenInputChange(session, id, packet.value, ScreenValues(values))) }
