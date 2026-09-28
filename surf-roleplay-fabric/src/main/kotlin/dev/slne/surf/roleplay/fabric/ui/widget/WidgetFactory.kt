@@ -3,6 +3,21 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbLinkNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbPageNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbEllipsisNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationContentNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationItemNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationLinkNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNextNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationEllipsisNode
 import dev.slne.surf.roleplay.protocol.screen.Orientation
 import dev.slne.surf.roleplay.protocol.screen.TabsNode
 import dev.slne.surf.roleplay.protocol.screen.TabsListNode
@@ -292,6 +307,20 @@ object WidgetFactory {
             is TabsListNode -> tabsList(node, Orientation.HORIZONTAL)
             is TabsTriggerNode -> TabsTriggerWidget(node.id, node.value, node.text, node.icon).apply { enabled = node.enabled }
             is TabsContentNode -> container(TabsContentWidget(node.id, node.value), node.children)
+            is BreadcrumbNode -> container(ContainerWidget(node.id, Axis.VERTICAL), node.children)
+            is BreadcrumbListNode -> container(PathRowWidget(node.id, BREADCRUMB_GAP), node.children)
+            is BreadcrumbItemNode -> container(PathRowWidget(node.id, BREADCRUMB_ITEM_GAP), node.children)
+            is BreadcrumbLinkNode -> BreadcrumbLinkWidget(node.id, node.text).apply { enabled = node.enabled }
+            is BreadcrumbPageNode -> BreadcrumbPageWidget(node.id, node.text)
+            is BreadcrumbSeparatorNode -> MutedIconWidget(node.id, node.icon, BREADCRUMB_SEPARATOR)
+            is BreadcrumbEllipsisNode -> EllipsisWidget(node.id, BREADCRUMB_ELLIPSIS, clickable = true)
+            is PaginationNode -> container(PathRowWidget(node.id, 0, Align.CENTER), node.children)
+            is PaginationContentNode -> container(PathRowWidget(node.id, PAGINATION_GAP), node.children)
+            is PaginationItemNode -> container(PathRowWidget(node.id, 0), node.children)
+            is PaginationLinkNode -> PaginationLinkWidget(node.id, node.text, node.active, PaginationLinkKind.PAGE).apply { enabled = node.enabled }
+            is PaginationPreviousNode -> PaginationLinkWidget(node.id, node.text, false, PaginationLinkKind.PREVIOUS).apply { enabled = node.enabled }
+            is PaginationNextNode -> PaginationLinkWidget(node.id, node.text, false, PaginationLinkKind.NEXT).apply { enabled = node.enabled }
+            is PaginationEllipsisNode -> EllipsisWidget(node.id, PaginationLinkWidget.HEIGHT, clickable = false)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -327,6 +356,31 @@ object WidgetFactory {
         }
         return widget
     }
+
+    /**
+     * The space between the items and separators of a breadcrumb.
+     */
+    private const val BREADCRUMB_GAP: Int = 4
+
+    /**
+     * The space between the parts of a breadcrumb item.
+     */
+    private const val BREADCRUMB_ITEM_GAP: Int = 3
+
+    /**
+     * The size of a breadcrumb separator.
+     */
+    private const val BREADCRUMB_SEPARATOR: Int = 7
+
+    /**
+     * The size of the box of a breadcrumb ellipsis.
+     */
+    private const val BREADCRUMB_ELLIPSIS: Int = 12
+
+    /**
+     * The space between the items of a pagination.
+     */
+    private const val PAGINATION_GAP: Int = 2
 
     /**
      * Creates a tab list whose triggers are laid out across the orientation of its tabs.

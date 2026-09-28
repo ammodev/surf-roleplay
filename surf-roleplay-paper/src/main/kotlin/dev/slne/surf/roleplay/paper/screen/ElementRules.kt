@@ -52,6 +52,12 @@ import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationNextElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbPageElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbEllipsisElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsTriggerElement
@@ -538,6 +544,44 @@ object ElementRules {
         )
         register(AccordionItemElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
         register(AccordionTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            BreadcrumbLinkElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(
+            PaginationLinkElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(
+            PaginationPreviousElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(
+            PaginationNextElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(BreadcrumbPageElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(BreadcrumbEllipsisElement::class, ElementRule(action = { ActionRule(null, submitsInput = false) }))
         register(
             TabsElement::class,
             ElementRule(

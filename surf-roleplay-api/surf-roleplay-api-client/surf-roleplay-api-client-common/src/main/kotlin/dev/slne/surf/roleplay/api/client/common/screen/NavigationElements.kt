@@ -386,3 +386,379 @@ fun ElementsBuilder.tabsContent(id: String, value: String, children: ElementsBui
     elements += TabsContentElement(id, build(children), value)
 }
 
+/**
+ * A breadcrumb: the path to the current page.
+ *
+ * @property id the id of this element
+ * @property children one breadcrumb list
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class BreadcrumbElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The list of a breadcrumb: its items and separators in a row, in muted text.
+ *
+ * @property id the id of this element
+ * @property children the items and separators
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class BreadcrumbListElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An item of a breadcrumb: a link, the current page or an ellipsis.
+ *
+ * @property id the id of this element
+ * @property children the link, page or ellipsis
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class BreadcrumbItemElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A link of a breadcrumb: muted text that turns to the foreground colour when hovered and fires an
+ * action when clicked.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property enabled whether the link can be clicked
+ * @property onClick the handler run when the player clicks the link, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class BreadcrumbLinkElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * The current page of a breadcrumb, in the foreground colour and not clickable.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class BreadcrumbPageElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A separator between breadcrumb items: a chevron or another icon.
+ *
+ * @property id the id of this element
+ * @property icon the Lucide name of the icon
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class BreadcrumbSeparatorElement(
+    override val id: String,
+    val icon: String = "chevron-right",
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * An ellipsis that stands for collapsed breadcrumb items, often the trigger of a dropdown menu.
+ *
+ * @property id the id of this element
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class BreadcrumbEllipsisElement(
+    override val id: String,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A pagination: page links centered across the available width.
+ *
+ * @property id the id of this element
+ * @property children one pagination content
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class PaginationElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The row of the items of a pagination.
+ *
+ * @property id the id of this element
+ * @property children the pagination items
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class PaginationContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An item of a pagination: a link, a previous or next link, or an ellipsis.
+ *
+ * @property id the id of this element
+ * @property children the link or ellipsis
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class PaginationItemElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A page link of a pagination, outlined while it is the current page, that fires an action when
+ * clicked.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property active whether the link is the current page
+ * @property enabled whether the link can be clicked
+ * @property onClick the handler run when the player clicks the link, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class PaginationLinkElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val active: Boolean = false,
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * The link to the previous page: a chevron and its text.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property enabled whether the link can be clicked
+ * @property onClick the handler run when the player clicks the link, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class PaginationPreviousElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * The link to the next page: its text and a chevron.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property enabled whether the link can be clicked
+ * @property onClick the handler run when the player clicks the link, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class PaginationNextElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * An ellipsis that stands for pages without a link.
+ *
+ * @property id the id of this element
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class PaginationEllipsisElement(
+    override val id: String,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * Adds a breadcrumb: the path to the current page. Its child is one [breadcrumbList].
+ *
+ * @param id the id of the breadcrumb
+ * @param children the builder of the list
+ */
+fun ElementsBuilder.breadcrumb(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += BreadcrumbElement(id, build(children))
+}
+
+/**
+ * Adds the list of a breadcrumb. Its children are [breadcrumbItem]s and [breadcrumbSeparator]s.
+ *
+ * @param id the id of the list
+ * @param children the builder of the items and separators
+ */
+fun ElementsBuilder.breadcrumbList(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += BreadcrumbListElement(id, build(children))
+}
+
+/**
+ * Adds an item of a breadcrumb, holding a [breadcrumbLink], a [breadcrumbPage] or a
+ * [breadcrumbEllipsis].
+ *
+ * @param id the id of the item
+ * @param children the builder of the link, page or ellipsis
+ */
+fun ElementsBuilder.breadcrumbItem(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += BreadcrumbItemElement(id, build(children))
+}
+
+/**
+ * Adds a link of a breadcrumb.
+ *
+ * @param id the id of the link
+ * @param text the text
+ * @param enabled whether the link can be clicked
+ * @param onClick the handler run when the player clicks the link, or `null` for none
+ */
+fun ElementsBuilder.breadcrumbLink(id: String, text: Component, enabled: Boolean = true, onClick: ButtonHandler? = null) {
+    elements += BreadcrumbLinkElement(id, text, enabled, onClick)
+}
+
+/**
+ * Adds the current page of a breadcrumb.
+ *
+ * @param id the id of the page
+ * @param text the text
+ */
+fun ElementsBuilder.breadcrumbPage(id: String, text: Component) {
+    elements += BreadcrumbPageElement(id, text)
+}
+
+/**
+ * Adds a separator between breadcrumb items.
+ *
+ * @param id the id of the separator
+ * @param icon the Lucide name of the icon
+ */
+fun ElementsBuilder.breadcrumbSeparator(id: String, icon: String = "chevron-right") {
+    elements += BreadcrumbSeparatorElement(id, icon)
+}
+
+/**
+ * Adds an ellipsis that stands for collapsed breadcrumb items. As the trigger of a
+ * [dropdownMenu] it opens the menu.
+ *
+ * @param id the id of the ellipsis
+ */
+fun ElementsBuilder.breadcrumbEllipsis(id: String) {
+    elements += BreadcrumbEllipsisElement(id)
+}
+
+/**
+ * Adds a pagination, centered across the available width. Its child is one
+ * [paginationContent].
+ *
+ * @param id the id of the pagination
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.pagination(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += PaginationElement(id, build(children), ElementSize.grow())
+}
+
+/**
+ * Adds the row of the items of a pagination. Its children are [paginationItem]s.
+ *
+ * @param id the id of the content
+ * @param children the builder of the items
+ */
+fun ElementsBuilder.paginationContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += PaginationContentElement(id, build(children))
+}
+
+/**
+ * Adds an item of a pagination, holding a link or an ellipsis.
+ *
+ * @param id the id of the item
+ * @param children the builder of the link or ellipsis
+ */
+fun ElementsBuilder.paginationItem(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += PaginationItemElement(id, build(children))
+}
+
+/**
+ * Adds a page link of a pagination.
+ *
+ * @param id the id of the link
+ * @param text the text, usually the page number
+ * @param active whether the link is the current page
+ * @param enabled whether the link can be clicked
+ * @param onClick the handler run when the player clicks the link, or `null` for none
+ */
+fun ElementsBuilder.paginationLink(id: String, text: Component, active: Boolean = false, enabled: Boolean = true, onClick: ButtonHandler? = null) {
+    elements += PaginationLinkElement(id, text, active, enabled, onClick)
+}
+
+/**
+ * Adds the link to the previous page of a pagination.
+ *
+ * @param id the id of the link
+ * @param text the text
+ * @param enabled whether the link can be clicked
+ * @param onClick the handler run when the player clicks the link, or `null` for none
+ */
+fun ElementsBuilder.paginationPrevious(id: String, text: Component = Component.text("Zurück"), enabled: Boolean = true, onClick: ButtonHandler? = null) {
+    elements += PaginationPreviousElement(id, text, enabled, onClick)
+}
+
+/**
+ * Adds the link to the next page of a pagination.
+ *
+ * @param id the id of the link
+ * @param text the text
+ * @param enabled whether the link can be clicked
+ * @param onClick the handler run when the player clicks the link, or `null` for none
+ */
+fun ElementsBuilder.paginationNext(id: String, text: Component = Component.text("Weiter"), enabled: Boolean = true, onClick: ButtonHandler? = null) {
+    elements += PaginationNextElement(id, text, enabled, onClick)
+}
+
+/**
+ * Adds an ellipsis that stands for pages without a link.
+ *
+ * @param id the id of the ellipsis
+ */
+fun ElementsBuilder.paginationEllipsis(id: String) {
+    elements += PaginationEllipsisElement(id)
+}
+

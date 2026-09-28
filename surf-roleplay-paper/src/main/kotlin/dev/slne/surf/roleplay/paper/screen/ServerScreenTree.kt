@@ -1,6 +1,12 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbListElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsContentElement
@@ -336,6 +342,12 @@ class ServerScreenTree(root: ScreenElement) {
             is TabsElement -> container.copy(children = children)
             is TabsListElement -> container.copy(children = children)
             is TabsContentElement -> container.copy(children = children)
+            is BreadcrumbElement -> container.copy(children = children)
+            is BreadcrumbListElement -> container.copy(children = children)
+            is BreadcrumbItemElement -> container.copy(children = children)
+            is PaginationElement -> container.copy(children = children)
+            is PaginationContentElement -> container.copy(children = children)
+            is PaginationItemElement -> container.copy(children = children)
             is DialogContentElement -> container.copy(children = children)
             is DialogHeaderElement -> container.copy(children = children)
             is DialogFooterElement -> container.copy(children = children)

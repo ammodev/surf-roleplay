@@ -332,3 +332,297 @@ data class TabsContentNode(
      */
     override fun withChildren(children: List<ScreenNode>): TabsContentNode = copy(children = children)
 }
+
+/**
+ * A breadcrumb: the path to the current page.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children one breadcrumb list
+ */
+@Serializable
+@SerialName("breadcrumb")
+data class BreadcrumbNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): BreadcrumbNode = copy(children = children)
+}
+
+/**
+ * The list of a breadcrumb: its items and separators in a row, in muted text.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the items and separators
+ */
+@Serializable
+@SerialName("breadcrumb_list")
+data class BreadcrumbListNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): BreadcrumbListNode = copy(children = children)
+}
+
+/**
+ * An item of a breadcrumb: a link, the current page or an ellipsis.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the link, page or ellipsis
+ */
+@Serializable
+@SerialName("breadcrumb_item")
+data class BreadcrumbItemNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): BreadcrumbItemNode = copy(children = children)
+}
+
+/**
+ * A link of a breadcrumb: muted text that turns to the foreground colour when hovered and fires an
+ * action when clicked.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the text
+ * @property enabled whether the link can be clicked
+ */
+@Serializable
+@SerialName("breadcrumb_link")
+data class BreadcrumbLinkNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+    @ProtoNumber(5) val enabled: Boolean = true,
+) : ScreenNode
+
+/**
+ * The current page of a breadcrumb, in the foreground colour and not clickable.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the text
+ */
+@Serializable
+@SerialName("breadcrumb_page")
+data class BreadcrumbPageNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+) : ScreenNode
+
+/**
+ * A separator between breadcrumb items: a chevron or another icon.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property icon the Lucide name of the icon
+ */
+@Serializable
+@SerialName("breadcrumb_separator")
+data class BreadcrumbSeparatorNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val icon: String = "chevron-right",
+) : ScreenNode
+
+/**
+ * An ellipsis that stands for collapsed breadcrumb items, often the trigger of a dropdown menu.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ */
+@Serializable
+@SerialName("breadcrumb_ellipsis")
+data class BreadcrumbEllipsisNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+) : ScreenNode
+
+/**
+ * A pagination: page links centered across the available width.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children one pagination content
+ */
+@Serializable
+@SerialName("pagination")
+data class PaginationNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): PaginationNode = copy(children = children)
+}
+
+/**
+ * The row of the items of a pagination.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the pagination items
+ */
+@Serializable
+@SerialName("pagination_content")
+data class PaginationContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): PaginationContentNode = copy(children = children)
+}
+
+/**
+ * An item of a pagination: a link, a previous or next link, or an ellipsis.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the link or ellipsis
+ */
+@Serializable
+@SerialName("pagination_item")
+data class PaginationItemNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): PaginationItemNode = copy(children = children)
+}
+
+/**
+ * A page link of a pagination, outlined while it is the current page, that fires an action when
+ * clicked.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the text
+ * @property active whether the link is the current page
+ * @property enabled whether the link can be clicked
+ */
+@Serializable
+@SerialName("pagination_link")
+data class PaginationLinkNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+    @ProtoNumber(5) val active: Boolean = false,
+    @ProtoNumber(6) val enabled: Boolean = true,
+) : ScreenNode
+
+/**
+ * The link to the previous page: a chevron and its text.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the text
+ * @property enabled whether the link can be clicked
+ */
+@Serializable
+@SerialName("pagination_previous")
+data class PaginationPreviousNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+    @ProtoNumber(5) val enabled: Boolean = true,
+) : ScreenNode
+
+/**
+ * The link to the next page: its text and a chevron.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the text
+ * @property enabled whether the link can be clicked
+ */
+@Serializable
+@SerialName("pagination_next")
+data class PaginationNextNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+    @ProtoNumber(5) val enabled: Boolean = true,
+) : ScreenNode
+
+/**
+ * An ellipsis that stands for pages without a link.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ */
+@Serializable
+@SerialName("pagination_ellipsis")
+data class PaginationEllipsisNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+) : ScreenNode

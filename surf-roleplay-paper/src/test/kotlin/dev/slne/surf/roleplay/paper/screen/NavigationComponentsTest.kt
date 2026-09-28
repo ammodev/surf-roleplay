@@ -10,6 +10,20 @@ import dev.slne.surf.roleplay.api.client.common.screen.collapsible
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.breadcrumb
+import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbList
+import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbItem
+import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbLink
+import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbPage
+import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbEllipsis
+import dev.slne.surf.roleplay.api.client.common.screen.pagination
+import dev.slne.surf.roleplay.api.client.common.screen.paginationContent
+import dev.slne.surf.roleplay.api.client.common.screen.paginationItem
+import dev.slne.surf.roleplay.api.client.common.screen.paginationLink
+import dev.slne.surf.roleplay.api.client.common.screen.paginationPrevious
+import dev.slne.surf.roleplay.api.client.common.screen.paginationNext
+import dev.slne.surf.roleplay.api.client.common.screen.paginationEllipsis
 import dev.slne.surf.roleplay.api.client.common.screen.Orientation
 import dev.slne.surf.roleplay.api.client.common.screen.TabsVariant
 import dev.slne.surf.roleplay.api.client.common.screen.tabs
@@ -31,6 +45,16 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbLinkNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationContentNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationItemNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationLinkNode
+import dev.slne.surf.roleplay.protocol.screen.SizeMode
 import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
 import dev.slne.surf.roleplay.protocol.screen.TabsListNode
 import dev.slne.surf.roleplay.protocol.screen.TabsNode
@@ -239,5 +263,73 @@ class NavigationComponentsTest {
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "tabs", "password")))
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "tabs", "unknown")))
         assertEquals(listOf("tabs=billing"), reports)
+    }
+
+    /**
+     * Opens a screen with a breadcrumb and a pagination whose links report their clicks.
+     *
+     * @return the session id
+     */
+    private fun openPaths(): Int = state.open(
+        screen(Component.text("Pfade")) {
+            column("root") {
+                breadcrumb("breadcrumb") {
+                    breadcrumbList("list") {
+                        breadcrumbItem("home_item") { breadcrumbLink("home", Component.text("Start")) { reports += it.buttonId } }
+                        breadcrumbSeparator("sep")
+                        breadcrumbItem("more_item") { breadcrumbEllipsis("ellipsis") }
+                        breadcrumbSeparator("slash", icon = "slash")
+                        breadcrumbItem("page_item") { breadcrumbPage("page", Component.text("Akte")) }
+                    }
+                }
+                pagination("pagination") {
+                    paginationContent("content") {
+                        paginationItem("i1") { paginationPrevious("prev", enabled = false) { reports += it.buttonId } }
+                        paginationItem("i2") { paginationLink("p1", Component.text("1"), active = true) { reports += it.buttonId } }
+                        paginationItem("i3") { paginationEllipsis("gap") }
+                        paginationItem("i4") { paginationNext("next") { reports += it.buttonId } }
+                    }
+                }
+            }
+        },
+        null,
+    ).sessionId
+
+    /**
+     * Verifies that breadcrumbs and paginations map to their nodes, with German default texts
+     * and a pagination spanning the available width.
+     */
+    @Test
+    fun `paths map to their nodes`() {
+        openPaths()
+
+        val root = assertIs<ColumnNode>(assertIs<WidgetScreenBody>((sent.last() as ScreenOpen).body).root)
+        val list = assertIs<BreadcrumbListNode>(assertIs<BreadcrumbNode>(root.children[0]).children.single())
+        assertTrue(assertIs<BreadcrumbLinkNode>(assertIs<BreadcrumbItemNode>(list.children[0]).children.single()).text.contains("Start"))
+        assertEquals("chevron-right", assertIs<BreadcrumbSeparatorNode>(list.children[1]).icon)
+        assertEquals("slash", assertIs<BreadcrumbSeparatorNode>(list.children[3]).icon)
+        val pagination = assertIs<PaginationNode>(root.children[1])
+        assertEquals(SizeMode.GROW, pagination.width.mode)
+        val content = assertIs<PaginationContentNode>(pagination.children.single())
+        assertTrue(assertIs<PaginationLinkNode>(assertIs<PaginationItemNode>(content.children[1]).children.single()).active)
+        assertTrue((assertIs<PaginationItemNode>(content.children[0]).children.single() as dev.slne.surf.roleplay.protocol.screen.PaginationPreviousNode).text.contains("Zurück"))
+        assertTrue((assertIs<PaginationItemNode>(content.children[3]).children.single() as dev.slne.surf.roleplay.protocol.screen.PaginationNextNode).text.contains("Weiter"))
+    }
+
+    /**
+     * Verifies that link clicks run their handlers, that disabled links and pages are rejected,
+     * and that an ellipsis is accepted without a handler.
+     */
+    @Test
+    fun `path links act`() {
+        val session = openPaths()
+
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "home")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "p1")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "next")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "ellipsis")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleWidgetAction(ScreenWidgetAction(session, "prev")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleWidgetAction(ScreenWidgetAction(session, "page")))
+        assertEquals(listOf("home", "p1", "next"), reports)
     }
 }

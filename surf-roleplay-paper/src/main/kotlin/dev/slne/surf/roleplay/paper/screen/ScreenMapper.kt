@@ -273,6 +273,34 @@ import dev.slne.surf.roleplay.protocol.screen.TabsNode
 import dev.slne.surf.roleplay.protocol.screen.TabsListNode
 import dev.slne.surf.roleplay.protocol.screen.TabsTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbListElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbPageElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbEllipsisElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationNextElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationEllipsisElement
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationContentNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationItemNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbLinkNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbPageNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbEllipsisNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationLinkNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNextNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationEllipsisNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -485,6 +513,20 @@ object ScreenMapper {
             is TabsListElement -> TabsListNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant))
             is TabsTriggerElement -> TabsTriggerNode(element.id, width, height, element.value, text(element.text), element.icon, element.enabled)
             is TabsContentElement -> TabsContentNode(element.id, width, height, element.children.map(::toNode), element.value)
+            is BreadcrumbElement -> BreadcrumbNode(element.id, width, height, element.children.map(::toNode))
+            is BreadcrumbListElement -> BreadcrumbListNode(element.id, width, height, element.children.map(::toNode))
+            is BreadcrumbItemElement -> BreadcrumbItemNode(element.id, width, height, element.children.map(::toNode))
+            is PaginationElement -> PaginationNode(element.id, width, height, element.children.map(::toNode))
+            is PaginationContentElement -> PaginationContentNode(element.id, width, height, element.children.map(::toNode))
+            is PaginationItemElement -> PaginationItemNode(element.id, width, height, element.children.map(::toNode))
+            is BreadcrumbLinkElement -> BreadcrumbLinkNode(element.id, width, height, text(element.text), element.enabled)
+            is BreadcrumbPageElement -> BreadcrumbPageNode(element.id, width, height, text(element.text))
+            is BreadcrumbSeparatorElement -> BreadcrumbSeparatorNode(element.id, width, height, element.icon)
+            is BreadcrumbEllipsisElement -> BreadcrumbEllipsisNode(element.id, width, height)
+            is PaginationLinkElement -> PaginationLinkNode(element.id, width, height, text(element.text), element.active, element.enabled)
+            is PaginationPreviousElement -> PaginationPreviousNode(element.id, width, height, text(element.text), element.enabled)
+            is PaginationNextElement -> PaginationNextNode(element.id, width, height, text(element.text), element.enabled)
+            is PaginationEllipsisElement -> PaginationEllipsisNode(element.id, width, height)
         }
     }
 

@@ -70,4 +70,46 @@ class NavigationComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that breadcrumbs and paginations with every part survive a round trip.
+     */
+    @Test
+    fun `breadcrumbs and paginations round-trip`() {
+        val root = ColumnNode(
+            "root",
+            children = listOf(
+                BreadcrumbNode(
+                    "breadcrumb",
+                    children = listOf(
+                        BreadcrumbListNode(
+                            "list",
+                            children = listOf(
+                                BreadcrumbItemNode("home", children = listOf(BreadcrumbLinkNode("home_link", text = "\"Start\"", enabled = false))),
+                                BreadcrumbSeparatorNode("sep", icon = "slash"),
+                                BreadcrumbItemNode("more", children = listOf(BreadcrumbEllipsisNode("ellipsis"))),
+                                BreadcrumbItemNode("page", children = listOf(BreadcrumbPageNode("page_text", text = "\"Akte\""))),
+                            ),
+                        ),
+                    ),
+                ),
+                PaginationNode(
+                    "pagination",
+                    children = listOf(
+                        PaginationContentNode(
+                            "content",
+                            children = listOf(
+                                PaginationItemNode("prev_item", children = listOf(PaginationPreviousNode("prev", text = "\"Zurück\"", enabled = false))),
+                                PaginationItemNode("one_item", children = listOf(PaginationLinkNode("one", text = "\"1\"", active = true))),
+                                PaginationItemNode("gap_item", children = listOf(PaginationEllipsisNode("gap"))),
+                                PaginationItemNode("next_item", children = listOf(PaginationNextNode("next", text = "\"Weiter\""))),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }
