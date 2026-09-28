@@ -74,15 +74,17 @@ class PaperToastService : ToastService, Listener {
     }
 
     /**
-     * Shows a toast to a player whose client is ready, and records it for its button clicks.
+     * Shows a toast to a player whose client is ready, and records it for its button clicks. A
+     * toast for a player whose client is not ready is dropped and accepts no clicks.
      *
      * @param player the player
      * @param toast the toast
      * @return the id of the toast
      */
     override fun show(player: Player, toast: Toast): String {
-        val id = registries.computeIfAbsent(player.uniqueId) { ToastRegistry(it) }.register(toast, System.currentTimeMillis())
-        if (PaperScreenService.INSTANCE.isReady(player)) registry.send(player, Packets.TOAST_SHOW, packet(id, toast))
+        val ready = PaperScreenService.INSTANCE.isReady(player)
+        val id = registries.computeIfAbsent(player.uniqueId) { ToastRegistry(it) }.record(toast, System.currentTimeMillis(), shown = ready)
+        if (ready) registry.send(player, Packets.TOAST_SHOW, packet(id, toast))
         return id
     }
 

@@ -72,6 +72,18 @@ class ToastRegistry(private val viewer: UUID = UUID(0, 0)) {
     }
 
     /**
+     * Gives a toast its id and, if it is being shown, records it.
+     *
+     * @param toast the toast
+     * @param now the time in milliseconds
+     * @param shown whether the toast is being shown to the player
+     * @return the id of the toast
+     */
+    @Synchronized
+    fun record(toast: Toast, now: Long, shown: Boolean): String =
+        if (shown) register(toast, now) else toast.id ?: "toast-${next++}"
+
+    /**
      * Forgets a toast.
      *
      * @param id the id of the toast

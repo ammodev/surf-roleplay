@@ -96,4 +96,16 @@ class ToastRegistryTest {
         repeat(ToastRegistry.MAX_ACTIVE) { registry.register(toast, now = 0) }
         assertIs<ToastRegistry.Outcome.Rejected>(registry.handle(first, ToastButtonKind.ACTION, now = 10))
     }
+
+    /**
+     * Verifies that a toast that was not shown gets an id but accepts no clicks.
+     */
+    @Test
+    fun `toasts not shown accept no clicks`() {
+        val registry = ToastRegistry()
+        val id = registry.record(toast, now = 0, shown = false)
+
+        assertIs<ToastRegistry.Outcome.Rejected>(registry.handle(id, ToastButtonKind.ACTION, now = 1))
+        assertNotEquals(id, registry.record(toast, now = 0, shown = true))
+    }
 }
