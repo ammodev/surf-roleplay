@@ -102,6 +102,7 @@ val rasterizeLucide by tasks.registering {
         val out = target.get().asFile
         val textures = out.resolve("assets/surf-roleplay/textures/gui").apply { mkdirs() }
         ImageIO.write(atlas, "png", textures.resolve("lucide.png"))
+        textures.resolve("lucide.png.mcmeta").writeText("{\"texture\":{\"blur\":true,\"clamp\":true}}")
         val meta = out.resolve("assets/surf-roleplay/lucide").apply { mkdirs() }
         meta.resolve("index.json").writeText(index.toString())
         source.get().asFile.resolve("LICENSE").copyTo(meta.resolve("LICENSE.txt"), overwrite = true)

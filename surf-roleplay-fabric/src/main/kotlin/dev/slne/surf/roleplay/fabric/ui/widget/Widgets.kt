@@ -13,20 +13,22 @@ import net.minecraft.client.input.KeyEvent
 import org.lwjgl.glfw.GLFW
 
 /**
- * A piece of styled text.
+ * A piece of styled text, optionally led by an icon.
  *
  * @param id the id of the widget
  * @property text the text as component JSON
+ * @property icon the Lucide name of the leading icon, or `null` for none
  */
-class LabelWidget(id: String, var text: String = "") : Widget(id) {
+class LabelWidget(id: String, var text: String = "", var icon: String? = null) : Widget(id) {
 
     /**
-     * Returns the size of the text on one line.
+     * Returns the size of the icon and the text on one line.
      *
      * @param measurer the text measurer
      * @return the text size
      */
-    override fun contentSize(measurer: TextMeasurer): Size = Size(measurer.width(text), measurer.lineHeight)
+    override fun contentSize(measurer: TextMeasurer): Size =
+        Size(iconSpace(icon, measurer.width(text)) + measurer.width(text), maxOf(measurer.lineHeight, if (icon != null) UiMetrics.INLINE_ICON else 0))
 
     /**
      * Draws the text, vertically centered in the widget.
@@ -37,7 +39,9 @@ class LabelWidget(id: String, var text: String = "") : Widget(id) {
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        ui.text(text, bounds.x, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, ui.tokens.foreground)
+        val color = ui.tokens.foreground
+        val textX = drawLeadingIcon(ui, icon, bounds.x, bounds, color, ui.width(text))
+        ui.text(text, textX, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
     }
 
     /**
@@ -51,12 +55,13 @@ class LabelWidget(id: String, var text: String = "") : Widget(id) {
 }
 
 /**
- * A button that reports clicks to the screen.
+ * A button that reports clicks to the screen, optionally with an icon before its caption.
  *
  * @param id the id of the widget
  * @property text the caption as component JSON
+ * @property icon the Lucide name of the leading icon, or `null` for none
  */
-class ButtonWidget(id: String, var text: String = "") : Widget(id) {
+class ButtonWidget(id: String, var text: String = "", var icon: String? = null) : Widget(id) {
 
     /**
      * Whether the widget can take the keyboard focus, which it can while enabled.
@@ -71,7 +76,7 @@ class ButtonWidget(id: String, var text: String = "") : Widget(id) {
      * @return the button size
      */
     override fun contentSize(measurer: TextMeasurer): Size =
-        Size(measurer.width(text) + 2 * UiMetrics.WIDGET_PADDING, UiMetrics.WIDGET_HEIGHT)
+        Size(iconSpace(icon, measurer.width(text)) + measurer.width(text) + 2 * UiMetrics.WIDGET_PADDING, UiMetrics.WIDGET_HEIGHT)
 
     /**
      * Draws the button, highlighted under the mouse and dimmed when disabled.
@@ -90,7 +95,11 @@ class ButtonWidget(id: String, var text: String = "") : Widget(id) {
         }
         ui.fillRounded(bounds, background)
         ui.clipped(bounds) {
-            ui.centeredText(text, bounds, if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground))
+            val color = if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground)
+            val textWidth = ui.width(text)
+            val groupWidth = iconSpace(icon, textWidth) + textWidth
+            val textX = drawLeadingIcon(ui, icon, bounds.x + (bounds.width - groupWidth) / 2, bounds, color, textWidth)
+            ui.text(text, textX, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
         }
     }
 
@@ -142,12 +151,14 @@ class ButtonWidget(id: String, var text: String = "") : Widget(id) {
  * @property edit the text and cursor, edited under the field's filter
  * @property placeholder the hint shown while the field is empty, as component JSON
  * @property required whether an empty value is invalid
+ * @property icon the Lucide name of an icon drawn at the start of the field, or `null` for none
  */
 open class TextInputWidget(
     id: String,
     val edit: TextEditState,
     var placeholder: String = "",
     val required: Boolean = false,
+    var icon: String? = null,
 ) : Widget(id) {
 
     /**
@@ -200,8 +211,13 @@ open class TextInputWidget(
             },
         )
 
-        val innerWidth = bounds.width - 2 * UiMetrics.WIDGET_PADDING
-        val textX = bounds.x + UiMetrics.WIDGET_PADDING
+        val iconWidth = if (icon != null) UiMetrics.INLINE_ICON + UiMetrics.ICON_GAP else 0
+        icon?.let { name ->
+            val size = UiMetrics.INLINE_ICON
+            ui.icon(name, Rect(bounds.x + UiMetrics.WIDGET_PADDING, bounds.y + (bounds.height - size) / 2, size, size), tokens.mutedForeground)
+        }
+        val innerWidth = bounds.width - 2 * UiMetrics.WIDGET_PADDING - iconWidth
+        val textX = bounds.x + UiMetrics.WIDGET_PADDING + iconWidth
         val textY = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
         ui.clipped(Rect(textX, bounds.y, innerWidth.coerceAtLeast(0), bounds.height)) {
             if (edit.text.isEmpty()) {
@@ -675,7 +691,7 @@ class IconWidget(id: String, var icon: String, val size: Int, val color: IconCol
     override fun contentSize(measurer: TextMeasurer): Size = Size(size, size)
 
     /**
-     * Draws a placeholder square in the icon's area.
+     * Draws the icon, square and centered in the widget's area, tinted with its colour token.
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -683,7 +699,14 @@ class IconWidget(id: String, var icon: String, val size: Int, val color: IconCol
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        ui.border(bounds, ui.tokens.mutedForeground)
+        val side = minOf(bounds.width, bounds.height)
+        val tint = when (color) {
+            IconColor.FOREGROUND -> ui.tokens.foreground
+            IconColor.MUTED -> ui.tokens.mutedForeground
+            IconColor.PRIMARY -> ui.tokens.primary
+            IconColor.DESTRUCTIVE -> ui.tokens.destructive
+        }
+        ui.icon(icon, Rect(bounds.x + (bounds.width - side) / 2, bounds.y + (bounds.height - side) / 2, side, side), tint)
     }
 }
 
@@ -745,3 +768,34 @@ internal fun drawCheck(ui: UiGraphics, box: Rect, color: Int) {
  */
 internal fun isActivation(event: KeyEvent): Boolean =
     event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER || event.key() == GLFW.GLFW_KEY_SPACE
+
+/**
+ * Returns the horizontal space a leading icon takes before a text.
+ *
+ * @param icon the icon name, or `null` for none
+ * @param textWidth the width of the text after it
+ * @return the icon width plus the gap to the text, the icon width alone without text, or zero
+ */
+internal fun iconSpace(icon: String?, textWidth: Int): Int = when {
+    icon == null -> 0
+    textWidth == 0 -> UiMetrics.INLINE_ICON
+    else -> UiMetrics.INLINE_ICON + UiMetrics.ICON_GAP
+}
+
+/**
+ * Draws a leading icon vertically centered in an area and returns where the text after it starts.
+ *
+ * @param ui the graphics to draw with
+ * @param icon the icon name, or `null` for none
+ * @param x the left edge of the icon
+ * @param area the area to center the icon in vertically
+ * @param color the ARGB tint
+ * @param textWidth the width of the text after the icon
+ * @return the left edge of the text
+ */
+internal fun drawLeadingIcon(ui: UiGraphics, icon: String?, x: Int, area: Rect, color: Int, textWidth: Int): Int {
+    if (icon == null) return x
+    val size = UiMetrics.INLINE_ICON
+    ui.icon(icon, Rect(x, area.y + (area.height - size) / 2, size, size), color)
+    return x + iconSpace(icon, textWidth)
+}

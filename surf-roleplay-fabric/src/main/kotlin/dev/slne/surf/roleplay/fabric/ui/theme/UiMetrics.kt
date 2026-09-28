@@ -5,6 +5,16 @@ package dev.slne.surf.roleplay.fabric.ui.theme
  */
 object UiMetrics {
     /**
+     * The side length of icons drawn before a text, in GUI pixels.
+     */
+    const val INLINE_ICON: Int = 10
+
+    /**
+     * The space between a leading icon and its text.
+     */
+    const val ICON_GAP: Int = 4
+
+    /**
      * The height of buttons, inputs and dropdowns.
      */
     const val WIDGET_HEIGHT: Int = 20

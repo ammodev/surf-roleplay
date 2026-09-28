@@ -113,4 +113,18 @@ class WidgetFactoryTest {
         assertEquals(24, widget.size)
         assertEquals(dev.slne.surf.roleplay.protocol.screen.IconColor.PRIMARY, widget.color)
     }
+
+    /**
+     * Verifies that leading icons of labels, buttons and text inputs reach their widgets.
+     */
+    @Test
+    fun `leading icons reach their widgets`() {
+        val root = WidgetFactory.create(
+            ColumnNode("root", children = listOf(LabelNode("l", icon = "info"), ButtonNode("b", icon = "trash"), TextInputNode("t", icon = "search"))),
+        )
+
+        assertEquals("info", assertIs<LabelWidget>(WidgetTree.find(root, "l")).icon)
+        assertEquals("trash", assertIs<ButtonWidget>(WidgetTree.find(root, "b")).icon)
+        assertEquals("search", assertIs<TextInputWidget>(WidgetTree.find(root, "t")).icon)
+    }
 }

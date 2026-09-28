@@ -44,13 +44,14 @@ object WidgetFactory {
             }
 
             is ScrollListNode -> container(ScrollListWidget(node.id), node.children).apply { gap = node.gap }
-            is LabelNode -> LabelWidget(node.id, node.text)
-            is ButtonNode -> ButtonWidget(node.id, node.text).apply { enabled = node.enabled }
+            is LabelNode -> LabelWidget(node.id, node.text, node.icon)
+            is ButtonNode -> ButtonWidget(node.id, node.text, node.icon).apply { enabled = node.enabled }
             is TextInputNode -> TextInputWidget(
                 node.id,
                 TextEditState(node.value, TextFilter.maxLength(node.maxLength)),
                 node.placeholder,
                 node.required,
+                node.icon,
             ).apply { enabled = node.enabled }
 
             is NumberInputNode -> NumberInputWidget(node.id, NumberFilter(node.min, node.max), node.value, node.required)

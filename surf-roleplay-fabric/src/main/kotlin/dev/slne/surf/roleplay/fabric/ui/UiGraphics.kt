@@ -1,6 +1,7 @@
 package dev.slne.surf.roleplay.fabric.ui
 
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
+import dev.slne.surf.roleplay.fabric.ui.icon.LucideIndex
 import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
@@ -173,6 +174,28 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
             return
         }
         graphics.blit(RenderPipelines.GUI_TEXTURED, id, rect.x, rect.y, 0f, 0f, rect.width, rect.height, rect.width, rect.height)
+    }
+
+    /**
+     * Draws a Lucide icon tinted with a colour, stretched over a square. An unknown icon name is
+     * drawn as a crossed-out square.
+     *
+     * @param name the Lucide name of the icon
+     * @param rect the area to draw the icon in
+     * @param color the ARGB tint
+     */
+    fun icon(name: String, rect: Rect, color: Int) {
+        val index = LucideIndex.bundled
+        val cell = index.find(name)
+        if (cell == null) {
+            border(rect, color)
+            for (step in 0 until minOf(rect.width, rect.height)) graphics.fill(rect.x + step, rect.y + step, rect.x + step + 1, rect.y + step + 1, color)
+            return
+        }
+        graphics.blit(
+            RenderPipelines.GUI_TEXTURED, LucideIndex.ATLAS, rect.x, rect.y, cell.u, cell.v,
+            rect.width, rect.height, index.cell, index.cell, index.width, index.height, color,
+        )
     }
 
     /**
