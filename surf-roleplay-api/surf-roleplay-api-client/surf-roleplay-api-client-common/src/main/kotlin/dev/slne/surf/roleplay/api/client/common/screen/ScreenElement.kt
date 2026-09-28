@@ -214,12 +214,14 @@ data class ScrollListElement(
  * @property text the text
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @property icon the Lucide name of an icon drawn before the text, or `null` for none
  */
 data class LabelElement(
     override val id: String,
     val text: Component,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
+    val icon: String? = null,
 ) : ScreenElement
 
 /**
@@ -238,6 +240,7 @@ data class LabelElement(
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
  * @property submitsInput whether a click requires every input of the screen to be valid
+ * @property icon the Lucide name of an icon drawn before the caption, or `null` for none
  */
 data class ButtonElement(
     override val id: String,
@@ -247,6 +250,7 @@ data class ButtonElement(
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
     val submitsInput: Boolean = true,
+    val icon: String? = null,
 ) : ScreenElement
 
 /**
@@ -260,6 +264,7 @@ data class ButtonElement(
  * @property enabled whether the player can edit the field
  * @property width how wide this element is laid out
  * @property height how tall this element is laid out
+ * @property icon the Lucide name of an icon drawn at the start of the field, or `null` for none
  */
 data class TextInputElement(
     override val id: String,
@@ -270,6 +275,7 @@ data class TextInputElement(
     val enabled: Boolean = true,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
+    val icon: String? = null,
 ) : ScreenElement
 
 /**
@@ -371,6 +377,25 @@ data class ProgressElement(
     override val id: String,
     val progress: Float,
     val label: Component? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A Lucide icon, drawn square and tinted with a theme colour.
+ *
+ * @property id the id of this element
+ * @property icon the Lucide name of the icon, such as `trash`
+ * @property size the side length when the element fits its content, in GUI pixels
+ * @property tint the theme colour the icon is tinted with
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class IconElement(
+    override val id: String,
+    val icon: String,
+    val size: Int = 16,
+    val tint: IconTint = IconTint.FOREGROUND,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
 ) : ScreenElement

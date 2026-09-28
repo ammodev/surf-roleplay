@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
+import dev.slne.surf.roleplay.api.client.common.screen.IconTint
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.screen
@@ -9,7 +10,8 @@ import net.kyori.adventure.text.Component
 
 /**
  * Opens confirmation dialogs: a question with a confirm and a cancel button, shown as a dialog
- * over a parent screen in the parent's theme.
+ * over a parent screen in the parent's theme. A destructive confirmation shows a warning icon and
+ * a trash icon on its confirm button.
  */
 object ConfirmDialog {
 
@@ -66,14 +68,17 @@ object ConfirmDialog {
                 }
             }
             column("confirm_root", width = ElementSize.fixed(WIDTH), gap = 10, crossAlign = Alignment.STRETCH) {
-                label("confirm_text", text)
+                row("confirm_body", gap = 8, crossAlign = Alignment.CENTER) {
+                    if (destructive) icon("confirm_icon", "triangle-alert", size = 16, tint = IconTint.DESTRUCTIVE)
+                    label("confirm_text", text, width = ElementSize.grow())
+                }
                 row("confirm_buttons", gap = 6, mainAlign = Alignment.END) {
                     button(CANCEL_ID, cancelLabel, submitsInput = false) { click ->
                         decided = true
                         click.screen.close()
                         onCancel()
                     }
-                    button(CONFIRM_ID, confirmLabel, submitsInput = false) { click ->
+                    button(CONFIRM_ID, confirmLabel, submitsInput = false, icon = if (destructive) "trash" else null) { click ->
                         decided = true
                         click.screen.close()
                         onConfirm()

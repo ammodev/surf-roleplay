@@ -173,9 +173,31 @@ open class ElementsBuilder {
      * @param text the text
      * @param width how wide the label is laid out
      * @param height how tall the label is laid out
+     * @param icon the Lucide name of an icon drawn before the text, or `null` for none
      */
-    fun label(id: String, text: Component, width: ElementSize = ElementSize.FIT, height: ElementSize = ElementSize.FIT) {
-        elements += LabelElement(id, text, width, height)
+    fun label(id: String, text: Component, width: ElementSize = ElementSize.FIT, height: ElementSize = ElementSize.FIT, icon: String? = null) {
+        elements += LabelElement(id, text, width, height, icon)
+    }
+
+    /**
+     * Adds a Lucide icon.
+     *
+     * @param id the id of the icon element
+     * @param icon the Lucide name of the icon
+     * @param size the side length when the icon fits its content
+     * @param tint the theme colour the icon is tinted with
+     * @param width how wide the icon is laid out
+     * @param height how tall the icon is laid out
+     */
+    fun icon(
+        id: String,
+        icon: String,
+        size: Int = 16,
+        tint: IconTint = IconTint.FOREGROUND,
+        width: ElementSize = ElementSize.FIT,
+        height: ElementSize = ElementSize.FIT,
+    ) {
+        elements += IconElement(id, icon, size, tint, width, height)
     }
 
     /**
@@ -187,6 +209,7 @@ open class ElementsBuilder {
      * @param width how wide the button is laid out
      * @param height how tall the button is laid out
      * @param submitsInput whether a click requires every input of the screen to be valid
+     * @param icon the Lucide name of an icon drawn before the caption, or `null` for none
      * @param onClick the handler run on a validated click, or `null` for none
      */
     fun button(
@@ -196,9 +219,10 @@ open class ElementsBuilder {
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
         submitsInput: Boolean = true,
+        icon: String? = null,
         onClick: ButtonHandler? = null,
     ) {
-        elements += ButtonElement(id, text, enabled, onClick, width, height, submitsInput)
+        elements += ButtonElement(id, text, enabled, onClick, width, height, submitsInput, icon)
     }
 
     /**
@@ -212,6 +236,7 @@ open class ElementsBuilder {
      * @param enabled whether the player can edit the input
      * @param width how wide the input is laid out
      * @param height how tall the input is laid out
+     * @param icon the Lucide name of an icon drawn at the start of the field, or `null` for none
      */
     fun textInput(
         id: String,
@@ -222,8 +247,9 @@ open class ElementsBuilder {
         enabled: Boolean = true,
         width: ElementSize = ElementSize.FIT,
         height: ElementSize = ElementSize.FIT,
+        icon: String? = null,
     ) {
-        elements += TextInputElement(id, value, placeholder, maxLength, required, enabled, width, height)
+        elements += TextInputElement(id, value, placeholder, maxLength, required, enabled, width, height, icon)
     }
 
     /**

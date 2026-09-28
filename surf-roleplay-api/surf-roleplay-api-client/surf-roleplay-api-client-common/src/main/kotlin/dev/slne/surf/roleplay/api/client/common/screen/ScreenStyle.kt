@@ -79,3 +79,28 @@ enum class SheetSide {
      */
     BOTTOM,
 }
+
+/**
+ * The theme colour an icon is tinted with.
+ */
+enum class IconTint {
+    /**
+     * The regular text colour.
+     */
+    FOREGROUND,
+
+    /**
+     * The secondary text colour.
+     */
+    MUTED,
+
+    /**
+     * The theme's primary colour.
+     */
+    PRIMARY,
+
+    /**
+     * The colour of destructive actions.
+     */
+    DESTRUCTIVE,
+}

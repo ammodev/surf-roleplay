@@ -7,6 +7,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSizeMode
+import dev.slne.surf.roleplay.api.client.common.screen.IconElement
+import dev.slne.surf.roleplay.api.client.common.screen.IconTint
 import dev.slne.surf.roleplay.api.client.common.screen.ImageElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
@@ -23,6 +25,8 @@ import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DropdownNode
 import dev.slne.surf.roleplay.protocol.screen.DropdownOption
+import dev.slne.surf.roleplay.protocol.screen.IconColor
+import dev.slne.surf.roleplay.protocol.screen.IconNode
 import dev.slne.surf.roleplay.protocol.screen.ImageNode
 import dev.slne.surf.roleplay.protocol.screen.InsertNode
 import dev.slne.surf.roleplay.protocol.screen.Insets
@@ -85,10 +89,10 @@ object ScreenMapper {
             )
 
             is ScrollListElement -> ScrollListNode(element.id, width, height, element.children.map(::toNode), element.gap)
-            is LabelElement -> LabelNode(element.id, width, height, text(element.text))
-            is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput)
+            is LabelElement -> LabelNode(element.id, width, height, text(element.text), element.icon)
+            is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput, element.icon)
             is TextInputElement -> TextInputNode(
-                element.id, width, height, element.value, text(element.placeholder), element.maxLength, element.required, element.enabled,
+                element.id, width, height, element.value, text(element.placeholder), element.maxLength, element.required, element.enabled, element.icon,
             )
 
             is NumberInputElement -> NumberInputNode(
@@ -103,6 +107,7 @@ object ScreenMapper {
 
             is ImageElement -> ImageNode(element.id, width, height, element.texture.asString())
             is ProgressElement -> ProgressNode(element.id, width, height, element.progress, element.label?.let(::text))
+            is IconElement -> IconNode(element.id, width, height, element.icon, element.size, tint(element.tint))
         }
     }
 
@@ -120,6 +125,19 @@ object ScreenMapper {
         is ScreenChange.SetValue -> SetValue(change.targetId, change.value)
         is ScreenChange.SetProgress -> SetProgress(change.targetId, change.progress)
         is ScreenChange.SetEnabled -> SetEnabled(change.targetId, change.enabled)
+    }
+
+    /**
+     * Maps an icon tint.
+     *
+     * @param tint the tint
+     * @return the protocol icon colour
+     */
+    private fun tint(tint: IconTint): IconColor = when (tint) {
+        IconTint.FOREGROUND -> IconColor.FOREGROUND
+        IconTint.MUTED -> IconColor.MUTED
+        IconTint.PRIMARY -> IconColor.PRIMARY
+        IconTint.DESTRUCTIVE -> IconColor.DESTRUCTIVE
     }
 
     /**
