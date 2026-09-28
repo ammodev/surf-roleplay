@@ -87,6 +87,7 @@ object WidgetFactory {
             is NativeSelectNode -> NativeSelectWidget(node.id, node.groups, node.selected, node.size, node.required).apply { enabled = node.enabled }
             is ComboboxNode -> ComboboxWidget(
                 node.id, node.groups, node.selected, node.multiple, node.placeholder, node.emptyText, node.showClear, node.required,
+                notifySearch = node.notifySearch,
             ).apply { enabled = node.enabled }
             is ImageNode -> ImageWidget(node.id, node.texture)
             is IconNode -> IconWidget(node.id, node.icon, node.size, node.color)

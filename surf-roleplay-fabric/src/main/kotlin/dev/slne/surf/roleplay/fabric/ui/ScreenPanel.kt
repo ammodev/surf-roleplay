@@ -423,7 +423,7 @@ class ScreenPanel(
                 return true
             }
             popover = null
-            if (open.owner.isOver(x, y)) return true
+            if (open.owner.isOver(x, y) && !open.passesOwnerClicks) return true
         }
         if (!panel.contains(x, y)) return false
         if (!viewport.contains(x, y)) return true

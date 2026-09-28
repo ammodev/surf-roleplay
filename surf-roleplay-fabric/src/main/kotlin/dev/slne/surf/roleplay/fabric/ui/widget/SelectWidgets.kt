@@ -65,6 +65,12 @@ interface Popover {
     fun mouseScrolled(area: Rect, amount: Double) = Unit
 
     /**
+     * Whether a click on the owner, outside the popover, closes the popover and still reaches the
+     * owner; otherwise it only closes the popover.
+     */
+    val passesOwnerClicks: Boolean get() = false
+
+    /**
      * Handles a key before the focused widget gets it.
      *
      * @param context the screen showing the popover
@@ -158,8 +164,9 @@ object PlainText {
  * @param groups the option groups
  * @property plainText returns the plain text of an option label, which the query is matched
  *           against
+ * @property filters whether the query filters the options; otherwise every option is shown
  */
-class OptionList(groups: List<SelectGroup>, private val plainText: (String) -> String = PlainText::of) {
+class OptionList(groups: List<SelectGroup>, private val plainText: (String) -> String = PlainText::of, private val filters: Boolean = true) {
 
     /**
      * One row of an option list.
@@ -278,7 +285,7 @@ class OptionList(groups: List<SelectGroup>, private val plainText: (String) -> S
     private fun rebuild() {
         val built = mutableListOf<Row>()
         for (group in groups) {
-            val matching = group.options.filter { query.isEmpty() || plainText(it.label).contains(query, ignoreCase = true) }
+            val matching = group.options.filter { !filters || query.isEmpty() || plainText(it.label).contains(query, ignoreCase = true) }
             if (matching.isEmpty()) continue
             if (built.isNotEmpty()) built += Separator
             group.label?.let { built += Heading(it) }
@@ -820,6 +827,8 @@ class SelectPopover(override val owner: SelectWidget) : Popover {
  * @property showClear whether a button clears the selection
  * @property required whether having no selection is invalid
  * @param plainText returns the plain text of an option label, which the query is matched against
+ * @property notifySearch whether the typed query is reported to the server, which then filters
+ *           the options itself; the combobox filters them otherwise
  */
 class ComboboxWidget(
     id: String,
@@ -831,12 +840,13 @@ class ComboboxWidget(
     val showClear: Boolean,
     val required: Boolean,
     plainText: (String) -> String = PlainText::of,
+    val notifySearch: Boolean = false,
 ) : Widget(id) {
 
     /**
-     * The options, filtered by the typed query.
+     * The options, filtered by the typed query unless the server filters them.
      */
-    val list: OptionList = OptionList(groups, plainText)
+    val list: OptionList = OptionList(groups, plainText, filters = !notifySearch)
 
     /**
      * The typed query and its cursor.
@@ -1081,14 +1091,15 @@ class ComboboxWidget(
     }
 
     /**
-     * Filters the list by the typed query and reports a changed query.
+     * Filters the list by the typed query and reports a changed query if the combobox reports its
+     * searches.
      *
      * @param context the screen showing the widget
      */
     private fun queryChanged(context: UiContext) {
         if (list.query == edit.text) return
         list.query = edit.text
-        context.searchChanged(this, edit.text)
+        if (notifySearch) context.searchChanged(this, edit.text)
     }
 
     /**
@@ -1272,6 +1283,12 @@ class ComboboxWidget(
  * @property owner the combobox that opened the list
  */
 class ComboboxPopover(override val owner: ComboboxWidget) : Popover {
+
+    /**
+     * Clicks on the combobox reach it, so that chips can be removed and the selection cleared
+     * while the list is open.
+     */
+    override val passesOwnerClicks: Boolean get() = true
 
     /**
      * Places the list below the combobox, as wide as it.

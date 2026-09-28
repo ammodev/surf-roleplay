@@ -162,12 +162,13 @@ class SelectWidgetsTest {
     }
 
     /**
-     * Verifies that typing into a combobox filters and opens its list, reports the query, and
-     * that Enter chooses the highlighted option and closes a single combobox.
+     * Verifies that typing into a combobox filters and opens its list, and that Enter chooses the
+     * highlighted option and closes a single combobox. A combobox without search events reports
+     * no query.
      */
     @Test
     fun `comboboxes filter and choose`() {
-        val combobox = WidgetFactory.create(ComboboxNode("c", groups = groups, notifyChange = true, notifySearch = true)) as ComboboxWidget
+        val combobox = WidgetFactory.create(ComboboxNode("c", groups = groups, notifyChange = true)) as ComboboxWidget
 
         type(combobox, "rb")
         assertSame(combobox, context.popover?.owner)
@@ -177,7 +178,21 @@ class SelectWidgetsTest {
         assertEquals("pea", combobox.inputValue)
         assertNull(context.popover)
         assertEquals("", combobox.edit.text)
-        assertEquals(listOf("search:r", "search:rb", "search:", "change:pea"), reports)
+        assertEquals(listOf("change:pea"), reports)
+    }
+
+    /**
+     * Verifies that a combobox with search events reports its query and leaves the filtering to
+     * the server.
+     */
+    @Test
+    fun `searching comboboxes report instead of filtering`() {
+        val combobox = WidgetFactory.create(ComboboxNode("c", groups = groups, notifySearch = true)) as ComboboxWidget
+
+        type(combobox, "xyz")
+
+        assertEquals(listOf("search:x", "search:xy", "search:xyz"), reports)
+        assertEquals(5, combobox.list.rows.count { it is OptionList.Item })
     }
 
     /**

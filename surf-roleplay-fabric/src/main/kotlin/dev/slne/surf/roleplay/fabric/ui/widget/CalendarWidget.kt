@@ -439,6 +439,11 @@ class CalendarWidget(
 class CaptionPopover(override val owner: CalendarWidget, private val years: Boolean) : Popover {
 
     /**
+     * Clicks on the calendar reach it, so that a day can be picked while the list is open.
+     */
+    override val passesOwnerClicks: Boolean get() = true
+
+    /**
      * The months or years, with the displayed one highlighted.
      */
     private val list: OptionList = OptionList(
