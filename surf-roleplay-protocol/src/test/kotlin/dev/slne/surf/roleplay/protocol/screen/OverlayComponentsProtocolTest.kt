@@ -114,4 +114,41 @@ class OverlayComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that dialogs, alert dialogs, sheets and drawers with every part survive a round
+     * trip.
+     */
+    @Test
+    fun `modals round-trip`() {
+        val header = DialogHeaderNode("header", children = listOf(TextNode("title", kind = TextKind.DIALOG_TITLE), TextNode("description", kind = TextKind.DIALOG_DESCRIPTION)))
+        val root = ColumnNode(
+            "root",
+            children = listOf(
+                DialogNode(
+                    "dialog",
+                    open = true,
+                    notifyChange = true,
+                    children = listOf(
+                        ButtonNode("open"),
+                        DialogContentNode("content", showCloseButton = false, children = listOf(header, DialogFooterNode("footer", children = listOf(DialogCloseNode("close", children = listOf(ButtonNode("cancel"))))))),
+                    ),
+                ),
+                AlertDialogNode(
+                    "alert",
+                    children = listOf(ButtonNode("open_alert"), AlertDialogContentNode("alert_content", size = AlertDialogSize.SM, children = listOf(AlertDialogMediaNode("media", icon = "trash")))),
+                ),
+                SheetNode(
+                    "sheet",
+                    children = listOf(
+                        ButtonNode("open_sheet"),
+                        SheetContentNode("sheet_content", side = OverlaySide.LEFT, children = listOf(SheetHeaderNode("sheet_header", children = listOf(TextNode("sheet_title", kind = TextKind.SHEET_TITLE))), SheetFooterNode("sheet_footer"))),
+                    ),
+                ),
+                DrawerNode("drawer", children = listOf(ButtonNode("open_drawer"), DrawerContentNode("drawer_content", direction = OverlaySide.TOP))),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

@@ -221,6 +221,34 @@ import dev.slne.surf.roleplay.protocol.screen.CommandInputNode
 import dev.slne.surf.roleplay.protocol.screen.CommandEmptyNode
 import dev.slne.surf.roleplay.protocol.screen.CommandItemNode
 import dev.slne.surf.roleplay.protocol.screen.CommandSeparatorNode
+import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogCloseElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogMediaElement
+import dev.slne.surf.roleplay.protocol.screen.DialogNode
+import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.DialogHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.DialogFooterNode
+import dev.slne.surf.roleplay.protocol.screen.DialogCloseNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.SheetNode
+import dev.slne.surf.roleplay.protocol.screen.SheetContentNode
+import dev.slne.surf.roleplay.protocol.screen.SheetHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.SheetFooterNode
+import dev.slne.surf.roleplay.protocol.screen.DrawerNode
+import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogMediaNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -407,6 +435,20 @@ object ScreenMapper {
                 element.id, width, height, text(element.text), element.icon, element.shortcut?.let(::text), element.keywords, element.enabled,
             )
             is CommandSeparatorElement -> CommandSeparatorNode(element.id, width, height)
+            is DialogElement -> DialogNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is DialogContentElement -> DialogContentNode(element.id, width, height, element.children.map(::toNode), element.showCloseButton)
+            is DialogHeaderElement -> DialogHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is DialogFooterElement -> DialogFooterNode(element.id, width, height, element.children.map(::toNode))
+            is DialogCloseElement -> DialogCloseNode(element.id, width, height, element.children.map(::toNode))
+            is AlertDialogElement -> AlertDialogNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is AlertDialogContentElement -> AlertDialogContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.size))
+            is AlertDialogMediaElement -> AlertDialogMediaNode(element.id, width, height, element.icon)
+            is SheetElement -> SheetNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is SheetContentElement -> SheetContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.side), element.showCloseButton)
+            is SheetHeaderElement -> SheetHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is SheetFooterElement -> SheetFooterNode(element.id, width, height, element.children.map(::toNode))
+            is DrawerElement -> DrawerNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is DrawerContentElement -> DrawerContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
         }
     }
 

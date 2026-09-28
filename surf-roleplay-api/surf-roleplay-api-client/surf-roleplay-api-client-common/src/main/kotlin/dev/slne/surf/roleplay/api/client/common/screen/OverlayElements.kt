@@ -965,3 +965,488 @@ fun ElementsBuilder.commandItem(
 fun ElementsBuilder.commandSeparator(id: String) {
     elements += CommandSeparatorElement(id)
 }
+
+/**
+ * The size of an alert dialog.
+ */
+enum class AlertDialogSize {
+    /**
+     * The regular width, with texts at the start.
+     */
+    DEFAULT,
+
+    /**
+     * A narrow width, with centered texts and the footer buttons side by side.
+     */
+    SM,
+}
+
+/**
+ * A dialog: its triggers, and a modal content centered over everything when a trigger is clicked.
+ *
+ * @property id the id of this element
+ * @property children the triggers and one dialog content
+ * @property open whether the overlay is open
+ * @property onChange the handler run whenever the player opens or closes the overlay, or `null`
+ *           for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DialogElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The content of a dialog, on a bordered surface with an optional close button.
+ *
+ * @property id the id of this element
+ * @property children the header, content and footer
+ * @property showCloseButton whether a close button is drawn at the top right
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DialogContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val showCloseButton: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The header of a dialog: its title and description, stacked.
+ *
+ * @property id the id of this element
+ * @property children the title and description
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DialogHeaderElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The footer of a dialog: its buttons in a row at the end.
+ *
+ * @property id the id of this element
+ * @property children the buttons
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DialogFooterElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A part of an overlay whose actions close the overlay after they fire, such as a cancel button.
+ *
+ * @property id the id of this element
+ * @property children the buttons
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DialogCloseElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An alert dialog: its triggers, and a modal content that a click outside does not close.
+ *
+ * @property id the id of this element
+ * @property children the triggers and one alert dialog content
+ * @property open whether the overlay is open
+ * @property onChange the handler run whenever the player opens or closes the overlay, or `null`
+ *           for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class AlertDialogElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The content of an alert dialog, on a bordered surface.
+ *
+ * @property id the id of this element
+ * @property children the media, header and footer
+ * @property size the size of the dialog
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class AlertDialogContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val size: AlertDialogSize = AlertDialogSize.DEFAULT,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An icon on a muted square above the title of an alert dialog.
+ *
+ * @property id the id of this element
+ * @property icon the Lucide name of the icon
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class AlertDialogMediaElement(
+    override val id: String,
+    val icon: String = "",
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A sheet: its triggers, and a modal content attached to an edge of the window when a trigger is
+ * clicked.
+ *
+ * @property id the id of this element
+ * @property children the triggers and one sheet content
+ * @property open whether the overlay is open
+ * @property onChange the handler run whenever the player opens or closes the overlay, or `null`
+ *           for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SheetElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The content of a sheet, attached to an edge of the window.
+ *
+ * @property id the id of this element
+ * @property children the header, content and footer
+ * @property side the edge of the window the sheet is attached to
+ * @property showCloseButton whether a close button is drawn at the top right
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SheetContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val side: OverlaySide = OverlaySide.RIGHT,
+    val showCloseButton: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The header of a sheet or drawer: its title and description, stacked.
+ *
+ * @property id the id of this element
+ * @property children the title and description
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SheetHeaderElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The footer of a sheet or drawer: its buttons, stacked at the end of the content.
+ *
+ * @property id the id of this element
+ * @property children the buttons
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SheetFooterElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A drawer: its triggers, and a modal content that comes in from an edge of the window, with a
+ * handle.
+ *
+ * @property id the id of this element
+ * @property children the triggers and one drawer content
+ * @property open whether the overlay is open
+ * @property onChange the handler run whenever the player opens or closes the overlay, or `null`
+ *           for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DrawerElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = false,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The content of a drawer, attached to an edge of the window.
+ *
+ * @property id the id of this element
+ * @property children the header, content and footer
+ * @property direction the edge of the window the drawer comes in from
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DrawerContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val direction: OverlaySide = OverlaySide.BOTTOM,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a dialog. Its children are its triggers and one [dialogContent].
+ *
+ * @param id the id of the dialog
+ * @param onChange the handler run whenever the player opens or closes the dialog, or `null` for
+ *        none
+ * @param children the builder of the triggers and the content
+ */
+fun ElementsBuilder.dialog(id: String, onChange: ChangeHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += DialogElement(id, build(children), false, onChange)
+}
+
+/**
+ * Adds the content of a dialog.
+ *
+ * @param id the id of the content
+ * @param width how wide the dialog is laid out
+ * @param showCloseButton whether a close button is drawn at the top right
+ * @param children the builder of the header, content and footer
+ */
+fun ElementsBuilder.dialogContent(id: String, width: ElementSize = ElementSize.fixed(DIALOG_WIDTH), showCloseButton: Boolean = true, children: ElementsBuilder.() -> Unit) {
+    elements += DialogContentElement(id, build(children), showCloseButton, width)
+}
+
+/**
+ * Adds the header of a dialog or alert dialog.
+ *
+ * @param id the id of the header
+ * @param children the builder of the media, title and description
+ */
+fun ElementsBuilder.dialogHeader(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += DialogHeaderElement(id, build(children))
+}
+
+/**
+ * Adds the footer of a dialog or alert dialog.
+ *
+ * @param id the id of the footer
+ * @param children the builder of the buttons
+ */
+fun ElementsBuilder.dialogFooter(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += DialogFooterElement(id, build(children))
+}
+
+/**
+ * Adds a part of an overlay whose actions close the overlay after they fire.
+ *
+ * @param id the id of the part
+ * @param children the builder of the buttons
+ */
+fun ElementsBuilder.dialogClose(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += DialogCloseElement(id, build(children))
+}
+
+/**
+ * Adds the title of a dialog or alert dialog.
+ *
+ * @param id the id of the title
+ * @param text the title
+ */
+fun ElementsBuilder.dialogTitle(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.DIALOG_TITLE)
+}
+
+/**
+ * Adds the description of a dialog or alert dialog.
+ *
+ * @param id the id of the description
+ * @param text the description
+ */
+fun ElementsBuilder.dialogDescription(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.DIALOG_DESCRIPTION)
+}
+
+/**
+ * Adds an alert dialog. Its children are its triggers and one [alertDialogContent].
+ *
+ * @param id the id of the alert dialog
+ * @param onChange the handler run whenever the player opens or closes the dialog, or `null` for
+ *        none
+ * @param children the builder of the triggers and the content
+ */
+fun ElementsBuilder.alertDialog(id: String, onChange: ChangeHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += AlertDialogElement(id, build(children), false, onChange)
+}
+
+/**
+ * Adds the content of an alert dialog, as wide as its size says.
+ *
+ * @param id the id of the content
+ * @param size the size of the dialog
+ * @param children the builder of the header and footer
+ */
+fun ElementsBuilder.alertDialogContent(id: String, size: AlertDialogSize = AlertDialogSize.DEFAULT, children: ElementsBuilder.() -> Unit) {
+    val width = ElementSize.fixed(if (size == AlertDialogSize.SM) ALERT_DIALOG_SMALL_WIDTH else DIALOG_WIDTH)
+    elements += AlertDialogContentElement(id, build(children), size, width)
+}
+
+/**
+ * Adds the media of an alert dialog header.
+ *
+ * @param id the id of the media
+ * @param icon the Lucide name of the icon
+ */
+fun ElementsBuilder.alertDialogMedia(id: String, icon: String) {
+    elements += AlertDialogMediaElement(id, icon)
+}
+
+/**
+ * Adds the action of an alert dialog: a button that fires its handler and closes the dialog.
+ *
+ * @param id the id of the button
+ * @param text the caption
+ * @param variant the look of the button
+ * @param onClick the handler run when the player confirms, or `null` for none
+ */
+fun ElementsBuilder.alertDialogAction(id: String, text: Component, variant: ButtonVariant = ButtonVariant.DEFAULT, onClick: ButtonHandler? = null) {
+    dialogClose("${id}_close") { button(id, text, submitsInput = false, variant = variant, onClick = onClick) }
+}
+
+/**
+ * Adds the cancel button of an alert dialog, an outline button that closes the dialog.
+ *
+ * @param id the id of the button
+ * @param text the caption
+ * @param onClick the handler run when the player cancels, or `null` for none
+ */
+fun ElementsBuilder.alertDialogCancel(id: String, text: Component, onClick: ButtonHandler? = null) {
+    dialogClose("${id}_close") { button(id, text, submitsInput = false, variant = ButtonVariant.OUTLINE, onClick = onClick) }
+}
+
+/**
+ * Adds a sheet. Its children are its triggers and one [sheetContent].
+ *
+ * @param id the id of the sheet
+ * @param onChange the handler run whenever the player opens or closes the sheet, or `null` for
+ *        none
+ * @param children the builder of the triggers and the content
+ */
+fun ElementsBuilder.sheet(id: String, onChange: ChangeHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += SheetElement(id, build(children), false, onChange)
+}
+
+/**
+ * Adds the content of a sheet.
+ *
+ * @param id the id of the content
+ * @param side the edge of the window the sheet is attached to
+ * @param showCloseButton whether a close button is drawn at the top right
+ * @param children the builder of the header, content and footer
+ */
+fun ElementsBuilder.sheetContent(id: String, side: OverlaySide = OverlaySide.RIGHT, showCloseButton: Boolean = true, children: ElementsBuilder.() -> Unit) {
+    elements += SheetContentElement(id, build(children), side, showCloseButton)
+}
+
+/**
+ * Adds the header of a sheet or drawer.
+ *
+ * @param id the id of the header
+ * @param children the builder of the title and description
+ */
+fun ElementsBuilder.sheetHeader(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SheetHeaderElement(id, build(children))
+}
+
+/**
+ * Adds the footer of a sheet or drawer.
+ *
+ * @param id the id of the footer
+ * @param children the builder of the buttons
+ */
+fun ElementsBuilder.sheetFooter(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SheetFooterElement(id, build(children))
+}
+
+/**
+ * Adds the title of a sheet or drawer.
+ *
+ * @param id the id of the title
+ * @param text the title
+ */
+fun ElementsBuilder.sheetTitle(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.SHEET_TITLE)
+}
+
+/**
+ * Adds the description of a sheet or drawer.
+ *
+ * @param id the id of the description
+ * @param text the description
+ */
+fun ElementsBuilder.sheetDescription(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.SHEET_DESCRIPTION)
+}
+
+/**
+ * Adds a drawer. Its children are its triggers and one [drawerContent].
+ *
+ * @param id the id of the drawer
+ * @param onChange the handler run whenever the player opens or closes the drawer, or `null` for
+ *        none
+ * @param children the builder of the triggers and the content
+ */
+fun ElementsBuilder.drawer(id: String, onChange: ChangeHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += DrawerElement(id, build(children), false, onChange)
+}
+
+/**
+ * Adds the content of a drawer.
+ *
+ * @param id the id of the content
+ * @param direction the edge of the window the drawer comes in from
+ * @param children the builder of the header, content and footer
+ */
+fun ElementsBuilder.drawerContent(id: String, direction: OverlaySide = OverlaySide.BOTTOM, children: ElementsBuilder.() -> Unit) {
+    elements += DrawerContentElement(id, build(children), direction)
+}
+
+/**
+ * The default width of dialogs and alert dialogs, in GUI pixels.
+ */
+const val DIALOG_WIDTH: Int = 256
+
+/**
+ * The width of small alert dialogs, in GUI pixels.
+ */
+const val ALERT_DIALOG_SMALL_WIDTH: Int = 160

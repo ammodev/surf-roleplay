@@ -34,6 +34,10 @@ import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
 import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupCountElement
 import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
 import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandEmptyElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandItemElement
@@ -477,6 +481,10 @@ object ElementRules {
             ),
         )
         register(CommandEmptyElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(DialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(AlertDialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(SheetElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(DrawerElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(CommandInputElement::class, ElementRule(withText = { e, t -> e.copy(placeholder = t) }))
         register(AvatarGroupCountElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(FieldSeparatorElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))

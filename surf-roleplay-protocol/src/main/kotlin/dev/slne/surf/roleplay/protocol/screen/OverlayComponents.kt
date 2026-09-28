@@ -749,3 +749,391 @@ data class CommandSeparatorNode(
     @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
 ) : ScreenNode
+
+/**
+ * The size of an alert dialog.
+ */
+@Serializable
+enum class AlertDialogSize {
+    /**
+     * The regular width, with texts at the start.
+     */
+    @ProtoNumber(0)
+    DEFAULT,
+
+    /**
+     * A narrow width, with centered texts and the footer buttons side by side.
+     */
+    @ProtoNumber(1)
+    SM,
+}
+
+/**
+ * A dialog: its triggers, and a modal content centered over everything when a trigger is clicked.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the triggers and one dialog content
+ * @property open whether the overlay is open
+ * @property notifyChange whether the mod reports every opening and closing at once
+ */
+@Serializable
+@SerialName("dialog")
+data class DialogNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val open: Boolean = false,
+    @ProtoNumber(6) val notifyChange: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): DialogNode = copy(children = children)
+}
+
+/**
+ * The content of a dialog, on a bordered surface with an optional close button.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the header, content and footer
+ * @property showCloseButton whether a close button is drawn at the top right
+ */
+@Serializable
+@SerialName("dialog_content")
+data class DialogContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val showCloseButton: Boolean = true,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): DialogContentNode = copy(children = children)
+}
+
+/**
+ * The header of a dialog: its title and description, stacked.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the title and description
+ */
+@Serializable
+@SerialName("dialog_header")
+data class DialogHeaderNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): DialogHeaderNode = copy(children = children)
+}
+
+/**
+ * The footer of a dialog: its buttons in a row at the end.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the buttons
+ */
+@Serializable
+@SerialName("dialog_footer")
+data class DialogFooterNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): DialogFooterNode = copy(children = children)
+}
+
+/**
+ * A part of an overlay whose actions close the overlay after they fire, such as a cancel button.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the buttons
+ */
+@Serializable
+@SerialName("dialog_close")
+data class DialogCloseNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): DialogCloseNode = copy(children = children)
+}
+
+/**
+ * An alert dialog: its triggers, and a modal content that a click outside does not close.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the triggers and one alert dialog content
+ * @property open whether the overlay is open
+ * @property notifyChange whether the mod reports every opening and closing at once
+ */
+@Serializable
+@SerialName("alert_dialog")
+data class AlertDialogNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val open: Boolean = false,
+    @ProtoNumber(6) val notifyChange: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): AlertDialogNode = copy(children = children)
+}
+
+/**
+ * The content of an alert dialog, on a bordered surface.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the media, header and footer
+ * @property size the size of the dialog
+ */
+@Serializable
+@SerialName("alert_dialog_content")
+data class AlertDialogContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val size: AlertDialogSize = AlertDialogSize.DEFAULT,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): AlertDialogContentNode = copy(children = children)
+}
+
+/**
+ * An icon on a muted square above the title of an alert dialog.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property icon the Lucide name of the icon
+ */
+@Serializable
+@SerialName("alert_dialog_media")
+data class AlertDialogMediaNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val icon: String = "",
+) : ScreenNode
+
+/**
+ * A sheet: its triggers, and a modal content attached to an edge of the window when a trigger is
+ * clicked.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the triggers and one sheet content
+ * @property open whether the overlay is open
+ * @property notifyChange whether the mod reports every opening and closing at once
+ */
+@Serializable
+@SerialName("sheet")
+data class SheetNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val open: Boolean = false,
+    @ProtoNumber(6) val notifyChange: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): SheetNode = copy(children = children)
+}
+
+/**
+ * The content of a sheet, attached to an edge of the window.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the header, content and footer
+ * @property side the edge of the window the sheet is attached to
+ * @property showCloseButton whether a close button is drawn at the top right
+ */
+@Serializable
+@SerialName("sheet_content")
+data class SheetContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val side: OverlaySide = OverlaySide.RIGHT,
+    @ProtoNumber(6) val showCloseButton: Boolean = true,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): SheetContentNode = copy(children = children)
+}
+
+/**
+ * The header of a sheet or drawer: its title and description, stacked.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the title and description
+ */
+@Serializable
+@SerialName("sheet_header")
+data class SheetHeaderNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): SheetHeaderNode = copy(children = children)
+}
+
+/**
+ * The footer of a sheet or drawer: its buttons, stacked at the end of the content.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the buttons
+ */
+@Serializable
+@SerialName("sheet_footer")
+data class SheetFooterNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): SheetFooterNode = copy(children = children)
+}
+
+/**
+ * A drawer: its triggers, and a modal content that comes in from an edge of the window, with a
+ * handle.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the triggers and one drawer content
+ * @property open whether the overlay is open
+ * @property notifyChange whether the mod reports every opening and closing at once
+ */
+@Serializable
+@SerialName("drawer")
+data class DrawerNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val open: Boolean = false,
+    @ProtoNumber(6) val notifyChange: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): DrawerNode = copy(children = children)
+}
+
+/**
+ * The content of a drawer, attached to an edge of the window.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the header, content and footer
+ * @property direction the edge of the window the drawer comes in from
+ */
+@Serializable
+@SerialName("drawer_content")
+data class DrawerContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val direction: OverlaySide = OverlaySide.BOTTOM,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): DrawerContentNode = copy(children = children)
+}

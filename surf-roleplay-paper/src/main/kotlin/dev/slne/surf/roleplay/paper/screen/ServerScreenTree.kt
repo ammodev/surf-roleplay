@@ -1,6 +1,19 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogCloseElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandListElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandGroupElement
@@ -302,6 +315,19 @@ class ServerScreenTree(root: ScreenElement) {
             is HoverCardElement -> container.copy(children = children)
             is HoverCardContentElement -> container.copy(children = children)
             is TooltipElement -> container.copy(children = children)
+            is DialogElement -> container.copy(children = children)
+            is DialogContentElement -> container.copy(children = children)
+            is DialogHeaderElement -> container.copy(children = children)
+            is DialogFooterElement -> container.copy(children = children)
+            is DialogCloseElement -> container.copy(children = children)
+            is AlertDialogElement -> container.copy(children = children)
+            is AlertDialogContentElement -> container.copy(children = children)
+            is SheetElement -> container.copy(children = children)
+            is SheetContentElement -> container.copy(children = children)
+            is SheetHeaderElement -> container.copy(children = children)
+            is SheetFooterElement -> container.copy(children = children)
+            is DrawerElement -> container.copy(children = children)
+            is DrawerContentElement -> container.copy(children = children)
             is CommandElement -> container.copy(children = children)
             is CommandListElement -> container.copy(children = children)
             is CommandGroupElement -> container.copy(children = children)

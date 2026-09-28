@@ -3,6 +3,20 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.DialogNode
+import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.DialogHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.DialogFooterNode
+import dev.slne.surf.roleplay.protocol.screen.DialogCloseNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogContentNode
+import dev.slne.surf.roleplay.protocol.screen.AlertDialogMediaNode
+import dev.slne.surf.roleplay.protocol.screen.SheetNode
+import dev.slne.surf.roleplay.protocol.screen.SheetContentNode
+import dev.slne.surf.roleplay.protocol.screen.SheetHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.SheetFooterNode
+import dev.slne.surf.roleplay.protocol.screen.DrawerNode
+import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
 import dev.slne.surf.roleplay.protocol.screen.CommandNode
 import dev.slne.surf.roleplay.protocol.screen.CommandInputNode
 import dev.slne.surf.roleplay.protocol.screen.CommandListNode
@@ -232,6 +246,20 @@ object WidgetFactory {
             is CommandGroupNode -> container(CommandGroupWidget(node.id, node.heading), node.children)
             is CommandItemNode -> CommandItemWidget(node.id, node.text, node.icon, node.shortcut, node.keywords).apply { enabled = node.enabled }
             is CommandSeparatorNode -> CommandSeparatorWidget(node.id)
+            is DialogNode -> container(ModalHostWidget(node.id, ModalKind.DIALOG), node.children).apply { requestOpen(node.open) }
+            is DialogContentNode -> container(DialogContentWidget(node.id, node.showCloseButton), node.children)
+            is DialogHeaderNode -> container(DialogHeaderWidget(node.id), node.children)
+            is DialogFooterNode -> container(DialogFooterWidget(node.id), node.children)
+            is DialogCloseNode -> container(DialogCloseWidget(node.id), node.children)
+            is AlertDialogNode -> container(ModalHostWidget(node.id, ModalKind.ALERT_DIALOG), node.children).apply { requestOpen(node.open) }
+            is AlertDialogContentNode -> container(AlertDialogContentWidget(node.id, node.size), node.children)
+            is AlertDialogMediaNode -> AlertDialogMediaWidget(node.id, node.icon)
+            is SheetNode -> container(ModalHostWidget(node.id, ModalKind.SHEET), node.children).apply { requestOpen(node.open) }
+            is SheetContentNode -> container(SheetContentWidget(node.id, node.side, node.showCloseButton), node.children)
+            is SheetHeaderNode -> container(SheetHeaderWidget(node.id), node.children)
+            is SheetFooterNode -> container(SheetFooterWidget(node.id), node.children)
+            is DrawerNode -> container(ModalHostWidget(node.id, ModalKind.DRAWER), node.children).apply { requestOpen(node.open) }
+            is DrawerContentNode -> container(DrawerContentWidget(node.id, node.direction), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -256,6 +284,10 @@ object WidgetFactory {
             is MenuSubNode -> node.notifyChange
             is ContextMenuNode -> node.notifyChange
             is MenubarMenuNode -> node.notifyChange
+            is DialogNode -> node.notifyChange
+            is AlertDialogNode -> node.notifyChange
+            is SheetNode -> node.notifyChange
+            is DrawerNode -> node.notifyChange
             else -> false
         }
         return widget
