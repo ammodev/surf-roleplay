@@ -38,3 +38,12 @@ Create the next record with `/surf:new-adr`.
 | [0029](0029-the-mod-handshake-runs-in-the-configuration-phase.md) | The mod handshake runs in the configuration phase | Accepted | 2026-09-27 |
 | [0030](0030-the-client-mod-depends-on-fabric-language-kotlin.md) | The client mod depends on Fabric Language Kotlin | Accepted | 2026-09-27 |
 | [0031](0031-the-local-dev-stack-runs-fully-in-docker-compose.md) | The local dev stack runs fully in Docker Compose | Accepted | 2026-09-28 |
+| [0032](0032-server-driven-screens-combine-widget-trees-and-typed-screens.md) | Server-driven screens combine widget trees and typed screens | Accepted | 2026-09-28 |
+| [0033](0033-generic-screens-are-trees-of-flex-containers-and-fixed-widgets.md) | Generic screens are trees of flex containers and fixed widgets | Accepted | 2026-09-28 |
+| [0034](0034-screen-texts-travel-as-text-component-json.md) | Screen texts travel as text component JSON | Accepted | 2026-09-28 |
+| [0035](0035-server-driven-screens-stack-per-player.md) | Server-driven screens stack per player | Accepted | 2026-09-28 |
+| [0036](0036-open-screens-change-through-patches-by-widget-id.md) | Open screens change through patches by widget id | Accepted | 2026-09-28 |
+| [0037](0037-screen-actions-are-validated-against-the-server-held-screen.md) | Screen actions are validated against the server-held screen | Accepted | 2026-09-28 |
+| [0038](0038-the-screen-api-is-public-in-surf-roleplay-api.md) | The screen API is public in surf-roleplay-api | Accepted | 2026-09-28 |
+| [0039](0039-the-mod-ui-is-built-on-an-own-toolkit.md) | The mod UI is built on an own toolkit | Accepted | 2026-09-28 |
+| [0040](0040-the-mod-is-active-only-on-servers-that-announce-the-roleplay-protocol.md) | The mod is active only on servers that announce the roleplay protocol | Accepted | 2026-09-28 |
