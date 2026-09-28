@@ -530,9 +530,9 @@ open class SelectWidget(
     override val inputValue: String get() = selected ?: ""
 
     /**
-     * Whether the select shows itself as invalid: once touched while required and empty.
+     * Whether the select shows itself as invalid: while the server marks it invalid, or once touched while required and empty.
      */
-    override val showsInvalid: Boolean get() = touched && required && selected == null
+    override val showsInvalid: Boolean get() = serverInvalid || touched && required && selected == null
 
     /**
      * The height of the trigger.
@@ -889,9 +889,9 @@ class ComboboxWidget(
     val selectedValues: List<String> get() = chosen.toList()
 
     /**
-     * Whether the combobox shows itself as invalid: once touched while required and empty.
+     * Whether the combobox shows itself as invalid: while the server marks it invalid, or once touched while required and empty.
      */
-    override val showsInvalid: Boolean get() = touched && required && chosen.isEmpty()
+    override val showsInvalid: Boolean get() = serverInvalid || touched && required && chosen.isEmpty()
 
     /**
      * Returns the width of one chip.

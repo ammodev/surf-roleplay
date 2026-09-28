@@ -527,9 +527,9 @@ class ToggleGroupWidget(
     override val inputValue: String get() = items.filter { it.value in on }.joinToString(",") { it.value }
 
     /**
-     * Whether the group shows itself as invalid: once touched while required and empty.
+     * Whether the group shows itself as invalid: while the server marks it invalid, or once touched while required and empty.
      */
-    override val showsInvalid: Boolean get() = touched && required && on.isEmpty()
+    override val showsInvalid: Boolean get() = serverInvalid || touched && required && on.isEmpty()
 
     /**
      * Measures the items and returns their total size along the group's orientation.

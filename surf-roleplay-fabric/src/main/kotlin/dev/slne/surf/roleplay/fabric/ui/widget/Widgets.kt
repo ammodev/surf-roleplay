@@ -211,9 +211,9 @@ open class TextInputWidget(
         }
 
     /**
-     * Whether the field shows itself as invalid: only once it was touched.
+     * Whether the field shows itself as invalid: while the server marks it invalid, or only once it was touched.
      */
-    override val showsInvalid: Boolean get() = touched && !isValid
+    override val showsInvalid: Boolean get() = serverInvalid || touched && !isValid
 
     /**
      * Returns the default input size.
@@ -452,7 +452,7 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
             ui.icon("check", Rect(box.x + 1, box.y + 1, mark, mark), if (enabled) tokens.primaryForeground else ui.disabled(tokens.primaryForeground))
         } else {
             ui.fillRounded(box, inputFill(ui), radius)
-            ui.borderRounded(box, if (enabled) tokens.input else ui.disabled(tokens.input), radius)
+            ui.borderRounded(box, if (showsInvalid) tokens.destructive else if (enabled) tokens.input else ui.disabled(tokens.input), radius)
         }
         ui.text(label, box.right + LABEL_GAP, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
     }

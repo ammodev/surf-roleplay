@@ -7,6 +7,8 @@ import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
+import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.FormWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Popover
 import dev.slne.surf.roleplay.fabric.ui.widget.ScrollListWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.UiContext
@@ -479,6 +481,7 @@ class ScreenPanel(
     /**
      * Handles a key: the open popover first, then Tab and Shift+Tab, then the focused widget.
      * Escape closes an open popover and is otherwise left to the screen; Tab also closes it.
+     * Enter that the focused widget does not use clicks the submit button of its form.
      *
      * @param event the key event
      * @return whether the key was handled
@@ -498,7 +501,23 @@ class ScreenPanel(
             return true
         }
         if (event.isEscape) return false
-        return focusedWidget?.keyPressed(this, event) == true
+        val focused = focusedWidget ?: return false
+        if (focused.keyPressed(this, event)) return true
+        return (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) && submitForm(focused)
+    }
+
+    /**
+     * Clicks the submit button of the form around a widget.
+     *
+     * @param widget the widget in which Enter was pressed
+     * @return whether a form around the widget has an enabled submit button, which was clicked
+     */
+    private fun submitForm(widget: Widget): Boolean {
+        val form = FormWidget.around(root, widget) ?: return false
+        val button = form.submitId?.let { WidgetTree.find(root, it) } as? ButtonWidget ?: return false
+        if (!button.enabled) return false
+        actionTriggered(button, button.submitsInput)
+        return true
     }
 
     /**

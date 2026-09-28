@@ -150,9 +150,9 @@ class CalendarWidget(
     override val inputValue: String get() = CalendarValues.format(mode, selected)
 
     /**
-     * Whether the calendar shows itself as invalid: once touched while required and empty.
+     * Whether the calendar shows itself as invalid: while the server marks it invalid, or once touched while required and empty.
      */
-    override val showsInvalid: Boolean get() = touched && required && selected.isEmpty()
+    override val showsInvalid: Boolean get() = serverInvalid || touched && required && selected.isEmpty()
 
     /**
      * Returns the size of the caption, the weekday row and the weeks of the displayed month.

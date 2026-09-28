@@ -164,9 +164,15 @@ abstract class Widget(val id: String) {
     }
 
     /**
-     * Whether the widget currently shows itself as invalid.
+     * Whether a check the server made marked the widget as invalid. The mark is cleared when the
+     * player changes the widget's value.
      */
-    open val showsInvalid: Boolean get() = false
+    var serverInvalid: Boolean = false
+
+    /**
+     * Whether the widget currently shows itself as invalid: while the server marks it invalid.
+     */
+    open val showsInvalid: Boolean get() = serverInvalid
 
     /**
      * Records that the player changed the widget's value and reports the change if the widget
@@ -177,6 +183,7 @@ abstract class Widget(val id: String) {
      */
     fun markChanged(context: UiContext, immediate: Boolean) {
         touched = true
+        serverInvalid = false
         if (notifyChange) context.valueChanged(this, immediate)
     }
 

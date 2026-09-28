@@ -5,6 +5,13 @@ import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupSeparatorNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupTextNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
+import dev.slne.surf.roleplay.protocol.screen.FieldContentNode
+import dev.slne.surf.roleplay.protocol.screen.FieldGroupNode
+import dev.slne.surf.roleplay.protocol.screen.FieldNode
+import dev.slne.surf.roleplay.protocol.screen.FieldSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.FieldSetNode
+import dev.slne.surf.roleplay.protocol.screen.FieldTextNode
+import dev.slne.surf.roleplay.protocol.screen.FormNode
 import dev.slne.surf.roleplay.protocol.screen.CalendarNode
 import dev.slne.surf.roleplay.protocol.screen.CalendarValues
 import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
@@ -90,6 +97,13 @@ object WidgetFactory {
             is ToggleGroupNode -> ToggleGroupWidget(node.id, node.items, node.selected, node.multiple, node.variant, node.size, node.spacing, node.orientation, node.required)
                 .apply { enabled = node.enabled }
             is ProgressNode -> ProgressWidget(node.id, node.progress, node.label)
+            is FormNode -> container(FormWidget(node.id, node.submitId), node.children)
+            is FieldSetNode -> container(FieldStackWidget(node.id, FieldStackWidget.SET_GAP), node.children)
+            is FieldGroupNode -> container(FieldStackWidget(node.id, FieldStackWidget.GROUP_GAP), node.children)
+            is FieldNode -> container(FieldWidget(node.id, node.orientation), node.children)
+            is FieldContentNode -> container(FieldStackWidget(node.id, FieldStackWidget.CONTENT_GAP), node.children)
+            is FieldTextNode -> FieldTextWidget(node.id, node.kind, node.text, node.forId)
+            is FieldSeparatorNode -> FieldSeparatorWidget(node.id, node.text)
             is CalendarNode -> CalendarWidget(
                 node.id, node.mode, CalendarValues.parse(node.mode, node.value).orEmpty(), node.month?.let(CalendarValues::month),
                 node.min?.let(CalendarValues::date), node.max?.let(CalendarValues::date), node.disabled.mapNotNull(CalendarValues::date).toSet(),

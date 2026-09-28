@@ -169,9 +169,9 @@ class TextareaWidget(
     override val inputValue: String get() = edit.text
 
     /**
-     * Whether the field shows itself as invalid: once touched while required and empty.
+     * Whether the field shows itself as invalid: while the server marks it invalid, or once touched while required and empty.
      */
-    override val showsInvalid: Boolean get() = touched && required && edit.text.isEmpty()
+    override val showsInvalid: Boolean get() = serverInvalid || touched && required && edit.text.isEmpty()
 
     /**
      * Returns the default input width and the height of the visible rows.
@@ -462,10 +462,10 @@ class InputOtpWidget(
     override val inputValue: String get() = value
 
     /**
-     * Whether the input shows itself as invalid: once touched while incomplete, or empty and
-     * required.
+     * Whether the input shows itself as invalid: while the server marks it invalid, or once
+     * touched while incomplete, or empty and required.
      */
-    override val showsInvalid: Boolean get() = touched && (if (value.isEmpty()) required else value.length != length)
+    override val showsInvalid: Boolean get() = serverInvalid || touched && (if (value.isEmpty()) required else value.length != length)
 
     /**
      * Checks whether a slot accepts a character.
