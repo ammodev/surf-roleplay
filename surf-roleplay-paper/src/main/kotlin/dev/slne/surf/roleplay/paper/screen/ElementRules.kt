@@ -30,6 +30,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
 import dev.slne.surf.roleplay.api.client.common.screen.OtpSlots
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputType
 import dev.slne.surf.roleplay.api.client.common.screen.TextareaElement
+import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
+import dev.slne.surf.roleplay.api.client.common.screen.KbdElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import net.kyori.adventure.text.Component
 import kotlin.reflect.KClass
 
@@ -370,6 +373,9 @@ object ElementRules {
         )
         register(InputGroupTextElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(FieldTextElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(TextElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(KbdElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(BadgeElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(FieldSeparatorElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(
             InputOtpElement::class,

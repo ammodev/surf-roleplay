@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.paper.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.KbdGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.FieldContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
@@ -238,6 +239,7 @@ class ServerScreenTree(root: ScreenElement) {
             is FieldGroupElement -> container.copy(children = children)
             is FieldElement -> container.copy(children = children)
             is FieldContentElement -> container.copy(children = children)
+            is KbdGroupElement -> container.copy(children = children)
         }
     }
 }

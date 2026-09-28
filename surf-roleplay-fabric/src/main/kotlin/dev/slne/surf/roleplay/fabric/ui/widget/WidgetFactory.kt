@@ -1,7 +1,13 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.protocol.screen.BadgeNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
+import dev.slne.surf.roleplay.protocol.screen.KbdGroupNode
+import dev.slne.surf.roleplay.protocol.screen.KbdNode
+import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.TextListNode
+import dev.slne.surf.roleplay.protocol.screen.TextNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupSeparatorNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupTextNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
@@ -118,6 +124,12 @@ object WidgetFactory {
             is InputGroupNode -> InputGroupWidget(node.id, node.children.map { create(it) })
             is InputGroupAddonNode -> container(InputGroupAddonWidget(node.id, node.align), node.children)
             is InputGroupTextNode -> InputGroupTextWidget(node.id, node.text, node.icon)
+            is TextNode -> TextWidget(node.id, node.kind, node.text, node.maxLines, node.align)
+            is TextListNode -> TextListWidget(node.id, node.items, node.ordered)
+            is SeparatorNode -> SeparatorWidget(node.id, node.orientation)
+            is KbdNode -> KbdWidget(node.id, node.text, node.icon)
+            is KbdGroupNode -> container(KbdGroupWidget(node.id), node.children)
+            is BadgeNode -> BadgeWidget(node.id, node.text, node.icon, node.variant)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width

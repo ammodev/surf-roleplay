@@ -195,8 +195,22 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param color the ARGB color of unstyled parts
      * @param maxLines the largest number of lines drawn, or `0` for no limit
      * @param align how each line is placed within the width
+     * @param scale the factor the font is drawn larger by; the text wraps at the width divided by
+     *        it
      */
-    fun wrappedText(json: String, x: Int, y: Int, maxWidth: Int, color: Int, maxLines: Int = 0, align: TextAlign = TextAlign.START) {
+    fun wrappedText(json: String, x: Int, y: Int, maxWidth: Int, color: Int, maxLines: Int = 0, align: TextAlign = TextAlign.START, scale: Float = 1f) {
+        if (scale != 1f) {
+            val pose = graphics.pose()
+            pose.pushMatrix()
+            pose.translate(x.toFloat(), y.toFloat())
+            pose.scale(scale, scale)
+            try {
+                wrappedText(json, 0, 0, (maxWidth / scale).toInt(), color, maxLines, align)
+            } finally {
+                pose.popMatrix()
+            }
+            return
+        }
         val width = maxWidth.coerceAtLeast(1)
         val lines = font.splitIgnoringLanguage(ScreenText.parse(json), width)
         val clamped = maxLines > 0 && lines.size > maxLines

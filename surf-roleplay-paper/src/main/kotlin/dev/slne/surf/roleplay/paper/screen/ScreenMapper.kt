@@ -105,6 +105,18 @@ import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.protocol.screen.Presentation
 import dev.slne.surf.roleplay.protocol.screen.SheetEdge
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
+import dev.slne.surf.roleplay.api.client.common.screen.TextElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextListElement
+import dev.slne.surf.roleplay.api.client.common.screen.SeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.KbdElement
+import dev.slne.surf.roleplay.api.client.common.screen.KbdGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
+import dev.slne.surf.roleplay.protocol.screen.TextNode
+import dev.slne.surf.roleplay.protocol.screen.TextListNode
+import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.KbdNode
+import dev.slne.surf.roleplay.protocol.screen.KbdGroupNode
+import dev.slne.surf.roleplay.protocol.screen.BadgeNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -223,6 +235,12 @@ object ScreenMapper {
                 element.id, width, height, element.value, element.length, element.groups, enumOf(element.pattern), element.required,
                 element.enabled, element.onChange != null,
             )
+            is TextElement -> TextNode(element.id, width, height, enumOf(element.kind), text(element.text), element.maxLines, align(element.align))
+            is TextListElement -> TextListNode(element.id, width, height, element.items.map(::text), element.ordered)
+            is SeparatorElement -> SeparatorNode(element.id, width, height, enumOf(element.orientation))
+            is KbdElement -> KbdNode(element.id, width, height, text(element.text), element.icon)
+            is KbdGroupElement -> KbdGroupNode(element.id, width, height, element.children.map(::toNode))
+            is BadgeElement -> BadgeNode(element.id, width, height, text(element.text), element.icon, enumOf(element.variant))
         }
     }
 
