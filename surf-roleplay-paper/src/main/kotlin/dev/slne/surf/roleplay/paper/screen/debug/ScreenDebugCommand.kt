@@ -35,6 +35,12 @@ object ScreenDebugCommand {
                         Command.SINGLE_SUCCESS
                     }
                     .then(
+                        Commands.literal("inputs").executes { context ->
+                            InputsDemo.open(context.source.executor as Player)
+                            Command.SINGLE_SUCCESS
+                        },
+                    )
+                    .then(
                         Commands.literal("counter").executes { context ->
                             screens.openCounter(context.source.executor as Player)
                             Command.SINGLE_SUCCESS
