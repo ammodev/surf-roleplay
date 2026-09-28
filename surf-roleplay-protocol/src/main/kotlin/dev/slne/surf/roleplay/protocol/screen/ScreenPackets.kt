@@ -151,3 +151,17 @@ class ScreenTypedAction(
 data class ScreenClosed(
     @ProtoNumber(1) val sessionId: Int,
 ) : Packet
+
+/**
+ * Reports that the player changed the value of an input that asked for change events.
+ *
+ * @property sessionId the session of the screen
+ * @property widgetId the id of the input
+ * @property value the new value, in the string form of [InputValue.value]
+ */
+@Serializable
+data class ScreenInputChange(
+    @ProtoNumber(1) val sessionId: Int,
+    @ProtoNumber(2) val widgetId: String,
+    @ProtoNumber(3) val value: String,
+) : Packet

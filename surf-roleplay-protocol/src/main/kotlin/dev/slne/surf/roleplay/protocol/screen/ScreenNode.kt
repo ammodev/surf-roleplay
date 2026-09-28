@@ -321,6 +321,7 @@ data class ButtonNode(
  * @property required whether an empty value is invalid
  * @property enabled whether the player can edit the field
  * @property icon the name of a Lucide icon drawn at the start of the field, or `null` for none
+ * @property notifyChange whether the mod reports every change of the value at once
  */
 @Serializable
 @SerialName("text_input")
@@ -334,6 +335,7 @@ data class TextInputNode(
     @ProtoNumber(7) val required: Boolean = false,
     @ProtoNumber(8) val enabled: Boolean = true,
     @ProtoNumber(9) val icon: String? = null,
+    @ProtoNumber(10) val notifyChange: Boolean = false,
 ) : ScreenNode
 
 /**
@@ -347,6 +349,7 @@ data class TextInputNode(
  * @property max the largest allowed number, or `null` for no upper bound
  * @property required whether an empty value is invalid
  * @property enabled whether the player can edit the field
+ * @property notifyChange whether the mod reports every change of the value at once
  */
 @Serializable
 @SerialName("number_input")
@@ -359,6 +362,7 @@ data class NumberInputNode(
     @ProtoNumber(6) val max: Long? = null,
     @ProtoNumber(7) val required: Boolean = false,
     @ProtoNumber(8) val enabled: Boolean = true,
+    @ProtoNumber(9) val notifyChange: Boolean = false,
 ) : ScreenNode
 
 /**
@@ -370,6 +374,7 @@ data class NumberInputNode(
  * @property label the label as component JSON
  * @property checked whether the box is checked
  * @property enabled whether the player can toggle the box
+ * @property notifyChange whether the mod reports every change of the value at once
  */
 @Serializable
 @SerialName("checkbox")
@@ -380,6 +385,7 @@ data class CheckboxNode(
     @ProtoNumber(4) val label: String = "",
     @ProtoNumber(5) val checked: Boolean = false,
     @ProtoNumber(6) val enabled: Boolean = true,
+    @ProtoNumber(7) val notifyChange: Boolean = false,
 ) : ScreenNode
 
 /**
@@ -392,6 +398,7 @@ data class CheckboxNode(
  * @property selected the value of the selected option, or `null` if none is selected
  * @property required whether having no selection is invalid
  * @property enabled whether the player can change the selection
+ * @property notifyChange whether the mod reports every change of the value at once
  */
 @Serializable
 @SerialName("dropdown")
@@ -403,6 +410,7 @@ data class DropdownNode(
     @ProtoNumber(5) val selected: String? = null,
     @ProtoNumber(6) val required: Boolean = false,
     @ProtoNumber(7) val enabled: Boolean = true,
+    @ProtoNumber(8) val notifyChange: Boolean = false,
 ) : ScreenNode
 
 /**
