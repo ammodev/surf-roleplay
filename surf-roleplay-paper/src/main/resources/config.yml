@@ -4,3 +4,7 @@ handshake:
   # Ids of client mods allowed in addition to Minecraft, Java, the Fabric loader, MixinExtras,
   # Fabric API, Fabric Language Kotlin and the roleplay mod.
   allowed-mods: []
+
+screens:
+  # The largest number of screen actions (clicks, typed screen actions) a player may send per second.
+  max-actions-per-second: 20
