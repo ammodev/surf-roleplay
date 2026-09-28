@@ -29,7 +29,7 @@ class ScreenDslTest {
                     textInput("name", value = "Max", placeholder = Component.text("Name"), maxLength = 16, required = true)
                     numberInput("age", value = 30, min = 18, max = 99, enabled = false)
                     checkbox("agree", Component.text("Ja"), checked = true)
-                    dropdown("city", listOf(DropdownChoice("north", Component.text("Nord"))), selected = "north", required = true)
+                    select("city", listOf(SelectChoice("north", Component.text("Nord"))), selected = "north", required = true)
                 }
                 scrollList("list", height = ElementSize.fixed(60), gap = 1) {
                     button("open", Component.text("Öffnen"), onClick = handler)
@@ -50,7 +50,7 @@ class ScreenDslTest {
         assertEquals(16, assertIs<TextInputElement>(inputs.children[0]).maxLength)
         assertEquals(false, assertIs<NumberInputElement>(inputs.children[1]).enabled)
         assertEquals(true, assertIs<CheckboxElement>(inputs.children[2]).checked)
-        assertEquals("north", assertIs<DropdownElement>(inputs.children[3]).selected)
+        assertEquals("north", assertIs<SelectElement>(inputs.children[3]).selected)
         val list = assertIs<ScrollListElement>(root.children[2])
         assertSame(handler, assertIs<ButtonElement>(list.children[0]).onClick)
         assertEquals(Key.key("surf-roleplay", "textures/gui/logo.png"), assertIs<ImageElement>(root.children[3]).texture)

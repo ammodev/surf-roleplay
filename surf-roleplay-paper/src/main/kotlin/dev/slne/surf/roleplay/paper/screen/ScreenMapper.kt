@@ -32,7 +32,10 @@ import dev.slne.surf.roleplay.protocol.screen.ToggleNode
 import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
+import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSizeMode
 import dev.slne.surf.roleplay.api.client.common.screen.IconElement
@@ -51,8 +54,12 @@ import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownOption
+import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
+import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
+import dev.slne.surf.roleplay.protocol.screen.SelectGroup
+import dev.slne.surf.roleplay.protocol.screen.SelectNode
+import dev.slne.surf.roleplay.protocol.screen.SelectOption
+import dev.slne.surf.roleplay.protocol.screen.SetOptions
 import dev.slne.surf.roleplay.protocol.screen.IconColor
 import dev.slne.surf.roleplay.protocol.screen.IconNode
 import dev.slne.surf.roleplay.protocol.screen.ImageNode
@@ -130,9 +137,19 @@ object ScreenMapper {
             )
 
             is CheckboxElement -> CheckboxNode(element.id, width, height, text(element.label), element.checked, element.enabled, element.onChange != null)
-            is DropdownElement -> DropdownNode(
-                element.id, width, height, element.options.map { DropdownOption(it.value, text(it.label)) },
-                element.selected, element.required, element.enabled, element.onChange != null,
+            is SelectElement -> SelectNode(
+                element.id, width, height, groups(element.groups), element.selected, text(element.placeholder), enumOf(element.size), element.required,
+                element.enabled, element.onChange != null,
+            )
+
+            is NativeSelectElement -> NativeSelectNode(
+                element.id, width, height, groups(element.groups), element.selected, enumOf(element.size), element.required, element.enabled,
+                element.onChange != null,
+            )
+
+            is ComboboxElement -> ComboboxNode(
+                element.id, width, height, groups(element.groups), element.selected, element.multiple, text(element.placeholder), text(element.emptyText),
+                element.showClear, element.required, element.enabled, element.onChange != null, element.onSearch != null,
             )
 
             is ImageElement -> ImageNode(element.id, width, height, element.texture.asString())
@@ -192,7 +209,17 @@ object ScreenMapper {
         is ScreenChange.SetValue -> SetValue(change.targetId, change.value)
         is ScreenChange.SetProgress -> SetProgress(change.targetId, change.progress)
         is ScreenChange.SetEnabled -> SetEnabled(change.targetId, change.enabled)
+        is ScreenChange.SetOptions -> SetOptions(change.targetId, groups(change.groups))
     }
+
+    /**
+     * Maps option groups to their protocol form.
+     *
+     * @param groups the option groups
+     * @return the protocol groups
+     */
+    fun groups(groups: List<SelectChoiceGroup>): List<SelectGroup> =
+        groups.map { group -> SelectGroup(group.label?.let(::text), group.options.map { SelectOption(it.value, text(it.label), it.enabled) }) }
 
     /**
      * Maps an API enum constant to the protocol enum constant of the same name.

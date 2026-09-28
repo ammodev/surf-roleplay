@@ -1,6 +1,8 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAddonElement
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
@@ -83,6 +85,10 @@ class ServerScreenTree(root: ScreenElement) {
             is ScreenChange.SetEnabled -> update(change.targetId) { element ->
                 ElementRules.rule(element)?.withEnabled?.invoke(element, change.enabled)
             } ?: return false
+
+            is ScreenChange.SetOptions -> update(change.targetId) { element ->
+                (element as? ComboboxElement)?.let { combobox -> withOptions(combobox, change.groups) }
+            } ?: return false
         }
         root = updated
         return true
@@ -107,6 +113,21 @@ class ServerScreenTree(root: ScreenElement) {
      */
     private fun withValue(element: ScreenElement, value: String): ScreenElement? =
         ElementRules.input(element)?.withValue?.invoke(element, value)
+
+    /**
+     * Returns a combobox with new options. Selected options missing from the new groups are kept
+     * in an extra group without heading at the end, so that the selection stays valid.
+     *
+     * @param combobox the combobox
+     * @param groups the new option groups
+     * @return the updated combobox, or `null` if the new option values repeat
+     */
+    private fun withOptions(combobox: ComboboxElement, groups: List<SelectChoiceGroup>): ComboboxElement? {
+        val present = groups.flatMap { group -> group.options.map { it.value } }.toSet()
+        val kept = combobox.groups.flatMap { it.options }.filter { it.value in combobox.selected && it.value !in present }
+        val merged = if (kept.isEmpty()) groups else groups + SelectChoiceGroup(null, kept)
+        return runCatching { combobox.copy(groups = merged) }.getOrNull()
+    }
 
     /**
      * Rebuilds the tree with one element updated.

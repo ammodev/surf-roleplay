@@ -7,7 +7,10 @@ import dev.slne.surf.roleplay.api.client.common.screen.ToggleElement
 import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
+import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
@@ -202,6 +205,34 @@ object ElementRules {
     }
 
     /**
+     * Checks whether a value is an option of a list of groups.
+     *
+     * @param groups the option groups
+     * @param value the value
+     * @return whether an option has the value
+     */
+    fun isOption(groups: List<SelectChoiceGroup>, value: String): Boolean = groups.any { group -> group.options.any { it.value == value } }
+
+    /**
+     * Checks the options a selection would have chosen: known options only, each once, no newly
+     * chosen disabled option, and at least one if required.
+     *
+     * @param groups the option groups
+     * @param current the values selected now
+     * @param chosen the values that would be selected
+     * @param required whether an empty selection is invalid
+     * @return a description of the violated constraint, or `null` if the selection is valid
+     */
+    private fun choiceViolation(groups: List<SelectChoiceGroup>, current: List<String>, chosen: List<String>, required: Boolean): String? {
+        val options = groups.flatMap { it.options }.associateBy { it.value }
+        if (chosen.any { it !in options }) return "value is not an option"
+        if (chosen.toSet().size != chosen.size) return "value repeats an option"
+        if (chosen.any { it !in current && options[it]?.enabled == false }) return "a disabled option was selected"
+        if (required && chosen.isEmpty()) return "value is required"
+        return null
+    }
+
+    /**
      * Splits a comma-separated list value into its non-empty parts.
      *
      * @param value the list value
@@ -384,20 +415,48 @@ object ElementRules {
             ),
         )
         register(
-            DropdownElement::class,
+            SelectElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(placeholder = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { it.selected ?: "" },
+                    violation = { e, v -> choiceViolation(e.groups, listOfNotNull(e.selected), listOfNotNull(v.takeIf { it.isNotEmpty() }), e.required) },
+                    withValue = { e, v -> if (v.isEmpty()) e.copy(selected = null) else e.copy(selected = v.takeIf { isOption(e.groups, it) }) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            NativeSelectElement::class,
             ElementRule(
                 enabled = { it.enabled },
                 withEnabled = { e, on -> e.copy(enabled = on) },
                 input = InputRule(
                     current = { it.selected ?: "" },
+                    violation = { e, v -> choiceViolation(e.groups, listOfNotNull(e.selected), listOfNotNull(v.takeIf { it.isNotEmpty() }), e.required) },
+                    withValue = { e, v -> if (v.isEmpty()) e.copy(selected = null) else e.copy(selected = v.takeIf { isOption(e.groups, it) }) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            ComboboxElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(placeholder = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { it.selected.joinToString(",") },
                     violation = { e, v ->
-                        when {
-                            v.isEmpty() -> if (e.required) "value is required" else null
-                            e.options.none { it.value == v } -> "value is not an option"
-                            else -> null
-                        }
+                        val chosen = splitList(v)
+                        if (!e.multiple && chosen.size > 1) "only one option can be selected" else choiceViolation(e.groups, e.selected, chosen, e.required)
                     },
-                    withValue = { e, v -> e.copy(selected = v.takeIf { candidate -> e.options.any { it.value == candidate } }) },
+                    withValue = { e, v ->
+                        val chosen = splitList(v)
+                        if (chosen.all { isOption(e.groups, it) } && chosen.toSet().size == chosen.size && (e.multiple || chosen.size <= 1)) e.copy(selected = chosen) else null
+                    },
                     onChange = { it.onChange },
                 ),
             ),

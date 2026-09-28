@@ -1,6 +1,9 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.api.core.util.logger
+import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange
@@ -30,6 +33,11 @@ import net.kyori.adventure.text.Component
 import java.util.UUID
 
 private val log = logger()
+
+/**
+ * The longest combobox query accepted in a search event.
+ */
+private const val MAX_QUERY_LENGTH: Int = 256
 
 /**
  * Sends clientbound screen packets to one player.
@@ -326,6 +334,7 @@ class PlayerScreenState(
             ?: return Outcome.Rejected("session ${packet.sessionId} is not the top generic screen", suspicious = false)
         val id = packet.widgetId
         val element = session.tree.find(id) ?: return Outcome.Rejected("unknown input ${ScreenActionValidator.display(id)}")
+        packet.query?.let { query -> return handleSearch(session, element, query) }
         val rule = ElementRules.input(element) ?: return Outcome.Rejected("widget ${ScreenActionValidator.display(id)} is not an input")
         val handler = rule.onChange(element) ?: return Outcome.Rejected("input ${ScreenActionValidator.display(id)} does not report changes")
         if (!ElementRules.isEnabled(element)) return Outcome.Rejected("input ${ScreenActionValidator.display(id)} is disabled")
@@ -333,6 +342,24 @@ class PlayerScreenState(
         session.tree.storeValues(mapOf(id to packet.value))
         val values = session.tree.elements().mapNotNull { e -> ElementRules.input(e)?.current?.invoke(e)?.let { e.id to it } }.toMap()
         runHandler("change of '$id'") { handler.onChange(ScreenInputChange(session, id, packet.value, ScreenValues(values))) }
+        return Outcome.Accepted
+    }
+
+    /**
+     * Runs the search handler of a combobox for a changed query.
+     *
+     * @param session the screen the combobox is on
+     * @param element the element the query was reported for
+     * @param query the typed query
+     * @return the outcome
+     */
+    private fun handleSearch(session: GenericSession, element: ScreenElement, query: String): Outcome {
+        val id = ScreenActionValidator.display(element.id)
+        val combobox = element as? ComboboxElement ?: return Outcome.Rejected("widget $id is not a combobox")
+        val handler = combobox.onSearch ?: return Outcome.Rejected("combobox $id does not report searches")
+        if (!combobox.enabled) return Outcome.Rejected("combobox $id is disabled")
+        if (query.length > MAX_QUERY_LENGTH) return Outcome.Rejected("query of combobox $id is too long")
+        runHandler("search of '${element.id}'") { handler.onSearch(ScreenSearch(session, element.id, query)) }
         return Outcome.Accepted
     }
 

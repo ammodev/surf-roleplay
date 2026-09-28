@@ -320,31 +320,6 @@ open class ElementsBuilder {
     }
 
     /**
-     * Adds a dropdown.
-     *
-     * @param id the id of the dropdown
-     * @param options the options, in display order
-     * @param selected the value of the initially selected option, or `null` for none
-     * @param required whether having no selection is invalid
-     * @param enabled whether the player can change the selection
-     * @param width how wide the dropdown is laid out
-     * @param height how tall the dropdown is laid out
-     * @param onChange the handler run on every validated change, or `null`
-     */
-    fun dropdown(
-        id: String,
-        options: List<DropdownChoice>,
-        selected: String? = null,
-        required: Boolean = false,
-        enabled: Boolean = true,
-        width: ElementSize = ElementSize.FIT,
-        height: ElementSize = ElementSize.FIT,
-        onChange: ChangeHandler? = null,
-    ) {
-        elements += DropdownElement(id, options, selected, required, enabled, width, height, onChange)
-    }
-
-    /**
      * Adds an image.
      *
      * @param id the id of the image

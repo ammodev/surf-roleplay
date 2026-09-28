@@ -338,38 +338,6 @@ data class CheckboxElement(
 ) : ScreenElement
 
 /**
- * A choice of one option from a list.
- *
- * @property id the id of this element
- * @property options the options, in display order
- * @property selected the value of the initially selected option, or `null` for none
- * @property required whether having no selection is invalid
- * @property enabled whether the player can change the selection
- * @property width how wide this element is laid out
- * @property height how tall this element is laid out
- * @property onChange the handler run on every validated change, or `null` to send the value only
- *           with the next action
- */
-data class DropdownElement(
-    override val id: String,
-    val options: List<DropdownChoice>,
-    val selected: String? = null,
-    val required: Boolean = false,
-    val enabled: Boolean = true,
-    override val width: ElementSize = ElementSize.FIT,
-    override val height: ElementSize = ElementSize.FIT,
-    val onChange: ChangeHandler? = null,
-) : ScreenElement
-
-/**
- * One option of a [DropdownElement].
- *
- * @property value the value reported when this option is selected
- * @property label the label shown for this option
- */
-data class DropdownChoice(val value: String, val label: Component)
-
-/**
  * A texture drawn over the element's area.
  *
  * @property id the id of this element

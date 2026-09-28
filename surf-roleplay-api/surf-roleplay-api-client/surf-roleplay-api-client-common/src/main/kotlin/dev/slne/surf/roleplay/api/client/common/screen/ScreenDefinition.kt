@@ -110,8 +110,8 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
  *
  * @property all the values in their string form: text for text inputs, a decimal number or an
  *           empty string for number inputs, `true` or `false` for checkboxes, switches and
- *           toggles, the option value or an empty string for dropdowns and radio groups, and
- *           comma-separated values for toggle groups and sliders
+ *           toggles, the option value or an empty string for selects, native selects and radio
+ *           groups, and comma-separated values for comboboxes, toggle groups and sliders
  */
 class ScreenValues(val all: Map<String, String>) {
 
@@ -148,13 +148,21 @@ class ScreenValues(val all: Map<String, String>) {
     fun numbers(id: String): List<Double>? = all[id]?.split(',')?.mapNotNull { it.trim().toDoubleOrNull() }
 
     /**
-     * Returns the selected option of a dropdown.
+     * Returns the selected option of a select, native select, radio group or single combobox.
      *
-     * @param id the dropdown id
+     * @param id the input id
      * @return the value of the selected option, or `null` if nothing is selected or the screen
-     *         has no such dropdown
+     *         has no such input
      */
     fun selected(id: String): String? = all[id]?.takeIf { it.isNotEmpty() }
+
+    /**
+     * Returns the selected values of a combobox or toggle group.
+     *
+     * @param id the input id
+     * @return the selected values, or `null` if the screen has no such input
+     */
+    fun list(id: String): List<String>? = all[id]?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
 
     /**
      * Returns a readable description of the values.
@@ -262,6 +270,15 @@ sealed interface ScreenChange {
      * @property enabled whether the element can be used
      */
     data class SetEnabled(val targetId: String, val enabled: Boolean) : ScreenChange
+
+    /**
+     * Replaces the options of a combobox, keeping its selection and the query the player typed.
+     * Selected options missing from the new groups are kept in an extra group at the end.
+     *
+     * @property targetId the id of the combobox
+     * @property groups the new option groups
+     */
+    data class SetOptions(val targetId: String, val groups: List<SelectChoiceGroup>) : ScreenChange
 }
 
 /**
@@ -358,5 +375,15 @@ class ScreenPatchBuilder {
      */
     fun setEnabled(targetId: String, enabled: Boolean) {
         recorded += ScreenChange.SetEnabled(targetId, enabled)
+    }
+
+    /**
+     * Replaces the options of a combobox.
+     *
+     * @param targetId the id of the combobox
+     * @param groups the new option groups
+     */
+    fun setOptions(targetId: String, groups: List<SelectChoiceGroup>) {
+        recorded += ScreenChange.SetOptions(targetId, groups)
     }
 }

@@ -2,8 +2,9 @@ package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownChoice
-import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
@@ -27,7 +28,7 @@ class ElementRulesTest {
         val text = TextInputElement("t", value = "ab", maxLength = 3, required = true)
         val number = NumberInputElement("n", value = 5, min = 1, max = 9)
         val checkbox = CheckboxElement("c", checked = true)
-        val dropdown = DropdownElement("d", listOf(DropdownChoice("x", Component.text("X"))), selected = "x")
+        val dropdown = SelectElement("d", listOf(SelectChoiceGroup(null, listOf(SelectChoice("x", Component.text("X"))))), selected = "x")
 
         assertEquals(listOf("ab", "5", "true", "x"), listOf(text, number, checkbox, dropdown).map { ElementRules.input(it)!!.current(it) })
         assertNull(ElementRules.input(text)!!.violation(text, "abc"))
