@@ -52,7 +52,8 @@ class SwitchWidget(id: String, var checked: Boolean, val size: SwitchSize) : Wid
     override fun contentSize(measurer: TextMeasurer): Size = Size(trackWidth, trackHeight)
 
     /**
-     * Draws the track, in the primary colour while on, and the round thumb at its side.
+     * Draws the track, in the primary colour while on, and the round thumb at its side: in the
+     * foreground colour on dark themes and in the background colour with a border on light ones.
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -66,7 +67,15 @@ class SwitchWidget(id: String, var checked: Boolean, val size: SwitchSize) : Wid
         ui.fillRounded(track, fade(if (checked) tokens.primary else tokens.input), trackHeight / 2)
         val thumb = trackHeight - 2
         val thumbX = if (checked) track.right - 1 - thumb else track.x + 1
-        ui.fillRounded(Rect(thumbX, track.y + 1, thumb, thumb), fade(tokens.background), thumb / 2)
+        val dark = ThemeColors.isDark(tokens.background)
+        val thumbColor = when {
+            dark && checked -> tokens.primaryForeground
+            dark -> tokens.foreground
+            else -> tokens.background
+        }
+        val thumbArea = Rect(thumbX, track.y + 1, thumb, thumb)
+        ui.fillRounded(thumbArea, fade(thumbColor), thumb / 2)
+        if (!dark) ui.borderRounded(thumbArea, fade(tokens.border), thumb / 2)
     }
 
     /**

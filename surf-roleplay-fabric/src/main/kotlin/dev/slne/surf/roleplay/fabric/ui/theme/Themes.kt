@@ -172,4 +172,17 @@ object ThemeColors {
         }
         return result
     }
+
+    /**
+     * Checks whether a colour is dark.
+     *
+     * @param color the ARGB colour
+     * @return whether its relative luminance is below one half
+     */
+    fun isDark(color: Int): Boolean {
+        val r = (color ushr 16) and 0xFF
+        val g = (color ushr 8) and 0xFF
+        val b = color and 0xFF
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128
+    }
 }
