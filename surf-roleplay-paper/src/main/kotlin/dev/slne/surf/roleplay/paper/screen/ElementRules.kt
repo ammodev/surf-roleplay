@@ -1,6 +1,10 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
+import dev.slne.surf.roleplay.api.client.common.screen.ToggleElement
+import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
@@ -23,13 +27,23 @@ import kotlin.reflect.KClass
  * @property enabled returns whether the element can be used, or `null` if it cannot be disabled
  * @property withEnabled returns an enabled or disabled copy, or `null` if it cannot be disabled
  * @property input the value rules if the element is an input, or `null`
+ * @property action returns how the element triggers widget actions, or `null` if it does not
  */
 class ElementRule<E : ScreenElement>(
     val withText: (E, Component) -> E? = { _, _ -> null },
     val enabled: (E) -> Boolean? = { null },
     val withEnabled: (E, Boolean) -> E? = { _, _ -> null },
     val input: InputRule<E>? = null,
+    val action: (E) -> ActionRule? = { null },
 )
+
+/**
+ * How an element triggers widget actions.
+ *
+ * @property handler the handler run on a validated action, or `null` for none
+ * @property submitsInput whether the action requires every input of the screen to be valid
+ */
+class ActionRule(val handler: ButtonHandler?, val submitsInput: Boolean)
 
 /**
  * The value rules of one kind of input element.
@@ -113,12 +127,72 @@ object ElementRules {
         return null
     }
 
+    /**
+     * Splits a comma-separated list value into its non-empty parts.
+     *
+     * @param value the list value
+     * @return the parts, in order
+     */
+    fun splitList(value: String): List<String> = value.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+
+    /**
+     * Checks the items a toggle group would have switched on.
+     *
+     * @param group the toggle group
+     * @param chosen the values of the items that would be on
+     * @return a description of the violated constraint, or `null` if the choice is valid
+     */
+    private fun toggleGroupViolation(group: ToggleGroupElement, chosen: List<String>): String? {
+        val items = group.items.associateBy { it.value }
+        if (chosen.any { it !in items }) return "value is not an item"
+        if (chosen.toSet().size != chosen.size) return "value repeats an item"
+        if (!group.multiple && chosen.size > 1) return "only one item can be on"
+        if (group.required && chosen.isEmpty()) return "value is required"
+        val changed = (chosen.toSet() - group.selected.toSet()) + (group.selected.toSet() - chosen.toSet())
+        if (changed.any { items[it]?.enabled == false }) return "a disabled item changed"
+        return null
+    }
+
     init {
         register(LabelElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(ProgressElement::class, ElementRule(withText = { e, t -> e.copy(label = t) }))
         register(
             ButtonElement::class,
-            ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }),
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, it.submitsInput) },
+            ),
+        )
+        register(ButtonGroupTextElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            ToggleElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onToggle, submitsInput = false) },
+                input = InputRule(
+                    current = { it.pressed.toString() },
+                    violation = { _, v -> if (v == "true" || v == "false") null else "value must be true or false" },
+                    withValue = { e, v -> e.copy(pressed = v == "true") },
+                    onChange = { null },
+                ),
+            ),
+        )
+        register(
+            ToggleGroupElement::class,
+            ElementRule(
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { e -> e.items.filter { it.value in e.selected }.joinToString(",") { it.value } },
+                    violation = { e, v -> toggleGroupViolation(e, splitList(v)) },
+                    withValue = { e, v -> e.copy(selected = splitList(v)) },
+                    onChange = { it.onChange },
+                ),
+            ),
         )
         register(
             TextInputElement::class,

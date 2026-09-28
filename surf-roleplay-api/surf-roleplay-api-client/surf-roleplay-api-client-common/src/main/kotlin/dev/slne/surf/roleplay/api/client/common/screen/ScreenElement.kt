@@ -241,6 +241,8 @@ data class LabelElement(
  * @property height how tall this element is laid out
  * @property submitsInput whether a click requires every input of the screen to be valid
  * @property icon the Lucide name of an icon drawn before the caption, or `null` for none
+ * @property variant the look of the button
+ * @property size the size of the button
  */
 data class ButtonElement(
     override val id: String,
@@ -251,6 +253,8 @@ data class ButtonElement(
     override val height: ElementSize = ElementSize.FIT,
     val submitsInput: Boolean = true,
     val icon: String? = null,
+    val variant: ButtonVariant = ButtonVariant.DEFAULT,
+    val size: ButtonSize = ButtonSize.DEFAULT,
 ) : ScreenElement
 
 /**

@@ -211,6 +211,8 @@ open class ElementsBuilder {
      * @param height how tall the button is laid out
      * @param submitsInput whether a click requires every input of the screen to be valid
      * @param icon the Lucide name of an icon drawn before the caption, or `null` for none
+     * @param variant the look of the button
+     * @param size the size of the button
      * @param onClick the handler run on a validated click, or `null` for none
      */
     fun button(
@@ -221,9 +223,11 @@ open class ElementsBuilder {
         height: ElementSize = ElementSize.FIT,
         submitsInput: Boolean = true,
         icon: String? = null,
+        variant: ButtonVariant = ButtonVariant.DEFAULT,
+        size: ButtonSize = ButtonSize.DEFAULT,
         onClick: ButtonHandler? = null,
     ) {
-        elements += ButtonElement(id, text, enabled, onClick, width, height, submitsInput, icon)
+        elements += ButtonElement(id, text, enabled, onClick, width, height, submitsInput, icon, variant, size)
     }
 
     /**

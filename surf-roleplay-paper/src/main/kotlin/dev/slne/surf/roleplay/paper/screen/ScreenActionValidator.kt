@@ -1,6 +1,5 @@
 package dev.slne.surf.roleplay.paper.screen
 
-import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.protocol.screen.InputValue
 
 /**
@@ -43,12 +42,10 @@ object ScreenActionValidator {
      * @return the outcome
      */
     fun validate(tree: ServerScreenTree, widgetId: String, submitted: List<InputValue>): Result {
-        val button = when (val widget = tree.find(widgetId)) {
-            null -> return Result.Rejected("unknown widget ${display(widgetId)}")
-            !is ButtonElement -> return Result.Rejected("widget ${display(widgetId)} is not a button")
-            else -> widget
-        }
-        if (!button.enabled) return Result.Rejected("button ${display(widgetId)} is disabled")
+        val widget = tree.find(widgetId) ?: return Result.Rejected("unknown widget ${display(widgetId)}")
+        val action = ElementRules.rule(widget)?.action?.invoke(widget)
+            ?: return Result.Rejected("widget ${display(widgetId)} is not a button")
+        if (!ElementRules.isEnabled(widget)) return Result.Rejected("button ${display(widgetId)} is disabled")
 
         val values = LinkedHashMap<String, String>()
         tree.elements().forEach { element -> ElementRules.input(element)?.current?.invoke(element)?.let { values[element.id] = it } }
@@ -65,7 +62,7 @@ object ScreenActionValidator {
             }
             val violation = ElementRules.input(element)!!.violation(element, value.value)
             if (violation != null) {
-                if (button.submitsInput) return Result.Rejected("input ${display(id)}: $violation")
+                if (action.submitsInput) return Result.Rejected("input ${display(id)}: $violation")
                 continue
             }
             values[id] = value.value

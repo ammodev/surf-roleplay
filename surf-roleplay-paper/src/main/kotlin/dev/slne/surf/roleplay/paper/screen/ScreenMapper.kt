@@ -2,6 +2,17 @@ package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupTextElement
+import dev.slne.surf.roleplay.api.client.common.screen.ToggleElement
+import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupElement
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.ButtonGroupTextNode
+import dev.slne.surf.roleplay.protocol.screen.ToggleGroupItem
+import dev.slne.surf.roleplay.protocol.screen.ToggleNode
+import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownElement
@@ -90,7 +101,7 @@ object ScreenMapper {
 
             is ScrollListElement -> ScrollListNode(element.id, width, height, element.children.map(::toNode), element.gap)
             is LabelElement -> LabelNode(element.id, width, height, text(element.text), element.icon)
-            is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput, element.icon)
+            is ButtonElement -> ButtonNode(element.id, width, height, text(element.text), element.enabled, element.submitsInput, element.icon, enumOf(element.variant), enumOf(element.size))
             is TextInputElement -> TextInputNode(
                 element.id, width, height, element.value, text(element.placeholder), element.maxLength, element.required, element.enabled, element.icon,
                 element.onChange != null,
@@ -110,6 +121,19 @@ object ScreenMapper {
             is ImageElement -> ImageNode(element.id, width, height, element.texture.asString())
             is ProgressElement -> ProgressNode(element.id, width, height, element.progress, element.label?.let(::text))
             is IconElement -> IconNode(element.id, width, height, element.icon, element.size, tint(element.tint))
+            is ButtonGroupElement -> ButtonGroupNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation))
+            is ButtonGroupTextElement -> ButtonGroupTextNode(element.id, width, height, text(element.text), element.icon)
+            is ButtonGroupSeparatorElement -> ButtonGroupSeparatorNode(element.id, width, height)
+            is ToggleElement -> ToggleNode(
+                element.id, width, height, text(element.text), element.icon, element.pressed, enumOf(element.variant), enumOf(element.size), element.enabled,
+            )
+
+            is ToggleGroupElement -> ToggleGroupNode(
+                element.id, width, height,
+                element.items.map { ToggleGroupItem(it.value, text(it.text), it.icon, it.enabled) },
+                element.multiple, element.selected, enumOf(element.variant), enumOf(element.size), element.spacing,
+                enumOf(element.orientation), element.enabled, element.required, element.onChange != null,
+            )
         }
     }
 
@@ -128,6 +152,15 @@ object ScreenMapper {
         is ScreenChange.SetProgress -> SetProgress(change.targetId, change.progress)
         is ScreenChange.SetEnabled -> SetEnabled(change.targetId, change.enabled)
     }
+
+    /**
+     * Maps an API enum constant to the protocol enum constant of the same name.
+     *
+     * @param T the protocol enum
+     * @param value the API constant
+     * @return the protocol constant
+     */
+    inline fun <reified T : Enum<T>> enumOf(value: Enum<*>): T = enumValueOf(value.name)
 
     /**
      * Maps an icon tint.

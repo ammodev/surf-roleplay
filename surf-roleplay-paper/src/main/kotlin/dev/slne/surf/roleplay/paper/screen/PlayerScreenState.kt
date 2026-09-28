@@ -12,7 +12,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenValues
-import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.Packets
@@ -303,9 +302,10 @@ class PlayerScreenState(
             is ScreenActionValidator.Result.Rejected -> Outcome.Rejected(result.reason)
             is ScreenActionValidator.Result.Accepted -> {
                 session.tree.storeValues(result.values)
-                val button = session.tree.find(packet.widgetId) as ButtonElement
+                val widget = session.tree.find(packet.widgetId)!!
+                val action = ElementRules.rule(widget)!!.action(widget)!!
                 runHandler("click on '${packet.widgetId}'") {
-                    button.onClick?.onClick(ScreenClick(session, packet.widgetId, ScreenValues(result.values)))
+                    action.handler?.onClick(ScreenClick(session, packet.widgetId, ScreenValues(result.values)))
                 }
                 Outcome.Accepted
             }
