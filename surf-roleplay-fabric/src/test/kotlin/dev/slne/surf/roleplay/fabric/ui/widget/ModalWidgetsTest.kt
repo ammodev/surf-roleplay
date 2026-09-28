@@ -24,6 +24,7 @@ import dev.slne.surf.roleplay.protocol.screen.SheetFooterNode
 import dev.slne.surf.roleplay.protocol.screen.SheetHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.SheetNode
 import dev.slne.surf.roleplay.protocol.screen.Sizing
+import dev.slne.surf.roleplay.protocol.screen.TextInputNode
 import dev.slne.surf.roleplay.protocol.screen.TextKind
 import dev.slne.surf.roleplay.protocol.screen.TextNode
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
@@ -236,5 +237,36 @@ class ModalWidgetsTest {
         assertEquals(phone.y, area.y)
         assertEquals(phone.height, area.height)
         assertEquals(phone.width * 3 / 4, area.width)
+    }
+
+    /**
+     * Verifies that a submitting button in a close part keeps the dialog open while an input in
+     * it is invalid, and that a button that does not submit still closes it.
+     */
+    @Test
+    fun `invalid input keeps the dialog open on submit`() {
+        val node = DialogNode(
+            "dialog",
+            children = listOf(
+                ButtonNode("open", text = "Open"),
+                DialogContentNode(
+                    "content",
+                    width = Sizing.fixed(200),
+                    children = listOf(
+                        TextInputNode("name", required = true),
+                        DialogCloseNode("close_part", children = listOf(ButtonNode("save", text = "Save"), ButtonNode("cancel", text = "Cancel", submitsInput = false))),
+                    ),
+                ),
+            ),
+        )
+        val panel = panel(node)
+        click(panel, "open")
+
+        click(panel, "save")
+        assertNotNull(panel.popover)
+        click(panel, "cancel")
+
+        assertNull(panel.popover)
+        assertEquals(listOf("save", "cancel"), actions)
     }
 }

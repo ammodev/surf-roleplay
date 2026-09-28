@@ -99,13 +99,16 @@ class ModalPopover(owner: OverlayHostWidget, val kind: ModalKind, val edge: Over
     }
 
     /**
-     * Closes the overlay after an action of a widget inside one of its close parts.
+     * Closes the overlay after an action of a widget inside one of its close parts, unless the
+     * action submitted input while an input of the overlay shows itself as invalid.
      *
      * @param context the screen showing the overlay
      * @param widget the widget
+     * @param submitsInput whether the action submitted the screen's input
      */
-    override fun afterAction(context: UiContext, widget: Widget) {
+    override fun afterAction(context: UiContext, widget: Widget, submitsInput: Boolean) {
         val root = content ?: return
+        if (submitsInput && containsInvalid(root)) return
         var current = widget
         while (true) {
             val parent = WidgetTree.parentOf(root, current.id) ?: return
@@ -116,6 +119,15 @@ class ModalPopover(owner: OverlayHostWidget, val kind: ModalKind, val edge: Over
             current = parent
         }
     }
+
+    /**
+     * Returns whether a visible widget of a subtree shows itself as invalid.
+     *
+     * @param widget the root of the subtree
+     * @return whether one does
+     */
+    private fun containsInvalid(widget: Widget): Boolean =
+        !widget.hidden && (widget.showsInvalid || widget.children.any(::containsInvalid))
 
     /**
      * Holds the margin of centered overlays.

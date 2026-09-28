@@ -136,8 +136,9 @@ interface Popover {
      *
      * @param context the screen showing the popover
      * @param widget the widget
+     * @param submitsInput whether the action submitted the screen's input
      */
-    fun afterAction(context: UiContext, widget: Widget) = Unit
+    fun afterAction(context: UiContext, widget: Widget, submitsInput: Boolean) = Unit
 }
 
 /**

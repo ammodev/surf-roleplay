@@ -729,7 +729,7 @@ class ScreenPanel(
         reportSearches(searches.flush())
         if (submitsInput) WidgetTree.touchAll(root)
         listener.actionTriggered(this, widget)
-        stack.lastOrNull { it.containsWidget(widget) }?.afterAction(this, widget)
+        stack.lastOrNull { it.containsWidget(widget) }?.afterAction(this, widget, submitsInput)
     }
 
     /**

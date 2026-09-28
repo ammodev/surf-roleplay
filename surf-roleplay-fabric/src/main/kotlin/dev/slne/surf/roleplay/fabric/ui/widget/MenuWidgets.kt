@@ -759,8 +759,9 @@ open class MenuPopover(owner: OverlayHostWidget, side: OverlaySide, align: Align
      *
      * @param context the screen showing the menu
      * @param widget the entry
+     * @param submitsInput whether the action submitted the screen's input
      */
-    override fun afterAction(context: UiContext, widget: Widget) {
+    override fun afterAction(context: UiContext, widget: Widget, submitsInput: Boolean) {
         val popovers = context.popovers
         var index = popovers.indexOf(this)
         if (index < 0) return
