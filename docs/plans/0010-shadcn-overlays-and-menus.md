@@ -1,6 +1,6 @@
 # Plan 0010: shadcn overlays and menus
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-28
 - **Accepted proposal:** Port the overlay and menu components of the shadcn registry (alert-dialog, dialog, drawer, sheet, popover, hover-card, tooltip, dropdown-menu, context-menu, menubar, command, sonner) as native screen nodes opened on the client, plus HUD toasts with a hold-key cursor; pre-accepted under the standing autonomy for shadcn-faithful components
 - **Decision records:** ADR-0051, ADR-0052, ADR-0054, ADR-0057, ADR-0058, ADR-0059

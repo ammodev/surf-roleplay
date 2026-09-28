@@ -21,4 +21,4 @@ Create the next plan with `/surf:new-plan`.
 | [0007](0007-screen-foundations.md) | Screen foundations | 2026-09-28 | Done |
 | [0008](0008-shadcn-input-components.md) | shadcn input components | 2026-09-28 | Done |
 | [0009](0009-shadcn-display-components.md) | shadcn display components | 2026-09-28 | Done |
-| [0010](0010-shadcn-overlays-and-menus.md) | shadcn overlays and menus | 2026-09-28 | In progress |
+| [0010](0010-shadcn-overlays-and-menus.md) | shadcn overlays and menus | 2026-09-28 | Done |
