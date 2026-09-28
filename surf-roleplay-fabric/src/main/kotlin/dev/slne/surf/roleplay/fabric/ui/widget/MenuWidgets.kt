@@ -830,6 +830,11 @@ class MenuSubWidget(id: String) : OverlayHostWidget(id, Axis.VERTICAL) {
 class ContextMenuWidget(id: String) : OverlayHostWidget(id, Axis.VERTICAL) {
 
     /**
+     * Actions inside the area stay actions; the overlay opens on a right click.
+     */
+    override val togglesOnTriggerAction: Boolean get() = false
+
+    /**
      * Where the last right click was.
      */
     private var point: Rect = Rect.EMPTY

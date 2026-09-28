@@ -42,10 +42,17 @@ class PopoverWidgetsTest {
     }
 
     /**
-     * A listener that ignores everything.
+     * The widgets whose actions reached the listener, in order.
+     */
+    private val actions = mutableListOf<String>()
+
+    /**
+     * A listener that records actions.
      */
     private val listener = object : ScreenPanelListener {
-        override fun actionTriggered(panel: ScreenPanel, widget: Widget) = Unit
+        override fun actionTriggered(panel: ScreenPanel, widget: Widget) {
+            actions += widget.id
+        }
         override fun closeRequested(panel: ScreenPanel) = Unit
     }
 
@@ -123,5 +130,22 @@ class PopoverWidgetsTest {
 
         assertEquals(100 + 20 - area.width / 2, area.x, "centered")
         assertEquals(100 - TooltipPainter.ARROW - 1 - area.height, area.y)
+    }
+
+    /**
+     * Verifies that a click on a button that triggers a hover card fires the button's action
+     * instead of toggling the card.
+     */
+    @Test
+    fun `hover card triggers keep their action`() {
+        val node = HoverCardNode("card", children = listOf(ButtonNode("link", text = "Link"), HoverCardContentNode("content", children = listOf(LabelNode("bio")))))
+        val panel = ScreenPanel("T", WidgetFactory.create(ColumnNode("root", children = listOf(node))), true, listener, PanelStyle(Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)))
+        panel.layoutIfNeeded(measurer, 400, 300)
+        val b = WidgetTree.find(panel.root, "link")!!.bounds
+
+        panel.mouseClicked(b.x + b.width / 2.0, b.y + b.height / 2.0, org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT)
+
+        assertEquals(listOf("link"), actions)
+        assertEquals(null, panel.popover)
     }
 }

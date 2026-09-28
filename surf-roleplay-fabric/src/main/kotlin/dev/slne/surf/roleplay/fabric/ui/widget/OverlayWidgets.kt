@@ -87,6 +87,13 @@ abstract class OverlayHostWidget(id: String, axis: Axis = Axis.HORIZONTAL) : Con
     }
 
     /**
+     * Whether an action of a widget inside the triggers opens or closes the overlay instead of
+     * reaching the server. Hosts that open on a right click or on hover keep their triggers'
+     * actions.
+     */
+    open val togglesOnTriggerAction: Boolean get() = true
+
+    /**
      * Creates the overlay this host shows.
      *
      * @return the overlay
@@ -242,13 +249,14 @@ abstract class OverlayHostWidget(id: String, axis: Axis = Axis.HORIZONTAL) : Con
          *
          * @param root the root of the tree
          * @param widget the widget
-         * @return the host, or `null` if the widget is not inside a trigger of any host
+         * @return the host, or `null` if the widget is not inside a trigger of any host whose
+         *         triggers toggle it
          */
         fun hostOfTrigger(root: Widget, widget: Widget): OverlayHostWidget? {
             var current = widget
             while (true) {
                 val parent = WidgetTree.parentOf(root, current.id) ?: return null
-                if (parent is OverlayHostWidget) return if (current is OverlayContentWidget) null else parent
+                if (parent is OverlayHostWidget) return if (current is OverlayContentWidget || !parent.togglesOnTriggerAction) null else parent
                 current = parent
             }
         }

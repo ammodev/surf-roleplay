@@ -244,4 +244,22 @@ class MenuWidgetsTest {
         assertEquals(bold + 2 * 4, MenubarTriggerWidget("t", "\"Datei\"").contentSize(measurer).width)
         assertEquals(MenuStyle.PADDING_X + bold + MenuStyle.PADDING_X, MenuLabelWidget("l", "\"Datei\"", false).contentSize(measurer).width)
     }
+
+    /**
+     * Verifies that a left click on a button inside a context menu's area fires the button's
+     * action instead of opening the menu.
+     */
+    @Test
+    fun `buttons in a context menu area keep their action`() {
+        val node = ContextMenuNode(
+            "ctx",
+            children = listOf(ButtonNode("edit", text = "Edit"), MenuContentNode("ctx_content", children = listOf(MenuItemNode("copy", text = "Copy")))),
+        )
+        val panel = panel(node)
+
+        click(panel, "edit")
+
+        assertEquals(listOf("edit"), actions)
+        assertNull(panel.popover)
+    }
 }

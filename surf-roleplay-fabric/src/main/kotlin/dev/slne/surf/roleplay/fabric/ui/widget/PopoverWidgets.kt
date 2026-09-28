@@ -172,6 +172,11 @@ class HoverTimer(val openDelay: Int, val closeDelay: Int) {
 class HoverCardWidget(id: String, val side: OverlaySide, val align: Align, openDelay: Int, closeDelay: Int) : OverlayHostWidget(id) {
 
     /**
+     * Actions inside the triggers stay actions; the overlay opens on hover.
+     */
+    override val togglesOnTriggerAction: Boolean get() = false
+
+    /**
      * The timing of opening and closing.
      */
     val timer: HoverTimer = HoverTimer(openDelay, closeDelay)
