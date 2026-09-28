@@ -109,8 +109,9 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
  * The validated input values of a screen, keyed by input element id.
  *
  * @property all the values in their string form: text for text inputs, a decimal number or an
- *           empty string for number inputs, `true` or `false` for checkboxes, and the option value
- *           or an empty string for dropdowns
+ *           empty string for number inputs, `true` or `false` for checkboxes, switches and
+ *           toggles, the option value or an empty string for dropdowns and radio groups, and
+ *           comma-separated values for toggle groups and sliders
  */
 class ScreenValues(val all: Map<String, String>) {
 
@@ -137,6 +138,14 @@ class ScreenValues(val all: Map<String, String>) {
      * @return whether it is checked, or `null` if the screen has no such checkbox
      */
     fun checked(id: String): Boolean? = all[id]?.let { it == "true" }
+
+    /**
+     * Returns the thumb values of a slider.
+     *
+     * @param id the slider id
+     * @return the values in ascending order, or `null` if the screen has no such slider
+     */
+    fun numbers(id: String): List<Double>? = all[id]?.split(',')?.mapNotNull { it.trim().toDoubleOrNull() }
 
     /**
      * Returns the selected option of a dropdown.

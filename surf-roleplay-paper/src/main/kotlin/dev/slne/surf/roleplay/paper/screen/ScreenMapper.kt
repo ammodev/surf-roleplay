@@ -3,6 +3,13 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.RadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.SliderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
+import dev.slne.surf.roleplay.protocol.screen.RadioGroupNode
+import dev.slne.surf.roleplay.protocol.screen.RadioOption
+import dev.slne.surf.roleplay.protocol.screen.SliderNode
+import dev.slne.surf.roleplay.protocol.screen.SwitchNode
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAddonElement
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupTextElement
@@ -148,6 +155,17 @@ object ScreenMapper {
             is TextareaElement -> TextareaNode(
                 element.id, width, height, element.value, text(element.placeholder), element.rows, element.maxLength, element.required,
                 element.enabled, element.onChange != null,
+            )
+
+            is SwitchElement -> SwitchNode(element.id, width, height, element.checked, enumOf(element.size), element.enabled, element.onChange != null)
+            is RadioGroupElement -> RadioGroupNode(
+                element.id, width, height, element.options.map { RadioOption(it.value, text(it.label), it.enabled) }, element.selected,
+                enumOf(element.orientation), element.required, element.enabled, element.onChange != null,
+            )
+
+            is SliderElement -> SliderNode(
+                element.id, width, height, element.values, element.min, element.max, element.step, enumOf(element.orientation), element.enabled,
+                element.onChange != null,
             )
 
             is InputGroupElement -> InputGroupNode(element.id, width, height, element.children.map(::toNode))

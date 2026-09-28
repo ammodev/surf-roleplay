@@ -13,6 +13,10 @@ import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.ProgressElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.RadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.SliderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
+import dev.slne.surf.roleplay.protocol.screen.SliderValues
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupTextElement
 import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
 import dev.slne.surf.roleplay.api.client.common.screen.OtpSlots
@@ -167,6 +171,37 @@ object ElementRules {
     }
 
     /**
+     * Checks the option a radio group would have selected: an option of the group, not newly
+     * selected if disabled, and present if required.
+     *
+     * @param group the radio group
+     * @param value the value of the selected option, or empty
+     * @return a description of the violated constraint, or `null` if the value is valid
+     */
+    private fun radioViolation(group: RadioGroupElement, value: String): String? {
+        if (value.isEmpty()) return if (group.required) "value is required" else null
+        val option = group.options.firstOrNull { it.value == value } ?: return "value is not an option"
+        if (!option.enabled && value != group.selected) return "a disabled option was selected"
+        return null
+    }
+
+    /**
+     * Checks the thumb values a slider would have: as many as it has thumbs, ascending, and each
+     * within the range and on a step.
+     *
+     * @param slider the slider
+     * @param value the thumb values joined by commas
+     * @return a description of the violated constraint, or `null` if the value is valid
+     */
+    private fun sliderViolation(slider: SliderElement, value: String): String? {
+        val values = SliderValues.parse(value) ?: return "value is not a number"
+        if (values.size != slider.values.size) return "value has the wrong number of thumbs"
+        if (values.zipWithNext().any { (a, b) -> a > b }) return "value is not ascending"
+        if (values.any { !SliderValues.isSelectable(it, slider.min, slider.max, slider.step) }) return "value is not selectable"
+        return null
+    }
+
+    /**
      * Splits a comma-separated list value into its non-empty parts.
      *
      * @param value the list value
@@ -278,6 +313,45 @@ object ElementRules {
                     current = { it.value },
                     violation = { e, v -> otpViolation(e, v) },
                     withValue = { e, v -> if (otpViolation(e.copy(required = false), v) == null) e.copy(value = v) else null },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            SwitchElement::class,
+            ElementRule(
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { it.checked.toString() },
+                    violation = { _, v -> if (v == "true" || v == "false") null else "value must be true or false" },
+                    withValue = { e, v -> e.copy(checked = v == "true") },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            RadioGroupElement::class,
+            ElementRule(
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { it.selected ?: "" },
+                    violation = { e, v -> radioViolation(e, v) },
+                    withValue = { e, v -> if (v.isEmpty()) e.copy(selected = null) else e.copy(selected = v.takeIf { c -> e.options.any { it.value == c } }) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            SliderElement::class,
+            ElementRule(
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                input = InputRule(
+                    current = { e -> e.values.joinToString(",") { SliderValues.format(it) } },
+                    violation = { e, v -> sliderViolation(e, v) },
+                    withValue = { e, v -> if (sliderViolation(e, v) == null) e.copy(values = SliderValues.parse(v)!!) else null },
                     onChange = { it.onChange },
                 ),
             ),
