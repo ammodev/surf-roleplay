@@ -59,6 +59,23 @@ curl -s -X POST "$ROADMAP_URL/api/v1/systems/launcher/updates" \
 Errors: 401 means a missing or wrong token, 400 an invalid body (the message says
 which field), 404 an unknown id.
 
+**Helper script.** In this repository, `scripts/roadmap.sh` next to this skill makes
+the same calls without handling the token yourself. It reads `ROADMAP_TOKEN` from
+the environment, or else from `roadmap-app/.env`, and never prints it. `ROADMAP_URL`
+defaults to `https://rp.slne.dev`. It prints the response body and exits non-zero on
+HTTP errors.
+
+```bash
+S=.claude/skills/surf-roadmap/scripts/roadmap.sh
+bash $S GET /systems/protocol
+bash $S POST /systems/protocol/updates \
+  '{"summary":"Added the hello packet","commit":"1a2b3c4","agent":"Claude Code","onBehalfOf":"Ammo"}'
+```
+
+The MCP server in `.mcp.json` only connects when `ROADMAP_TOKEN` (and `ROADMAP_URL`
+for the hosted app) are set in the environment before Claude Code starts. Otherwise
+it reports a 401, and the helper script is the way to reach the roadmap.
+
 ## Attribution: always send it
 
 Every write needs `agent` (your name, for example `Claude Code`) and `onBehalfOf`
