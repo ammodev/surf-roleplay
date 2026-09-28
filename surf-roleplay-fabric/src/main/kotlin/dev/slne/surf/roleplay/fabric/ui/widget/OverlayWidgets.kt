@@ -332,7 +332,7 @@ open class WidgetPopover(
     override fun render(ui: UiGraphics, context: UiContext, area: Rect, mouseX: Int, mouseY: Int) {
         val shown = content ?: return
         shown.render(ui, context, mouseX, mouseY)
-        context.focusedWidget?.takeIf { !it.drawsOwnFocus && containsWidget(it) }?.let { focused ->
+        context.focusedWidget?.takeIf { context.focusVisible && !it.drawsOwnFocus && containsWidget(it) }?.let { focused ->
             val b = (focused.focusFrame ?: focused).bounds
             ui.borderRounded(Rect(b.x - 1, b.y - 1, b.width + 2, b.height + 2), ui.tokens.ring, ui.tokens.radius + 1)
         }

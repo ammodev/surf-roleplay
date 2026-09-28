@@ -230,7 +230,6 @@ class OverlayStackTest {
         val panel = panel(column(host("a", listOf(button("x"), button("y")), modal = true), button("other")))
         click(panel, "a_trigger")
 
-        panel.keyPressed(key(GLFW.GLFW_KEY_TAB))
         assertEquals("x", panel.focusedWidget?.id)
         panel.keyPressed(key(GLFW.GLFW_KEY_TAB))
         assertEquals("y", panel.focusedWidget?.id)
@@ -332,5 +331,55 @@ class OverlayStackTest {
         assertEquals(Rect(296, 34, 100, 50), OverlayPlacement.place(Rect(380, 10, 10, 20), Size(100, 50), window, OverlaySide.BOTTOM, Align.START))
         assertEquals(Rect(20, 34, 60, 50), OverlayPlacement.place(Rect(20, 10, 60, 20), Size(60, 50), window, OverlaySide.BOTTOM, Align.CENTER))
         assertEquals(Rect(84, 10, 100, 50), OverlayPlacement.place(Rect(20, 10, 60, 20), Size(100, 50), window, OverlaySide.RIGHT, Align.START))
+    }
+
+    /**
+     * Verifies that the focus ring shows only after keyboard use, not after a mouse click.
+     */
+    @Test
+    fun `focus ring shows only after keyboard use`() {
+        val panel = panel(column(button("a"), button("b")))
+
+        click(panel, "a")
+        assertEquals("a", panel.focusedWidget?.id)
+        assertFalse(panel.focusVisible)
+        panel.keyPressed(key(GLFW.GLFW_KEY_TAB))
+        assertTrue(panel.focusVisible)
+        click(panel, "b")
+        assertFalse(panel.focusVisible)
+    }
+
+    /**
+     * Verifies that opening a modal overlay moves the focus into its content, and closing it
+     * returns the focus to the trigger.
+     */
+    @Test
+    fun `modals take the focus and give it back`() {
+        val panel = panel(column(host("a", listOf(button("x"), button("y")), modal = true)))
+
+        click(panel, "a_trigger")
+        assertEquals("x", panel.focusedWidget?.id)
+        panel.keyPressed(key(GLFW.GLFW_KEY_ESCAPE))
+
+        assertEquals("a_trigger", panel.focusedWidget?.id)
+    }
+
+    /**
+     * Verifies that closing an overlay while a widget inside it has the focus returns the focus to
+     * the trigger instead of leaving it on hidden content.
+     */
+    @Test
+    fun `closing an overlay does not leave the focus inside it`() {
+        val panel = panel(column(host("a", listOf(button("x"))), button("other")))
+        click(panel, "a_trigger")
+        panel.focus(WidgetTree.find(panel.root, "x"))
+
+        click(panel, "other")
+        assertEquals("other", panel.focusedWidget?.id)
+        click(panel, "a_trigger")
+        panel.focus(WidgetTree.find(panel.root, "x"))
+        panel.keyPressed(key(GLFW.GLFW_KEY_ESCAPE))
+
+        assertEquals("a_trigger", panel.focusedWidget?.id)
     }
 }

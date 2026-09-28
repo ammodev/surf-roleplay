@@ -144,6 +144,13 @@ class ScreenPanel(
     private var tooltip: TooltipRequest? = null
 
     /**
+     * Whether the focus ring is shown: after the player used the keyboard, and not after a mouse
+     * click.
+     */
+    override var focusVisible: Boolean = false
+        private set
+
+    /**
      * The widget that receives mouse movement while the button is held, or `null` if none does.
      */
     private var dragTarget: Widget? = null
@@ -406,7 +413,7 @@ class ScreenPanel(
         val mouseInside = active && viewport.contains(mouseX.toDouble(), mouseY.toDouble()) && hit < 0 && stack.none { it.modal }
         ui.clipped(viewport) {
             root.render(ui, this, if (mouseInside) mouseX else HIDDEN, if (mouseInside) mouseY else HIDDEN)
-            focusedWidget?.takeUnless { focused -> focused.drawsOwnFocus || stack.any { it.containsWidget(focused) } }?.let { focused ->
+            focusedWidget?.takeIf { focusVisible }?.takeUnless { focused -> focused.drawsOwnFocus || stack.any { it.containsWidget(focused) } }?.let { focused ->
                 val b = (focused.focusFrame ?: focused).bounds
                 ui.borderRounded(Rect(b.x - 1, b.y - 1, b.width + 2, b.height + 2), tokens.ring, tokens.radius + 1)
             }
@@ -489,6 +496,7 @@ class ScreenPanel(
      * @return whether the click was on the panel or its popover
      */
     fun mouseClicked(x: Double, y: Double, button: Int): Boolean {
+        focusVisible = false
         for (index in stack.indices.reversed()) {
             val open = stack[index]
             val area = popoverArea(open)
@@ -569,6 +577,7 @@ class ScreenPanel(
      * @return whether the key was handled
      */
     fun keyPressed(event: KeyEvent): Boolean {
+        focusVisible = true
         val open = popover
         if (open != null) {
             if (open.keyPressed(this, event)) return true
@@ -634,6 +643,7 @@ class ScreenPanel(
     override fun openPopover(popover: Popover) {
         closeFrom(stack.indexOfLast { it.containsWidget(popover.owner) } + 1)
         stack += popover
+        popover.focusRoot?.let { root -> FocusOrder.next(root, null, backwards = false)?.let { focus(it) } }
         revealPending = true
         requestLayout()
     }
@@ -661,7 +671,14 @@ class ScreenPanel(
      * @param index the index of the lowest popover to close
      */
     private fun closeFrom(index: Int) {
-        while (stack.size > index.coerceAtLeast(0)) stack.removeAt(stack.lastIndex).closed(this)
+        while (stack.size > index.coerceAtLeast(0)) {
+            val closed = stack.removeAt(stack.lastIndex)
+            val focused = focusedWidget
+            if (focused != null && closed.containsWidget(focused)) {
+                focusedWidget = FocusOrder.next(closed.owner, null, backwards = false)?.takeUnless { closed.containsWidget(it) }
+            }
+            closed.closed(this)
+        }
     }
 
     /**

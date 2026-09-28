@@ -34,6 +34,12 @@ interface UiContext {
     fun focus(widget: Widget?)
 
     /**
+     * Whether the focus ring is shown: after the player used the keyboard, and not after a mouse
+     * click.
+     */
+    val focusVisible: Boolean get() = true
+
+    /**
      * The open popover, or `null` if none is open.
      */
     val popover: Popover? get() = null
