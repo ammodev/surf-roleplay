@@ -51,6 +51,12 @@ Bump the version for any of these:
 If in doubt, bump. A needless bump forces an update. A missing bump lets incompatible builds talk
 to each other.
 
+## Before the first release
+
+Until a protocol version has been released to players, `PROTOCOL_VERSION` stays at 1 and
+incompatible changes do not bump it. Development builds of the mod and the server must then be
+built from the same commit. The rules above apply from the first release on.
+
 ## Releasing a bump
 
 1. Increment `PROTOCOL_VERSION` by one in the same commit as the incompatible change.
