@@ -6,6 +6,18 @@ import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuListElement
 import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarInsetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
@@ -370,6 +382,18 @@ class ServerScreenTree(root: ScreenElement) {
             is NavigationMenuItemElement -> container.copy(children = children)
             is NavigationMenuContentElement -> container.copy(children = children)
             is NavigationMenuLinkElement -> container.copy(children = children)
+            is SidebarProviderElement -> container.copy(children = children)
+            is SidebarElement -> container.copy(children = children)
+            is SidebarInsetElement -> container.copy(children = children)
+            is SidebarHeaderElement -> container.copy(children = children)
+            is SidebarFooterElement -> container.copy(children = children)
+            is SidebarContentElement -> container.copy(children = children)
+            is SidebarGroupElement -> container.copy(children = children)
+            is SidebarGroupContentElement -> container.copy(children = children)
+            is SidebarMenuElement -> container.copy(children = children)
+            is SidebarMenuItemElement -> container.copy(children = children)
+            is SidebarMenuSubElement -> container.copy(children = children)
+            is SidebarMenuSubItemElement -> container.copy(children = children)
             is DialogContentElement -> container.copy(children = children)
             is DialogHeaderElement -> container.copy(children = children)
             is DialogFooterElement -> container.copy(children = children)

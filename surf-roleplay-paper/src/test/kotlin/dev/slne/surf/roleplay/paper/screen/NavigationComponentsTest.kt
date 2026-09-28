@@ -10,6 +10,32 @@ import dev.slne.surf.roleplay.api.client.common.screen.collapsible
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
 import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarProvider
+import dev.slne.surf.roleplay.api.client.common.screen.sidebar
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarInset
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarHeader
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarFooter
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarContent
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroup
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupLabel
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupAction
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupContent
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenu
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuButton
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuAction
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuBadge
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSkeleton
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSub
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSubItem
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSubButton
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarRail
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarInput
+import dev.slne.surf.roleplay.api.client.common.screen.sidebarSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarCollapsible
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarVariant
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonSize
 import dev.slne.surf.roleplay.api.client.common.screen.navigationMenu
 import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuList
 import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuItem
@@ -62,6 +88,19 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import dev.slne.surf.roleplay.protocol.screen.SidebarProviderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarInsetNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonNode
+import dev.slne.surf.roleplay.protocol.screen.TextInputNode
+import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarCollapsible as NodeSidebarCollapsible
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonSize as NodeSidebarMenuButtonSize
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
@@ -544,5 +583,84 @@ class NavigationComponentsTest {
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleWidgetAction(ScreenWidgetAction(session, "secret")))
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "locked", "true")))
         assertEquals(listOf("services=true", "police", "docs"), reports)
+    }
+
+    /**
+     * Opens a screen with a sidebar layout whose menu parts report their clicks.
+     *
+     * @return the session id
+     */
+    private fun openSidebar(): Int = state.open(
+        screen(Component.text("Sidebar")) {
+            sidebarProvider("provider", ElementSize.fixed(300), ElementSize.fixed(160), onChange = { report(it) }) {
+                sidebar("sidebar", variant = SidebarVariant.FLOATING, collapsible = SidebarCollapsible.ICON) {
+                    sidebarHeader("header") { sidebarInput("search", Component.text("Suchen")) }
+                    sidebarSeparator("sep")
+                    sidebarContent("content") {
+                        sidebarGroup("group") {
+                            sidebarGroupLabel("label", Component.text("Dienst"))
+                            sidebarGroupAction("group_action", onClick = { reports += it.buttonId })
+                            sidebarGroupContent("group_content") {
+                                sidebarMenu("menu") {
+                                    sidebarMenuItem("home_item") {
+                                        sidebarMenuButton("home", Component.text("Start"), icon = "house", size = SidebarMenuButtonSize.LG, active = true, tooltip = Component.text("Start")) { reports += it.buttonId }
+                                        sidebarMenuAction("home_action") { reports += it.buttonId }
+                                        sidebarMenuBadge("home_badge", Component.text("3"))
+                                        sidebarMenuSub("sub") {
+                                            sidebarMenuSubItem("sub_item") { sidebarMenuSubButton("sub_button", Component.text("Neu")) { reports += it.buttonId } }
+                                        }
+                                    }
+                                    sidebarMenuItem("loading") { sidebarMenuSkeleton("skeleton", showIcon = true) }
+                                }
+                            }
+                        }
+                    }
+                    sidebarFooter("footer") {}
+                    sidebarRail("rail")
+                }
+                sidebarInset("inset") { sidebarTrigger("trigger") }
+            }
+        },
+        null,
+    ).sessionId
+
+    /**
+     * Verifies that a sidebar layout maps to its nodes, with the input and separator as their
+     * regular nodes.
+     */
+    @Test
+    fun `sidebars map to their nodes`() {
+        openSidebar()
+
+        val provider = assertIs<SidebarProviderNode>(assertIs<WidgetScreenBody>((sent.last() as ScreenOpen).body).root)
+        assertTrue(provider.open)
+        assertTrue(provider.notifyChange)
+        val sidebar = assertIs<SidebarNode>(provider.children[0])
+        assertEquals(NodeSidebarCollapsible.ICON, sidebar.collapsible)
+        assertIs<TextInputNode>(assertIs<dev.slne.surf.roleplay.protocol.screen.SidebarHeaderNode>(sidebar.children[0]).children.single())
+        assertIs<SeparatorNode>(sidebar.children[1])
+        val content = assertIs<SidebarContentNode>(sidebar.children[2])
+        val menu = assertIs<SidebarMenuNode>(assertIs<SidebarGroupContentNode>(assertIs<SidebarGroupNode>(content.children.single()).children[2]).children.single())
+        val button = assertIs<SidebarMenuButtonNode>(assertIs<SidebarMenuItemNode>(menu.children[0]).children[0])
+        assertEquals(NodeSidebarMenuButtonSize.LG, button.size)
+        assertTrue(button.active)
+        assertTrue(button.tooltip.contains("Start"))
+        assertIs<SidebarInsetNode>(provider.children[1])
+    }
+
+    /**
+     * Verifies that sidebar buttons and actions run their handlers, and that the expanded state
+     * is reported and validated.
+     */
+    @Test
+    fun `sidebar parts act`() {
+        val session = openSidebar()
+
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChange(session, "provider", "false")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "provider", "maybe")))
+        for (id in listOf("home", "home_action", "group_action", "sub_button")) {
+            assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, id)))
+        }
+        assertEquals(listOf("provider=false", "home", "home_action", "group_action", "sub_button"), reports)
     }
 }

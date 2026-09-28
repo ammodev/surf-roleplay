@@ -707,3 +707,19 @@ interface KeyInterceptor {
      */
     fun descendantKeyPressed(context: UiContext, focused: Widget, event: KeyEvent): Boolean
 }
+
+/**
+ * A widget that reacts to a keyboard shortcut anywhere on its screen, such as a sidebar provider
+ * that toggles its sidebar on Ctrl+B.
+ */
+interface ShortcutWidget {
+    /**
+     * Handles a key that neither the focused widget nor the containers around it used, or
+     * declines it.
+     *
+     * @param context the screen showing the widget
+     * @param event the key event
+     * @return whether the key was the shortcut and was handled
+     */
+    fun shortcut(context: UiContext, event: KeyEvent): Boolean
+}

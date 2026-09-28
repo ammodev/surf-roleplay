@@ -55,6 +55,14 @@ import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
 import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupLabelElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuBadgeElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
@@ -618,6 +626,14 @@ object ElementRules {
             NavigationMenuLinkElement::class,
             ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }),
         )
+        register(SidebarProviderElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(SidebarGroupLabelElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(SidebarMenuBadgeElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(SidebarGroupActionElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }))
+        register(SidebarMenuActionElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }))
+        register(SidebarMenuButtonElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }))
+        register(SidebarMenuSubButtonElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }))
+        register(SidebarTriggerElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
         register(
             CarouselElement::class,
             ElementRule(

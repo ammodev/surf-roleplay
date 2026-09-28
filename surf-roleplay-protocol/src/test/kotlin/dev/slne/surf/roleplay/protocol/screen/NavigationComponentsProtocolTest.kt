@@ -190,4 +190,56 @@ class NavigationComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that a sidebar layout with every part survives a round trip.
+     */
+    @Test
+    fun `sidebars round-trip`() {
+        val menu = SidebarMenuNode(
+            "menu",
+            children = listOf(
+                SidebarMenuItemNode(
+                    "item",
+                    children = listOf(
+                        SidebarMenuButtonNode("button", text = "\"Akten\"", icon = "folder", size = SidebarMenuButtonSize.LG, variant = SidebarMenuButtonVariant.OUTLINE, active = true, tooltip = "\"Akten\"", enabled = false),
+                        SidebarMenuActionNode("action", icon = "plus", showOnHover = true, enabled = false),
+                        SidebarMenuBadgeNode("badge", text = "\"3\""),
+                        SidebarMenuSubNode("sub", children = listOf(SidebarMenuSubItemNode("sub_item", children = listOf(SidebarMenuSubButtonNode("sub_button", text = "\"Neu\"", icon = "file", size = SidebarMenuSubButtonSize.SM, active = true, enabled = false))))),
+                    ),
+                ),
+                SidebarMenuItemNode("loading", children = listOf(SidebarMenuSkeletonNode("skeleton", showIcon = true))),
+            ),
+        )
+        val root = SidebarProviderNode(
+            "provider",
+            open = false,
+            notifyChange = true,
+            children = listOf(
+                SidebarNode(
+                    "sidebar",
+                    side = SidebarSide.RIGHT,
+                    variant = SidebarVariant.INSET,
+                    collapsible = SidebarCollapsible.ICON,
+                    children = listOf(
+                        SidebarHeaderNode("header"),
+                        SidebarContentNode(
+                            "content",
+                            children = listOf(
+                                SidebarGroupNode(
+                                    "group",
+                                    children = listOf(SidebarGroupLabelNode("label", text = "\"Dienst\""), SidebarGroupActionNode("group_action", icon = "plus", enabled = false), SidebarGroupContentNode("group_content", children = listOf(menu))),
+                                ),
+                            ),
+                        ),
+                        SidebarFooterNode("footer"),
+                        SidebarRailNode("rail"),
+                    ),
+                ),
+                SidebarInsetNode("inset", children = listOf(SidebarTriggerNode("trigger", enabled = false))),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

@@ -11,6 +11,7 @@ import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.FormWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.ActionInterceptor
 import dev.slne.surf.roleplay.fabric.ui.widget.KeyInterceptor
+import dev.slne.surf.roleplay.fabric.ui.widget.ShortcutWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayContainerWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayHostWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Popover
@@ -638,10 +639,26 @@ class ScreenPanel(
             return true
         }
         if (event.isEscape) return false
-        val focused = focusedWidget ?: return false
-        if (focused.keyPressed(this, event)) return true
-        if (offerKey(focused, event)) return true
-        return (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) && submitForm(focused)
+        val focused = focusedWidget
+        if (focused != null) {
+            if (focused.keyPressed(this, event)) return true
+            if (offerKey(focused, event)) return true
+        }
+        if (offerShortcut(event)) return true
+        return focused != null && (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) && submitForm(focused)
+    }
+
+    /**
+     * Offers a key that nothing else used to the widgets of the tree that react to shortcuts, in
+     * tree order, until one handles it.
+     *
+     * @param event the key event
+     * @return whether a widget handled the key
+     */
+    private fun offerShortcut(event: KeyEvent): Boolean {
+        val handlers = mutableListOf<ShortcutWidget>()
+        WidgetTree.visit(root) { if (it is ShortcutWidget) handlers += it }
+        return handlers.any { it.shortcut(this, event) }
     }
 
     /**

@@ -3,6 +3,29 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarProviderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarInsetNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarFooterNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupLabelNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuBadgeNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarRailNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarSide
+import dev.slne.surf.roleplay.protocol.screen.ScrollOrientation
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
@@ -380,6 +403,53 @@ object WidgetFactory {
             is NavigationMenuTriggerNode -> NavigationMenuTriggerWidget(node.id, node.text).apply { enabled = node.enabled }
             is NavigationMenuContentNode -> container(NavigationMenuContentWidget(node.id), node.children)
             is NavigationMenuLinkNode -> navigationMenuLink(node, triggerStyle = false)
+            is SidebarProviderNode -> SidebarProviderWidget(node.id).apply {
+                val parts = node.children.map { create(it) }
+                val sidebar = parts.firstOrNull { it is SidebarWidget } as SidebarWidget?
+                childList += if (sidebar?.side == SidebarSide.RIGHT) parts.filter { it !== sidebar } + sidebar else parts
+                childList.filterIsInstance<SidebarInsetWidget>().forEach { if (it.width.mode == SizeMode.FIT) it.width = Sizing.grow() }
+                setOpen(node.open)
+            }
+            is SidebarNode -> container(SidebarWidget(node.id, node.side, node.variant, node.collapsible), node.children)
+            is SidebarInsetNode -> container(SidebarInsetWidget(node.id), node.children)
+            is SidebarHeaderNode -> container(SidebarSectionWidget(node.id), node.children)
+            is SidebarFooterNode -> container(SidebarSectionWidget(node.id), node.children)
+            is SidebarContentNode -> container(ScrollAreaWidget(node.id, ScrollOrientation.VERTICAL), node.children).apply { if (node.height.mode == SizeMode.FIT) height = Sizing.grow() }
+            is SidebarGroupNode -> SidebarGroupWidget(node.id).apply {
+                val parts = node.children.map { create(it) }
+                val label = parts.firstOrNull { it is SidebarGroupLabelWidget }
+                val action = parts.firstOrNull { it is SidebarGroupActionWidget }
+                if (label != null && action != null) {
+                    label.width = Sizing.grow()
+                    val header = ContainerWidget("${node.id}:header", Axis.HORIZONTAL).apply {
+                        crossAlign = Align.CENTER
+                        childList += label
+                        childList += action
+                    }
+                    childList += parts.map { if (it === label) header else it }.filter { it !== action }
+                } else {
+                    childList += parts
+                }
+            }
+            is SidebarGroupLabelNode -> SidebarGroupLabelWidget(node.id, node.text)
+            is SidebarGroupActionNode -> SidebarGroupActionWidget(node.id, node.icon).apply { enabled = node.enabled }
+            is SidebarGroupContentNode -> container(ContainerWidget(node.id, Axis.VERTICAL).apply { crossAlign = Align.STRETCH }, node.children)
+            is SidebarMenuNode -> container(ContainerWidget(node.id, Axis.VERTICAL).apply {
+                crossAlign = Align.STRETCH
+                gap = SIDEBAR_MENU_GAP
+            }, node.children)
+            is SidebarMenuItemNode -> container(SidebarMenuItemWidget(node.id), node.children).apply {
+                childList.filterIsInstance<SidebarMenuActionWidget>().forEach { it.item = this }
+            }
+            is SidebarMenuButtonNode -> SidebarMenuButtonWidget(node.id, node.text, node.icon, node.size, node.variant, node.active, node.tooltip).apply { enabled = node.enabled }
+            is SidebarMenuActionNode -> SidebarMenuActionWidget(node.id, node.icon, node.showOnHover).apply { enabled = node.enabled }
+            is SidebarMenuBadgeNode -> SidebarMenuBadgeWidget(node.id, node.text)
+            is SidebarMenuSkeletonNode -> SidebarMenuSkeletonWidget(node.id, node.showIcon)
+            is SidebarMenuSubNode -> container(SidebarMenuSubWidget(node.id), node.children)
+            is SidebarMenuSubItemNode -> container(ContainerWidget(node.id, Axis.VERTICAL).apply { crossAlign = Align.STRETCH }, node.children)
+            is SidebarMenuSubButtonNode -> SidebarMenuSubButtonWidget(node.id, node.text, node.icon, node.size, node.active).apply { enabled = node.enabled }
+            is SidebarTriggerNode -> SidebarTriggerWidget(node.id).apply { enabled = node.enabled }
+            is SidebarRailNode -> SidebarRailWidget(node.id)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -414,6 +484,7 @@ object WidgetFactory {
             is ResizablePanelGroupNode -> node.notifyChange
             is CarouselNode -> node.notifyChange
             is NavigationMenuItemNode -> node.notifyChange
+            is SidebarProviderNode -> node.notifyChange
             else -> false
         }
         return widget
@@ -443,6 +514,11 @@ object WidgetFactory {
      * The space between the items of a pagination.
      */
     private const val PAGINATION_GAP: Int = 2
+
+    /**
+     * The space between the items of a sidebar menu.
+     */
+    private const val SIDEBAR_MENU_GAP: Int = 2
 
     /**
      * The space between the items of a navigation menu.

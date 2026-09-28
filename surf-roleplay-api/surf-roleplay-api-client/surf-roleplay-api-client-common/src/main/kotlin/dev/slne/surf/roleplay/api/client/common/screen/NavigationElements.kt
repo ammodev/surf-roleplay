@@ -1257,3 +1257,758 @@ fun ElementsBuilder.navigationMenuLink(id: String, active: Boolean = false, enab
     elements += NavigationMenuLinkElement(id, build(children), active, enabled, onClick)
 }
 
+
+/**
+ * The side of the screen a sidebar is on.
+ */
+enum class SidebarSide {
+    /**
+     * The left side.
+     */
+    LEFT,
+
+    /**
+     * The right side.
+     */
+    RIGHT,
+}
+
+/**
+ * How a sidebar is drawn.
+ */
+enum class SidebarVariant {
+    /**
+     * A panel along the edge with a border to the content.
+     */
+    SIDEBAR,
+
+    /**
+     * A card with a margin, floating beside the content.
+     */
+    FLOATING,
+
+    /**
+     * A panel without a border, with the content drawn as a card beside it.
+     */
+    INSET,
+}
+
+/**
+ * How a sidebar collapses.
+ */
+enum class SidebarCollapsible {
+    /**
+     * It disappears completely.
+     */
+    OFFCANVAS,
+
+    /**
+     * It shrinks to the icons of its menu buttons.
+     */
+    ICON,
+
+    /**
+     * It cannot collapse.
+     */
+    NONE,
+}
+
+/**
+ * The size of a sidebar menu button.
+ */
+enum class SidebarMenuButtonSize {
+    /**
+     * The regular height.
+     */
+    DEFAULT,
+
+    /**
+     * A lower height.
+     */
+    SM,
+
+    /**
+     * A larger height.
+     */
+    LG,
+}
+
+/**
+ * How a sidebar menu button is drawn.
+ */
+enum class SidebarMenuButtonVariant {
+    /**
+     * Plain, highlighted when hovered.
+     */
+    DEFAULT,
+
+    /**
+     * On the background colour with a border.
+     */
+    OUTLINE,
+}
+
+/**
+ * The size of the text of a sidebar sub-menu button.
+ */
+enum class SidebarMenuSubButtonSize {
+    /**
+     * Smaller text.
+     */
+    SM,
+
+    /**
+     * Regular text.
+     */
+    MD,
+}
+
+/**
+ * The frame of a sidebar layout: a sidebar and the inset beside it, with the expanded state of the
+ * sidebar.
+ *
+ * @property id the id of this element
+ * @property children one sidebar and one sidebar inset
+ * @property open whether the sidebar is expanded
+ * @property onChange whether the mod reports every expanding and collapsing at once
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarProviderElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val open: Boolean = true,
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A sidebar: a column of header, content and footer on one side of its provider.
+ *
+ * @property id the id of this element
+ * @property children the header, content, footer and rail
+ * @property side the side the sidebar is on
+ * @property variant how the sidebar is drawn
+ * @property collapsible how the sidebar collapses
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val side: SidebarSide = SidebarSide.LEFT,
+    val variant: SidebarVariant = SidebarVariant.SIDEBAR,
+    val collapsible: SidebarCollapsible = SidebarCollapsible.OFFCANVAS,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The main content beside a sidebar, taking the rest of the provider.
+ *
+ * @property id the id of this element
+ * @property children the content, stacked
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarInsetElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The header of a sidebar, above its content.
+ *
+ * @property id the id of this element
+ * @property children the header content, stacked
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarHeaderElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The footer of a sidebar, below its content.
+ *
+ * @property id the id of this element
+ * @property children the footer content, stacked
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarFooterElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The scrolling content of a sidebar between its header and footer.
+ *
+ * @property id the id of this element
+ * @property children the sidebar groups
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A group of a sidebar: a label, an optional action and a content.
+ *
+ * @property id the id of this element
+ * @property children the label, action and content
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarGroupElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The label of a sidebar group, in muted text; hidden while the sidebar is collapsed to icons.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarGroupLabelElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A small icon button at the end of a sidebar group label.
+ *
+ * @property id the id of this element
+ * @property icon the Lucide name of the icon
+ * @property enabled whether the button can be clicked
+ * @property onClick the handler run when the player clicks the button, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarGroupActionElement(
+    override val id: String,
+    val icon: String = "plus",
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * The content of a sidebar group.
+ *
+ * @property id the id of this element
+ * @property children the content, usually one sidebar menu
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarGroupContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A menu of a sidebar: its items, stacked.
+ *
+ * @property id the id of this element
+ * @property children the sidebar menu items
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An item of a sidebar menu: a button with an optional action and badge at its end, and an optional
+ * sub-menu below.
+ *
+ * @property id the id of this element
+ * @property children the button, action, badge and sub-menu
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuItemElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The button of a sidebar menu item: its icon and text, highlighted while active; only the icon
+ * while the sidebar is collapsed to icons, with the tooltip on hover.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property icon the Lucide name of an icon before the text, or null for none
+ * @property size the size of the button
+ * @property variant how the button is drawn
+ * @property active whether the button leads to the current page
+ * @property tooltip the text shown beside the button while the sidebar is collapsed to icons, or
+ *           empty for none
+ * @property enabled whether the button can be clicked
+ * @property onClick the handler run when the player clicks the button, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuButtonElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val icon: String? = null,
+    val size: SidebarMenuButtonSize = SidebarMenuButtonSize.DEFAULT,
+    val variant: SidebarMenuButtonVariant = SidebarMenuButtonVariant.DEFAULT,
+    val active: Boolean = false,
+    val tooltip: Component? = null,
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A small icon button at the end of a sidebar menu button.
+ *
+ * @property id the id of this element
+ * @property icon the Lucide name of the icon
+ * @property showOnHover whether the action is shown only while its item is hovered or focused
+ * @property enabled whether the button can be clicked
+ * @property onClick the handler run when the player clicks the button, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuActionElement(
+    override val id: String,
+    val icon: String = "ellipsis",
+    val showOnHover: Boolean = false,
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A small count or label at the end of a sidebar menu button.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuBadgeElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A placeholder for a sidebar menu button that is still loading.
+ *
+ * @property id the id of this element
+ * @property showIcon whether a placeholder for the icon is drawn
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuSkeletonElement(
+    override val id: String,
+    val showIcon: Boolean = false,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A sub-menu below a sidebar menu button, indented with a line; hidden while the sidebar is
+ * collapsed to icons.
+ *
+ * @property id the id of this element
+ * @property children the sub-menu items
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuSubElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An item of a sidebar sub-menu.
+ *
+ * @property id the id of this element
+ * @property children the sub-menu button
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuSubItemElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The button of a sidebar sub-menu item.
+ *
+ * @property id the id of this element
+ * @property text the text
+ * @property icon the Lucide name of an icon before the text, or null for none
+ * @property size the size of the text
+ * @property active whether the button leads to the current page
+ * @property enabled whether the button can be clicked
+ * @property onClick the handler run when the player clicks the button, or null for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarMenuSubButtonElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val icon: String? = null,
+    val size: SidebarMenuSubButtonSize = SidebarMenuSubButtonSize.MD,
+    val active: Boolean = false,
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A small ghost button that expands and collapses the sidebar of its provider.
+ *
+ * @property id the id of this element
+ * @property enabled whether the trigger can be used
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarTriggerElement(
+    override val id: String,
+    val enabled: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A thin strip along the inner edge of a sidebar that expands and collapses it when clicked.
+ *
+ * @property id the id of this element
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class SidebarRailElement(
+    override val id: String,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * Adds the frame of a sidebar layout. Its children are one [sidebar] and one [sidebarInset].
+ *
+ * @param id the id of the provider
+ * @param width how wide the provider is laid out
+ * @param height how tall the provider is laid out
+ * @param open whether the sidebar is expanded at first
+ * @param onChange the handler run whenever the player expands or collapses the sidebar, with
+ *        `true` or `false`, or `null` for none
+ * @param children the builder of the sidebar and inset
+ */
+fun ElementsBuilder.sidebarProvider(
+    id: String,
+    width: ElementSize = ElementSize.grow(),
+    height: ElementSize = ElementSize.FIT,
+    open: Boolean = true,
+    onChange: ChangeHandler? = null,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += SidebarProviderElement(id, build(children), open, onChange, width, height)
+}
+
+/**
+ * Adds a sidebar. Its children are a [sidebarHeader], a [sidebarContent], a [sidebarFooter] and
+ * an optional [sidebarRail].
+ *
+ * @param id the id of the sidebar
+ * @param side the side the sidebar is on
+ * @param variant how the sidebar is drawn
+ * @param collapsible how the sidebar collapses
+ * @param children the builder of the parts
+ */
+fun ElementsBuilder.sidebar(
+    id: String,
+    side: SidebarSide = SidebarSide.LEFT,
+    variant: SidebarVariant = SidebarVariant.SIDEBAR,
+    collapsible: SidebarCollapsible = SidebarCollapsible.OFFCANVAS,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += SidebarElement(id, build(children), side, variant, collapsible)
+}
+
+/**
+ * Adds the main content beside a sidebar.
+ *
+ * @param id the id of the inset
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.sidebarInset(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarInsetElement(id, build(children))
+}
+
+/**
+ * Adds the header of a sidebar.
+ *
+ * @param id the id of the header
+ * @param children the builder of the header content
+ */
+fun ElementsBuilder.sidebarHeader(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarHeaderElement(id, build(children))
+}
+
+/**
+ * Adds the footer of a sidebar.
+ *
+ * @param id the id of the footer
+ * @param children the builder of the footer content
+ */
+fun ElementsBuilder.sidebarFooter(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarFooterElement(id, build(children))
+}
+
+/**
+ * Adds the scrolling content of a sidebar. Its children are [sidebarGroup]s.
+ *
+ * @param id the id of the content
+ * @param children the builder of the groups
+ */
+fun ElementsBuilder.sidebarContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarContentElement(id, build(children))
+}
+
+/**
+ * Adds a group of a sidebar: a [sidebarGroupLabel], an optional [sidebarGroupAction] and a
+ * [sidebarGroupContent].
+ *
+ * @param id the id of the group
+ * @param children the builder of the label, action and content
+ */
+fun ElementsBuilder.sidebarGroup(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarGroupElement(id, build(children))
+}
+
+/**
+ * Adds the label of a sidebar group.
+ *
+ * @param id the id of the label
+ * @param text the text
+ */
+fun ElementsBuilder.sidebarGroupLabel(id: String, text: Component) {
+    elements += SidebarGroupLabelElement(id, text)
+}
+
+/**
+ * Adds a small icon button at the end of a sidebar group label.
+ *
+ * @param id the id of the button
+ * @param icon the Lucide name of the icon
+ * @param enabled whether the button can be clicked
+ * @param onClick the handler run when the player clicks the button, or `null` for none
+ */
+fun ElementsBuilder.sidebarGroupAction(id: String, icon: String = "plus", enabled: Boolean = true, onClick: ButtonHandler? = null) {
+    elements += SidebarGroupActionElement(id, icon, enabled, onClick)
+}
+
+/**
+ * Adds the content of a sidebar group, usually one [sidebarMenu].
+ *
+ * @param id the id of the content
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.sidebarGroupContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarGroupContentElement(id, build(children))
+}
+
+/**
+ * Adds a menu of a sidebar. Its children are [sidebarMenuItem]s.
+ *
+ * @param id the id of the menu
+ * @param children the builder of the items
+ */
+fun ElementsBuilder.sidebarMenu(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarMenuElement(id, build(children))
+}
+
+/**
+ * Adds an item of a sidebar menu: a [sidebarMenuButton] or [sidebarMenuSkeleton], with an
+ * optional [sidebarMenuAction], [sidebarMenuBadge] and [sidebarMenuSub].
+ *
+ * @param id the id of the item
+ * @param children the builder of the parts
+ */
+fun ElementsBuilder.sidebarMenuItem(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarMenuItemElement(id, build(children))
+}
+
+/**
+ * Adds the button of a sidebar menu item.
+ *
+ * @param id the id of the button
+ * @param text the text
+ * @param icon the Lucide name of an icon before the text, or `null` for none
+ * @param size the size of the button
+ * @param variant how the button is drawn
+ * @param active whether the button leads to the current page
+ * @param tooltip the text shown beside the button while the sidebar is collapsed to icons, or
+ *        `null` for none
+ * @param enabled whether the button can be clicked
+ * @param onClick the handler run when the player clicks the button, or `null` for none
+ */
+fun ElementsBuilder.sidebarMenuButton(
+    id: String,
+    text: Component,
+    icon: String? = null,
+    size: SidebarMenuButtonSize = SidebarMenuButtonSize.DEFAULT,
+    variant: SidebarMenuButtonVariant = SidebarMenuButtonVariant.DEFAULT,
+    active: Boolean = false,
+    tooltip: Component? = null,
+    enabled: Boolean = true,
+    onClick: ButtonHandler? = null,
+) {
+    elements += SidebarMenuButtonElement(id, text, icon, size, variant, active, tooltip, enabled, onClick)
+}
+
+/**
+ * Adds a small icon button at the end of a sidebar menu button.
+ *
+ * @param id the id of the button
+ * @param icon the Lucide name of the icon
+ * @param showOnHover whether the action is shown only while its item is hovered or focused
+ * @param enabled whether the button can be clicked
+ * @param onClick the handler run when the player clicks the button, or `null` for none
+ */
+fun ElementsBuilder.sidebarMenuAction(id: String, icon: String = "ellipsis", showOnHover: Boolean = false, enabled: Boolean = true, onClick: ButtonHandler? = null) {
+    elements += SidebarMenuActionElement(id, icon, showOnHover, enabled, onClick)
+}
+
+/**
+ * Adds a small count or label at the end of a sidebar menu button.
+ *
+ * @param id the id of the badge
+ * @param text the text
+ */
+fun ElementsBuilder.sidebarMenuBadge(id: String, text: Component) {
+    elements += SidebarMenuBadgeElement(id, text)
+}
+
+/**
+ * Adds a placeholder for a sidebar menu button that is still loading.
+ *
+ * @param id the id of the placeholder
+ * @param showIcon whether a placeholder for the icon is drawn
+ */
+fun ElementsBuilder.sidebarMenuSkeleton(id: String, showIcon: Boolean = false) {
+    elements += SidebarMenuSkeletonElement(id, showIcon)
+}
+
+/**
+ * Adds a sub-menu below a sidebar menu button. Its children are [sidebarMenuSubItem]s.
+ *
+ * @param id the id of the sub-menu
+ * @param children the builder of the items
+ */
+fun ElementsBuilder.sidebarMenuSub(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarMenuSubElement(id, build(children))
+}
+
+/**
+ * Adds an item of a sidebar sub-menu. Its child is one [sidebarMenuSubButton].
+ *
+ * @param id the id of the item
+ * @param children the builder of the button
+ */
+fun ElementsBuilder.sidebarMenuSubItem(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += SidebarMenuSubItemElement(id, build(children))
+}
+
+/**
+ * Adds the button of a sidebar sub-menu item.
+ *
+ * @param id the id of the button
+ * @param text the text
+ * @param icon the Lucide name of an icon before the text, or `null` for none
+ * @param size the size of the text
+ * @param active whether the button leads to the current page
+ * @param enabled whether the button can be clicked
+ * @param onClick the handler run when the player clicks the button, or `null` for none
+ */
+fun ElementsBuilder.sidebarMenuSubButton(
+    id: String,
+    text: Component,
+    icon: String? = null,
+    size: SidebarMenuSubButtonSize = SidebarMenuSubButtonSize.MD,
+    active: Boolean = false,
+    enabled: Boolean = true,
+    onClick: ButtonHandler? = null,
+) {
+    elements += SidebarMenuSubButtonElement(id, text, icon, size, active, enabled, onClick)
+}
+
+/**
+ * Adds a small ghost button that expands and collapses the sidebar of the enclosing provider.
+ *
+ * @param id the id of the trigger
+ * @param enabled whether the trigger can be used
+ */
+fun ElementsBuilder.sidebarTrigger(id: String, enabled: Boolean = true) {
+    elements += SidebarTriggerElement(id, enabled)
+}
+
+/**
+ * Adds a thin strip along the inner edge of a sidebar that expands and collapses it when clicked.
+ *
+ * @param id the id of the rail
+ */
+fun ElementsBuilder.sidebarRail(id: String) {
+    elements += SidebarRailElement(id)
+}
+
+/**
+ * Adds a text input that fills the width of a sidebar.
+ *
+ * @param id the id of the input
+ * @param placeholder the hint shown while the input is empty
+ */
+fun ElementsBuilder.sidebarInput(id: String, placeholder: Component = Component.empty()) {
+    textInput(id, placeholder = placeholder, width = ElementSize.grow())
+}
+
+/**
+ * Adds a horizontal separator between the parts of a sidebar.
+ *
+ * @param id the id of the separator
+ */
+fun ElementsBuilder.sidebarSeparator(id: String) {
+    separator(id)
+}

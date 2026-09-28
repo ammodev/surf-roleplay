@@ -331,6 +331,48 @@ import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuContentNode
 import dev.slne.surf.roleplay.protocol.screen.NavigationMenuLinkNode
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarInsetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupLabelElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuBadgeElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSkeletonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarRailElement
+import dev.slne.surf.roleplay.protocol.screen.SidebarProviderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarInsetNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarFooterNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupLabelNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuBadgeNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarRailNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -572,6 +614,30 @@ object ScreenMapper {
             is NavigationMenuTriggerElement -> NavigationMenuTriggerNode(element.id, width, height, text(element.text), element.enabled)
             is NavigationMenuContentElement -> NavigationMenuContentNode(element.id, width, height, element.children.map(::toNode))
             is NavigationMenuLinkElement -> NavigationMenuLinkNode(element.id, width, height, element.children.map(::toNode), element.active, element.enabled)
+            is SidebarProviderElement -> SidebarProviderNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is SidebarElement -> SidebarNode(element.id, width, height, element.children.map(::toNode), enumOf(element.side), enumOf(element.variant), enumOf(element.collapsible))
+            is SidebarInsetElement -> SidebarInsetNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarHeaderElement -> SidebarHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarFooterElement -> SidebarFooterNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarContentElement -> SidebarContentNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarGroupElement -> SidebarGroupNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarGroupLabelElement -> SidebarGroupLabelNode(element.id, width, height, text(element.text))
+            is SidebarGroupActionElement -> SidebarGroupActionNode(element.id, width, height, element.icon, element.enabled)
+            is SidebarGroupContentElement -> SidebarGroupContentNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuElement -> SidebarMenuNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuItemElement -> SidebarMenuItemNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuButtonElement -> SidebarMenuButtonNode(
+                element.id, width, height, text(element.text), element.icon, enumOf(element.size), enumOf(element.variant), element.active,
+                element.tooltip?.let { text(it) } ?: "", element.enabled,
+            )
+            is SidebarMenuActionElement -> SidebarMenuActionNode(element.id, width, height, element.icon, element.showOnHover, element.enabled)
+            is SidebarMenuBadgeElement -> SidebarMenuBadgeNode(element.id, width, height, text(element.text))
+            is SidebarMenuSkeletonElement -> SidebarMenuSkeletonNode(element.id, width, height, element.showIcon)
+            is SidebarMenuSubElement -> SidebarMenuSubNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuSubItemElement -> SidebarMenuSubItemNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuSubButtonElement -> SidebarMenuSubButtonNode(element.id, width, height, text(element.text), element.icon, enumOf(element.size), element.active, element.enabled)
+            is SidebarTriggerElement -> SidebarTriggerNode(element.id, width, height, element.enabled)
+            is SidebarRailElement -> SidebarRailNode(element.id, width, height)
         }
     }
 
