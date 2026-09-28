@@ -68,3 +68,5 @@ Create the next record with `/surf:new-adr`.
 | [0059](0059-holding-a-key-shows-a-cursor-over-the-hud.md) | Holding a key shows a cursor over the HUD | Accepted | 2026-09-28 |
 | [0060](0060-modal-overlays-stay-inside-their-nearest-container.md) | Modal overlays stay inside their nearest container | Accepted | 2026-09-28 |
 | [0061](0061-content-of-an-unreachable-overlay-rejects-input.md) | Content of an unreachable overlay rejects input | Accepted | 2026-09-28 |
+| [0062](0062-disclosure-and-layout-state-lives-on-the-client.md) | Disclosure and layout state lives on the client | Accepted | 2026-09-28 |
+| [0063](0063-a-direction-node-mirrors-horizontal-layouts.md) | A direction node mirrors horizontal layouts | Accepted | 2026-09-28 |
