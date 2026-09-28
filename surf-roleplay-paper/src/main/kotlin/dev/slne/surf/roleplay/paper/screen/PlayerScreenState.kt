@@ -7,6 +7,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.FieldTextKind
 import dev.slne.surf.roleplay.api.client.common.screen.FieldTextElement
 import dev.slne.surf.roleplay.api.client.common.screen.FieldElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
+import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
@@ -364,7 +365,7 @@ class PlayerScreenState(
     }
 
     /**
-     * Runs the search handler of a combobox for a changed query.
+     * Runs the search handler of a combobox or command menu for a changed query.
      *
      * @param session the screen the combobox is on
      * @param element the element the query was reported for
@@ -373,10 +374,14 @@ class PlayerScreenState(
      */
     private fun handleSearch(session: GenericSession, element: ScreenElement, query: String): Outcome {
         val id = ScreenActionValidator.display(element.id)
-        val combobox = element as? ComboboxElement ?: return Outcome.Rejected("widget $id is not a combobox")
-        val handler = combobox.onSearch ?: return Outcome.Rejected("combobox $id does not report searches")
-        if (!combobox.enabled) return Outcome.Rejected("combobox $id is disabled")
-        if (query.length > MAX_QUERY_LENGTH) return Outcome.Rejected("query of combobox $id is too long")
+        val (handler, enabled) = when (element) {
+            is ComboboxElement -> element.onSearch to element.enabled
+            is CommandElement -> element.onSearch to true
+            else -> return Outcome.Rejected("widget $id does not search")
+        }
+        if (handler == null) return Outcome.Rejected("widget $id does not report searches")
+        if (!enabled) return Outcome.Rejected("widget $id is disabled")
+        if (query.length > MAX_QUERY_LENGTH) return Outcome.Rejected("query of widget $id is too long")
         runHandler("search of '${element.id}'") { handler.onSearch(ScreenSearch(session, element.id, query)) }
         return Outcome.Accepted
     }

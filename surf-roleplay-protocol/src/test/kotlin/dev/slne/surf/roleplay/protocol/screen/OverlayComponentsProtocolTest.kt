@@ -90,4 +90,28 @@ class OverlayComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that a command menu with every part survives a round trip.
+     */
+    @Test
+    fun `commands round-trip`() {
+        val root = CommandNode(
+            "command",
+            notifySearch = true,
+            children = listOf(
+                CommandInputNode("input", placeholder = "\"Suchen\""),
+                CommandListNode(
+                    "list",
+                    children = listOf(
+                        CommandEmptyNode("empty", text = "\"Nichts\""),
+                        CommandGroupNode("group", heading = "\"Vorschläge\"", children = listOf(CommandItemNode("item", text = "\"Kalender\"", icon = "calendar", shortcut = "\"K\"", keywords = listOf("termin"), enabled = false))),
+                        CommandSeparatorNode("sep"),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

@@ -1,6 +1,9 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandListElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
@@ -299,6 +302,9 @@ class ServerScreenTree(root: ScreenElement) {
             is HoverCardElement -> container.copy(children = children)
             is HoverCardContentElement -> container.copy(children = children)
             is TooltipElement -> container.copy(children = children)
+            is CommandElement -> container.copy(children = children)
+            is CommandListElement -> container.copy(children = children)
+            is CommandGroupElement -> container.copy(children = children)
             is DropdownMenuElement -> container.copy(children = children)
             is MenuContentElement -> container.copy(children = children)
             is MenuRadioGroupElement -> container.copy(children = children)

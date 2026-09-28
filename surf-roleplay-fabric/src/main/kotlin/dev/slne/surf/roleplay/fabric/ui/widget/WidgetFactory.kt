@@ -3,6 +3,13 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.CommandNode
+import dev.slne.surf.roleplay.protocol.screen.CommandInputNode
+import dev.slne.surf.roleplay.protocol.screen.CommandListNode
+import dev.slne.surf.roleplay.protocol.screen.CommandEmptyNode
+import dev.slne.surf.roleplay.protocol.screen.CommandGroupNode
+import dev.slne.surf.roleplay.protocol.screen.CommandItemNode
+import dev.slne.surf.roleplay.protocol.screen.CommandSeparatorNode
 import dev.slne.surf.roleplay.protocol.screen.DropdownMenuNode
 import dev.slne.surf.roleplay.protocol.screen.MenuContentNode
 import dev.slne.surf.roleplay.protocol.screen.MenuItemNode
@@ -218,6 +225,13 @@ object WidgetFactory {
             is MenubarNode -> container(MenubarWidget(node.id), node.children)
             is MenubarMenuNode -> container(MenubarMenuWidget(node.id), node.children).apply { requestOpen(node.open) }
             is MenubarTriggerNode -> MenubarTriggerWidget(node.id, node.text)
+            is CommandNode -> container(CommandWidget(node.id, node.notifySearch), node.children).apply { link() }
+            is CommandInputNode -> CommandInputWidget(node.id, node.placeholder)
+            is CommandListNode -> container(CommandListWidget(node.id), node.children)
+            is CommandEmptyNode -> CommandEmptyWidget(node.id, node.text)
+            is CommandGroupNode -> container(CommandGroupWidget(node.id, node.heading), node.children)
+            is CommandItemNode -> CommandItemWidget(node.id, node.text, node.icon, node.shortcut, node.keywords).apply { enabled = node.enabled }
+            is CommandSeparatorNode -> CommandSeparatorWidget(node.id)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width

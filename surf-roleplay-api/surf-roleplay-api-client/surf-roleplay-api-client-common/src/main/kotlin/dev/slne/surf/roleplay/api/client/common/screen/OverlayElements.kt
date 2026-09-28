@@ -760,3 +760,208 @@ fun ElementsBuilder.menubarMenu(id: String, onChange: ChangeHandler? = null, chi
 fun ElementsBuilder.menubarTrigger(id: String, text: Component) {
     elements += MenubarTriggerElement(id, text)
 }
+
+/**
+ * A command menu: a search input above a list of items that the input filters.
+ *
+ * @property id the id of this element
+ * @property children the input and the list
+ * @property onSearch whether the mod reports the typed query instead of filtering the items
+ *           itself
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CommandElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val onSearch: SearchHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The search input of a command menu, with a search icon.
+ *
+ * @property id the id of this element
+ * @property placeholder the hint shown while the input is empty, as component JSON
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CommandInputElement(
+    override val id: String,
+    val placeholder: Component = Component.empty(),
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * The scrolling list of a command menu.
+ *
+ * @property id the id of this element
+ * @property children the empty text, groups, items and separators
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CommandListElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The text of a command menu shown while no item matches the query.
+ *
+ * @property id the id of this element
+ * @property text the text as component JSON
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CommandEmptyElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A group of command items under a heading, hidden while none of its items match the query.
+ *
+ * @property id the id of this element
+ * @property children the items, in order
+ * @property heading the heading as component JSON, or `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CommandGroupElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val heading: Component? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * An item of a command menu that fires a widget action when chosen and is shown while it matches
+ * the query.
+ *
+ * @property id the id of this element
+ * @property text the text as component JSON
+ * @property icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @property shortcut a keyboard shortcut shown at the end of the item as component JSON, or
+ *           `null` for none
+ * @property keywords further words the query matches the item by
+ * @property enabled whether the item can be chosen
+ * @property onClick the handler run when the player chooses the item, or `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CommandItemElement(
+    override val id: String,
+    val text: Component = Component.empty(),
+    val icon: String? = null,
+    val shortcut: Component? = null,
+    val keywords: List<String> = emptyList(),
+    val enabled: Boolean = true,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A line between parts of a command menu, hidden while a query is typed.
+ *
+ * @property id the id of this element
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CommandSeparatorElement(
+    override val id: String,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * Adds a command menu. Its input filters its items on the client, unless it has a search
+ * handler, which then receives every query and answers by patching the list.
+ *
+ * @param id the id of the command
+ * @param onSearch the handler run for every typed query, or `null` to filter on the client
+ * @param children the builder of the input and the list
+ */
+fun ElementsBuilder.command(id: String, onSearch: SearchHandler? = null, children: ElementsBuilder.() -> Unit) {
+    elements += CommandElement(id, build(children), onSearch, width = ElementSize.grow())
+}
+
+/**
+ * Adds the search input of a command menu.
+ *
+ * @param id the id of the input
+ * @param placeholder the hint shown while the input is empty
+ */
+fun ElementsBuilder.commandInput(id: String, placeholder: Component = Component.empty()) {
+    elements += CommandInputElement(id, placeholder, width = ElementSize.grow())
+}
+
+/**
+ * Adds the list of a command menu.
+ *
+ * @param id the id of the list
+ * @param children the builder of the empty text, groups, items and separators
+ */
+fun ElementsBuilder.commandList(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += CommandListElement(id, build(children))
+}
+
+/**
+ * Adds the text shown while no item matches.
+ *
+ * @param id the id of the text
+ * @param text the text
+ */
+fun ElementsBuilder.commandEmpty(id: String, text: Component) {
+    elements += CommandEmptyElement(id, text)
+}
+
+/**
+ * Adds a group of command items.
+ *
+ * @param id the id of the group
+ * @param heading the heading, or `null` for none
+ * @param children the builder of the items
+ */
+fun ElementsBuilder.commandGroup(id: String, heading: Component? = null, children: ElementsBuilder.() -> Unit) {
+    elements += CommandGroupElement(id, build(children), heading)
+}
+
+/**
+ * Adds a command item.
+ *
+ * @param id the id of the item
+ * @param text the text
+ * @param icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @param shortcut a shortcut shown at the end, or `null` for none
+ * @param keywords further words the query matches the item by
+ * @param enabled whether the item can be chosen
+ * @param onClick the handler run when the player chooses the item, or `null` for none
+ */
+fun ElementsBuilder.commandItem(
+    id: String,
+    text: Component,
+    icon: String? = null,
+    shortcut: Component? = null,
+    keywords: List<String> = emptyList(),
+    enabled: Boolean = true,
+    onClick: ButtonHandler? = null,
+) {
+    elements += CommandItemElement(id, text, icon, shortcut, keywords, enabled, onClick)
+}
+
+/**
+ * Adds a line between parts of a command menu.
+ *
+ * @param id the id of the separator
+ */
+fun ElementsBuilder.commandSeparator(id: String) {
+    elements += CommandSeparatorElement(id)
+}

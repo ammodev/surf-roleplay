@@ -207,6 +207,20 @@ import dev.slne.surf.roleplay.protocol.screen.MenuLabelNode
 import dev.slne.surf.roleplay.protocol.screen.MenuSeparatorNode
 import dev.slne.surf.roleplay.protocol.screen.MenuSubTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.MenubarTriggerNode
+import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandListElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandEmptyElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandSeparatorElement
+import dev.slne.surf.roleplay.protocol.screen.CommandNode
+import dev.slne.surf.roleplay.protocol.screen.CommandListNode
+import dev.slne.surf.roleplay.protocol.screen.CommandGroupNode
+import dev.slne.surf.roleplay.protocol.screen.CommandInputNode
+import dev.slne.surf.roleplay.protocol.screen.CommandEmptyNode
+import dev.slne.surf.roleplay.protocol.screen.CommandItemNode
+import dev.slne.surf.roleplay.protocol.screen.CommandSeparatorNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -384,6 +398,15 @@ object ScreenMapper {
             is MenubarElement -> MenubarNode(element.id, width, height, element.children.map(::toNode))
             is MenubarMenuElement -> MenubarMenuNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
             is MenubarTriggerElement -> MenubarTriggerNode(element.id, width, height, text(element.text))
+            is CommandElement -> CommandNode(element.id, width, height, element.children.map(::toNode), element.onSearch != null)
+            is CommandInputElement -> CommandInputNode(element.id, width, height, text(element.placeholder))
+            is CommandListElement -> CommandListNode(element.id, width, height, element.children.map(::toNode))
+            is CommandEmptyElement -> CommandEmptyNode(element.id, width, height, text(element.text))
+            is CommandGroupElement -> CommandGroupNode(element.id, width, height, element.children.map(::toNode), element.heading?.let(::text))
+            is CommandItemElement -> CommandItemNode(
+                element.id, width, height, text(element.text), element.icon, element.shortcut?.let(::text), element.keywords, element.enabled,
+            )
+            is CommandSeparatorElement -> CommandSeparatorNode(element.id, width, height)
         }
     }
 

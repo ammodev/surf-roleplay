@@ -34,6 +34,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
 import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupCountElement
 import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
 import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandEmptyElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.CommandItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
@@ -464,6 +467,17 @@ object ElementRules {
             ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }),
         )
         register(MenubarTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            CommandItemElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(CommandEmptyElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(CommandInputElement::class, ElementRule(withText = { e, t -> e.copy(placeholder = t) }))
         register(AvatarGroupCountElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(FieldSeparatorElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(

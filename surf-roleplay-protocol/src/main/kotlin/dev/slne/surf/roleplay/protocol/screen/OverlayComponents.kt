@@ -593,3 +593,159 @@ data class MenubarTriggerNode(
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
     @ProtoNumber(4) val text: String = "",
 ) : ScreenNode
+
+/**
+ * A command menu: a search input above a list of items that the input filters.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the input and the list
+ * @property notifySearch whether the mod reports the typed query instead of filtering the items
+ *           itself
+ */
+@Serializable
+@SerialName("command")
+data class CommandNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val notifySearch: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CommandNode = copy(children = children)
+}
+
+/**
+ * The search input of a command menu, with a search icon.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property placeholder the hint shown while the input is empty, as component JSON
+ */
+@Serializable
+@SerialName("command_input")
+data class CommandInputNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val placeholder: String = "",
+) : ScreenNode
+
+/**
+ * The scrolling list of a command menu.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the empty text, groups, items and separators
+ */
+@Serializable
+@SerialName("command_list")
+data class CommandListNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CommandListNode = copy(children = children)
+}
+
+/**
+ * The text of a command menu shown while no item matches the query.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the text as component JSON
+ */
+@Serializable
+@SerialName("command_empty")
+data class CommandEmptyNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+) : ScreenNode
+
+/**
+ * A group of command items under a heading, hidden while none of its items match the query.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the items, in order
+ * @property heading the heading as component JSON, or `null` for none
+ */
+@Serializable
+@SerialName("command_group")
+data class CommandGroupNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val heading: String? = null,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CommandGroupNode = copy(children = children)
+}
+
+/**
+ * An item of a command menu that fires a widget action when chosen and is shown while it matches
+ * the query.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property text the text as component JSON
+ * @property icon the Lucide name of an icon drawn before the text, or `null` for none
+ * @property shortcut a keyboard shortcut shown at the end of the item as component JSON, or
+ *           `null` for none
+ * @property keywords further words the query matches the item by
+ * @property enabled whether the item can be chosen
+ */
+@Serializable
+@SerialName("command_item")
+data class CommandItemNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val text: String = "",
+    @ProtoNumber(5) val icon: String? = null,
+    @ProtoNumber(6) val shortcut: String? = null,
+    @ProtoNumber(7) val keywords: List<String> = emptyList(),
+    @ProtoNumber(8) val enabled: Boolean = true,
+) : ScreenNode
+
+/**
+ * A line between parts of a command menu, hidden while a query is typed.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ */
+@Serializable
+@SerialName("command_separator")
+data class CommandSeparatorNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+) : ScreenNode
