@@ -1,0 +1,44 @@
+# Local dev stack of surf-roleplay. See README.md in this folder.
+name: surf-roleplay-dev
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: surf
+    ports: ["5432:5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d surf"]
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports: ["15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      retries: 30
+
+  fetch:
+    image: curlimages/curl:8.16.0
+    user: root
+    env_file: versions.env
+    entrypoint: ["sh", "/scripts/fetch.sh"]
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./versions.env:/versions.env:ro
+      - ./jars:/jars
+
+volumes:
+  postgres-data:
