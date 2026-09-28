@@ -68,6 +68,12 @@ class PaperScreenService : ScreenService, Listener {
     private lateinit var limiter: ActionRateLimiter
 
     /**
+     * The rate limiter shared by every player's actions, for other services whose clicks count
+     * against the same limit. Available after [start].
+     */
+    val actionLimiter: ActionRateLimiter get() = limiter
+
+    /**
      * The limiter of rejection log entries.
      */
     private val rejections = RejectionLog(REJECTIONS_LOGGED_PER_MINUTE)

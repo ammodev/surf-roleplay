@@ -47,7 +47,8 @@ class PaperToastService : ToastService, Listener {
     private lateinit var registry: PaperPacketRegistry
 
     /**
-     * The rate limiter of toast button clicks, set by [start].
+     * The rate limiter toast button clicks count against, shared with screen actions, set by
+     * [start].
      */
     private lateinit var limiter: ActionRateLimiter
 
@@ -56,12 +57,12 @@ class PaperToastService : ToastService, Listener {
      *
      * @param plugin the plugin that owns the toasts
      * @param registry the packet registry
-     * @param maxActionsPerSecond the largest number of toast clicks a player may send per second
+     * @param limiter the rate limiter the clicks count against, shared with screen actions
      */
-    fun start(plugin: Plugin, registry: PaperPacketRegistry, maxActionsPerSecond: Int) {
+    fun start(plugin: Plugin, registry: PaperPacketRegistry, limiter: ActionRateLimiter) {
         this.plugin = plugin
         this.registry = registry
-        limiter = ActionRateLimiter(maxActionsPerSecond)
+        this.limiter = limiter
         registry.dispatcher.on(Packets.TOAST_ACTION, PacketHandler { connection, packet ->
             val player = (connection as? PlayerGameConnection)?.player ?: return@PacketHandler
             player.scheduler.run(plugin, {
