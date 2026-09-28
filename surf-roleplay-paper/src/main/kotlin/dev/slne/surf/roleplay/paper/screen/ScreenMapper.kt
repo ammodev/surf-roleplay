@@ -251,6 +251,20 @@ import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
 import dev.slne.surf.roleplay.protocol.screen.AlertDialogMediaNode
 import dev.slne.surf.roleplay.api.client.common.screen.OverlayContainerElement
 import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleElement
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionContentElement
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleContentNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionItemNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -452,6 +466,13 @@ object ScreenMapper {
             is DrawerElement -> DrawerNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
             is OverlayContainerElement -> OverlayContainerNode(element.id, width, height, element.children.map(::toNode))
             is DrawerContentElement -> DrawerContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
+            is CollapsibleElement -> CollapsibleNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is CollapsibleTriggerElement -> CollapsibleTriggerNode(element.id, width, height, element.children.map(::toNode))
+            is CollapsibleContentElement -> CollapsibleContentNode(element.id, width, height, element.children.map(::toNode))
+            is AccordionElement -> AccordionNode(element.id, width, height, element.children.map(::toNode), enumOf(element.type), element.collapsible, element.value, element.onChange != null)
+            is AccordionItemElement -> AccordionItemNode(element.id, width, height, element.children.map(::toNode), element.value, element.enabled)
+            is AccordionTriggerElement -> AccordionTriggerNode(element.id, width, height, text(element.text))
+            is AccordionContentElement -> AccordionContentNode(element.id, width, height, element.children.map(::toNode))
         }
     }
 

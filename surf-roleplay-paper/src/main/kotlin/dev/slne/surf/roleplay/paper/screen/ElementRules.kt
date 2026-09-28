@@ -51,6 +51,11 @@ import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenubarTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
@@ -318,6 +323,31 @@ object ElementRules {
     fun splitList(value: String): List<String> = value.split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
     /**
+     * Returns the items of an accordion, in order.
+     *
+     * @param accordion the accordion
+     * @return the items
+     */
+    private fun accordionItems(accordion: AccordionElement): List<AccordionItemElement> = accordion.children.filterIsInstance<AccordionItemElement>()
+
+    /**
+     * Checks the items an accordion would have open.
+     *
+     * @param accordion the accordion
+     * @param open the values of the items that would be open
+     * @return a description of the violated constraint, or `null` if the choice is valid
+     */
+    private fun accordionViolation(accordion: AccordionElement, open: List<String>): String? {
+        val items = accordionItems(accordion).associateBy { it.value }
+        if (open.any { it !in items }) return "value is not an item"
+        if (open.toSet().size != open.size) return "value repeats an item"
+        if (accordion.type == AccordionType.SINGLE && open.size > 1) return "only one item can be open"
+        val changed = (open.toSet() - accordion.value.toSet()) + (accordion.value.toSet() - open.toSet())
+        if (changed.any { items[it]?.enabled == false }) return "a disabled item changed"
+        return null
+    }
+
+    /**
      * Checks the items a toggle group would have switched on.
      *
      * @param group the toggle group
@@ -482,6 +512,20 @@ object ElementRules {
         )
         register(CommandEmptyElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(DialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(CollapsibleElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(
+            AccordionElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { e -> accordionItems(e).filter { it.value in e.value }.joinToString(",") { it.value } },
+                    violation = { e, v -> accordionViolation(e, splitList(v)) },
+                    withValue = { e, v -> e.copy(value = splitList(v)) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(AccordionItemElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
+        register(AccordionTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(AlertDialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(SheetElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(DrawerElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))

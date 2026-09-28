@@ -1,6 +1,12 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleElement
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.OverlayContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogContentElement
@@ -318,6 +324,12 @@ class ServerScreenTree(root: ScreenElement) {
             is TooltipElement -> container.copy(children = children)
             is OverlayContainerElement -> container.copy(children = children)
             is DialogElement -> container.copy(children = children)
+            is CollapsibleElement -> container.copy(children = children)
+            is CollapsibleTriggerElement -> container.copy(children = children)
+            is CollapsibleContentElement -> container.copy(children = children)
+            is AccordionElement -> container.copy(children = children)
+            is AccordionItemElement -> container.copy(children = children)
+            is AccordionContentElement -> container.copy(children = children)
             is DialogContentElement -> container.copy(children = children)
             is DialogHeaderElement -> container.copy(children = children)
             is DialogFooterElement -> container.copy(children = children)
