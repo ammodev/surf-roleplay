@@ -39,9 +39,9 @@ Create the next record with `/surf:new-adr`.
 | [0030](0030-the-client-mod-depends-on-fabric-language-kotlin.md) | The client mod depends on Fabric Language Kotlin | Accepted | 2026-09-27 |
 | [0031](0031-the-local-dev-stack-runs-fully-in-docker-compose.md) | The local dev stack runs fully in Docker Compose | Accepted | 2026-09-28 |
 | [0032](0032-server-driven-screens-combine-widget-trees-and-typed-screens.md) | Server-driven screens combine widget trees and typed screens | Accepted | 2026-09-28 |
-| [0033](0033-generic-screens-are-trees-of-flex-containers-and-fixed-widgets.md) | Generic screens are trees of flex containers and fixed widgets | Accepted | 2026-09-28 |
+| [0033](0033-generic-screens-are-trees-of-flex-containers-and-fixed-widgets.md) | Generic screens are trees of flex containers and fixed widgets | Superseded by ADR-0051 | 2026-09-28 |
 | [0034](0034-screen-texts-travel-as-text-component-json.md) | Screen texts travel as text component JSON | Accepted | 2026-09-28 |
-| [0035](0035-server-driven-screens-stack-per-player.md) | Server-driven screens stack per player | Accepted | 2026-09-28 |
+| [0035](0035-server-driven-screens-stack-per-player.md) | Server-driven screens stack per player | Superseded by ADR-0048 | 2026-09-28 |
 | [0036](0036-open-screens-change-through-patches-by-widget-id.md) | Open screens change through patches by widget id | Accepted | 2026-09-28 |
 | [0037](0037-screen-actions-are-validated-against-the-server-held-screen.md) | Screen actions are validated against the server-held screen | Superseded by ADR-0042 | 2026-09-28 |
 | [0038](0038-the-screen-api-is-public-in-surf-roleplay-api.md) | The screen API is public in surf-roleplay-api | Accepted | 2026-09-28 |
@@ -52,3 +52,9 @@ Create the next record with `/surf:new-adr`.
 | [0043](0043-only-submitting-buttons-require-valid-input.md) | Only submitting buttons require valid input | Accepted | 2026-09-28 |
 | [0044](0044-the-screen-api-is-called-on-the-players-region-thread.md) | The screen API is called on the player's region thread | Accepted | 2026-09-28 |
 | [0045](0045-the-mod-drops-screen-opens-for-a-parent-it-no-longer-has.md) | The mod drops screen opens for a parent it no longer has | Accepted | 2026-09-28 |
+| [0046](0046-screens-taller-than-the-window-scroll-inside-their-panel.md) | Screens taller than the window scroll inside their panel | Accepted | 2026-09-28 |
+| [0047](0047-screens-use-browser-like-keyboard-navigation.md) | Screens use browser-like keyboard navigation | Accepted | 2026-09-28 |
+| [0048](0048-screens-are-presented-as-full-screen-dialog-or-sheet.md) | Screens are presented as full screen, dialog or sheet | Accepted | 2026-09-28 |
+| [0049](0049-the-server-picks-a-named-theme-and-variant-per-screen.md) | The server picks a named theme and variant per screen | Accepted | 2026-09-28 |
+| [0050](0050-the-mod-bundles-lucide-icons-rasterised-at-build-time.md) | The mod bundles Lucide icons rasterised at build time | Accepted | 2026-09-28 |
+| [0051](0051-the-screen-framework-covers-the-shadcn-component-registry.md) | The screen framework covers the shadcn component registry | Accepted | 2026-09-28 |

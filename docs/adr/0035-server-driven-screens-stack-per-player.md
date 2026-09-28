@@ -1,9 +1,9 @@
 # ADR-0035: Server-driven screens stack per player
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0048
 - **Date:** 2026-09-28
 - **Supersedes:** none
-- **Superseded by:** none
+- **Superseded by:** ADR-0048
 
 ## Context
 
