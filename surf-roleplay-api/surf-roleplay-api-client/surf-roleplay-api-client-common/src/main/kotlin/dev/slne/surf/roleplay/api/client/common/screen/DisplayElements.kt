@@ -762,3 +762,435 @@ fun ElementsBuilder.cardContent(id: String, children: ElementsBuilder.() -> Unit
 fun ElementsBuilder.cardFooter(id: String, children: ElementsBuilder.() -> Unit) {
     elements += CardFooterElement(id, build(children))
 }
+
+/**
+ * The look of the media of an empty state.
+ */
+enum class EmptyMediaVariant {
+    /**
+     * The content as it is, without a background.
+     */
+    DEFAULT,
+
+    /**
+     * An icon on a muted rounded square.
+     */
+    ICON,
+}
+
+/**
+ * The look of an item.
+ */
+enum class ItemVariant {
+    /**
+     * Without a border or background.
+     */
+    DEFAULT,
+
+    /**
+     * With a border.
+     */
+    OUTLINE,
+
+    /**
+     * On a muted background.
+     */
+    MUTED,
+}
+
+/**
+ * The size of an item.
+ */
+enum class ItemSize {
+    /**
+     * The regular padding and gaps.
+     */
+    DEFAULT,
+
+    /**
+     * Smaller padding and gaps.
+     */
+    SM,
+}
+
+/**
+ * The look of the media of an item.
+ */
+enum class ItemMediaVariant {
+    /**
+     * The content as it is, without a background.
+     */
+    DEFAULT,
+
+    /**
+     * An icon on a small muted bordered square.
+     */
+    ICON,
+
+    /**
+     * The content clipped to a square, such as an image.
+     */
+    IMAGE,
+}
+
+/**
+ * An empty state: a centered stack of a header and content that says there is nothing to show.
+ *
+ * @property id the id of this element
+ * @property children the header and content, in order
+ * @property outline whether a dashed border is drawn around the state
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class EmptyElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val outline: Boolean = false,
+    override val width: ElementSize = ElementSize.grow(),
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds an empty state: a centered stack of a header and content that says there is nothing to show.
+ *
+ * @param id the id of the empty state
+ * @param outline whether a dashed border is drawn around the state
+ * @param children the builder of the header and content
+ */
+fun ElementsBuilder.empty(id: String, outline: Boolean = false, children: ElementsBuilder.() -> Unit) {
+    elements += EmptyElement(id, build(children), outline)
+}
+
+/**
+ * The header of an empty state: its media, title and description, centered.
+ *
+ * @property id the id of this element
+ * @property children the media, title and description, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class EmptyHeaderElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds the header of an empty state: its media, title and description, centered.
+ *
+ * @param id the id of the header
+ * @param children the builder of the media, title and description
+ */
+fun ElementsBuilder.emptyHeader(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += EmptyHeaderElement(id, build(children))
+}
+
+/**
+ * The media of an empty state, such as an icon or avatars.
+ *
+ * @property id the id of this element
+ * @property children the content of the default variant
+ * @property variant the look of the media
+ * @property icon the Lucide name of the icon of the icon variant, or `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class EmptyMediaElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val variant: EmptyMediaVariant = EmptyMediaVariant.DEFAULT,
+    val icon: String? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds the media of an empty state, such as an icon or avatars.
+ *
+ * @param id the id of the media
+ * @param variant the look of the media
+ * @param icon the Lucide name of the icon of the icon variant, or `null` for none
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.emptyMedia(id: String, variant: EmptyMediaVariant = EmptyMediaVariant.DEFAULT, icon: String? = null, children: ElementsBuilder.() -> Unit = {}) {
+    elements += EmptyMediaElement(id, build(children), variant, icon)
+}
+
+/**
+ * The content of an empty state, such as buttons, centered below its header.
+ *
+ * @property id the id of this element
+ * @property children the content, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class EmptyContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds the content of an empty state, such as buttons, centered below its header.
+ *
+ * @param id the id of the content
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.emptyContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += EmptyContentElement(id, build(children))
+}
+
+/**
+ * A row of media, content and actions, with an optional header above and footer below; a clickable
+ * item fires a widget action.
+ *
+ * @property id the id of this element
+ * @property children the header, media, content, actions and footer
+ * @property variant the look of the item
+ * @property size the size of the item
+ * @property onClick the handler run when the player clicks the item, or `null` for an item that
+ *           cannot be clicked
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ItemElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val variant: ItemVariant = ItemVariant.DEFAULT,
+    val size: ItemSize = ItemSize.DEFAULT,
+    val onClick: ButtonHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The media at the start of an item, such as an icon, avatar or image.
+ *
+ * @property id the id of this element
+ * @property children the content of the default and image variants
+ * @property variant the look of the media
+ * @property icon the Lucide name of the icon of the icon variant, or `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ItemMediaElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val variant: ItemMediaVariant = ItemMediaVariant.DEFAULT,
+    val icon: String? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds the media at the start of an item, such as an icon, avatar or image.
+ *
+ * @param id the id of the media
+ * @param variant the look of the media
+ * @param icon the Lucide name of the icon of the icon variant, or `null` for none
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.itemMedia(id: String, variant: ItemMediaVariant = ItemMediaVariant.DEFAULT, icon: String? = null, children: ElementsBuilder.() -> Unit = {}) {
+    elements += ItemMediaElement(id, build(children), variant, icon)
+}
+
+/**
+ * The stacked title and description of an item, which takes the space its media and actions leave.
+ *
+ * @property id the id of this element
+ * @property children the title, description and further texts, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ItemContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds the stacked title and description of an item, which takes the space its media and actions
+ * leave.
+ *
+ * @param id the id of the content
+ * @param children the builder of the title and description
+ */
+fun ElementsBuilder.itemContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += ItemContentElement(id, build(children))
+}
+
+/**
+ * The actions at the end of an item, such as buttons.
+ *
+ * @property id the id of this element
+ * @property children the content, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ItemActionsElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds the actions at the end of an item, such as buttons.
+ *
+ * @param id the id of the actions
+ * @param children the builder of the actions
+ */
+fun ElementsBuilder.itemActions(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += ItemActionsElement(id, build(children))
+}
+
+/**
+ * A line above the row of an item; its first part is placed at the start and the others at the end.
+ *
+ * @property id the id of this element
+ * @property children the content, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ItemHeaderElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a line above the row of an item; its first part is placed at the start and the others at the
+ * end.
+ *
+ * @param id the id of the header
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.itemHeader(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += ItemHeaderElement(id, build(children))
+}
+
+/**
+ * A line below the row of an item; its first part is placed at the start and the others at the end.
+ *
+ * @property id the id of this element
+ * @property children the content, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ItemFooterElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a line below the row of an item; its first part is placed at the start and the others at the
+ * end.
+ *
+ * @param id the id of the footer
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.itemFooter(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += ItemFooterElement(id, build(children))
+}
+
+/**
+ * A stack of items and separators, each as wide as the group.
+ *
+ * @property id the id of this element
+ * @property children the items and separators, in order
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ItemGroupElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a stack of items and separators, each as wide as the group.
+ *
+ * @param id the id of the group
+ * @param children the builder of the items and separators
+ */
+fun ElementsBuilder.itemGroup(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += ItemGroupElement(id, build(children))
+}
+
+/**
+ * Adds an item. An item with a click handler highlights under the mouse, can take the focus, and
+ * runs the handler when it is clicked or activated; it never requires the screen's input to be
+ * valid.
+ *
+ * @param id the id of the item
+ * @param variant the look of the item
+ * @param size the size of the item
+ * @param onClick the handler run when the player clicks the item, or `null` for an item that
+ *        cannot be clicked
+ * @param children the builder of the header, media, content, actions and footer
+ */
+fun ElementsBuilder.item(
+    id: String,
+    variant: ItemVariant = ItemVariant.DEFAULT,
+    size: ItemSize = ItemSize.DEFAULT,
+    onClick: ButtonHandler? = null,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += ItemElement(id, build(children), variant, size, onClick, width = ElementSize.grow())
+}
+
+/**
+ * Adds the title of an item.
+ *
+ * @param id the id of the title
+ * @param text the title
+ */
+fun ElementsBuilder.itemTitle(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.ITEM_TITLE)
+}
+
+/**
+ * Adds the description of an item, shown on at most two lines.
+ *
+ * @param id the id of the description
+ * @param text the description
+ */
+fun ElementsBuilder.itemDescription(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.ITEM_DESCRIPTION)
+}
+
+/**
+ * Adds a separator between the items of a group.
+ *
+ * @param id the id of the separator
+ */
+fun ElementsBuilder.itemSeparator(id: String) {
+    separator(id)
+}
+
+/**
+ * Adds the title of an empty state.
+ *
+ * @param id the id of the title
+ * @param text the title
+ */
+fun ElementsBuilder.emptyTitle(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.EMPTY_TITLE)
+}
+
+/**
+ * Adds the description of an empty state.
+ *
+ * @param id the id of the description
+ * @param text the description
+ */
+fun ElementsBuilder.emptyDescription(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.EMPTY_DESCRIPTION)
+}

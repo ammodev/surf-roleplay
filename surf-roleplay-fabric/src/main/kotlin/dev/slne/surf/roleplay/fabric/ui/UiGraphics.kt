@@ -348,6 +348,33 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
+     * Draws a dashed one-pixel border along the inside of a rectangle.
+     *
+     * @param rect the rectangle
+     * @param color the ARGB colour
+     * @param dash the length of a dash
+     * @param space the length of the space between two dashes
+     */
+    fun dashedBorder(rect: Rect, color: Int, dash: Int = 3, space: Int = 2) {
+        if (rect.width <= 0 || rect.height <= 0) return
+        val step = dash + space
+        var x = rect.x
+        while (x < rect.right) {
+            val length = minOf(dash, rect.right - x)
+            fill(Rect(x, rect.y, length, 1), color)
+            fill(Rect(x, rect.bottom - 1, length, 1), color)
+            x += step
+        }
+        var y = rect.y
+        while (y < rect.bottom) {
+            val length = minOf(dash, rect.bottom - y)
+            fill(Rect(rect.x, y, 1, length), color)
+            fill(Rect(rect.right - 1, y, 1, length), color)
+            y += step
+        }
+    }
+
+    /**
      * Starts a new drawing layer on top of everything drawn so far.
      */
     fun nextLayer() {

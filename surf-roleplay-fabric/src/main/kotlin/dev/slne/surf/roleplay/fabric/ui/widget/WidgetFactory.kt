@@ -3,6 +3,17 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyMediaNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyContentNode
+import dev.slne.surf.roleplay.protocol.screen.ItemNode
+import dev.slne.surf.roleplay.protocol.screen.ItemMediaNode
+import dev.slne.surf.roleplay.protocol.screen.ItemContentNode
+import dev.slne.surf.roleplay.protocol.screen.ItemActionsNode
+import dev.slne.surf.roleplay.protocol.screen.ItemHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.ItemFooterNode
+import dev.slne.surf.roleplay.protocol.screen.ItemGroupNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
 import dev.slne.surf.roleplay.protocol.screen.CardActionNode
 import dev.slne.surf.roleplay.protocol.screen.CardContentNode
@@ -154,6 +165,17 @@ object WidgetFactory {
             is CardActionNode -> container(CardActionWidget(node.id), node.children)
             is CardContentNode -> container(CardContentWidget(node.id), node.children)
             is CardFooterNode -> container(CardFooterWidget(node.id), node.children)
+            is EmptyNode -> container(EmptyWidget(node.id, node.outline), node.children)
+            is EmptyHeaderNode -> container(EmptyHeaderWidget(node.id), node.children)
+            is EmptyMediaNode -> container(EmptyMediaWidget(node.id, node.variant, node.icon), node.children)
+            is EmptyContentNode -> container(EmptyContentWidget(node.id), node.children)
+            is ItemNode -> container(ItemWidget(node.id, node.variant, node.size, node.clickable), node.children)
+            is ItemMediaNode -> container(ItemMediaWidget(node.id, node.variant, node.icon), node.children)
+            is ItemContentNode -> container(ItemContentWidget(node.id), node.children)
+            is ItemActionsNode -> container(ItemActionsWidget(node.id), node.children)
+            is ItemHeaderNode -> container(ItemHeaderWidget(node.id), node.children)
+            is ItemFooterNode -> container(ItemFooterWidget(node.id), node.children)
+            is ItemGroupNode -> container(ItemGroupWidget(node.id), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width

@@ -142,6 +142,28 @@ import dev.slne.surf.roleplay.protocol.screen.CardHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.CardActionNode
 import dev.slne.surf.roleplay.protocol.screen.CardContentNode
 import dev.slne.surf.roleplay.protocol.screen.CardFooterNode
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyMediaElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemMediaElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemActionsElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemGroupElement
+import dev.slne.surf.roleplay.protocol.screen.EmptyNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyMediaNode
+import dev.slne.surf.roleplay.protocol.screen.EmptyContentNode
+import dev.slne.surf.roleplay.protocol.screen.ItemNode
+import dev.slne.surf.roleplay.protocol.screen.ItemMediaNode
+import dev.slne.surf.roleplay.protocol.screen.ItemContentNode
+import dev.slne.surf.roleplay.protocol.screen.ItemActionsNode
+import dev.slne.surf.roleplay.protocol.screen.ItemHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.ItemFooterNode
+import dev.slne.surf.roleplay.protocol.screen.ItemGroupNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -282,6 +304,17 @@ object ScreenMapper {
             is CardActionElement -> CardActionNode(element.id, width, height, element.children.map(::toNode))
             is CardContentElement -> CardContentNode(element.id, width, height, element.children.map(::toNode))
             is CardFooterElement -> CardFooterNode(element.id, width, height, element.children.map(::toNode))
+            is EmptyElement -> EmptyNode(element.id, width, height, element.children.map(::toNode), element.outline)
+            is EmptyHeaderElement -> EmptyHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is EmptyMediaElement -> EmptyMediaNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant), element.icon)
+            is EmptyContentElement -> EmptyContentNode(element.id, width, height, element.children.map(::toNode))
+            is ItemElement -> ItemNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant), enumOf(element.size), element.onClick != null)
+            is ItemMediaElement -> ItemMediaNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant), element.icon)
+            is ItemContentElement -> ItemContentNode(element.id, width, height, element.children.map(::toNode))
+            is ItemActionsElement -> ItemActionsNode(element.id, width, height, element.children.map(::toNode))
+            is ItemHeaderElement -> ItemHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is ItemFooterElement -> ItemFooterNode(element.id, width, height, element.children.map(::toNode))
+            is ItemGroupElement -> ItemGroupNode(element.id, width, height, element.children.map(::toNode))
         }
     }
 

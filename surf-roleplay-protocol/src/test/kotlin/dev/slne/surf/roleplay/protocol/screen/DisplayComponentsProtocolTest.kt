@@ -100,4 +100,44 @@ class DisplayComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that empty states and items with every part survive a round trip.
+     */
+    @Test
+    fun `empty states and items round-trip`() {
+        val root = ColumnNode(
+            "root",
+            children = listOf(
+                EmptyNode(
+                    "empty",
+                    outline = true,
+                    children = listOf(
+                        EmptyHeaderNode("header", children = listOf(EmptyMediaNode("media", variant = EmptyMediaVariant.ICON, icon = "folder"))),
+                        EmptyContentNode("content", children = listOf(ButtonNode("create"))),
+                    ),
+                ),
+                ItemGroupNode(
+                    "group",
+                    children = listOf(
+                        ItemNode(
+                            "item",
+                            variant = ItemVariant.MUTED,
+                            size = ItemSize.SM,
+                            clickable = true,
+                            children = listOf(
+                                ItemHeaderNode("item_header"),
+                                ItemMediaNode("item_media", variant = ItemMediaVariant.IMAGE, children = listOf(ImageNode("image", texture = "minecraft:x"))),
+                                ItemContentNode("item_content", children = listOf(TextNode("title", kind = TextKind.ITEM_TITLE))),
+                                ItemActionsNode("item_actions"),
+                                ItemFooterNode("item_footer"),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

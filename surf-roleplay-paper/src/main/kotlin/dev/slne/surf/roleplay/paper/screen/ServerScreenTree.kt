@@ -1,6 +1,17 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyMediaElement
+import dev.slne.surf.roleplay.api.client.common.screen.EmptyContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemMediaElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemActionsElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.AlertElement
 import dev.slne.surf.roleplay.api.client.common.screen.CardElement
 import dev.slne.surf.roleplay.api.client.common.screen.CardHeaderElement
@@ -256,6 +267,17 @@ class ServerScreenTree(root: ScreenElement) {
             is CardActionElement -> container.copy(children = children)
             is CardContentElement -> container.copy(children = children)
             is CardFooterElement -> container.copy(children = children)
+            is EmptyElement -> container.copy(children = children)
+            is EmptyHeaderElement -> container.copy(children = children)
+            is EmptyMediaElement -> container.copy(children = children)
+            is EmptyContentElement -> container.copy(children = children)
+            is ItemElement -> container.copy(children = children)
+            is ItemMediaElement -> container.copy(children = children)
+            is ItemContentElement -> container.copy(children = children)
+            is ItemActionsElement -> container.copy(children = children)
+            is ItemHeaderElement -> container.copy(children = children)
+            is ItemFooterElement -> container.copy(children = children)
+            is ItemGroupElement -> container.copy(children = children)
         }
     }
 }

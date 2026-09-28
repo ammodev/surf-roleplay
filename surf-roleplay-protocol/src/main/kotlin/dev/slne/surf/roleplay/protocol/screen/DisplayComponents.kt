@@ -622,3 +622,379 @@ data class CardFooterNode(
      */
     override fun withChildren(children: List<ScreenNode>): CardFooterNode = copy(children = children)
 }
+
+/**
+ * The look of the media of an empty state.
+ */
+@Serializable
+enum class EmptyMediaVariant {
+    /**
+     * The content as it is, without a background.
+     */
+    @ProtoNumber(0)
+    DEFAULT,
+
+    /**
+     * An icon on a muted rounded square.
+     */
+    @ProtoNumber(1)
+    ICON,
+}
+
+/**
+ * The look of an item.
+ */
+@Serializable
+enum class ItemVariant {
+    /**
+     * Without a border or background.
+     */
+    @ProtoNumber(0)
+    DEFAULT,
+
+    /**
+     * With a border.
+     */
+    @ProtoNumber(1)
+    OUTLINE,
+
+    /**
+     * On a muted background.
+     */
+    @ProtoNumber(2)
+    MUTED,
+}
+
+/**
+ * The size of an item.
+ */
+@Serializable
+enum class ItemSize {
+    /**
+     * The regular padding and gaps.
+     */
+    @ProtoNumber(0)
+    DEFAULT,
+
+    /**
+     * Smaller padding and gaps.
+     */
+    @ProtoNumber(1)
+    SM,
+}
+
+/**
+ * The look of the media of an item.
+ */
+@Serializable
+enum class ItemMediaVariant {
+    /**
+     * The content as it is, without a background.
+     */
+    @ProtoNumber(0)
+    DEFAULT,
+
+    /**
+     * An icon on a small muted bordered square.
+     */
+    @ProtoNumber(1)
+    ICON,
+
+    /**
+     * The content clipped to a square, such as an image.
+     */
+    @ProtoNumber(2)
+    IMAGE,
+}
+
+/**
+ * An empty state: a centered stack of a header and content that says there is nothing to show.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the header and content, in order
+ * @property outline whether a dashed border is drawn around the state
+ */
+@Serializable
+@SerialName("empty")
+data class EmptyNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val outline: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): EmptyNode = copy(children = children)
+}
+
+/**
+ * The header of an empty state: its media, title and description, centered.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the media, title and description, in order
+ */
+@Serializable
+@SerialName("empty_header")
+data class EmptyHeaderNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): EmptyHeaderNode = copy(children = children)
+}
+
+/**
+ * The media of an empty state, such as an icon or avatars.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content of the default variant
+ * @property variant the look of the media
+ * @property icon the Lucide name of the icon of the icon variant, or `null` for none
+ */
+@Serializable
+@SerialName("empty_media")
+data class EmptyMediaNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val variant: EmptyMediaVariant = EmptyMediaVariant.DEFAULT,
+    @ProtoNumber(6) val icon: String? = null,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): EmptyMediaNode = copy(children = children)
+}
+
+/**
+ * The content of an empty state, such as buttons, centered below its header.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, in order
+ */
+@Serializable
+@SerialName("empty_content")
+data class EmptyContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): EmptyContentNode = copy(children = children)
+}
+
+/**
+ * A row of media, content and actions, with an optional header above and footer below; a clickable
+ * item fires a widget action.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the header, media, content, actions and footer
+ * @property variant the look of the item
+ * @property size the size of the item
+ * @property clickable whether the item can be clicked or activated to fire a widget action
+ */
+@Serializable
+@SerialName("item")
+data class ItemNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val variant: ItemVariant = ItemVariant.DEFAULT,
+    @ProtoNumber(6) val size: ItemSize = ItemSize.DEFAULT,
+    @ProtoNumber(7) val clickable: Boolean = false,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ItemNode = copy(children = children)
+}
+
+/**
+ * The media at the start of an item, such as an icon, avatar or image.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content of the default and image variants
+ * @property variant the look of the media
+ * @property icon the Lucide name of the icon of the icon variant, or `null` for none
+ */
+@Serializable
+@SerialName("item_media")
+data class ItemMediaNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val variant: ItemMediaVariant = ItemMediaVariant.DEFAULT,
+    @ProtoNumber(6) val icon: String? = null,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ItemMediaNode = copy(children = children)
+}
+
+/**
+ * The stacked title and description of an item, which takes the space its media and actions leave.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the title, description and further texts, in order
+ */
+@Serializable
+@SerialName("item_content")
+data class ItemContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ItemContentNode = copy(children = children)
+}
+
+/**
+ * The actions at the end of an item, such as buttons.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, in order
+ */
+@Serializable
+@SerialName("item_actions")
+data class ItemActionsNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ItemActionsNode = copy(children = children)
+}
+
+/**
+ * A line above the row of an item; its first part is placed at the start and the others at the end.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, in order
+ */
+@Serializable
+@SerialName("item_header")
+data class ItemHeaderNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ItemHeaderNode = copy(children = children)
+}
+
+/**
+ * A line below the row of an item; its first part is placed at the start and the others at the end.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, in order
+ */
+@Serializable
+@SerialName("item_footer")
+data class ItemFooterNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ItemFooterNode = copy(children = children)
+}
+
+/**
+ * A stack of items and separators, each as wide as the group.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the items and separators, in order
+ */
+@Serializable
+@SerialName("item_group")
+data class ItemGroupNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ItemGroupNode = copy(children = children)
+}

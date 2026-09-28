@@ -33,6 +33,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.TextareaElement
 import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
 import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupCountElement
 import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.KbdElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import net.kyori.adventure.text.Component
@@ -379,6 +380,7 @@ object ElementRules {
         register(KbdElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(BadgeElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(AvatarElement::class, ElementRule(withText = { e, t -> e.copy(fallback = t) }))
+        register(ItemElement::class, ElementRule(action = { item -> item.onClick?.let { ActionRule(it, submitsInput = false) } }))
         register(AvatarGroupCountElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(FieldSeparatorElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(
