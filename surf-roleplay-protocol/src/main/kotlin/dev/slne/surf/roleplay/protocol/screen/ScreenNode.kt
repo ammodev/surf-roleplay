@@ -274,6 +274,7 @@ data class ScrollListNode(
  * @property height how tall this node is laid out
  * @property text the text as component JSON
  * @property icon the name of a Lucide icon drawn before the text, or `null` for none
+ * @property forId the id of the input that a click on the label focuses, or `null` for none
  */
 @Serializable
 @SerialName("label")
@@ -283,6 +284,7 @@ data class LabelNode(
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
     @ProtoNumber(4) val text: String = "",
     @ProtoNumber(5) val icon: String? = null,
+    @ProtoNumber(6) val forId: String? = null,
 ) : ScreenNode
 
 /**
@@ -326,6 +328,7 @@ data class ButtonNode(
  * @property enabled whether the player can edit the field
  * @property icon the name of a Lucide icon drawn at the start of the field, or `null` for none
  * @property notifyChange whether the mod reports every change of the value at once
+ * @property inputType the kind of text the field holds
  */
 @Serializable
 @SerialName("text_input")
@@ -340,6 +343,7 @@ data class TextInputNode(
     @ProtoNumber(8) val enabled: Boolean = true,
     @ProtoNumber(9) val icon: String? = null,
     @ProtoNumber(10) val notifyChange: Boolean = false,
+    @ProtoNumber(11) val inputType: TextInputType = TextInputType.TEXT,
 ) : ScreenNode
 
 /**
