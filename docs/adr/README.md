@@ -43,8 +43,12 @@ Create the next record with `/surf:new-adr`.
 | [0034](0034-screen-texts-travel-as-text-component-json.md) | Screen texts travel as text component JSON | Accepted | 2026-09-28 |
 | [0035](0035-server-driven-screens-stack-per-player.md) | Server-driven screens stack per player | Accepted | 2026-09-28 |
 | [0036](0036-open-screens-change-through-patches-by-widget-id.md) | Open screens change through patches by widget id | Accepted | 2026-09-28 |
-| [0037](0037-screen-actions-are-validated-against-the-server-held-screen.md) | Screen actions are validated against the server-held screen | Accepted | 2026-09-28 |
+| [0037](0037-screen-actions-are-validated-against-the-server-held-screen.md) | Screen actions are validated against the server-held screen | Superseded by ADR-0042 | 2026-09-28 |
 | [0038](0038-the-screen-api-is-public-in-surf-roleplay-api.md) | The screen API is public in surf-roleplay-api | Accepted | 2026-09-28 |
 | [0039](0039-the-mod-ui-is-built-on-an-own-toolkit.md) | The mod UI is built on an own toolkit | Accepted | 2026-09-28 |
 | [0040](0040-the-mod-is-active-only-on-servers-that-announce-the-roleplay-protocol.md) | The mod is active only on servers that announce the roleplay protocol | Superseded by ADR-0041 | 2026-09-28 |
 | [0041](0041-the-mod-is-active-only-after-the-roleplay-server-welcomes-it.md) | The mod is active only after the roleplay server welcomes it | Accepted | 2026-09-28 |
+| [0042](0042-screen-actions-are-accepted-only-for-the-top-screen.md) | Screen actions are accepted only for the top screen | Accepted | 2026-09-28 |
+| [0043](0043-only-submitting-buttons-require-valid-input.md) | Only submitting buttons require valid input | Accepted | 2026-09-28 |
+| [0044](0044-the-screen-api-is-called-on-the-players-region-thread.md) | The screen API is called on the player's region thread | Accepted | 2026-09-28 |
+| [0045](0045-the-mod-drops-screen-opens-for-a-parent-it-no-longer-has.md) | The mod drops screen opens for a parent it no longer has | Accepted | 2026-09-28 |
