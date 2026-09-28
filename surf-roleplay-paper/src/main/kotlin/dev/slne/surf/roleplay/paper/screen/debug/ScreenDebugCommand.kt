@@ -9,8 +9,8 @@ import org.bukkit.plugin.Plugin
 /**
  * The staff command `/rpscreen`, which opens the demo screens of the screen framework.
  *
- * `/rpscreen` opens the generic demo screen, `/rpscreen inputs` and `/rpscreen display` the pages
- * of the input and display components, and `/rpscreen counter` the typed debug counter. The
+ * `/rpscreen` opens the generic demo screen, `/rpscreen inputs`, `/rpscreen display` and
+ * `/rpscreen overlays` the pages of the input, display and overlay components, and `/rpscreen counter` the typed debug counter. The
  * command needs the permission [PERMISSION] and a player as sender.
  */
 object ScreenDebugCommand {
@@ -44,6 +44,12 @@ object ScreenDebugCommand {
                     .then(
                         Commands.literal("display").executes { context ->
                             DisplayDemo.open(context.source.executor as Player)
+                            Command.SINGLE_SUCCESS
+                        },
+                    )
+                    .then(
+                        Commands.literal("overlays").executes { context ->
+                            OverlaysDemo.open(context.source.executor as Player)
                             Command.SINGLE_SUCCESS
                         },
                     )
