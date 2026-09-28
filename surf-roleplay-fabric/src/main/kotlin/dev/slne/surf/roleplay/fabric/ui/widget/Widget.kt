@@ -33,16 +33,21 @@ interface UiContext {
     fun focus(widget: Widget?)
 
     /**
-     * Shows a dropdown's option list above everything else, replacing any open list.
-     *
-     * @param dropdown the dropdown whose options to show
+     * The open popover, or `null` if none is open.
      */
-    fun openDropdown(dropdown: DropdownWidget)
+    val popover: Popover? get() = null
 
     /**
-     * Hides the open dropdown option list, if any.
+     * Shows a popover above the screen's content, replacing any open popover.
+     *
+     * @param popover the popover
      */
-    fun closeDropdown()
+    fun openPopover(popover: Popover) = Unit
+
+    /**
+     * Closes the open popover, if any.
+     */
+    fun closePopover() = Unit
 
     /**
      * Asks the screen to lay its tree out again before the next frame.
@@ -72,6 +77,15 @@ interface UiContext {
      *        player paused typing
      */
     fun valueChanged(widget: Widget, immediate: Boolean) = Unit
+
+    /**
+     * Reports that the player changed the typed query of a combobox; it is reported after the
+     * player paused typing.
+     *
+     * @param widget the combobox
+     * @param query the query
+     */
+    fun searchChanged(widget: Widget, query: String) = Unit
 
     /**
      * Finds a widget of the screen by id.

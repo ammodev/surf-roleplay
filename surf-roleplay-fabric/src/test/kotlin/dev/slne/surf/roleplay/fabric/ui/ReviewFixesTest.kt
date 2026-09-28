@@ -31,8 +31,6 @@ class ReviewFixesTest {
     private val context = object : UiContext {
         override val focusedWidget: Widget? = null
         override fun focus(widget: Widget?) = Unit
-        override fun openDropdown(dropdown: dev.slne.surf.roleplay.fabric.ui.widget.DropdownWidget) = Unit
-        override fun closeDropdown() = Unit
         override fun requestLayout() = Unit
         override fun actionTriggered(widget: Widget, submitsInput: Boolean) = Unit
         override var clipboard: String = ""

@@ -8,7 +8,6 @@ import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.protocol.screen.ButtonSize
 import dev.slne.surf.roleplay.protocol.screen.ButtonVariant
-import dev.slne.surf.roleplay.protocol.screen.DropdownOption
 import dev.slne.surf.roleplay.protocol.screen.IconColor
 import dev.slne.surf.roleplay.protocol.screen.TextInputType
 import net.minecraft.client.input.CharacterEvent
@@ -540,147 +539,6 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
 }
 
 /**
- * A choice of one option, whose list opens above the screen when clicked.
- *
- * @param id the id of the widget
- * @property options the options, in display order
- * @property selected the value of the selected option, or `null` if none is selected
- * @property required whether having no selection is invalid
- */
-class DropdownWidget(
-    id: String,
-    val options: List<DropdownOption> = emptyList(),
-    var selected: String? = null,
-    val required: Boolean = false,
-) : Widget(id) {
-
-    /**
-     * Whether the widget can take the keyboard focus, which it can while enabled.
-     */
-    override val focusable: Boolean get() = enabled
-
-    /**
-     * The value of the selected option, or an empty string if none is selected.
-     */
-    override val inputValue: String get() = selected ?: ""
-
-    /**
-     * Whether the selection satisfies the widget's constraints.
-     */
-    val isValid: Boolean get() = !required || selected != null
-
-    /**
-     * Whether the dropdown shows itself as invalid: only once it was touched.
-     */
-    override val showsInvalid: Boolean get() = touched && !isValid
-
-    /**
-     * Selects an option chosen by the player and reports the change.
-     *
-     * @param value the value of the chosen option
-     * @param context the screen showing the widget
-     */
-    fun choose(value: String, context: UiContext) {
-        selected = value
-        markChanged(context, immediate = true)
-    }
-
-    /**
-     * The label of the selected option, or `null` if none is selected.
-     */
-    private val selectedLabel: String? get() = options.firstOrNull { it.value == selected }?.label
-
-    /**
-     * Returns the width of the widest option with the arrow, and the widget height.
-     *
-     * @param measurer the text measurer
-     * @return the dropdown size
-     */
-    override fun contentSize(measurer: TextMeasurer): Size {
-        val widest = options.maxOfOrNull { measurer.width(it.label) } ?: 0
-        val width = maxOf(UiMetrics.INPUT_WIDTH, widest + 2 * UiMetrics.WIDGET_PADDING + measurer.plainWidth(ARROW) + 4)
-        return Size(width, UiMetrics.WIDGET_HEIGHT)
-    }
-
-    /**
-     * Draws the selected option, or a dash when nothing is selected, and an arrow.
-     *
-     * @param ui the graphics to draw with
-     * @param context the screen showing the widget
-     * @param mouseX the mouse x position
-     * @param mouseY the mouse y position
-     */
-    override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        val hovered = enabled && isOver(mouseX, mouseY)
-        val tokens = ui.tokens
-        ui.fillRounded(bounds, if (hovered) ThemeColors.blend(inputFill(ui), tokens.accent, HOVER_ACCENT) else inputFill(ui))
-        ui.borderRounded(bounds, if (showsInvalid) tokens.destructive else tokens.input)
-        val textY = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
-        val color = if (enabled) tokens.foreground else ui.disabled(tokens.foreground)
-        ui.clipped(bounds) {
-            val label = selectedLabel
-            if (label != null) {
-                ui.text(label, bounds.x + UiMetrics.WIDGET_PADDING, textY, color)
-            } else {
-                ui.plainText("-", bounds.x + UiMetrics.WIDGET_PADDING, textY, tokens.mutedForeground)
-            }
-            ui.plainText(ARROW, bounds.right - UiMetrics.WIDGET_PADDING - ui.plainWidth(ARROW), textY, color)
-        }
-    }
-
-    /**
-     * Opens the option list of an enabled dropdown when it is left-clicked.
-     *
-     * @param context the screen showing the widget
-     * @param x the mouse x position
-     * @param y the mouse y position
-     * @param button the mouse button
-     * @return whether the click was on this dropdown
-     */
-    override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
-        if (!isOver(x, y)) return false
-        if (enabled && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-            context.focus(this)
-            context.openDropdown(this)
-        }
-        return true
-    }
-
-    /**
-     * Opens the option list on Enter, Space or Down.
-     *
-     * @param context the screen showing the widget
-     * @param event the key event
-     * @return whether the key was handled
-     */
-    override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
-        if (!enabled || !(isActivation(event) || event.key() == GLFW.GLFW_KEY_DOWN)) return false
-        context.openDropdown(this)
-        return true
-    }
-
-    /**
-     * Selects the option with the given value, or clears the selection for an empty or unknown
-     * value.
-     *
-     * @param value the value of the option to select
-     */
-    override fun applyValue(value: String) {
-        selected = value.takeIf { candidate -> options.any { it.value == candidate } }
-    }
-
-    /**
-     * Holds the arrow glyph.
-     */
-    private companion object {
-        /**
-         * The glyph that marks the widget as a dropdown.
-         */
-        const val ARROW: String = "▼"
-    }
-}
-
-/**
  * A texture drawn over the widget's area.
  *
  * @param id the id of the widget
@@ -800,11 +658,6 @@ class IconWidget(id: String, var icon: String, val size: Int, val color: IconCol
 private const val INPUT_FILL_ALPHA: Float = 0.3f
 
 /**
- * How far a hovered dropdown is blended towards the accent colour.
- */
-private const val HOVER_ACCENT: Float = 0.6f
-
-/**
  * The opacity of a progress bar's track, relative to the primary colour.
  */
 private const val TRACK_ALPHA: Float = 0.2f
@@ -815,7 +668,7 @@ private const val TRACK_ALPHA: Float = 0.2f
 private const val CHECKBOX_RADIUS: Int = 2
 
 /**
- * Returns the translucent fill drawn behind text inputs, checkboxes and dropdowns.
+ * Returns the translucent fill drawn behind text inputs, checkboxes and selects.
  *
  * @param ui the graphics, whose tokens define the colour
  * @return the ARGB fill colour

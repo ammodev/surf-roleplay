@@ -7,7 +7,7 @@ import dev.slne.surf.roleplay.fabric.ui.text.ScreenText
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
-import dev.slne.surf.roleplay.fabric.ui.widget.DropdownWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.Popover
 import dev.slne.surf.roleplay.fabric.ui.widget.ScrollListWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.UiContext
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
@@ -50,6 +50,15 @@ interface ScreenPanelListener {
      * @param widget the input
      */
     fun valueChanged(panel: ScreenPanel, widget: Widget) = Unit
+
+    /**
+     * Called when a combobox that reports its searches changed its typed query.
+     *
+     * @param panel the panel
+     * @param widget the combobox
+     * @param query the query
+     */
+    fun searchChanged(panel: ScreenPanel, widget: Widget, query: String) = Unit
 }
 
 /**
@@ -99,7 +108,7 @@ class ScreenPanel(
         set(value) {
             field = value
             focusedWidget = null
-            dropdown = null
+            popover = null
             requestLayout()
         }
 
@@ -110,19 +119,15 @@ class ScreenPanel(
         private set
 
     /**
-     * The dropdown whose option list is open, or `null` if none is.
+     * The open popover, or `null` if none is open.
      */
-    private var dropdown: DropdownWidget? = null
+    override var popover: Popover? = null
+        private set
 
     /**
      * The widget that receives mouse movement while the button is held, or `null` if none does.
      */
     private var dragTarget: Widget? = null
-
-    /**
-     * The option highlighted in the open dropdown list, for keyboard selection.
-     */
-    private var highlighted: Int = 0
 
     /**
      * Whether the tree must be laid out before the next frame.
@@ -143,6 +148,21 @@ class ScreenPanel(
      * The text inputs whose changes wait for the player to pause typing.
      */
     private val debouncer = ChangeDebouncer(CHANGE_DELAY_MILLIS)
+
+    /**
+     * The comboboxes whose queries wait for the player to pause typing.
+     */
+    private val searches = ChangeDebouncer(CHANGE_DELAY_MILLIS)
+
+    /**
+     * The latest typed query of every combobox that waits in [searches].
+     */
+    private val pendingQueries = mutableMapOf<String, String>()
+
+    /**
+     * The measurer of the font the panel was last laid out with.
+     */
+    private var measurer: FontTextMeasurer? = null
 
     /**
      * The area of the panel including its title bar, set by the last layout.
@@ -169,12 +189,6 @@ class ScreenPanel(
      * Whether the sheet was still sliding in at the last layout check.
      */
     private var wasSliding: Boolean = true
-
-    /**
-     * The mouse position of the last frame, used to move the dropdown highlight only when the mouse
-     * moves.
-     */
-    private var lastMouse: Pair<Int, Int> = Int.MIN_VALUE to Int.MIN_VALUE
 
     /**
      * The text on the system clipboard.
@@ -214,7 +228,7 @@ class ScreenPanel(
      */
     private fun layout(font: Font) {
         layoutPending = false
-        val measurer = FontTextMeasurer(font)
+        val measurer = FontTextMeasurer(font).also { this.measurer = it }
         val box = root.createLayout(measurer)
         val preferred = FlexLayout.measure(box)
         val chromeX = 2 * UiMetrics.PANEL_PADDING
@@ -291,7 +305,7 @@ class ScreenPanel(
      * @return whether a list scrolled, in which case the panel must be laid out again
      */
     private fun revealInLists(): Boolean {
-        val focused = focusedWidget ?: dropdown ?: return false
+        val focused = focusedWidget ?: popover?.owner ?: return false
         var moved = false
         var current: Widget = focused
         while (true) {
@@ -308,7 +322,7 @@ class ScreenPanel(
      * @return whether the panel scrolled, in which case it must be laid out again
      */
     private fun revealInPanel(): Boolean {
-        val focused = focusedWidget ?: dropdown ?: return false
+        val focused = focusedWidget ?: popover?.owner ?: return false
         val before = scroll.offset
         val top = focused.bounds.y - (viewport.y - scroll.offset)
         scroll.ensureVisible(top - FOCUS_MARGIN, top + focused.bounds.height + FOCUS_MARGIN)
@@ -316,7 +330,7 @@ class ScreenPanel(
     }
 
     /**
-     * Draws the panel, its content, the scroll bar, the focus ring and any open dropdown list.
+     * Draws the panel, its content, the scroll bar, the focus ring and any open popover.
      *
      * @param graphics the GUI graphics of this frame
      * @param font the font texts are drawn with
@@ -326,6 +340,7 @@ class ScreenPanel(
      */
     fun render(graphics: GuiGraphicsExtractor, font: Font, mouseX: Int, mouseY: Int, active: Boolean) {
         reportChanges(debouncer.due())
+        reportSearches(searches.due())
         val ui = UiGraphics(graphics, font, tokens)
         ui.fillRounded(panel, tokens.card)
         ui.borderRounded(panel, tokens.border)
@@ -334,9 +349,10 @@ class ScreenPanel(
             ui.text(titleJson, panel.x + UiMetrics.PANEL_PADDING, panel.y + (UiMetrics.TITLE_BAR_HEIGHT - font.lineHeight + 1) / 2, tokens.cardForeground)
         }
 
-        val open = dropdown
+        val open = popover
+        val openArea = open?.area(window, FontTextMeasurer(font))
         val mouseInside = active && viewport.contains(mouseX.toDouble(), mouseY.toDouble()) &&
-            !(open != null && dropdownList(open).contains(mouseX.toDouble(), mouseY.toDouble()))
+            !(openArea != null && openArea.contains(mouseX.toDouble(), mouseY.toDouble()))
         ui.clipped(viewport) {
             root.render(ui, this, if (mouseInside) mouseX else HIDDEN, if (mouseInside) mouseY else HIDDEN)
             focusedWidget?.takeUnless { it.drawsOwnFocus }?.let { focused ->
@@ -346,9 +362,9 @@ class ScreenPanel(
         }
         if (scroll.maxOffset > 0) renderScrollBar(ui)
 
-        if (open != null) {
+        if (open != null && openArea != null) {
             ui.nextLayer()
-            renderDropdownList(ui, open, if (active) mouseX else HIDDEN, if (active) mouseY else HIDDEN)
+            open.render(ui, this, openArea, if (active) mouseX else HIDDEN, if (active) mouseY else HIDDEN)
         }
     }
 
@@ -370,53 +386,12 @@ class ScreenPanel(
     }
 
     /**
-     * Draws the option list of the open dropdown.
+     * Computes the area of the open popover.
      *
-     * @param ui the graphics to draw with
-     * @param open the open dropdown
-     * @param mouseX the mouse x position
-     * @param mouseY the mouse y position
+     * @param open the popover
+     * @return the popover's area
      */
-    private fun renderDropdownList(ui: UiGraphics, open: DropdownWidget, mouseX: Int, mouseY: Int) {
-        val list = dropdownList(open)
-        ui.fillRounded(list, tokens.popover)
-        val mouseMoved = lastMouse != (mouseX to mouseY)
-        lastMouse = mouseX to mouseY
-        open.options.forEachIndexed { index, option ->
-            val row = optionRow(list, index)
-            if (mouseMoved && row.contains(mouseX.toDouble(), mouseY.toDouble())) highlighted = index
-            val lit = index == highlighted
-            if (lit) ui.fillRounded(row, tokens.accent, (tokens.radius - 1).coerceAtLeast(0))
-            if (option.value == open.selected) ui.fill(Rect(row.x + 2, row.y + 3, 2, row.height - 6), tokens.ring)
-            ui.clipped(row) {
-                ui.text(option.label, row.x + UiMetrics.WIDGET_PADDING, row.y + (OPTION_HEIGHT - ui.lineHeight + 1) / 2, if (lit) tokens.accentForeground else tokens.popoverForeground)
-            }
-        }
-        ui.borderRounded(list, tokens.border)
-    }
-
-    /**
-     * Computes the area of one option row of a dropdown list.
-     *
-     * @param list the area of the list
-     * @param index the option index
-     * @return the row's area
-     */
-    private fun optionRow(list: Rect, index: Int) = Rect(list.x + 1, list.y + 1 + index * OPTION_HEIGHT, list.width - 2, OPTION_HEIGHT)
-
-    /**
-     * Computes the area of a dropdown's option list: below the dropdown, or above it if the list
-     * would leave the window.
-     *
-     * @param open the dropdown
-     * @return the area of the list
-     */
-    private fun dropdownList(open: DropdownWidget): Rect {
-        val listHeight = open.options.size * OPTION_HEIGHT + 2
-        val below = open.bounds.bottom
-        val y = if (below + listHeight > window.height && open.bounds.y - listHeight >= 0) open.bounds.y - listHeight else below
-        return Rect(open.bounds.x, y, open.bounds.width, listHeight)
-    }
+    private fun popoverArea(open: Popover): Rect = open.area(window, measurer ?: FontTextMeasurer(Minecraft.getInstance().font))
 
     /**
      * Checks whether a point lies on the panel.
@@ -428,24 +403,25 @@ class ScreenPanel(
     fun contains(x: Double, y: Double): Boolean = panel.contains(x, y)
 
     /**
-     * Handles a click: on an open dropdown list it selects an option or closes the list; inside
-     * the viewport it goes to the tree, and the widget under the mouse takes the focus if it can.
+     * Handles a click: inside an open popover it goes to the popover, and outside it closes the
+     * popover; inside the viewport it goes to the tree, and the widget under the mouse takes the
+     * focus if it can.
      *
      * @param x the mouse x position
      * @param y the mouse y position
      * @param button the mouse button
-     * @return whether the click was on the panel or its dropdown list
+     * @return whether the click was on the panel or its popover
      */
     fun mouseClicked(x: Double, y: Double, button: Int): Boolean {
-        val open = dropdown
+        val open = popover
         if (open != null) {
-            val list = dropdownList(open)
-            if (open.enabled && list.contains(x, y)) {
-                val index = ((y - list.y - 1) / OPTION_HEIGHT).toInt()
-                open.options.getOrNull(index)?.let { open.choose(it.value, this) }
+            val area = popoverArea(open)
+            if (area.contains(x, y)) {
+                if (open.owner.enabled) open.mouseClicked(this, area, x, y, button)
+                return true
             }
-            dropdown = null
-            return true
+            popover = null
+            if (open.owner.isOver(x, y)) return true
         }
         if (!panel.contains(x, y)) return false
         if (!viewport.contains(x, y)) return true
@@ -489,7 +465,11 @@ class ScreenPanel(
      * @return whether the mouse was over the panel
      */
     fun mouseScrolled(x: Double, y: Double, amount: Double): Boolean {
-        if (dropdown != null) return true
+        popover?.let { open ->
+            val area = popoverArea(open)
+            if (area.contains(x, y)) open.mouseScrolled(area, amount)
+            return true
+        }
         if (!panel.contains(x, y)) return false
         if (viewport.contains(x, y) && root.mouseScrolled(this, x, y, amount)) return true
         if (scroll.scrollBy((amount * UiMetrics.SCROLL_STEP).roundToInt())) requestLayout()
@@ -497,15 +477,22 @@ class ScreenPanel(
     }
 
     /**
-     * Handles a key: the open dropdown list first, then Tab and Shift+Tab, then the focused
-     * widget. Escape is left to the screen unless it closes an open dropdown list.
+     * Handles a key: the open popover first, then Tab and Shift+Tab, then the focused widget.
+     * Escape closes an open popover and is otherwise left to the screen; Tab also closes it.
      *
      * @param event the key event
      * @return whether the key was handled
      */
     fun keyPressed(event: KeyEvent): Boolean {
-        val open = dropdown
-        if (open != null) return dropdownKey(open, event)
+        val open = popover
+        if (open != null) {
+            if (open.keyPressed(this, event)) return true
+            if (event.isEscape) {
+                popover = null
+                return true
+            }
+            if (event.key() == GLFW.GLFW_KEY_TAB) popover = null
+        }
         if (event.key() == GLFW.GLFW_KEY_TAB) {
             focus(FocusOrder.next(root, focusedWidget, event.hasShiftDown()))
             return true
@@ -515,33 +502,13 @@ class ScreenPanel(
     }
 
     /**
-     * Handles a key while a dropdown list is open.
-     *
-     * @param open the open dropdown
-     * @param event the key event
-     * @return `true`, because an open list takes every key
-     */
-    private fun dropdownKey(open: DropdownWidget, event: KeyEvent): Boolean {
-        when (event.key()) {
-            GLFW.GLFW_KEY_UP -> highlighted = (highlighted - 1).coerceAtLeast(0)
-            GLFW.GLFW_KEY_DOWN -> highlighted = (highlighted + 1).coerceAtMost(open.options.lastIndex)
-            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER, GLFW.GLFW_KEY_SPACE -> {
-                open.options.getOrNull(highlighted)?.let { open.choose(it.value, this) }
-                dropdown = null
-            }
-
-            GLFW.GLFW_KEY_ESCAPE, GLFW.GLFW_KEY_TAB -> dropdown = null
-        }
-        return true
-    }
-
-    /**
-     * Passes a typed character to the focused widget.
+     * Passes a typed character to the open popover, and then to the focused widget.
      *
      * @param event the character event
      * @return whether the character was handled
      */
-    fun charTyped(event: CharacterEvent): Boolean = dropdown == null && focusedWidget?.charTyped(this, event) == true
+    fun charTyped(event: CharacterEvent): Boolean =
+        popover?.charTyped(this, event) == true || focusedWidget?.charTyped(this, event) == true
 
     /**
      * Gives a widget the keyboard focus, or clears it, and scrolls a newly focused widget into
@@ -558,22 +525,21 @@ class ScreenPanel(
     }
 
     /**
-     * Opens a dropdown's option list with its selected option highlighted.
+     * Shows a popover, replacing any open popover.
      *
-     * @param dropdown the dropdown
+     * @param popover the popover
      */
-    override fun openDropdown(dropdown: DropdownWidget) {
-        this.dropdown = dropdown
-        highlighted = dropdown.options.indexOfFirst { it.value == dropdown.selected }.coerceAtLeast(0)
+    override fun openPopover(popover: Popover) {
+        this.popover = popover
         revealPending = true
         requestLayout()
     }
 
     /**
-     * Closes the open dropdown option list.
+     * Closes the open popover.
      */
-    override fun closeDropdown() {
-        dropdown = null
+    override fun closePopover() {
+        popover = null
     }
 
     /**
@@ -592,6 +558,7 @@ class ScreenPanel(
      */
     override fun actionTriggered(widget: Widget, submitsInput: Boolean) {
         reportChanges(debouncer.flush())
+        reportSearches(searches.flush())
         if (submitsInput) WidgetTree.touchAll(root)
         listener.actionTriggered(this, widget)
     }
@@ -615,6 +582,29 @@ class ScreenPanel(
     }
 
     /**
+     * Records a changed combobox query, which is reported after the player paused typing.
+     *
+     * @param widget the combobox
+     * @param query the query
+     */
+    override fun searchChanged(widget: Widget, query: String) {
+        pendingQueries[widget.id] = query
+        searches.changed(widget.id)
+    }
+
+    /**
+     * Reports the queries of comboboxes that are still in the tree.
+     *
+     * @param ids the ids of the comboboxes
+     */
+    private fun reportSearches(ids: List<String>) {
+        ids.forEach { id ->
+            val query = pendingQueries.remove(id) ?: return@forEach
+            WidgetTree.find(root, id)?.let { listener.searchChanged(this, it, query) }
+        }
+    }
+
+    /**
      * Reports the changes of inputs that are still in the tree.
      *
      * @param ids the ids of the changed inputs
@@ -632,12 +622,12 @@ class ScreenPanel(
     }
 
     /**
-     * Reacts to a change inside the tree: drops the focus and the open dropdown list if their
-     * widgets left the tree or were disabled, and lays the tree out again.
+     * Reacts to a change inside the tree: drops the focus and the open popover if their widgets
+     * left the tree or were disabled, and lays the tree out again.
      */
     fun treeChanged() {
         focusedWidget?.let { if (!ScreenRules.isStillUsable(root, it)) focusedWidget = null }
-        dropdown?.let { if (!ScreenRules.isStillUsable(root, it)) dropdown = null }
+        popover?.let { if (!ScreenRules.isStillUsable(root, it.owner)) popover = null }
         requestLayout()
     }
 
@@ -652,11 +642,6 @@ class ScreenPanel(
      * Holds the layout and animation constants of panels.
      */
     private companion object {
-        /**
-         * The height of one row of a dropdown option list.
-         */
-        const val OPTION_HEIGHT: Int = 14
-
         /**
          * A mouse position that no widget is under.
          */

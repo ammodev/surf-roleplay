@@ -271,6 +271,17 @@ object ClientScreenManager {
             val value = widget.inputValue ?: return
             ClientPackets.send(Packets.SCREEN_INPUT_CHANGE, ScreenInputChange(sessionId, widget.id, value))
         }
+
+        /**
+         * Sends a changed combobox query as a search event.
+         *
+         * @param panel the panel
+         * @param widget the combobox
+         * @param query the query
+         */
+        override fun searchChanged(panel: ScreenPanel, widget: Widget, query: String) {
+            ClientPackets.send(Packets.SCREEN_INPUT_CHANGE, ScreenInputChange(sessionId, widget.id, widget.inputValue ?: "", query))
+        }
     }
 
     /**

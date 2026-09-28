@@ -2,7 +2,6 @@ package dev.slne.surf.roleplay.fabric.ui
 
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.CheckboxWidget
-import dev.slne.surf.roleplay.fabric.ui.widget.DropdownWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.TextInputWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.UiContext
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
@@ -34,8 +33,6 @@ class InputChangeClientTest {
     private val context = object : UiContext {
         override val focusedWidget: Widget? = null
         override fun focus(widget: Widget?) = Unit
-        override fun openDropdown(dropdown: DropdownWidget) = Unit
-        override fun closeDropdown() = Unit
         override fun requestLayout() = Unit
         override fun actionTriggered(widget: Widget, submitsInput: Boolean) = Unit
         override fun valueChanged(widget: Widget, immediate: Boolean) {

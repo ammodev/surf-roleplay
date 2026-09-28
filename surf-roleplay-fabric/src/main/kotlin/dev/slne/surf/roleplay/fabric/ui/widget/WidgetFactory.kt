@@ -9,8 +9,10 @@ import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ToggleNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownNode
+import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
 import dev.slne.surf.roleplay.protocol.screen.IconNode
+import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
+import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.RadioGroupNode
 import dev.slne.surf.roleplay.protocol.screen.SliderNode
 import dev.slne.surf.roleplay.protocol.screen.SwitchNode
@@ -72,7 +74,11 @@ object WidgetFactory {
                 .apply { enabled = node.enabled }
 
             is CheckboxNode -> CheckboxWidget(node.id, node.label, node.checked).apply { enabled = node.enabled }
-            is DropdownNode -> DropdownWidget(node.id, node.options, node.selected, node.required).apply { enabled = node.enabled }
+            is SelectNode -> SelectWidget(node.id, node.groups, node.selected, node.placeholder, node.size, node.required).apply { enabled = node.enabled }
+            is NativeSelectNode -> NativeSelectWidget(node.id, node.groups, node.selected, node.size, node.required).apply { enabled = node.enabled }
+            is ComboboxNode -> ComboboxWidget(
+                node.id, node.groups, node.selected, node.multiple, node.placeholder, node.emptyText, node.showClear, node.required,
+            ).apply { enabled = node.enabled }
             is ImageNode -> ImageWidget(node.id, node.texture)
             is IconNode -> IconWidget(node.id, node.icon, node.size, node.color)
             is ButtonGroupNode -> container(ButtonGroupWidget(node.id, node.orientation), node.children)
@@ -98,7 +104,9 @@ object WidgetFactory {
             is TextInputNode -> node.notifyChange
             is NumberInputNode -> node.notifyChange
             is CheckboxNode -> node.notifyChange
-            is DropdownNode -> node.notifyChange
+            is SelectNode -> node.notifyChange
+            is NativeSelectNode -> node.notifyChange
+            is ComboboxNode -> node.notifyChange
             is ToggleGroupNode -> node.notifyChange
             is TextareaNode -> node.notifyChange
             is SwitchNode -> node.notifyChange

@@ -30,8 +30,6 @@ class ActionWidgetsTest {
     private val context = object : UiContext {
         override val focusedWidget: Widget? = null
         override fun focus(widget: Widget?) = Unit
-        override fun openDropdown(dropdown: DropdownWidget) = Unit
-        override fun closeDropdown() = Unit
         override fun requestLayout() = Unit
         override fun actionTriggered(widget: Widget, submitsInput: Boolean) {
             actions += "${widget.id}:$submitsInput"

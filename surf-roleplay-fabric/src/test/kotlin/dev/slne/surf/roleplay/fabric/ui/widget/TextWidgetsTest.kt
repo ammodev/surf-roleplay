@@ -51,8 +51,6 @@ class TextWidgetsTest {
         override fun focus(widget: Widget?) {
             focusedWidget = widget
         }
-        override fun openDropdown(dropdown: DropdownWidget) = Unit
-        override fun closeDropdown() = Unit
         override fun requestLayout() = Unit
         override fun actionTriggered(widget: Widget, submitsInput: Boolean) = Unit
         override fun widget(id: String): Widget? = tree?.let { WidgetTree.find(it, id) }

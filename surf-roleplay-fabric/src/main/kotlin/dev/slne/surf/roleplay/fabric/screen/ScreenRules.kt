@@ -21,7 +21,7 @@ object ScreenRules {
         parentSessionId != null && stack.find(parentSessionId) == null
 
     /**
-     * Checks whether a widget that holds the focus or an open dropdown list can keep it: it must
+     * Checks whether a widget that holds the focus or an open popover can keep it: it must
      * still be the same widget in the tree and be enabled.
      *
      * @param root the root of the tree

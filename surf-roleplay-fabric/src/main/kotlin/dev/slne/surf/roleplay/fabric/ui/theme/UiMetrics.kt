@@ -15,17 +15,17 @@ object UiMetrics {
     const val ICON_GAP: Int = 4
 
     /**
-     * The height of buttons, inputs and dropdowns.
+     * The height of buttons, inputs and selects.
      */
     const val WIDGET_HEIGHT: Int = 20
 
     /**
-     * The default width of text inputs, number inputs and dropdowns that fit their content.
+     * The default width of text inputs, number inputs and selects that fit their content.
      */
     const val INPUT_WIDTH: Int = 120
 
     /**
-     * The horizontal space inside buttons, inputs and dropdowns.
+     * The horizontal space inside buttons, inputs and selects.
      */
     const val WIDGET_PADDING: Int = 6
 

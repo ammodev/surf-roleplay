@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
  * @property foreground the colour of regular text
  * @property card the colour of panels
  * @property cardForeground the colour of text on panels
- * @property popover the colour of floating surfaces such as dropdown lists
+ * @property popover the colour of floating surfaces such as option lists
  * @property popoverForeground the colour of text on floating surfaces
  * @property primary the colour of primary actions
  * @property primaryForeground the colour of text on primary actions

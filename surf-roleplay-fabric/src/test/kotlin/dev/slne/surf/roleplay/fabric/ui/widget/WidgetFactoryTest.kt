@@ -4,8 +4,9 @@ import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownNode
-import dev.slne.surf.roleplay.protocol.screen.DropdownOption
+import dev.slne.surf.roleplay.protocol.screen.SelectNode
+import dev.slne.surf.roleplay.protocol.screen.SelectGroup
+import dev.slne.surf.roleplay.protocol.screen.SelectOption
 import dev.slne.surf.roleplay.protocol.screen.ImageNode
 import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.Insets
@@ -43,7 +44,7 @@ class WidgetFactoryTest {
                     TextInputNode("name", value = "Max", maxLength = 8, required = true),
                     NumberInputNode("age", value = 30, min = 18, max = 99),
                     CheckboxNode("agree", checked = true),
-                    DropdownNode("city", options = listOf(DropdownOption("north", "\"Nord\""), DropdownOption("south", "\"Süd\"")), selected = "south"),
+                    SelectNode("city", groups = listOf(SelectGroup(options = listOf(SelectOption("north", "\"Nord\""), SelectOption("south", "\"Süd\"")))), selected = "south"),
                 ),
             ),
             ScrollListNode("list", children = listOf(ButtonNode("open", text = "\"Öffnen\"", enabled = false))),
@@ -67,7 +68,7 @@ class WidgetFactoryTest {
         assertEquals(8, assertIs<TextInputWidget>(WidgetTree.find(root, "name")).edit.filter.maxLength)
         assertEquals("30", assertIs<NumberInputWidget>(WidgetTree.find(root, "age")).edit.text)
         assertEquals(true, assertIs<CheckboxWidget>(WidgetTree.find(root, "agree")).checked)
-        assertEquals("south", assertIs<DropdownWidget>(WidgetTree.find(root, "city")).selected)
+        assertEquals("south", assertIs<SelectWidget>(WidgetTree.find(root, "city")).selected)
         assertEquals(false, assertIs<ButtonWidget>(WidgetTree.find(root, "open")).enabled)
         assertIs<ScrollListWidget>(WidgetTree.find(root, "list"))
         assertEquals("surf-roleplay:textures/gui/logo.png", assertIs<ImageWidget>(WidgetTree.find(root, "logo")).texture)
