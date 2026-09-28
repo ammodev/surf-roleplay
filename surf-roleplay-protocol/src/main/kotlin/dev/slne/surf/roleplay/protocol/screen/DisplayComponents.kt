@@ -449,3 +449,176 @@ data class AvatarGroupCountNode(
     @ProtoNumber(4) val text: String = "",
     @ProtoNumber(5) val icon: String? = null,
 ) : ScreenNode
+
+/**
+ * The look of an alert.
+ */
+@Serializable
+enum class AlertVariant {
+    /**
+     * A neutral alert on the card colour.
+     */
+    @ProtoNumber(0)
+    DEFAULT,
+
+    /**
+     * An alert whose icon and texts are drawn in the destructive colour.
+     */
+    @ProtoNumber(1)
+    DESTRUCTIVE,
+}
+
+/**
+ * A bordered callout with an optional icon beside its title and description.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the title, description and further content, stacked beside the icon
+ * @property variant the look of the alert
+ * @property icon the Lucide name of the icon, or `null` for none
+ */
+@Serializable
+@SerialName("alert")
+data class AlertNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val variant: AlertVariant = AlertVariant.DEFAULT,
+    @ProtoNumber(6) val icon: String? = null,
+) : ContainerNode {
+    /**
+     * Returns a copy of this alert with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): AlertNode = copy(children = children)
+}
+
+/**
+ * A bordered surface that stacks a header, content and footer.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the header, content and footer, in order
+ */
+@Serializable
+@SerialName("card")
+data class CardNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this card with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CardNode = copy(children = children)
+}
+
+/**
+ * The header of a card: its title and description stacked, with an optional action at the top
+ * right.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the title, description and action
+ */
+@Serializable
+@SerialName("card_header")
+data class CardHeaderNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this header with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CardHeaderNode = copy(children = children)
+}
+
+/**
+ * The action of a card header, placed at its top right.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content of the action, such as a button
+ */
+@Serializable
+@SerialName("card_action")
+data class CardActionNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this action with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CardActionNode = copy(children = children)
+}
+
+/**
+ * The content of a card, stacked with the card's side padding.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, in order
+ */
+@Serializable
+@SerialName("card_content")
+data class CardContentNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this content with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CardContentNode = copy(children = children)
+}
+
+/**
+ * The footer of a card: a row of content centered on one line, such as buttons.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, in order
+ */
+@Serializable
+@SerialName("card_footer")
+data class CardFooterNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this footer with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): CardFooterNode = copy(children = children)
+}

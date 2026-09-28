@@ -39,6 +39,24 @@ import dev.slne.surf.roleplay.api.client.common.screen.avatarGroupCount
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarNode
+import dev.slne.surf.roleplay.api.client.common.screen.AlertVariant
+import dev.slne.surf.roleplay.api.client.common.screen.alert
+import dev.slne.surf.roleplay.api.client.common.screen.alertDescription
+import dev.slne.surf.roleplay.api.client.common.screen.alertTitle
+import dev.slne.surf.roleplay.api.client.common.screen.card
+import dev.slne.surf.roleplay.api.client.common.screen.cardAction
+import dev.slne.surf.roleplay.api.client.common.screen.cardContent
+import dev.slne.surf.roleplay.api.client.common.screen.cardDescription
+import dev.slne.surf.roleplay.api.client.common.screen.cardFooter
+import dev.slne.surf.roleplay.api.client.common.screen.cardHeader
+import dev.slne.surf.roleplay.api.client.common.screen.cardTitle
+import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.ButtonNode
+import dev.slne.surf.roleplay.protocol.screen.CardActionNode
+import dev.slne.surf.roleplay.protocol.screen.CardContentNode
+import dev.slne.surf.roleplay.protocol.screen.CardFooterNode
+import dev.slne.surf.roleplay.protocol.screen.CardHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.CardNode
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import java.util.UUID
@@ -46,6 +64,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import dev.slne.surf.roleplay.api.client.common.screen.screen as buildScreen
+import dev.slne.surf.roleplay.protocol.screen.AlertVariant as NodeAlertVariant
 import dev.slne.surf.roleplay.protocol.screen.Align as NodeAlign
 import dev.slne.surf.roleplay.protocol.screen.AvatarSize as NodeAvatarSize
 import dev.slne.surf.roleplay.protocol.screen.BadgeVariant as NodeBadgeVariant
@@ -175,5 +194,43 @@ class DisplayComponentsTest {
         val fallbackNode = assertIs<AvatarNode>(group.children[2])
         assertEquals(null, fallbackNode.texture)
         assertIs<AvatarGroupCountNode>(group.children[3])
+    }
+
+    /**
+     * Verifies that alerts and cards map to their nodes, and that alerts grow by default.
+     */
+    @Test
+    fun `alerts and cards map to their nodes`() {
+        val root = assertIs<ColumnNode>(
+            map {
+                alert("alert", AlertVariant.DESTRUCTIVE, icon = "circle-alert") {
+                    alertTitle("alert_title", Component.text("Fehler"))
+                    alertDescription("alert_description", Component.text("Etwas ging schief."))
+                }
+                card("card") {
+                    cardHeader("header") {
+                        cardTitle("title", Component.text("Konto"))
+                        cardDescription("description", Component.text("Deine Daten"))
+                        cardAction("action") { button("more", Component.text("Mehr")) }
+                    }
+                    cardContent("content") { text("body", Component.text("Inhalt")) }
+                    cardFooter("footer") { button("save", Component.text("Speichern")) }
+                }
+            },
+        )
+
+        val alert = assertIs<AlertNode>(root.children[0])
+        assertEquals(NodeAlertVariant.DESTRUCTIVE, alert.variant)
+        assertEquals("circle-alert", alert.icon)
+        assertEquals(SizeMode.GROW, alert.width.mode)
+        assertEquals(NodeTextKind.ALERT_TITLE, assertIs<TextNode>(alert.children[0]).kind)
+        assertEquals(NodeTextKind.ALERT_DESCRIPTION, assertIs<TextNode>(alert.children[1]).kind)
+        val card = assertIs<CardNode>(root.children[1])
+        val header = assertIs<CardHeaderNode>(card.children[0])
+        assertEquals(NodeTextKind.CARD_TITLE, assertIs<TextNode>(header.children[0]).kind)
+        assertEquals(NodeTextKind.CARD_DESCRIPTION, assertIs<TextNode>(header.children[1]).kind)
+        assertIs<ButtonNode>(assertIs<CardActionNode>(header.children[2]).children.single())
+        assertIs<CardContentNode>(card.children[1])
+        assertIs<CardFooterNode>(card.children[2])
     }
 }

@@ -72,4 +72,32 @@ class DisplayComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that alerts and cards with every part survive a round trip.
+     */
+    @Test
+    fun `alerts and cards round-trip`() {
+        val root = ColumnNode(
+            "root",
+            children = listOf(
+                AlertNode(
+                    "alert",
+                    variant = AlertVariant.DESTRUCTIVE,
+                    icon = "circle-alert",
+                    children = listOf(TextNode("title", kind = TextKind.ALERT_TITLE), TextNode("description", kind = TextKind.ALERT_DESCRIPTION)),
+                ),
+                CardNode(
+                    "card",
+                    children = listOf(
+                        CardHeaderNode("header", children = listOf(TextNode("card_title", kind = TextKind.CARD_TITLE), CardActionNode("action", children = listOf(ButtonNode("more"))))),
+                        CardContentNode("content", children = listOf(TextNode("body"))),
+                        CardFooterNode("footer", children = listOf(ButtonNode("save"))),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

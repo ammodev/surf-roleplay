@@ -2,7 +2,13 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
+import dev.slne.surf.roleplay.protocol.screen.AlertNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
+import dev.slne.surf.roleplay.protocol.screen.CardActionNode
+import dev.slne.surf.roleplay.protocol.screen.CardContentNode
+import dev.slne.surf.roleplay.protocol.screen.CardFooterNode
+import dev.slne.surf.roleplay.protocol.screen.CardHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.CardNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarNode
 import dev.slne.surf.roleplay.protocol.screen.BadgeNode
@@ -142,6 +148,12 @@ object WidgetFactory {
             is AvatarNode -> AvatarWidget(node.id, AvatarWidget.playerId(node.playerId), node.texture, node.fallback, node.size, node.badge, node.badgeIcon)
             is AvatarGroupNode -> container(AvatarGroupWidget(node.id), node.children)
             is AvatarGroupCountNode -> AvatarGroupCountWidget(node.id, node.text, node.icon)
+            is AlertNode -> container(AlertWidget(node.id, node.variant, node.icon), node.children)
+            is CardNode -> container(CardWidget(node.id), node.children)
+            is CardHeaderNode -> container(CardHeaderWidget(node.id), node.children)
+            is CardActionNode -> container(CardActionWidget(node.id), node.children)
+            is CardContentNode -> container(CardContentWidget(node.id), node.children)
+            is CardFooterNode -> container(CardFooterWidget(node.id), node.children)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width

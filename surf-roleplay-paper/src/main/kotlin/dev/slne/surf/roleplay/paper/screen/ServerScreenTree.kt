@@ -1,6 +1,12 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AspectRatioElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardFooterElement
 import dev.slne.surf.roleplay.api.client.common.screen.AvatarGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.KbdGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
@@ -244,6 +250,12 @@ class ServerScreenTree(root: ScreenElement) {
             is KbdGroupElement -> container.copy(children = children)
             is AspectRatioElement -> container.copy(children = children)
             is AvatarGroupElement -> container.copy(children = children)
+            is AlertElement -> container.copy(children = children)
+            is CardElement -> container.copy(children = children)
+            is CardHeaderElement -> container.copy(children = children)
+            is CardActionElement -> container.copy(children = children)
+            is CardContentElement -> container.copy(children = children)
+            is CardFooterElement -> container.copy(children = children)
         }
     }
 }

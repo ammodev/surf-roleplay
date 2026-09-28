@@ -550,3 +550,215 @@ fun ElementsBuilder.avatarGroup(id: String, children: ElementsBuilder.() -> Unit
 fun ElementsBuilder.avatarGroupCount(id: String, text: Component, icon: String? = null) {
     elements += AvatarGroupCountElement(id, text, icon)
 }
+
+/**
+ * The look of an alert.
+ */
+enum class AlertVariant {
+    /**
+     * A neutral alert on the card colour.
+     */
+    DEFAULT,
+
+    /**
+     * An alert whose icon and texts are drawn in the destructive colour.
+     */
+    DESTRUCTIVE,
+}
+
+/**
+ * A bordered callout with an optional icon beside its title and description.
+ *
+ * @property id the id of this element
+ * @property children the title, description and further content
+ * @property variant the look of the alert
+ * @property icon the Lucide name of the icon, or `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class AlertElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val variant: AlertVariant = AlertVariant.DEFAULT,
+    val icon: String? = null,
+    override val width: ElementSize = ElementSize.grow(),
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A bordered surface that stacks a header, content and footer.
+ *
+ * @property id the id of this element
+ * @property children the header, content and footer
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CardElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The header of a card, with its title and description and an optional action at the top right.
+ *
+ * @property id the id of this element
+ * @property children the title, description and action
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CardHeaderElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The action of a card header, placed at its top right.
+ *
+ * @property id the id of this element
+ * @property children the content of the action
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CardActionElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The content of a card.
+ *
+ * @property id the id of this element
+ * @property children the content
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CardContentElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * The footer of a card, a row centered on one line.
+ *
+ * @property id the id of this element
+ * @property children the content
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class CardFooterElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds an alert, as wide as its container.
+ *
+ * @param id the id of the alert
+ * @param variant the look of the alert
+ * @param icon the Lucide name of the icon, or `null` for none
+ * @param children the builder of the title, description and further content
+ */
+fun ElementsBuilder.alert(id: String, variant: AlertVariant = AlertVariant.DEFAULT, icon: String? = null, children: ElementsBuilder.() -> Unit) {
+    elements += AlertElement(id, build(children), variant, icon)
+}
+
+/**
+ * Adds the title of an alert.
+ *
+ * @param id the id of the title
+ * @param text the title
+ */
+fun ElementsBuilder.alertTitle(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.ALERT_TITLE)
+}
+
+/**
+ * Adds the description of an alert.
+ *
+ * @param id the id of the description
+ * @param text the description
+ */
+fun ElementsBuilder.alertDescription(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.ALERT_DESCRIPTION)
+}
+
+/**
+ * Adds a card.
+ *
+ * @param id the id of the card
+ * @param width how wide the card is laid out
+ * @param children the builder of the header, content and footer
+ */
+fun ElementsBuilder.card(id: String, width: ElementSize = ElementSize.FIT, children: ElementsBuilder.() -> Unit) {
+    elements += CardElement(id, build(children), width)
+}
+
+/**
+ * Adds the header of a card.
+ *
+ * @param id the id of the header
+ * @param children the builder of the title, description and action
+ */
+fun ElementsBuilder.cardHeader(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += CardHeaderElement(id, build(children))
+}
+
+/**
+ * Adds the title of a card.
+ *
+ * @param id the id of the title
+ * @param text the title
+ */
+fun ElementsBuilder.cardTitle(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.CARD_TITLE)
+}
+
+/**
+ * Adds the description of a card.
+ *
+ * @param id the id of the description
+ * @param text the description
+ */
+fun ElementsBuilder.cardDescription(id: String, text: Component) {
+    elements += TextElement(id, text, TextKind.CARD_DESCRIPTION)
+}
+
+/**
+ * Adds the action of a card header.
+ *
+ * @param id the id of the action
+ * @param children the builder of the action content
+ */
+fun ElementsBuilder.cardAction(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += CardActionElement(id, build(children))
+}
+
+/**
+ * Adds the content of a card.
+ *
+ * @param id the id of the content
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.cardContent(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += CardContentElement(id, build(children))
+}
+
+/**
+ * Adds the footer of a card.
+ *
+ * @param id the id of the footer
+ * @param children the builder of the footer content
+ */
+fun ElementsBuilder.cardFooter(id: String, children: ElementsBuilder.() -> Unit) {
+    elements += CardFooterElement(id, build(children))
+}

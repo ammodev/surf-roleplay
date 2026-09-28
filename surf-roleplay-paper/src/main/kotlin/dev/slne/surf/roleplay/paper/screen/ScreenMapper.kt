@@ -130,6 +130,18 @@ import dev.slne.surf.roleplay.api.client.common.screen.AvatarSource
 import dev.slne.surf.roleplay.protocol.screen.AvatarNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
+import dev.slne.surf.roleplay.api.client.common.screen.AlertElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardFooterElement
+import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.CardNode
+import dev.slne.surf.roleplay.protocol.screen.CardHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.CardActionNode
+import dev.slne.surf.roleplay.protocol.screen.CardContentNode
+import dev.slne.surf.roleplay.protocol.screen.CardFooterNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -264,6 +276,12 @@ object ScreenMapper {
             )
             is AvatarGroupElement -> AvatarGroupNode(element.id, width, height, element.children.map(::toNode))
             is AvatarGroupCountElement -> AvatarGroupCountNode(element.id, width, height, text(element.text), element.icon)
+            is AlertElement -> AlertNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant), element.icon)
+            is CardElement -> CardNode(element.id, width, height, element.children.map(::toNode))
+            is CardHeaderElement -> CardHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is CardActionElement -> CardActionNode(element.id, width, height, element.children.map(::toNode))
+            is CardContentElement -> CardContentNode(element.id, width, height, element.children.map(::toNode))
+            is CardFooterElement -> CardFooterNode(element.id, width, height, element.children.map(::toNode))
         }
     }
 
