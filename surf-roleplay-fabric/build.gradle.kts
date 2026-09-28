@@ -36,6 +36,12 @@ dependencies {
     implementation(projects.surfRoleplayProtocol)
     include(projects.surfRoleplayProtocol)
     include("org.jetbrains.kotlinx:kotlinx-serialization-protobuf-jvm:$serializationVersion")
+
+    testImplementation(kotlin("test"))
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.processResources {
