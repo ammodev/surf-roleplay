@@ -1,6 +1,6 @@
 # Plan 0011: shadcn navigation and layout
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-28
 - **Accepted proposal:** Port the navigation and layout components of the shadcn registry (accordion, breadcrumb, carousel, collapsible, direction, navigation-menu, pagination, resizable, scroll-area, sidebar, tabs) as native screen nodes; pre-accepted under the standing autonomy for shadcn-faithful components
 - **Decision records:** ADR-0051, ADR-0052, ADR-0057, ADR-0062, ADR-0063
