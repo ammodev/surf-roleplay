@@ -13,6 +13,10 @@ import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.InsertNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
+import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import dev.slne.surf.roleplay.protocol.screen.ContainerNode
+import dev.slne.surf.roleplay.protocol.screen.TextNode
+import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.SetValue
@@ -106,5 +110,24 @@ class DataDemoTest {
         assertEquals("chat_reply_1", inserts[1].node.id)
         assertEquals("", patch.operations.filterIsInstance<SetValue>().single { it.targetId == "chat_input" }.value)
         assertEquals(listOf("Nachricht gesendet: Bin unterwegs"), reports)
+    }
+
+    /**
+     * Verifies that the section and chart headings are German.
+     */
+    @Test
+    fun `headings are german`() {
+        open()
+        val texts = mutableListOf<String>()
+        fun collect(node: ScreenNode) {
+            if (node is TextNode) texts += node.text
+            if (node is ContainerNode) node.children.forEach { collect(it) }
+        }
+        collect(assertIs<WidgetScreenBody>(assertIs<ScreenOpen>(sent.first()).body).root)
+
+        listOf("Tabelle", "Datentabelle", "Diagramme", "Fläche", "Balken", "Linie", "Kreis", "Netz").forEach { heading ->
+            assertTrue(texts.any { it.contains(heading) }, heading)
+        }
+        listOf("\"Table\"", "\"Data Table\"", "\"Chart\"").forEach { english -> assertTrue(texts.none { it.contains(english) }, english) }
     }
 }

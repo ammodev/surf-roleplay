@@ -141,7 +141,7 @@ object DataDemo {
     /**
      * Adds a table of missions with a status badge per row, a total in the footer and a caption.
      */
-    private fun ElementsBuilder.tables() = section("tables", "Table") {
+    private fun ElementsBuilder.tables() = section("tables", "Tabelle") {
         table("missions") {
             tableHeader("missions_header") {
                 tableRow("missions_head") {
@@ -194,7 +194,7 @@ object DataDemo {
      *
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.dataTables(hooks: Hooks) = section("data_tables", "Data Table") {
+    private fun ElementsBuilder.dataTables(hooks: Hooks) = section("data_tables", "Datentabelle") {
         dataTable(
             "units",
             pageSize = 5,
@@ -240,43 +240,43 @@ object DataDemo {
     /**
      * Adds charts of every family, two per row, each in a card.
      */
-    private fun ElementsBuilder.charts() = section("charts", "Chart") {
+    private fun ElementsBuilder.charts() = section("charts", "Diagramme") {
         chartRow("charts_1") {
-            chartCard("area_card", "Area – gestapelt", "Einsätze pro Monat") {
+            chartCard("area_card", "Fläche – gestapelt", "Einsätze pro Monat") {
                 chart("area", ChartKind.AREA, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), stacked = true, legend = true)
             }
-            chartCard("bar_card", "Bar – mehrere", "Mit Werteachse") {
+            chartCard("bar_card", "Balken – mehrere", "Mit Werteachse") {
                 chart("bar", ChartKind.BAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), valueAxis = true, indicator = ChartIndicator.DASHED)
             }
         }
         chartRow("charts_2") {
-            chartCard("bar_horizontal_card", "Bar – horizontal", "Mit Werten") {
+            chartCard("bar_horizontal_card", "Balken – horizontal", "Mit Werten") {
                 chart("bar_horizontal", ChartKind.BAR, MONTHS, listOf(RESCUE), width = ElementSize.grow(), horizontal = true, labels = true, grid = false)
             }
-            chartCard("bar_stacked_card", "Bar – gestapelt", "Mit Legende") {
+            chartCard("bar_stacked_card", "Balken – gestapelt", "Mit Legende") {
                 chart("bar_stacked", ChartKind.BAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), stacked = true, legend = true, indicator = ChartIndicator.LINE)
             }
         }
         chartRow("charts_3") {
-            chartCard("line_card", "Line – weich", "Mit Punkten") {
+            chartCard("line_card", "Linie – weich", "Mit Punkten") {
                 chart("line", ChartKind.LINE, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), dots = true)
             }
-            chartCard("line_step_card", "Line – Stufen", "Linear und Stufen") {
+            chartCard("line_step_card", "Linie – Stufen", "Linear und Stufen") {
                 chart("line_step", ChartKind.LINE, MONTHS, listOf(RESCUE.copy(color = 3)), width = ElementSize.grow(), curve = ChartCurve.STEP)
             }
         }
         val browsers = listOf("Rettung", "Feuer", "Polizei", "THW", "Sonstige").map { Component.text(it) }
         val shares = ChartSeries("calls", Component.text("Einsätze"), 1, listOf(275.0, 200.0, 187.0, 173.0, 90.0))
         chartRow("charts_4") {
-            chartCard("pie_card", "Pie – Werte", "Einsätze nach Art") {
+            chartCard("pie_card", "Kreis – Werte", "Einsätze nach Art") {
                 chart("pie", ChartKind.PIE, browsers, listOf(shares), width = ElementSize.grow(), labels = true, legend = true)
             }
-            chartCard("donut_card", "Pie – Donut", "Mit Summe") {
+            chartCard("donut_card", "Kreis – Ring", "Mit Summe") {
                 chart("donut", ChartKind.PIE, browsers, listOf(shares), width = ElementSize.grow(), donut = true)
             }
         }
         chartRow("charts_5") {
-            chartCard("radar_card", "Radar", "Zwei Serien") {
+            chartCard("radar_card", "Netz", "Zwei Serien") {
                 chart("radar", ChartKind.RADAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), dots = true, legend = true)
             }
             chartCard("radial_card", "Radial", "Einsätze nach Art") {
