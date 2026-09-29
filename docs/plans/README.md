@@ -23,3 +23,4 @@ Create the next plan with `/surf:new-plan`.
 | [0009](0009-shadcn-display-components.md) | shadcn display components | 2026-09-28 | Done |
 | [0010](0010-shadcn-overlays-and-menus.md) | shadcn overlays and menus | 2026-09-28 | Done |
 | [0011](0011-shadcn-navigation-and-layout.md) | shadcn navigation and layout | 2026-09-28 | Done |
+| [0012](0012-shadcn-data-chat-and-charts.md) | shadcn data, chat and charts | 2026-09-29 | In progress |
