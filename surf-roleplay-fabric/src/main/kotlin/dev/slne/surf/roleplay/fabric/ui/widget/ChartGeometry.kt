@@ -329,3 +329,96 @@ object ChartMath {
      */
     fun labelStep(band: Float, labelWidth: Int): Int = if (band <= 0f) 1 else ceil(labelWidth / band).toInt().coerceAtLeast(1)
 }
+
+/**
+ * The geometry of pie, radar and radial charts: a centre and a radius, with angles measured
+ * clockwise from the top.
+ *
+ * @property centerX the horizontal position of the centre
+ * @property centerY the vertical position of the centre
+ * @property radius the outer radius
+ */
+class PolarGeometry(val centerX: Float, val centerY: Float, val radius: Float) {
+
+    /**
+     * Returns the angle of a point around the centre.
+     *
+     * @param x the horizontal position
+     * @param y the vertical position
+     * @return the angle in radians from 0 at the top, clockwise, below 2π
+     */
+    fun angleOf(x: Float, y: Float): Double {
+        val angle = kotlin.math.atan2((x - centerX).toDouble(), (centerY - y).toDouble())
+        return if (angle < 0) angle + 2 * Math.PI else angle
+    }
+
+    /**
+     * Returns the distance of a point from the centre.
+     *
+     * @param x the horizontal position
+     * @param y the vertical position
+     * @return the distance
+     */
+    fun distanceOf(x: Float, y: Float): Float = kotlin.math.hypot(x - centerX, y - centerY)
+
+    /**
+     * Returns the point at an angle and a distance from the centre.
+     *
+     * @param angle the angle in radians from the top, clockwise
+     * @param distance the distance
+     * @return the point
+     */
+    fun pointAt(angle: Double, distance: Float): PointF =
+        PointF(centerX + (kotlin.math.sin(angle) * distance).toFloat(), centerY - (kotlin.math.cos(angle) * distance).toFloat())
+
+    /**
+     * Returns the slice of a pie under a point.
+     *
+     * @param fractions the share of each slice, together 1
+     * @param inner the inner radius, `0` for a full pie
+     * @param x the horizontal position
+     * @param y the vertical position
+     * @return the index of the slice, or `null` if the point is outside the pie or its hole
+     */
+    fun sliceAt(fractions: List<Double>, inner: Float, x: Float, y: Float): Int? {
+        val distance = distanceOf(x, y)
+        if (distance > radius || distance < inner || fractions.isEmpty()) return null
+        val turn = angleOf(x, y) / (2 * Math.PI)
+        var end = 0.0
+        fractions.forEachIndexed { index, fraction ->
+            end += fraction
+            if (turn < end) return index
+        }
+        return fractions.indices.lastOrNull { fractions[it] > 0 }
+    }
+
+    /**
+     * Returns the ring of a radial chart under a point, counting from the inside.
+     *
+     * @param count the number of rings
+     * @param inner the inner radius of the innermost ring
+     * @param x the horizontal position
+     * @param y the vertical position
+     * @return the index of the ring, or `null` if the point is inside the hole or outside
+     */
+    fun ringAt(count: Int, inner: Float, x: Float, y: Float): Int? {
+        val distance = distanceOf(x, y)
+        if (count <= 0 || distance < inner || distance > radius) return null
+        return ((distance - inner) / ((radius - inner) / count)).toInt().coerceIn(0, count - 1)
+    }
+
+    /**
+     * Returns the axis of a radar chart nearest to the direction of a point.
+     *
+     * @param count the number of axes
+     * @param reach how far from the centre the axes can be hovered
+     * @param x the horizontal position
+     * @param y the vertical position
+     * @return the index of the axis, or `null` if the point is too far away or there are no axes
+     */
+    fun axisAt(count: Int, reach: Float, x: Float, y: Float): Int? {
+        if (count <= 0 || distanceOf(x, y) > reach) return null
+        val step = 2 * Math.PI / count
+        return (kotlin.math.round(angleOf(x, y) / step).toInt()) % count
+    }
+}

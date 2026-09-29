@@ -165,7 +165,7 @@ class ChartWidget(
         hovered = null
         when (kind) {
             ChartKind.AREA, ChartKind.BAR, ChartKind.LINE -> renderCartesian(ui, mouseX, mouseY)
-            ChartKind.PIE, ChartKind.RADAR, ChartKind.RADIAL -> Unit
+            ChartKind.PIE, ChartKind.RADAR, ChartKind.RADIAL -> renderPolar(ui, mouseX, mouseY)
         }
         if (options.legend) renderLegend(ui)
         val category = hovered
@@ -315,6 +315,291 @@ class ChartWidget(
                 }
             }
         }
+    }
+
+    /**
+     * Returns the geometry of a pie, radar or radial chart: centred in the chart area, leaving
+     * room for the axis labels of a radar chart.
+     *
+     * @param measurer the text measurer
+     * @return the geometry
+     */
+    fun polar(measurer: TextMeasurer): PolarGeometry {
+        val area = chartArea(measurer)
+        val labelled = kind == ChartKind.RADAR && options.categoryAxis
+        val sideRoom = if (labelled) (categories.maxOfOrNull { measurer.width(it) } ?: 0) + AXIS_GAP else PLOT_INSET
+        val topRoom = if (labelled) measurer.lineHeight + AXIS_GAP else PLOT_INSET
+        val radius = minOf(area.width / 2f - sideRoom, area.height / 2f - topRoom).coerceAtLeast(0f)
+        return PolarGeometry(area.x + area.width / 2f, area.y + area.height / 2f, radius)
+    }
+
+    /**
+     * Returns the inner radius of a pie or radial chart: the hole of a donut, or the space inside
+     * the innermost ring.
+     *
+     * @param geometry the geometry
+     * @return the inner radius
+     */
+    fun innerRadius(geometry: PolarGeometry): Float = when {
+        kind == ChartKind.PIE && options.donut -> geometry.radius * DONUT_HOLE
+        kind == ChartKind.RADIAL -> geometry.radius * RADIAL_HOLE
+        else -> 0f
+    }
+
+    /**
+     * Returns the share of each slice of a pie chart, from its first series.
+     *
+     * @return the shares, together 1, or all 0 when the values add up to nothing
+     */
+    fun sliceFractions(): List<Double> {
+        val pie = series.firstOrNull()?.values.orEmpty().map { it.coerceAtLeast(0.0) }
+        val sum = pie.sum()
+        return categories.indices.map { if (sum > 0) pie.getOrElse(it) { 0.0 } / sum else 0.0 }
+    }
+
+    /**
+     * Returns the largest value of a radar or radial chart's axis, a round number.
+     *
+     * @return the value
+     */
+    private fun polarMax(): Double = ChartMath.niceMax(values.flatten().maxOrNull() ?: 0.0)
+
+    /**
+     * Returns the category of a pie, radar or radial chart under a point.
+     *
+     * @param measurer the text measurer
+     * @param x the horizontal position
+     * @param y the vertical position
+     * @return the index of the category, or `null` for none
+     */
+    fun polarCategoryAt(measurer: TextMeasurer, x: Float, y: Float): Int? {
+        val geometry = polar(measurer)
+        return when (kind) {
+            ChartKind.PIE -> geometry.sliceAt(sliceFractions(), innerRadius(geometry), x, y)
+            ChartKind.RADIAL -> geometry.ringAt(categories.size, innerRadius(geometry), x, y)
+            ChartKind.RADAR -> geometry.axisAt(categories.size, geometry.radius + measurer.lineHeight, x, y)
+            else -> null
+        }
+    }
+
+    /**
+     * The rasterised shapes of the last frames, keyed by the widget bounds, the pixel scale and
+     * the shape.
+     */
+    private val rasterCache = HashMap<String, List<IntArray>>()
+
+    /**
+     * Returns the runs of screen pixels a classifier assigns to each shape within the chart's
+     * circle, cached while the bounds and the scale stay the same. Each run is the row, the first
+     * and the end column, and the shape number.
+     *
+     * @param geometry the geometry
+     * @param scale the number of screen pixels per GUI pixel
+     * @param name the name of the shape set within this chart
+     * @param classify returns the shape number of a point in GUI pixels, or `-1` for none
+     * @return the runs
+     */
+    private fun raster(geometry: PolarGeometry, scale: Int, name: String, classify: (Float, Float) -> Int): List<IntArray> {
+        val key = "$bounds|$scale|$name"
+        rasterCache[key]?.let { return it }
+        if (rasterCache.keys.any { !it.startsWith("$bounds|$scale|") }) rasterCache.clear()
+        val runs = mutableListOf<IntArray>()
+        val left = floor((geometry.centerX - geometry.radius) * scale).toInt()
+        val right = kotlin.math.ceil((geometry.centerX + geometry.radius) * scale).toInt()
+        val top = floor((geometry.centerY - geometry.radius) * scale).toInt()
+        val bottom = kotlin.math.ceil((geometry.centerY + geometry.radius) * scale).toInt()
+        for (py in top until bottom) {
+            val y = (py + 0.5f) / scale
+            var start = left
+            var shape = -1
+            for (px in left..right) {
+                val current = if (px < right) classify((px + 0.5f) / scale, y) else -1
+                if (current != shape) {
+                    if (shape >= 0) runs += intArrayOf(py, start, px, shape)
+                    start = px
+                    shape = current
+                }
+            }
+        }
+        return runs.also { rasterCache[key] = it }
+    }
+
+    /**
+     * Draws a pie, radar or radial chart and finds the hovered category.
+     *
+     * @param ui the graphics to draw with
+     * @param mouseX the mouse x position
+     * @param mouseY the mouse y position
+     */
+    private fun renderPolar(ui: UiGraphics, mouseX: Int, mouseY: Int) {
+        val geometry = polar(ui)
+        if (geometry.radius <= 0f) return
+        hovered = polarCategoryAt(ui, mouseX + 0.5f, mouseY + 0.5f)
+        when (kind) {
+            ChartKind.PIE -> renderPie(ui, geometry)
+            ChartKind.RADIAL -> renderRadial(ui, geometry)
+            else -> renderRadar(ui, geometry)
+        }
+    }
+
+    /**
+     * Draws the slices of a pie or donut, the values on them when asked, and the total inside a
+     * donut.
+     *
+     * @param ui the graphics to draw with
+     * @param geometry the geometry
+     */
+    private fun renderPie(ui: UiGraphics, geometry: PolarGeometry) {
+        val fractions = sliceFractions()
+        val inner = innerRadius(geometry)
+        ui.fine { scale ->
+            raster(geometry, scale, "pie") { x, y -> geometry.sliceAt(fractions, inner, x, y) ?: -1 }.forEach { run ->
+                val color = ui.tokens.chart(categoryColor(run[3]))
+                ui.fineFill(run[1], run[0], run[2], run[0] + 1, if (hovered == null || hovered == run[3]) color else ThemeColors.withAlpha(color, FADED_ALPHA))
+            }
+        }
+        if (options.labels) {
+            var start = 0.0
+            fractions.forEachIndexed { index, fraction ->
+                if (fraction <= 0) return@forEachIndexed
+                val middle = (start + fraction / 2) * 2 * Math.PI
+                start += fraction
+                val point = geometry.pointAt(middle, if (inner > 0) (inner + geometry.radius) / 2 else geometry.radius * PIE_LABEL)
+                val text = ChartMath.format(series.first().values.getOrElse(index) { 0.0 })
+                ui.plainText(text, (point.x - ui.plainWidth(text) / 2f).roundToInt(), (point.y - ui.lineHeight / 2f).roundToInt(), ui.tokens.background)
+            }
+        }
+        if (inner > 0 && series.isNotEmpty()) {
+            val total = TextStyle.styled(DataTableWidget.json(ChartMath.format(series.first().values.sum())), bold = true, italic = false)
+            val label = series.first().label
+            val cx = geometry.centerX.roundToInt()
+            val cy = geometry.centerY.roundToInt()
+            ui.text(total, cx - ui.width(total) / 2, cy - ui.lineHeight, ui.tokens.foreground)
+            ui.text(label, cx - ui.width(label) / 2, cy + 1, ui.tokens.mutedForeground)
+        }
+    }
+
+    /**
+     * Draws the rings of a radial chart: a muted track per category and an arc from the top,
+     * clockwise, as long as its value's share of the axis.
+     *
+     * @param ui the graphics to draw with
+     * @param geometry the geometry
+     */
+    private fun renderRadial(ui: UiGraphics, geometry: PolarGeometry) {
+        val count = categories.size
+        val inner = innerRadius(geometry)
+        val max = polarMax()
+        val shares = categories.indices.map { (series.firstOrNull()?.values?.getOrElse(it) { 0.0 } ?: 0.0).coerceAtLeast(0.0) / max }
+        val ring = (geometry.radius - inner) / count.coerceAtLeast(1)
+        ui.fine { scale ->
+            raster(geometry, scale, "radial") { x, y ->
+                val index = geometry.ringAt(count, inner, x, y) ?: return@raster -1
+                val offset = geometry.distanceOf(x, y) - inner - index * ring
+                if (offset < ring * RING_GAP || offset > ring * (1 - RING_GAP)) return@raster -1
+                if (geometry.angleOf(x, y) / (2 * Math.PI) < shares[index]) index else index + count
+            }.forEach { run ->
+                val shape = run[3]
+                val color = if (shape < count) ui.tokens.chart(categoryColor(shape)) else ui.tokens.muted
+                ui.fineFill(run[1], run[0], run[2], run[0] + 1, color)
+            }
+        }
+    }
+
+    /**
+     * Draws a radar chart: the grid of rings and spokes, a filled polygon per series with its
+     * outline and dots, and the category labels around it.
+     *
+     * @param ui the graphics to draw with
+     * @param geometry the geometry
+     */
+    private fun renderRadar(ui: UiGraphics, geometry: PolarGeometry) {
+        val count = categories.size
+        if (count < 3) return
+        val step = 2 * Math.PI / count
+        val max = polarMax()
+        val polygons = series.map { item -> (0 until count).map { geometry.pointAt(it * step, (item.values.getOrElse(it) { 0.0 } / max).toFloat().coerceIn(0f, 1f) * geometry.radius) } }
+        ui.fine { scale ->
+            if (options.grid) {
+                for (level in 1..GRID_LEVELS) {
+                    val ring = (0 until count).map { geometry.pointAt(it * step, geometry.radius * level / GRID_LEVELS) }
+                    ring.indices.forEach { segment(ui, scale, ring[it], ring[(it + 1) % count], ui.tokens.border) }
+                }
+                (0 until count).forEach { segment(ui, scale, PointF(geometry.centerX, geometry.centerY), geometry.pointAt(it * step, geometry.radius), ui.tokens.border) }
+            }
+            polygons.forEachIndexed { index, polygon ->
+                val color = ui.tokens.chart(series[index].color)
+                raster(geometry, scale, "radar$index") { x, y -> if (contains(polygon, x, y)) 0 else -1 }.forEach { run ->
+                    ui.fineFill(run[1], run[0], run[2], run[0] + 1, ThemeColors.withAlpha(color, RADAR_ALPHA))
+                }
+                polygon.indices.forEach { segment(ui, scale, polygon[it], polygon[(it + 1) % count], color) }
+            }
+        }
+        if (options.dots) {
+            polygons.forEachIndexed { index, polygon ->
+                polygon.forEach { point -> ui.fillRounded(Rect((point.x - DOT / 2f).roundToInt(), (point.y - DOT / 2f).roundToInt(), DOT, DOT), ui.tokens.chart(series[index].color), DOT / 2) }
+            }
+        }
+        if (options.categoryAxis) {
+            categories.forEachIndexed { index, label ->
+                val angle = index * step
+                val point = geometry.pointAt(angle, geometry.radius + AXIS_GAP)
+                val width = ui.width(label)
+                val sin = kotlin.math.sin(angle)
+                val x = when {
+                    sin > SIDE_THRESHOLD -> point.x
+                    sin < -SIDE_THRESHOLD -> point.x - width
+                    else -> point.x - width / 2f
+                }
+                val cos = kotlin.math.cos(angle)
+                val y = when {
+                    cos > SIDE_THRESHOLD -> point.y - ui.lineHeight
+                    cos < -SIDE_THRESHOLD -> point.y
+                    else -> point.y - ui.lineHeight / 2f
+                }
+                ui.text(label, x.roundToInt(), y.roundToInt(), if (hovered == index) ui.tokens.foreground else ui.tokens.mutedForeground)
+            }
+        }
+    }
+
+    /**
+     * Draws a straight line one GUI pixel thick at screen-pixel resolution, inside
+     * [UiGraphics.fine].
+     *
+     * @param ui the graphics to draw with
+     * @param scale the number of screen pixels per GUI pixel
+     * @param from the start point in GUI pixels
+     * @param to the end point in GUI pixels
+     * @param color the ARGB colour
+     */
+    private fun segment(ui: UiGraphics, scale: Int, from: PointF, to: PointF, color: Int) {
+        val steps = (maxOf(kotlin.math.abs(to.x - from.x), kotlin.math.abs(to.y - from.y)) * scale).roundToInt().coerceAtLeast(1)
+        val half = scale / 2
+        for (i in 0..steps) {
+            val x = ((from.x + (to.x - from.x) * i / steps) * scale).roundToInt()
+            val y = ((from.y + (to.y - from.y) * i / steps) * scale).roundToInt()
+            ui.fineFill(x - half, y - half, x - half + scale, y - half + scale, color)
+        }
+    }
+
+    /**
+     * Returns whether a point lies inside a polygon, by the even-odd rule.
+     *
+     * @param polygon the corners, in order
+     * @param x the horizontal position
+     * @param y the vertical position
+     * @return whether the point is inside
+     */
+    fun contains(polygon: List<PointF>, x: Float, y: Float): Boolean {
+        var inside = false
+        var j = polygon.lastIndex
+        for (i in polygon.indices) {
+            val a = polygon[i]
+            val b = polygon[j]
+            if ((a.y > y) != (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) inside = !inside
+            j = i
+        }
+        return inside
     }
 
     /**
@@ -512,5 +797,45 @@ class ChartWidget(
          * The smallest space between a row's label and its value.
          */
         const val VALUE_GAP: Int = 12
+
+        /**
+         * The share of a donut's radius taken by its hole.
+         */
+        const val DONUT_HOLE: Float = 0.6f
+
+        /**
+         * The share of a radial chart's radius inside its innermost ring.
+         */
+        const val RADIAL_HOLE: Float = 0.3f
+
+        /**
+         * The share of a ring's width left empty on each side of a radial chart's rings.
+         */
+        const val RING_GAP: Float = 0.1f
+
+        /**
+         * The share of a pie's radius where the values of its slices are placed.
+         */
+        const val PIE_LABEL: Float = 0.65f
+
+        /**
+         * The opacity of the slices that are not hovered while one is.
+         */
+        const val FADED_ALPHA: Float = 0.6f
+
+        /**
+         * The opacity of radar polygons.
+         */
+        const val RADAR_ALPHA: Float = 0.6f
+
+        /**
+         * The number of grid rings of a radar chart.
+         */
+        const val GRID_LEVELS: Int = 4
+
+        /**
+         * How far from a vertical or horizontal direction a radar label turns to the side.
+         */
+        const val SIDE_THRESHOLD: Double = 0.3
     }
 }

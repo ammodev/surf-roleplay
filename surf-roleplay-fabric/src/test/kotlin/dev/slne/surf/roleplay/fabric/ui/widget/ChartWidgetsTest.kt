@@ -186,4 +186,85 @@ class ChartWidgetsTest {
         assertEquals(listOf("\"Einsätze\"" to 1), chart.legendEntries())
         assertEquals(listOf(Triple("\"Einsätze\"", 1, 4.0)), chart.tooltipRows(1))
     }
+
+    /**
+     * Verifies that polar angles start at the top and run clockwise, and that points at an angle
+     * and a distance lie there.
+     */
+    @Test
+    fun `polar angles run clockwise from the top`() {
+        val polar = PolarGeometry(50f, 50f, 40f)
+
+        assertEquals(0.0, polar.angleOf(50f, 10f), 1e-6)
+        assertEquals(Math.PI / 2, polar.angleOf(90f, 50f), 1e-6)
+        assertEquals(Math.PI, polar.angleOf(50f, 90f), 1e-6)
+        assertEquals(3 * Math.PI / 2, polar.angleOf(10f, 50f), 1e-6)
+        val point = polar.pointAt(Math.PI / 2, 20f)
+        assertNear(70f, point.x)
+        assertNear(50f, point.y)
+    }
+
+    /**
+     * Verifies that pie slices follow their shares clockwise from the top, and that the hole of
+     * a donut and the outside have no slice.
+     */
+    @Test
+    fun `pie slices follow their shares`() {
+        val polar = PolarGeometry(50f, 50f, 40f)
+        val fractions = listOf(0.25, 0.75)
+
+        assertEquals(0, polar.sliceAt(fractions, 0f, 70f, 30f))
+        assertEquals(1, polar.sliceAt(fractions, 0f, 50f, 80f))
+        assertEquals(1, polar.sliceAt(fractions, 0f, 30f, 30f))
+        assertEquals(null, polar.sliceAt(fractions, 20f, 55f, 45f))
+        assertEquals(null, polar.sliceAt(fractions, 0f, 95f, 50f))
+    }
+
+    /**
+     * Verifies that radial rings count from the inside and that radar axes are found by the
+     * nearest direction.
+     */
+    @Test
+    fun `rings and axes are found`() {
+        val polar = PolarGeometry(50f, 50f, 40f)
+
+        assertEquals(0, polar.ringAt(3, 10f, 50f, 35f))
+        assertEquals(2, polar.ringAt(3, 10f, 50f, 12f))
+        assertEquals(null, polar.ringAt(3, 10f, 50f, 45f))
+        assertEquals(0, polar.axisAt(4, 45f, 52f, 20f))
+        assertEquals(1, polar.axisAt(4, 45f, 80f, 48f))
+        assertEquals(3, polar.axisAt(4, 45f, 20f, 50f))
+        assertEquals(null, polar.axisAt(4, 45f, 50f, 100f))
+    }
+
+    /**
+     * Verifies that a pie chart shares its slices by its first series and finds the slice under
+     * a point, and that polygons contain the points inside them.
+     */
+    @Test
+    fun `pie charts find their slices`() {
+        val node = ChartNode(
+            "pie",
+            width = Sizing.fixed(160),
+            height = Sizing.fixed(160),
+            kind = ChartKind.PIE,
+            categories = listOf("\"A\"", "\"B\""),
+            series = listOf(ChartSeries("share", "\"Anteil\"", 1, listOf(1.0, 3.0))),
+            categoryColors = listOf(4),
+            donut = true,
+        )
+        val panel = ScreenPanel("T", WidgetFactory.create(ColumnNode("root", children = listOf(node))), true, listener, PanelStyle(Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)))
+            .also { it.layoutIfNeeded(measurer, 500, 400) }
+        val chart = assertIs<ChartWidget>(WidgetTree.find(panel.root, "pie"))
+        val polar = chart.polar(measurer)
+
+        assertEquals(listOf(0.25, 0.75), chart.sliceFractions())
+        assertEquals(listOf(4, 2), listOf(chart.categoryColor(0), chart.categoryColor(1)))
+        assertEquals(0, chart.polarCategoryAt(measurer, polar.centerX + polar.radius * 0.6f, polar.centerY - polar.radius * 0.6f))
+        assertEquals(null, chart.polarCategoryAt(measurer, polar.centerX, polar.centerY))
+        assertEquals(listOf(Triple("\"Anteil\"", 2, 3.0)), chart.tooltipRows(1))
+        val square = listOf(PointF(0f, 0f), PointF(10f, 0f), PointF(10f, 10f), PointF(0f, 10f))
+        assertTrue(chart.contains(square, 5f, 5f))
+        assertTrue(!chart.contains(square, 15f, 5f))
+    }
 }
