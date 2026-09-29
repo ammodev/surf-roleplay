@@ -87,6 +87,14 @@ interface UiContext {
     fun showTooltip(json: String, anchor: Rect, side: OverlaySide) = Unit
 
     /**
+     * Asks for drawing code to run above everything else at the end of the current frame, such
+     * as a chart tooltip. A later request in the same frame replaces an earlier one.
+     *
+     * @param draw the drawing code
+     */
+    fun drawOnTop(draw: (UiGraphics) -> Unit) = Unit
+
+    /**
      * Asks the screen to lay its tree out again before the next frame.
      */
     fun requestLayout()

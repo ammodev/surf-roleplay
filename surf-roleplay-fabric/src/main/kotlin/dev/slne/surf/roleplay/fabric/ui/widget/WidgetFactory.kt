@@ -54,6 +54,7 @@ import dev.slne.surf.roleplay.protocol.screen.DataTableNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
+import dev.slne.surf.roleplay.protocol.screen.ChartNode
 import dev.slne.surf.roleplay.protocol.screen.LayoutDirection
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
@@ -388,6 +389,13 @@ object WidgetFactory {
             is DataTableColumnNode -> LabelWidget(node.id, node.header).apply { hidden = true }
             is DataTableRowNode -> container(DataTableRowWidget(node.id, node.selectable), node.children)
             is DataTableCellNode -> container(DataTableCellWidget(node.id, node.sortKey), node.children)
+            is ChartNode -> ChartWidget(
+                node.id, node.kind, node.categories, node.series, node.categoryColors,
+                ChartOptions(
+                    node.stacked, node.horizontal, node.curve, node.dots, node.grid, node.xAxis, node.yAxis, node.legend, node.tooltip,
+                    node.indicator, node.donut, node.labels,
+                ),
+            )
             is ResizablePanelGroupNode -> container(ResizablePanelGroupWidget(node.id, node.orientation), node.children).apply {
                 childList.filterIsInstance<ResizableHandleWidget>().forEach { it.group = this }
                 resetSizes()

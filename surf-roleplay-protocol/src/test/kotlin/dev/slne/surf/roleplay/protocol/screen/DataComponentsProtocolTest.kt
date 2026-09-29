@@ -94,4 +94,33 @@ class DataComponentsProtocolTest {
             "{\"selected\":[1]}", "{\"other\":true}", "{} {}", "{\"sort\":\"a\"", "null",
         ).forEach { assertEquals(null, DataTableView.parse(it), it) }
     }
+
+    /**
+     * Verifies that a chart with series and every option survives a round trip.
+     */
+    @Test
+    fun `charts round-trip`() {
+        val root = ChartNode(
+            "chart",
+            height = Sizing.fixed(120),
+            kind = ChartKind.AREA,
+            categories = listOf("\"Jan\"", "\"Feb\""),
+            series = listOf(ChartSeries("calls", "\"Einsätze\"", 2, listOf(3.0, 4.5)), ChartSeries("units", "\"Einheiten\"", 5, listOf(1.0, 0.0))),
+            categoryColors = listOf(3, 1),
+            stacked = true,
+            horizontal = true,
+            curve = ChartCurve.STEP,
+            dots = true,
+            grid = false,
+            xAxis = false,
+            yAxis = true,
+            legend = true,
+            tooltip = false,
+            indicator = ChartIndicator.DASHED,
+            donut = true,
+            labels = true,
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

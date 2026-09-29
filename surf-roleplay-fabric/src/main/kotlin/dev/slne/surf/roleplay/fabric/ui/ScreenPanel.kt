@@ -147,6 +147,11 @@ class ScreenPanel(
     private var tooltip: TooltipRequest? = null
 
     /**
+     * The drawing code asked to run above everything during the current frame, or `null`.
+     */
+    private var onTop: ((UiGraphics) -> Unit)? = null
+
+    /**
      * Whether the focus ring is shown: after the player used the keyboard, and not after a mouse
      * click.
      */
@@ -454,6 +459,11 @@ class ScreenPanel(
             TooltipPainter.draw(ui, request, window)
         }
         tooltip = null
+        onTop?.let { draw ->
+            ui.nextLayer()
+            draw(ui)
+        }
+        onTop = null
     }
 
     /**
@@ -771,6 +781,16 @@ class ScreenPanel(
      */
     override fun showTooltip(json: String, anchor: Rect, side: OverlaySide) {
         tooltip = TooltipRequest(json, anchor, side)
+    }
+
+    /**
+     * Asks for drawing code to run above everything, after the tooltip, at the end of the current
+     * frame.
+     *
+     * @param draw the drawing code
+     */
+    override fun drawOnTop(draw: (UiGraphics) -> Unit) {
+        onTop = draw
     }
 
     /**

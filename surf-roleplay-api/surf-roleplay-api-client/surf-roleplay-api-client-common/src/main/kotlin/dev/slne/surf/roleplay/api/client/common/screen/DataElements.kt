@@ -381,3 +381,191 @@ fun ElementsBuilder.dataTableCell(id: String, sortKey: String, children: Element
 fun ElementsBuilder.dataTableCell(id: String, text: Component, sortKey: String) {
     dataTableCell(id, sortKey) { label("${id}_text", text) }
 }
+
+/**
+ * The family of a chart.
+ */
+enum class ChartKind {
+    /**
+     * Areas filled below lines.
+     */
+    AREA,
+
+    /**
+     * Bars, vertical or horizontal.
+     */
+    BAR,
+
+    /**
+     * Lines through the values.
+     */
+    LINE,
+
+    /**
+     * Slices of a circle, one per category, or a ring for a donut.
+     */
+    PIE,
+
+    /**
+     * Polygons on axes around a centre, one axis per category.
+     */
+    RADAR,
+
+    /**
+     * Rings around a centre, one per category.
+     */
+    RADIAL,
+}
+
+/**
+ * How the lines of line and area charts run between their points.
+ */
+enum class ChartCurve {
+    /**
+     * Straight from point to point.
+     */
+    LINEAR,
+
+    /**
+     * A smooth curve through the points that does not overshoot them.
+     */
+    NATURAL,
+
+    /**
+     * Horizontal steps that change halfway between two points.
+     */
+    STEP,
+}
+
+/**
+ * How a chart tooltip marks each series.
+ */
+enum class ChartIndicator {
+    /**
+     * A small square in the series colour.
+     */
+    DOT,
+
+    /**
+     * A short vertical bar in the series colour.
+     */
+    LINE,
+
+    /**
+     * A dashed vertical outline in the series colour.
+     */
+    DASHED,
+}
+
+/**
+ * A series of a chart: one value per category, drawn in one of the theme's five chart colours.
+ *
+ * @property key the key of the series, unique within its chart
+ * @property label the name of the series in the tooltip and the legend
+ * @property color the number of the theme's chart colour, 1 to 5
+ * @property values the values, one per category
+ */
+data class ChartSeries(
+    val key: String,
+    val label: Component,
+    val color: Int,
+    val values: List<Double>,
+)
+
+/**
+ * A chart of any family. It only shows data; hovering a category shows a tooltip with the value
+ * of every series.
+ *
+ * @property id the id of this element
+ * @property kind the family of the chart
+ * @property categories the labels of the categories, in order
+ * @property series the series
+ * @property categoryColors the chart colour numbers of the categories of pie and radial charts;
+ *           missing ones count up from 1
+ * @property stacked whether the series of area and bar charts are stacked
+ * @property horizontal whether bars run from the left instead of from the bottom
+ * @property curve how lines run between their points
+ * @property dots whether line charts mark their points
+ * @property grid whether the value grid is drawn
+ * @property categoryAxis whether the categories are labelled
+ * @property valueAxis whether the values are labelled
+ * @property legend whether the series, or the categories of pie and radial charts, are listed
+ *           below the chart
+ * @property tooltip whether hovering shows a tooltip
+ * @property indicator how the tooltip marks each series
+ * @property donut whether a pie chart is drawn as a ring
+ * @property labels whether pie slices and bars show their values
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out; a fitting chart is 16 by 9
+ */
+data class ChartElement(
+    override val id: String,
+    val kind: ChartKind,
+    val categories: List<Component>,
+    val series: List<ChartSeries>,
+    val categoryColors: List<Int> = emptyList(),
+    val stacked: Boolean = false,
+    val horizontal: Boolean = false,
+    val curve: ChartCurve = ChartCurve.NATURAL,
+    val dots: Boolean = false,
+    val grid: Boolean = true,
+    val categoryAxis: Boolean = true,
+    val valueAxis: Boolean = false,
+    val legend: Boolean = false,
+    val tooltip: Boolean = true,
+    val indicator: ChartIndicator = ChartIndicator.DOT,
+    val donut: Boolean = false,
+    val labels: Boolean = false,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * Adds a chart.
+ *
+ * @param id the id of the chart
+ * @param kind the family of the chart
+ * @param categories the labels of the categories, in order
+ * @param series the series
+ * @param width how wide the chart is laid out
+ * @param height how tall the chart is laid out; a fitting chart is 16 by 9
+ * @param categoryColors the chart colour numbers of the categories of pie and radial charts
+ * @param stacked whether the series of area and bar charts are stacked
+ * @param horizontal whether bars run from the left instead of from the bottom
+ * @param curve how lines run between their points
+ * @param dots whether line charts mark their points
+ * @param grid whether the value grid is drawn
+ * @param categoryAxis whether the categories are labelled
+ * @param valueAxis whether the values are labelled
+ * @param legend whether the series are listed below the chart
+ * @param tooltip whether hovering shows a tooltip
+ * @param indicator how the tooltip marks each series
+ * @param donut whether a pie chart is drawn as a ring
+ * @param labels whether pie slices and bars show their values
+ */
+fun ElementsBuilder.chart(
+    id: String,
+    kind: ChartKind,
+    categories: List<Component>,
+    series: List<ChartSeries>,
+    width: ElementSize = ElementSize.FIT,
+    height: ElementSize = ElementSize.FIT,
+    categoryColors: List<Int> = emptyList(),
+    stacked: Boolean = false,
+    horizontal: Boolean = false,
+    curve: ChartCurve = ChartCurve.NATURAL,
+    dots: Boolean = false,
+    grid: Boolean = true,
+    categoryAxis: Boolean = true,
+    valueAxis: Boolean = false,
+    legend: Boolean = false,
+    tooltip: Boolean = true,
+    indicator: ChartIndicator = ChartIndicator.DOT,
+    donut: Boolean = false,
+    labels: Boolean = false,
+) {
+    elements += ChartElement(
+        id, kind, categories, series, categoryColors, stacked, horizontal, curve, dots, grid, categoryAxis, valueAxis, legend, tooltip,
+        indicator, donut, labels, width, height,
+    )
+}

@@ -8,12 +8,14 @@ import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.text.TextBlock
 import dev.slne.surf.roleplay.fabric.ui.text.TextWrap
 import dev.slne.surf.roleplay.fabric.ui.widget.PlainText
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.locale.Language
 import net.minecraft.network.chat.FormattedText
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
+import kotlin.math.roundToInt
 
 /**
  * How the lines of a text are placed within its width.
@@ -394,6 +396,47 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
             fill(Rect(rect.right - 1, y, 1, length), color)
             y += step
         }
+    }
+
+    /**
+     * The number of screen pixels per GUI pixel, at least 1.
+     */
+    val pixelScale: Int
+        get() = runCatching {
+            val window = Minecraft.getInstance().window
+            (window.width.toDouble() / window.guiScaledWidth).roundToInt().coerceAtLeast(1)
+        }.getOrDefault(1)
+
+    /**
+     * Runs drawing code at screen-pixel resolution, for shapes such as chart lines that would be
+     * coarse on whole GUI pixels. The code gets the scale and draws with [fineFill].
+     *
+     * @param block the drawing code, given the number of screen pixels per GUI pixel
+     */
+    fun fine(block: (Int) -> Unit) {
+        val scale = pixelScale
+        val pose = graphics.pose()
+        pose.pushMatrix()
+        try {
+            pose.scale(1f / scale, 1f / scale)
+            block(scale)
+        } finally {
+            pose.popMatrix()
+        }
+    }
+
+    /**
+     * Fills a rectangle given in screen pixels, inside [fine].
+     *
+     * @param x0 the left edge
+     * @param y0 the top edge
+     * @param x1 the right edge, exclusive
+     * @param y1 the bottom edge, exclusive
+     * @param color the ARGB colour
+     */
+    fun fineFill(x0: Int, y0: Int, x1: Int, y1: Int, color: Int) {
+        if (x1 <= x0 || y1 <= y0) return
+        graphics.fill(x0, y0, x1, y1, color)
     }
 
     /**

@@ -270,3 +270,158 @@ data class DataTableCellNode(
      */
     override fun withChildren(children: List<ScreenNode>): DataTableCellNode = copy(children = children)
 }
+
+/**
+ * The family of a chart.
+ */
+@Serializable
+enum class ChartKind {
+    /**
+     * Areas filled below lines.
+     */
+    @ProtoNumber(0)
+    AREA,
+
+    /**
+     * Bars, vertical or horizontal.
+     */
+    @ProtoNumber(1)
+    BAR,
+
+    /**
+     * Lines through the values.
+     */
+    @ProtoNumber(2)
+    LINE,
+
+    /**
+     * Slices of a circle, one per category, or a ring for a donut.
+     */
+    @ProtoNumber(3)
+    PIE,
+
+    /**
+     * Polygons on axes around a centre, one axis per category.
+     */
+    @ProtoNumber(4)
+    RADAR,
+
+    /**
+     * Rings around a centre, one per category.
+     */
+    @ProtoNumber(5)
+    RADIAL,
+}
+
+/**
+ * How the lines of line and area charts run between their points.
+ */
+@Serializable
+enum class ChartCurve {
+    /**
+     * Straight from point to point.
+     */
+    @ProtoNumber(0)
+    LINEAR,
+
+    /**
+     * A smooth curve through the points that does not overshoot them.
+     */
+    @ProtoNumber(1)
+    NATURAL,
+
+    /**
+     * Horizontal steps that change halfway between two points.
+     */
+    @ProtoNumber(2)
+    STEP,
+}
+
+/**
+ * How a chart tooltip marks each series.
+ */
+@Serializable
+enum class ChartIndicator {
+    /**
+     * A small square in the series colour.
+     */
+    @ProtoNumber(0)
+    DOT,
+
+    /**
+     * A short vertical bar in the series colour.
+     */
+    @ProtoNumber(1)
+    LINE,
+
+    /**
+     * A dashed vertical outline in the series colour.
+     */
+    @ProtoNumber(2)
+    DASHED,
+}
+
+/**
+ * A series of a chart: one value per category, drawn in one of the theme's five chart colours.
+ *
+ * @property key the key of the series, unique within its chart
+ * @property label the name of the series in the tooltip and the legend, as component JSON
+ * @property color the number of the theme's chart colour, 1 to 5
+ * @property values the values, one per category
+ */
+@Serializable
+data class ChartSeries(
+    @ProtoNumber(1) val key: String = "",
+    @ProtoNumber(2) val label: String = "",
+    @ProtoNumber(3) val color: Int = 1,
+    @ProtoNumber(4) val values: List<Double> = emptyList(),
+)
+
+/**
+ * A chart of any family: its categories, its series and how it is drawn. A chart only shows
+ * data; hovering a category shows a tooltip with every series' value.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out; a fitting chart is 16 by 9
+ * @property kind the family of the chart
+ * @property categories the labels of the categories as component JSON, in order
+ * @property series the series
+ * @property categoryColors the chart colour numbers of the categories of pie and radial charts;
+ *           missing ones count up from 1
+ * @property stacked whether the series of area and bar charts are stacked
+ * @property horizontal whether bars run from the left instead of from the bottom
+ * @property curve how lines run between their points
+ * @property dots whether line charts mark their points
+ * @property grid whether the value grid is drawn
+ * @property xAxis whether the category axis is labelled
+ * @property yAxis whether the value axis is labelled
+ * @property legend whether the series are listed below the chart
+ * @property tooltip whether hovering shows a tooltip
+ * @property indicator how the tooltip marks each series
+ * @property donut whether a pie chart is drawn as a ring
+ * @property labels whether pie slices and bars show their values
+ */
+@Serializable
+@SerialName("chart")
+data class ChartNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) val kind: ChartKind = ChartKind.BAR,
+    @ProtoNumber(5) val categories: List<String> = emptyList(),
+    @ProtoNumber(6) val series: List<ChartSeries> = emptyList(),
+    @ProtoNumber(7) val categoryColors: List<Int> = emptyList(),
+    @ProtoNumber(8) val stacked: Boolean = false,
+    @ProtoNumber(9) val horizontal: Boolean = false,
+    @ProtoNumber(10) val curve: ChartCurve = ChartCurve.NATURAL,
+    @ProtoNumber(11) val dots: Boolean = false,
+    @ProtoNumber(12) val grid: Boolean = true,
+    @ProtoNumber(13) val xAxis: Boolean = true,
+    @ProtoNumber(14) val yAxis: Boolean = false,
+    @ProtoNumber(15) val legend: Boolean = false,
+    @ProtoNumber(16) val tooltip: Boolean = true,
+    @ProtoNumber(17) val indicator: ChartIndicator = ChartIndicator.DOT,
+    @ProtoNumber(18) val donut: Boolean = false,
+    @ProtoNumber(19) val labels: Boolean = false,
+) : ScreenNode

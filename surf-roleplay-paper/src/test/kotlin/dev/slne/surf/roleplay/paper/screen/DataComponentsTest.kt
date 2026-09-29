@@ -1,6 +1,15 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
+import dev.slne.surf.roleplay.protocol.screen.ChartIndicator as NodeChartIndicator
+import dev.slne.surf.roleplay.protocol.screen.ChartCurve as NodeChartCurve
+import dev.slne.surf.roleplay.protocol.screen.ChartKind as NodeChartKind
+import dev.slne.surf.roleplay.protocol.screen.ChartNode
+import dev.slne.surf.roleplay.api.client.common.screen.chart
+import dev.slne.surf.roleplay.api.client.common.screen.ChartSeries
+import dev.slne.surf.roleplay.api.client.common.screen.ChartKind
+import dev.slne.surf.roleplay.api.client.common.screen.ChartIndicator
+import dev.slne.surf.roleplay.api.client.common.screen.ChartCurve
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableNode
@@ -172,5 +181,39 @@ class DataComponentsTest {
         ).forEach { assertIs<PlayerScreenState.Outcome.Rejected>(change(it.toJson()), it.toString()) }
         assertIs<PlayerScreenState.Outcome.Rejected>(change("{\"page\":"))
         assertEquals(2, reports.size)
+    }
+
+    /**
+     * Verifies that a chart maps to its node with its series and options, keeping colour
+     * numbers within the five chart colours and replacing values that are not finite with zero.
+     */
+    @Test
+    fun `charts map to their nodes`() {
+        state.open(
+            screen(Component.text("Diagramm")) {
+                chart(
+                    "chart",
+                    ChartKind.AREA,
+                    listOf(Component.text("Jan"), Component.text("Feb")),
+                    listOf(ChartSeries("calls", Component.text("Einsätze"), 9, listOf(1.0, Double.NaN))),
+                    categoryColors = listOf(0, 3),
+                    stacked = true,
+                    curve = ChartCurve.STEP,
+                    legend = true,
+                    indicator = ChartIndicator.LINE,
+                )
+            },
+            null,
+        )
+
+        val chart = assertIs<ChartNode>(root())
+        assertEquals(NodeChartKind.AREA, chart.kind)
+        assertEquals(2, chart.categories.size)
+        assertEquals(5, chart.series.single().color)
+        assertEquals(listOf(1.0, 0.0), chart.series.single().values)
+        assertEquals(listOf(1, 3), chart.categoryColors)
+        assertTrue(chart.stacked && chart.legend)
+        assertEquals(NodeChartCurve.STEP, chart.curve)
+        assertEquals(NodeChartIndicator.LINE, chart.indicator)
     }
 }

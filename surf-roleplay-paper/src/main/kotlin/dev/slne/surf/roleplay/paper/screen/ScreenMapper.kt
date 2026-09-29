@@ -312,6 +312,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.DataTableElement
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableRowElement
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableCellElement
+import dev.slne.surf.roleplay.api.client.common.screen.ChartElement
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import dev.slne.surf.roleplay.protocol.screen.DirectionNode
 import dev.slne.surf.roleplay.protocol.screen.TableNode
@@ -323,6 +324,8 @@ import dev.slne.surf.roleplay.protocol.screen.DataTableNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
+import dev.slne.surf.roleplay.protocol.screen.ChartNode
+import dev.slne.surf.roleplay.protocol.screen.ChartSeries as NodeChartSeries
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizableHandleElement
@@ -633,6 +636,12 @@ object ScreenMapper {
             is DataTableColumnElement -> DataTableColumnNode(element.id, width, height, element.key, text(element.header), element.sortable, align(element.align))
             is DataTableRowElement -> DataTableRowNode(element.id, width, height, element.children.map(::toNode), element.selectable)
             is DataTableCellElement -> DataTableCellNode(element.id, width, height, element.children.map(::toNode), element.sortKey)
+            is ChartElement -> ChartNode(
+                element.id, width, height, enumOf(element.kind), element.categories.map(::text),
+                element.series.map { NodeChartSeries(it.key, text(it.label), it.color.coerceIn(1, 5), it.values.map { value -> if (value.isFinite()) value else 0.0 }) },
+                element.categoryColors.map { it.coerceIn(1, 5) }, element.stacked, element.horizontal, enumOf(element.curve), element.dots, element.grid,
+                element.categoryAxis, element.valueAxis, element.legend, element.tooltip, enumOf(element.indicator), element.donut, element.labels,
+            )
             is ResizablePanelGroupElement -> ResizablePanelGroupNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation), element.onChange != null)
             is ResizablePanelElement -> ResizablePanelNode(element.id, width, height, element.children.map(::toNode), element.defaultSize, element.minSize, element.maxSize)
             is ResizableHandleElement -> ResizableHandleNode(element.id, width, height, element.withHandle)
