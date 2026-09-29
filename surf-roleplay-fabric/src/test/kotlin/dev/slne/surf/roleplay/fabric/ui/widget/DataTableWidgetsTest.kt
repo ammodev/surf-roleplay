@@ -5,6 +5,7 @@ import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
+import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
@@ -249,5 +250,19 @@ class DataTableWidgetsTest {
         assertEquals("t", assertIs<DataTableFilterWidget>(widget(panel, "units:filter")).edit.text)
         assertTrue(assertIs<DataTableRowWidget>(widget(panel, "r1")).selected)
         assertEquals(listOf("units"), WidgetTree.inputValues(panel.root).map { it.widgetId })
+    }
+
+    /**
+     * Verifies that the checkbox column keeps the width of its checkbox while the other columns
+     * share the rest, and that the filter keeps its own width.
+     */
+    @Test
+    fun `the checkbox column and the filter keep their widths`() {
+        val panel = panel(dataTable())
+        val table = table(panel).table
+
+        assertEquals(UiMetrics.CHECKBOX_SIZE + 2 * TableCellWidget.PADDING, table.columnWidths[0])
+        assertEquals(360, table.columnWidths.sum())
+        assertEquals(DataTableFilterWidget.WIDTH, widget(panel, "units:filter").bounds.width)
     }
 }

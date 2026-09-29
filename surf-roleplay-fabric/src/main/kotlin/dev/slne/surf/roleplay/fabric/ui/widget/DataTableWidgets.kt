@@ -154,8 +154,9 @@ class DataTableWidget(
      */
     fun build(rows: List<DataTableRowWidget>) {
         childList.clear()
-        filter?.let { childList += it }
+        filter?.let { input -> childList += ContainerWidget("$id:filter_row", Axis.HORIZONTAL).apply { childList += input } }
         childList += table
+        table.fixedColumns = if (selectable) setOf(0) else emptySet()
         childList += empty
         childList += footer
         table.childList.clear()

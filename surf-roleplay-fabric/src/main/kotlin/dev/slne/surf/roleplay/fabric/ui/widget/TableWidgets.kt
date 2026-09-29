@@ -38,6 +38,12 @@ open class TableWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
     private val below: List<Widget> get() = shownChildren.filter { it !is TableSectionWidget }
 
     /**
+     * The indexes of the columns that keep the width of their widest cell and take no share of
+     * the rest, such as a column of checkboxes.
+     */
+    var fixedColumns: Set<Int> = emptySet()
+
+    /**
      * The widths of the columns at the last layout.
      */
     var columnWidths: IntArray = IntArray(0)
@@ -84,8 +90,9 @@ open class TableWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
     }
 
     /**
-     * Shares a table width among the columns in proportion to the widths they prefer; the
-     * rounding leftover goes to the last column.
+     * Shares a table width among the columns: [fixedColumns] keep the width they prefer, the
+     * others share the rest in proportion to the widths they prefer; the rounding leftover goes
+     * to the last shared column.
      *
      * @param total the table width
      * @param preferred the widths the columns prefer
@@ -93,11 +100,15 @@ open class TableWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
      */
     private fun widthsFor(total: Int, preferred: IntArray): IntArray {
         if (preferred.isEmpty()) return preferred
-        val sum = preferred.sum()
-        val widths = IntArray(preferred.size) { index ->
-            if (sum == 0) total / preferred.size else (preferred[index].toLong() * total / sum).toInt()
+        val shared = preferred.indices.filter { it !in fixedColumns }
+        if (shared.isEmpty()) return preferred.copyOf()
+        val rest = (total - preferred.indices.filter { it in fixedColumns }.sumOf { preferred[it] }).coerceAtLeast(0)
+        val sum = shared.sumOf { preferred[it] }
+        val widths = preferred.copyOf()
+        shared.forEach { index ->
+            widths[index] = if (sum == 0) rest / shared.size else (preferred[index].toLong() * rest / sum).toInt()
         }
-        widths[widths.lastIndex] += total - widths.sum()
+        widths[shared.last()] += rest - shared.sumOf { widths[it] }
         return widths
     }
 
