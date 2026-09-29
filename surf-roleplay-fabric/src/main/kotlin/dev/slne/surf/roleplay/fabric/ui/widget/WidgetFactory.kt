@@ -379,6 +379,7 @@ object WidgetFactory {
                             height = child.height
                             if (node.orientation == Orientation.HORIZONTAL && width.mode == SizeMode.FIT) width = Sizing.grow()
                             if (node.orientation == Orientation.VERTICAL && height.mode == SizeMode.FIT) height = Sizing.grow()
+                            if (node.orientation == Orientation.VERTICAL && width.mode == SizeMode.FIT) width = Sizing.grow()
                         }
                         is CarouselPreviousNode -> CarouselButtonWidget(child.id, next = false, usable = child.enabled, vertical = node.orientation == Orientation.VERTICAL)
                         is CarouselNextNode -> CarouselButtonWidget(child.id, next = true, usable = child.enabled, vertical = node.orientation == Orientation.VERTICAL)

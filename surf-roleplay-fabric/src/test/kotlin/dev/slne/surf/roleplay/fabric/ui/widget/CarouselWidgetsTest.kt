@@ -195,6 +195,17 @@ class CarouselWidgetsTest {
     }
 
     /**
+     * Verifies that the content and slides of a vertical carousel are as wide as the carousel.
+     */
+    @Test
+    fun `vertical slides fill the width`() {
+        val panel = panel(carousel(basis = 50.0, orientation = Orientation.VERTICAL))
+
+        assertEquals(200, widget(panel, "content").bounds.width)
+        assertEquals(200, widget(panel, "slide0").bounds.width)
+    }
+
+    /**
      * Verifies that an index set by the server is applied within the slides.
      */
     @Test
