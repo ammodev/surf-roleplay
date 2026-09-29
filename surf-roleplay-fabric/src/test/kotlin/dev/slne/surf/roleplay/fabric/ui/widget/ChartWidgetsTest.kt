@@ -267,4 +267,34 @@ class ChartWidgetsTest {
         assertTrue(chart.contains(square, 5f, 5f))
         assertTrue(!chart.contains(square, 15f, 5f))
     }
+
+    /**
+     * Verifies that curve tangents computed once give the same line as computing them per call.
+     */
+    @Test
+    fun `precomputed curves match`() {
+        val points = listOf(PointF(0f, 10f), PointF(10f, 0f), PointF(20f, 5f), PointF(30f, 20f))
+        val slopes = ChartMath.slopes(points)
+
+        (0..30).forEach { x -> assertNear(ChartMath.lineAt(points, ChartCurve.NATURAL, x.toFloat()), ChartMath.lineAt(points, ChartCurve.NATURAL, x.toFloat(), slopes)) }
+    }
+
+    /**
+     * Verifies that the rasterised shapes of a polar chart are kept when the chart only moves,
+     * such as when its screen scrolls, and are relative to the chart.
+     */
+    @Test
+    fun `polar rasters survive moving`() {
+        val chart = ChartWidget("pie", ChartKind.PIE, listOf("\"A\""), listOf(ChartSeries("s", "\"S\"", 1, listOf(1.0))), emptyList(), ChartOptions())
+        chart.bounds = Rect(10, 20, 40, 40)
+        var calls = 0
+        val geometry = PolarGeometry(30f, 40f, 10f)
+        val first = chart.raster(geometry, 1, "pie") { _, _ -> calls++; 0 }
+        val counted = calls
+        chart.offset(0, -15)
+        val second = chart.raster(PolarGeometry(30f, 25f, 10f), 1, "pie") { _, _ -> calls++; 0 }
+
+        assertEquals(counted, calls)
+        assertEquals(first.map { it.toList() }, second.map { it.toList() })
+    }
 }

@@ -249,9 +249,10 @@ object ChartMath {
      * @param points the points, left to right
      * @param curve how the line runs between the points
      * @param x the horizontal position
+     * @param slopes the tangents of a smooth curve from [slopes], or `null` to compute them
      * @return the vertical position of the line
      */
-    fun lineAt(points: List<PointF>, curve: ChartCurve, x: Float): Float {
+    fun lineAt(points: List<PointF>, curve: ChartCurve, x: Float, slopes: FloatArray? = null): Float {
         if (points.isEmpty()) return 0f
         if (x <= points.first().x) return points.first().y
         if (x >= points.last().x) return points.last().y
@@ -263,14 +264,23 @@ object ChartMath {
             ChartCurve.LINEAR -> a.y + (b.y - a.y) * t
             ChartCurve.STEP -> if (t < 0.5f) a.y else b.y
             ChartCurve.NATURAL -> {
-                val slopes = monotoneSlopes(points)
+                val tangents = slopes ?: monotoneSlopes(points)
                 val h = b.x - a.x
                 val t2 = t * t
                 val t3 = t2 * t
-                (2 * t3 - 3 * t2 + 1) * a.y + (t3 - 2 * t2 + t) * h * slopes[index] + (-2 * t3 + 3 * t2) * b.y + (t3 - t2) * h * slopes[index + 1]
+                (2 * t3 - 3 * t2 + 1) * a.y + (t3 - 2 * t2 + t) * h * tangents[index] + (-2 * t3 + 3 * t2) * b.y + (t3 - t2) * h * tangents[index + 1]
             }
         }
     }
+
+    /**
+     * Returns the tangents of the smooth curve through points, to pass to [lineAt] when many
+     * positions of one line are needed.
+     *
+     * @param points the points, left to right
+     * @return the tangent at each point
+     */
+    fun slopes(points: List<PointF>): FloatArray = if (points.size < 2) FloatArray(points.size) else monotoneSlopes(points)
 
     /**
      * Returns the tangents of a monotone cubic curve through points, so that the curve never
@@ -314,10 +324,12 @@ object ChartMath {
      * @param value the value
      * @return the text
      */
-    fun format(value: Double): String {
-        val format = DecimalFormat("#,##0.##", DecimalFormatSymbols(Locale.GERMANY))
-        return format.format(if (abs(value) < 1e-9) 0.0 else value)
-    }
+    fun format(value: Double): String = formatter.get().format(if (abs(value) < 1e-9) 0.0 else value)
+
+    /**
+     * The German number format of each thread.
+     */
+    private val formatter: ThreadLocal<DecimalFormat> = ThreadLocal.withInitial { DecimalFormat("#,##0.##", DecimalFormatSymbols(Locale.GERMANY)) }
 
     /**
      * Returns how many categories apart axis labels must be so that labels of a width fit their

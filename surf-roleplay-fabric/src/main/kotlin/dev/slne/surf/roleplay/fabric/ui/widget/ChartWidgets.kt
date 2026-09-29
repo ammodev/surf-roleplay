@@ -285,21 +285,23 @@ class ChartWidget(
                 val color = ui.tokens.chart(series[index].color)
                 val line = lines[index]
                 if (line.isEmpty()) return@forEach
+                val slopes = ChartMath.slopes(line)
                 val from = maxOf(start, (line.first().x * scale).roundToInt())
                 val to = minOf(end, (line.last().x * scale).roundToInt())
                 if (fill) {
                     val below = if (stacked && index > 0) lines[index - 1] else null
+                    val belowSlopes = below?.let { ChartMath.slopes(it) }
                     val shade = ThemeColors.withAlpha(color, AREA_ALPHA)
                     for (px in from until to) {
                         val x = (px + 0.5f) / scale
-                        val top = ChartMath.lineAt(line, options.curve, x)
-                        val bottom = below?.let { ChartMath.lineAt(it, options.curve, x) } ?: baseline
+                        val top = ChartMath.lineAt(line, options.curve, x, slopes)
+                        val bottom = below?.let { ChartMath.lineAt(it, options.curve, x, belowSlopes) } ?: baseline
                         ui.fineFill(px, (top * scale).roundToInt(), px + 1, (bottom * scale).roundToInt(), shade)
                     }
                 }
-                var previous = ChartMath.lineAt(line, options.curve, (from + 0.5f) / scale) * scale
+                var previous = ChartMath.lineAt(line, options.curve, (from + 0.5f) / scale, slopes) * scale
                 for (px in from until to) {
-                    val y = ChartMath.lineAt(line, options.curve, (px + 0.5f) / scale) * scale
+                    val y = ChartMath.lineAt(line, options.curve, (px + 0.5f) / scale, slopes) * scale
                     val low = floor(minOf(previous, y) - scale / 2f).toInt()
                     val high = floor(maxOf(previous, y) + scale / 2f).toInt().coerceAtLeast(low + 1)
                     ui.fineFill(px, low, px + 1, high, color)
@@ -383,15 +385,20 @@ class ChartWidget(
     }
 
     /**
-     * The rasterised shapes of the last frames, keyed by the widget bounds, the pixel scale and
-     * the shape.
+     * The rasterised shapes of the last frames, keyed by the shape, for [rasterSize].
      */
     private val rasterCache = HashMap<String, List<IntArray>>()
 
     /**
+     * The widget size and pixel scale the cached shapes were rasterised for.
+     */
+    private var rasterSize: Triple<Int, Int, Int>? = null
+
+    /**
      * Returns the runs of screen pixels a classifier assigns to each shape within the chart's
-     * circle, cached while the bounds and the scale stay the same. Each run is the row, the first
-     * and the end column, and the shape number.
+     * circle, relative to the top-left corner of the widget in screen pixels, cached while the
+     * size of the widget and the scale stay the same, so that moving the widget keeps them. Each
+     * run is the row, the first and the end column, and the shape number.
      *
      * @param geometry the geometry
      * @param scale the number of screen pixels per GUI pixel
@@ -399,10 +406,15 @@ class ChartWidget(
      * @param classify returns the shape number of a point in GUI pixels, or `-1` for none
      * @return the runs
      */
-    private fun raster(geometry: PolarGeometry, scale: Int, name: String, classify: (Float, Float) -> Int): List<IntArray> {
-        val key = "$bounds|$scale|$name"
-        rasterCache[key]?.let { return it }
-        if (rasterCache.keys.any { !it.startsWith("$bounds|$scale|") }) rasterCache.clear()
+    internal fun raster(geometry: PolarGeometry, scale: Int, name: String, classify: (Float, Float) -> Int): List<IntArray> {
+        val size = Triple(bounds.width, bounds.height, scale)
+        if (rasterSize != size) {
+            rasterCache.clear()
+            rasterSize = size
+        }
+        rasterCache[name]?.let { return it }
+        val originX = bounds.x * scale
+        val originY = bounds.y * scale
         val runs = mutableListOf<IntArray>()
         val left = floor((geometry.centerX - geometry.radius) * scale).toInt()
         val right = kotlin.math.ceil((geometry.centerX + geometry.radius) * scale).toInt()
@@ -415,13 +427,13 @@ class ChartWidget(
             for (px in left..right) {
                 val current = if (px < right) classify((px + 0.5f) / scale, y) else -1
                 if (current != shape) {
-                    if (shape >= 0) runs += intArrayOf(py, start, px, shape)
+                    if (shape >= 0) runs += intArrayOf(py - originY, start - originX, px - originX, shape)
                     start = px
                     shape = current
                 }
             }
         }
-        return runs.also { rasterCache[key] = it }
+        return runs.also { rasterCache[name] = it }
     }
 
     /**
@@ -455,7 +467,7 @@ class ChartWidget(
         ui.fine { scale ->
             raster(geometry, scale, "pie") { x, y -> geometry.sliceAt(fractions, inner, x, y) ?: -1 }.forEach { run ->
                 val color = ui.tokens.chart(categoryColor(run[3]))
-                ui.fineFill(run[1], run[0], run[2], run[0] + 1, if (hovered == null || hovered == run[3]) color else ThemeColors.withAlpha(color, FADED_ALPHA))
+                ui.fineFill(run[1] + bounds.x * scale, run[0] + bounds.y * scale, run[2] + bounds.x * scale, run[0] + 1 + bounds.y * scale, if (hovered == null || hovered == run[3]) color else ThemeColors.withAlpha(color, FADED_ALPHA))
             }
         }
         if (options.labels) {
@@ -501,7 +513,7 @@ class ChartWidget(
             }.forEach { run ->
                 val shape = run[3]
                 val color = if (shape < count) ui.tokens.chart(categoryColor(shape)) else ui.tokens.muted
-                ui.fineFill(run[1], run[0], run[2], run[0] + 1, color)
+                ui.fineFill(run[1] + bounds.x * scale, run[0] + bounds.y * scale, run[2] + bounds.x * scale, run[0] + 1 + bounds.y * scale, color)
             }
         }
     }
@@ -530,7 +542,7 @@ class ChartWidget(
             polygons.forEachIndexed { index, polygon ->
                 val color = ui.tokens.chart(series[index].color)
                 raster(geometry, scale, "radar$index") { x, y -> if (contains(polygon, x, y)) 0 else -1 }.forEach { run ->
-                    ui.fineFill(run[1], run[0], run[2], run[0] + 1, ThemeColors.withAlpha(color, RADAR_ALPHA))
+                    ui.fineFill(run[1] + bounds.x * scale, run[0] + bounds.y * scale, run[2] + bounds.x * scale, run[0] + 1 + bounds.y * scale, ThemeColors.withAlpha(color, RADAR_ALPHA))
                 }
                 polygon.indices.forEach { segment(ui, scale, polygon[it], polygon[(it + 1) % count], color) }
             }
