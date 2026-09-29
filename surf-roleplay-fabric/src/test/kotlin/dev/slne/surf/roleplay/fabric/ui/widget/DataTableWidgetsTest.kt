@@ -1,6 +1,11 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.PanelStyle
+import dev.slne.surf.roleplay.protocol.screen.InsertNode
+import dev.slne.surf.roleplay.protocol.screen.ReplaceNode
+import dev.slne.surf.roleplay.protocol.screen.RemoveNode
+import dev.slne.surf.roleplay.protocol.screen.PatchOperation
+import dev.slne.surf.roleplay.fabric.screen.ScreenPatcher
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
@@ -264,5 +269,100 @@ class DataTableWidgetsTest {
         assertEquals(UiMetrics.CHECKBOX_SIZE + 2 * TableCellWidget.PADDING, table.columnWidths[0])
         assertEquals(360, table.columnWidths.sum())
         assertEquals(DataTableFilterWidget.WIDTH, widget(panel, "units:filter").bounds.width)
+    }
+
+    /**
+     * Applies patch operations to a panel and lays it out again.
+     *
+     * @param panel the panel
+     * @param operations the operations
+     */
+    private fun patch(panel: ScreenPanel, vararg operations: PatchOperation) {
+        ScreenPatcher.apply(panel.root, operations.toList())
+        panel.requestLayout()
+        panel.layoutIfNeeded(measurer, 500, 400)
+    }
+
+    /**
+     * Creates a row of the units table.
+     *
+     * @param id the id of the row
+     * @param name the name
+     * @param amount the amount
+     * @return the node
+     */
+    private fun unitRow(id: String, name: String, amount: String) = DataTableRowNode(
+        id,
+        children = listOf(
+            DataTableCellNode("${id}_name", sortKey = name, children = listOf(LabelNode("${id}_name_text", text = name))),
+            DataTableCellNode("${id}_amount", sortKey = amount, children = listOf(LabelNode("${id}_amount_text", text = amount))),
+            DataTableCellNode("${id}_note", children = listOf(LabelNode("${id}_note_text", text = "-"))),
+        ),
+    )
+
+    /**
+     * Verifies that removing rows by patch moves a page that no longer exists back and drops
+     * removed rows from the selection.
+     */
+    @Test
+    fun `removed rows update the view`() {
+        val panel = panel(dataTable(pageSize = 2))
+        click(panel, "units:next")
+        click(panel, "units:next")
+        click(panel, "units:previous")
+        click(panel, "r3:check")
+
+        patch(panel, RemoveNode("r5"), RemoveNode("r3"))
+
+        val view = DataTableView.parse(table(panel).inputValue)!!
+        assertEquals(1, view.page)
+        assertEquals(emptyList(), view.selected)
+        assertEquals(listOf("r4"), shown(panel))
+    }
+
+    /**
+     * Verifies that a row replaced by patch keeps its place and gets its checkbox, and that a
+     * row inserted into the table comes after the others.
+     */
+    @Test
+    fun `patched rows keep their place`() {
+        val panel = panel(dataTable())
+
+        patch(panel, ReplaceNode("r2", unitRow("r2", "NEF neu", "6")), InsertNode("units", 99, unitRow("r6", "Wache", "1")))
+
+        assertEquals(listOf("r1", "r2", "r3", "r4", "r5", "r6"), shown(panel))
+        assertIs<DataTableCheckboxWidget>(widget(panel, "r2:check"))
+        assertIs<DataTableCheckboxWidget>(widget(panel, "r6:check"))
+    }
+
+    /**
+     * Verifies that sort keys mixing numbers and texts sort in a total order, numbers first,
+     * and that a descending sort keeps equal keys in the order the server sent them.
+     */
+    @Test
+    fun `mixed keys sort in a total order`() {
+        val keys = (0 until 40).map { listOf("10 km", "9", "10", "3 Tage", "x", "9")[it % 6] }
+        val node = dataTable().copy(children = dataTable().children.filterIsInstance<DataTableColumnNode>() + keys.mapIndexed { index, key -> unitRow("k$index", "n", key) })
+        val panel = panel(node)
+
+        click(panel, "units:sort_amount")
+        val ascending = table(panel).matching.map { it.key(1) }
+        assertEquals(listOf("9", "10"), ascending.filter { it.toDoubleOrNull() != null }.distinct())
+        assertTrue(ascending.indexOfLast { it.toDoubleOrNull() != null } < ascending.indexOfFirst { it.toDoubleOrNull() == null })
+
+        click(panel, "units:sort_name")
+        click(panel, "units:sort_name")
+        assertEquals((0 until 40).map { "k$it" }, table(panel).matching.map { it.id })
+    }
+
+    /**
+     * Verifies that the heading checkbox selects only the rows of the shown page.
+     */
+    @Test
+    fun `select all takes the shown page`() {
+        val panel = panel(dataTable(pageSize = 2))
+
+        click(panel, "units:select_all")
+        assertEquals(listOf("r1", "r2"), DataTableView.parse(table(panel).inputValue)?.selected)
     }
 }

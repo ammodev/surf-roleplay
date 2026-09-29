@@ -138,6 +138,23 @@ class DataTableWidget(
         private set
 
     /**
+     * The rows of the shown page, in order.
+     */
+    var pageRows: List<DataTableRowWidget> = emptyList()
+        private set
+
+    /**
+     * The position of every row id among the rows in the order the server sent them; rows the
+     * server adds later come after the others.
+     */
+    private val orders = HashMap<String, Int>()
+
+    /**
+     * The position the next new row id gets.
+     */
+    private var nextOrder = 0
+
+    /**
      * The number of pages of the matching rows, at least one.
      */
     val pages: Int get() = if (pageSize <= 0) 1 else maxOf(1, (matching.size + pageSize - 1) / pageSize)
@@ -166,6 +183,9 @@ class DataTableWidget(
         header.childList += headRow
         body.childList.clear()
         body.childList += rows
+        orders.clear()
+        rows.forEachIndexed { index, row -> orders[row.id] = index }
+        nextOrder = rows.size
         footer.childList.clear()
         footer.childList += selectionText
         footer.childList += pageText
@@ -197,9 +217,10 @@ class DataTableWidget(
     }
 
     /**
-     * Takes over rows that were inserted into the data table itself, gives every row its cell
-     * alignment and, when selectable, its checkbox cell, then sorts, filters and pages the rows
-     * for the view and updates the heading, selection and page texts.
+     * Takes over rows that were inserted into the data table itself, gives every row its place in
+     * the server's order, its cell alignment and, when selectable, its checkbox cell, drops rows
+     * that are gone or cannot be selected from the selection, then sorts, filters and pages the
+     * rows for the view and updates the heading, selection and page texts.
      */
     fun refresh() {
         val strays = childList.filterIsInstance<DataTableRowWidget>()
@@ -207,16 +228,23 @@ class DataTableWidget(
             childList.removeAll(strays)
             body.childList += strays
         }
-        rows.forEach { prepare(it) }
+        rows.forEach { row ->
+            row.order = orders.getOrPut(row.id) { nextOrder++ }
+            prepare(row)
+        }
+        val choosableIds = rows.filter { it.selectable }.map { it.id }.toSet()
+        if (view.selected.any { it !in choosableIds }) view = view.copy(selected = view.selected.filter { it in choosableIds })
         val filterIndex = columns.indexOfFirst { it.key == filterColumn }
         val text = view.filter.trim()
         val kept = rows.filter { row -> text.isEmpty() || filterIndex < 0 || row.key(filterIndex).contains(text, ignoreCase = true) }
         val sortIndex = columns.indexOfFirst { it.key == view.sort && it.sortable }
-        val ordered = if (sortIndex < 0) serverOrder(kept) else kept.sortedWith { a, b -> compareKeys(a.key(sortIndex), b.key(sortIndex)) }.let { if (view.desc) it.reversed() else it }
+        val byKey = Comparator<DataTableRowWidget> { a, b -> compareKeys(a.key(sortIndex), b.key(sortIndex)) }
+        val ordered = if (sortIndex < 0) serverOrder(kept) else serverOrder(kept).sortedWith(if (view.desc) byKey.reversed() else byKey)
         matching = ordered
         val page = view.page.coerceIn(0, pages - 1)
         if (page != view.page) view = view.copy(page = page)
         val shown = if (pageSize <= 0) ordered else ordered.drop(page * pageSize).take(pageSize)
+        pageRows = shown
         val others = rows.filter { it !in ordered }
         body.childList.removeAll(rows.toSet())
         body.childList += ordered
@@ -227,7 +255,7 @@ class DataTableWidget(
             row.selected = row.id in selected
             row.checkbox?.checked = row.id in selected
         }
-        val choosable = ordered.filter { it.selectable }
+        val choosable = shown.filter { it.selectable }
         val chosen = choosable.count { it.id in selected }
         selectAll.checked = choosable.isNotEmpty() && chosen == choosable.size
         selectAll.indeterminate = chosen in 1 until choosable.size
@@ -324,12 +352,12 @@ class DataTableWidget(
     }
 
     /**
-     * Selects every matching, selectable row, or clears them all when they already are.
+     * Selects every selectable row of the shown page, or clears them when they already are.
      *
      * @param context the screen showing the widget
      */
     fun toggleAll(context: UiContext) {
-        val choosable = matching.filter { it.selectable }.map { it.id }
+        val choosable = pageRows.filter { it.selectable }.map { it.id }
         val selected = if (choosable.all { it in view.selected }) view.selected - choosable.toSet() else (view.selected + choosable).distinct()
         change(context, view.copy(selected = sortedByServer(selected)))
     }
@@ -364,13 +392,14 @@ class DataTableWidget(
     }
 
     /**
-     * Creates the layout after refreshing, so that inserted rows are taken over first.
+     * Creates the layout after refreshing, so that rows inserted, replaced or removed by patches
+     * are sorted, paged and selected like the others.
      *
      * @param measurer the text measurer
      * @return the layout box
      */
     override fun createLayout(measurer: TextMeasurer): LayoutBox {
-        if (childList.any { it is DataTableRowWidget }) refresh()
+        refresh()
         return super.createLayout(measurer)
     }
 
@@ -389,8 +418,8 @@ class DataTableWidget(
         const val SORT_ICON: String = "arrow-up-down"
 
         /**
-         * Compares two sort keys: as numbers when both are numbers, otherwise as texts ignoring
-         * case.
+         * Compares two sort keys in a total order: keys that are numbers come before other keys
+         * and compare as numbers; other keys compare as texts ignoring case.
          *
          * @param a the first key
          * @param b the second key
@@ -400,7 +429,12 @@ class DataTableWidget(
         fun compareKeys(a: String, b: String): Int {
             val x = a.trim().replace(',', '.').toDoubleOrNull()
             val y = b.trim().replace(',', '.').toDoubleOrNull()
-            return if (x != null && y != null) x.compareTo(y) else String.CASE_INSENSITIVE_ORDER.compare(a, b)
+            return when {
+                x != null && y != null -> x.compareTo(y)
+                x != null -> -1
+                y != null -> 1
+                else -> String.CASE_INSENSITIVE_ORDER.compare(a, b)
+            }
         }
 
         /**
