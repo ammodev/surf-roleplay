@@ -44,6 +44,21 @@ tasks.test {
     useJUnitPlatform()
 }
 
+val devClientOptions = tasks.register("devClientOptions") {
+    description = "Turns the narrator and the music off in the options of the dev client before it starts."
+    val options = layout.projectDirectory.file("run/options.txt").asFile
+    doLast {
+        val settings = mapOf("narrator" to "0", "soundCategory_music" to "0.0")
+        val kept = if (options.exists()) options.readLines().filter { line -> settings.keys.none { line.startsWith("$it:") } } else emptyList()
+        options.parentFile.mkdirs()
+        options.writeText((kept + settings.map { (key, value) -> "$key:$value" }).joinToString("\n", postfix = "\n"))
+    }
+}
+
+tasks.matching { it.name == "runClient" || it.name == "runLocalClient" }.configureEach {
+    dependsOn(devClientOptions)
+}
+
 tasks.processResources {
     val properties = mapOf(
         "version" to project.version,
