@@ -221,3 +221,163 @@ fun ElementsBuilder.tableCell(id: String, align: Alignment = Alignment.START, ch
 fun ElementsBuilder.tableCell(id: String, text: Component, align: Alignment = Alignment.START) {
     tableCell(id, align) { label("${id}_text", text) }
 }
+
+/**
+ * A data table: a table of rows that the player sorts by a column, filters by a text, pages
+ * through and selects, all in the mod. Its view is its input value, a [DataTableView] as JSON,
+ * validated on the server.
+ *
+ * @property id the id of this element
+ * @property children the columns, then the rows
+ * @property pageSize the number of rows on a page, or `0` for one page of every row
+ * @property selectable whether rows are selected with a checkbox column
+ * @property filterColumn the key of the column the filter searches, or `null` for no filter
+ * @property filterPlaceholder the placeholder of the filter input
+ * @property value the view the table shows
+ * @property onChange reports every change of the view at once, or `null` for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DataTableElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val pageSize: Int = 10,
+    val selectable: Boolean = false,
+    val filterColumn: String? = null,
+    val filterPlaceholder: Component = Component.empty(),
+    val value: DataTableView = DataTableView(),
+    val onChange: ChangeHandler? = null,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A column of a data table.
+ *
+ * @property id the id of this element
+ * @property key the key of the column, unique within its table
+ * @property header the heading
+ * @property sortable whether a click on the heading sorts by the column
+ * @property align how the heading and the cells are placed across the column
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DataTableColumnElement(
+    override val id: String,
+    val key: String,
+    val header: Component = Component.empty(),
+    val sortable: Boolean = false,
+    val align: Alignment = Alignment.START,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ScreenElement
+
+/**
+ * A row of a data table: one cell per column, in the order of the columns.
+ *
+ * @property id the id of this element, also the id the view's selection names the row by
+ * @property children the cells
+ * @property selectable whether the row can be selected
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DataTableRowElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val selectable: Boolean = true,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A cell of a data table row: its content and the key it sorts and filters by. Keys that are
+ * both numbers compare as numbers, others as texts ignoring case.
+ *
+ * @property id the id of this element
+ * @property children the content, stacked
+ * @property sortKey the key the cell sorts and filters by
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DataTableCellElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val sortKey: String = "",
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a data table. Its children are [dataTableColumn]s, then [dataTableRow]s with one
+ * [dataTableCell] per column.
+ *
+ * @param id the id of the table
+ * @param pageSize the number of rows on a page, or `0` for one page of every row
+ * @param selectable whether rows are selected with a checkbox column
+ * @param filterColumn the key of the column the filter searches, or `null` for no filter
+ * @param filterPlaceholder the placeholder of the filter input
+ * @param value the view the table starts with
+ * @param width how wide the table is laid out
+ * @param onChange reports every change of the view at once, or `null` for none
+ * @param children the builder of the columns and rows
+ */
+fun ElementsBuilder.dataTable(
+    id: String,
+    pageSize: Int = 10,
+    selectable: Boolean = false,
+    filterColumn: String? = null,
+    filterPlaceholder: Component = Component.text("Filtern..."),
+    value: DataTableView = DataTableView(),
+    width: ElementSize = ElementSize.FIT,
+    onChange: ChangeHandler? = null,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += DataTableElement(id, build(children), pageSize, selectable, filterColumn, filterPlaceholder, value, onChange, width)
+}
+
+/**
+ * Adds a column of a data table.
+ *
+ * @param id the id of the column
+ * @param key the key of the column, unique within its table
+ * @param header the heading
+ * @param sortable whether a click on the heading sorts by the column
+ * @param align how the heading and the cells are placed across the column
+ */
+fun ElementsBuilder.dataTableColumn(id: String, key: String, header: Component, sortable: Boolean = false, align: Alignment = Alignment.START) {
+    elements += DataTableColumnElement(id, key, header, sortable, align)
+}
+
+/**
+ * Adds a row of a data table. Its children are [dataTableCell]s, one per column.
+ *
+ * @param id the id of the row, which the view's selection names it by
+ * @param selectable whether the row can be selected
+ * @param children the builder of the cells
+ */
+fun ElementsBuilder.dataTableRow(id: String, selectable: Boolean = true, children: ElementsBuilder.() -> Unit) {
+    elements += DataTableRowElement(id, build(children), selectable)
+}
+
+/**
+ * Adds a cell of a data table row with any content.
+ *
+ * @param id the id of the cell
+ * @param sortKey the key the cell sorts and filters by
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.dataTableCell(id: String, sortKey: String, children: ElementsBuilder.() -> Unit) {
+    elements += DataTableCellElement(id, build(children), sortKey)
+}
+
+/**
+ * Adds a cell of a data table row with a text, whose label has the id of the cell followed by
+ * `_text`.
+ *
+ * @param id the id of the cell
+ * @param text the text
+ * @param sortKey the key the cell sorts and filters by
+ */
+fun ElementsBuilder.dataTableCell(id: String, text: Component, sortKey: String) {
+    dataTableCell(id, sortKey) { label("${id}_text", text) }
+}

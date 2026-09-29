@@ -1,6 +1,16 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
+import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
+import dev.slne.surf.roleplay.api.client.common.screen.dataTableRow
+import dev.slne.surf.roleplay.api.client.common.screen.dataTableColumn
+import dev.slne.surf.roleplay.api.client.common.screen.dataTableCell
+import dev.slne.surf.roleplay.api.client.common.screen.dataTable
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableView
 import dev.slne.surf.roleplay.api.client.common.screen.screen
 import dev.slne.surf.roleplay.api.client.common.screen.table
 import dev.slne.surf.roleplay.api.client.common.screen.tableBody
@@ -94,5 +104,73 @@ class DataComponentsTest {
         assertTrue(row.selected)
         assertEquals(Align.END, assertIs<TableCellNode>(row.children.single()).align)
         assertIs<TableCaptionNode>(table.children.last())
+    }
+
+    /**
+     * Opens a screen with a selectable data table of five rows, two per page, filtered by name,
+     * whose last row cannot be selected, and returns its session id.
+     *
+     * @return the session id
+     */
+    private fun openDataTable(): Int = state.open(
+        screen(Component.text("Einheiten")) {
+            dataTable("units", pageSize = 2, selectable = true, filterColumn = "name", onChange = { reports += it.value }) {
+                dataTableColumn("name_column", "name", Component.text("Name"), sortable = true)
+                dataTableColumn("note_column", "note", Component.text("Notiz"))
+                listOf("RTW", "NEF", "KTW", "RTW Nord", "Leitstelle").forEachIndexed { index, name ->
+                    dataTableRow("r$index", selectable = index != 4) {
+                        dataTableCell("r${index}_name", Component.text(name), name)
+                        dataTableCell("r${index}_note", Component.text("-"), "")
+                    }
+                }
+            }
+        },
+        null,
+    ).sessionId
+
+    /**
+     * The values of the reported changes, in order.
+     */
+    private val reports = mutableListOf<String>()
+
+    /**
+     * Verifies that a data table maps to its nodes with its view as JSON.
+     */
+    @Test
+    fun `data tables map to their nodes`() {
+        openDataTable()
+
+        val table = assertIs<DataTableNode>(root())
+        assertEquals(2, table.pageSize)
+        assertTrue(table.notifyChange)
+        assertEquals(DataTableView().toJson(), table.value)
+        assertEquals(listOf("name", "note"), table.children.filterIsInstance<DataTableColumnNode>().map { it.key })
+        val row = table.children.filterIsInstance<DataTableRowNode>().last()
+        assertEquals(false, row.selectable)
+        assertEquals("Leitstelle", assertIs<DataTableCellNode>(row.children.first()).sortKey)
+    }
+
+    /**
+     * Verifies that valid views are accepted and reported, and that views naming unknown or
+     * unsortable columns, missing pages, unselectable or repeated rows, or malformed JSON are
+     * rejected.
+     */
+    @Test
+    fun `data table views are validated`() {
+        val session = openDataTable()
+        fun change(value: String) = state.handleInputChange(ScreenInputChange(session, "units", value))
+
+        val valid = DataTableView(sort = "name", desc = true, filter = "rtw", page = 0, selected = listOf("r0", "r3")).toJson()
+        assertIs<PlayerScreenState.Outcome.Accepted>(change(valid))
+        assertIs<PlayerScreenState.Outcome.Accepted>(change(DataTableView(page = 2).toJson()))
+        assertEquals(listOf(valid, DataTableView(page = 2).toJson()), reports)
+
+        listOf(
+            DataTableView(sort = "note"), DataTableView(sort = "missing"), DataTableView(page = 3),
+            DataTableView(filter = "rtw", page = 1), DataTableView(selected = listOf("r4")),
+            DataTableView(selected = listOf("r0", "r0")), DataTableView(selected = listOf("x")),
+        ).forEach { assertIs<PlayerScreenState.Outcome.Rejected>(change(it.toJson()), it.toString()) }
+        assertIs<PlayerScreenState.Outcome.Rejected>(change("{\"page\":"))
+        assertEquals(2, reports.size)
     }
 }

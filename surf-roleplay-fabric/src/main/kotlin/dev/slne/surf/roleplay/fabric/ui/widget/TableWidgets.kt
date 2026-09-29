@@ -254,7 +254,7 @@ class TableSectionWidget(id: String, val section: TableSection) : ContainerWidge
  * @param id the id of the widget
  * @property selected whether the row is drawn as selected
  */
-class TableRowWidget(id: String, var selected: Boolean) : ContainerWidget(id, Axis.HORIZONTAL) {
+open class TableRowWidget(id: String, var selected: Boolean) : ContainerWidget(id, Axis.HORIZONTAL) {
 
     /**
      * Whether the row draws a border along its bottom edge, set by the table.
@@ -303,7 +303,7 @@ class TableRowWidget(id: String, var selected: Boolean) : ContainerWidget(id, Ax
  * @property head whether the cell is a column heading
  * @param align how the content is placed across the cell's width
  */
-class TableCellWidget(id: String, val head: Boolean, align: Align) : ContainerWidget(id, Axis.VERTICAL) {
+open class TableCellWidget(id: String, val head: Boolean, align: Align) : ContainerWidget(id, Axis.VERTICAL) {
     init {
         padding = Insets(PADDING, PADDING, PADDING, PADDING)
         mainAlign = Align.CENTER

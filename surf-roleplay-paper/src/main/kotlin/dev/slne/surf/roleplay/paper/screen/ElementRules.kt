@@ -76,6 +76,11 @@ import dev.slne.surf.roleplay.api.client.common.screen.PaginationPreviousElement
 import dev.slne.surf.roleplay.api.client.common.screen.PaginationNextElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbPageElement
 import dev.slne.surf.roleplay.api.client.common.screen.TableCaptionElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableColumnElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableRowElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableCellElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableView
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbEllipsisElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
@@ -415,6 +420,34 @@ object ElementRules {
     private const val SUM_TOLERANCE: Double = 0.5
 
     /**
+     * Checks a view a data table would show: a sortable column or none, a page that exists for
+     * the rows the filter keeps, and selected rows that exist, can be selected and are named
+     * once.
+     *
+     * @param table the table
+     * @param view the view
+     * @return a description of the violated constraint, or `null` if the view is valid
+     */
+    private fun dataTableViolation(table: DataTableElement, view: DataTableView): String? {
+        val columns = table.children.filterIsInstance<DataTableColumnElement>()
+        val rows = table.children.filterIsInstance<DataTableRowElement>()
+        if (view.sort != null && columns.none { it.key == view.sort && it.sortable }) return "sort is not a sortable column"
+        val filterIndex = columns.indexOfFirst { it.key == table.filterColumn }
+        val text = view.filter.trim()
+        val kept = rows.count { row ->
+            text.isEmpty() || filterIndex < 0 ||
+                row.children.filterIsInstance<DataTableCellElement>().getOrNull(filterIndex)?.sortKey.orEmpty().contains(text, ignoreCase = true)
+        }
+        val pages = if (table.pageSize <= 0) 1 else maxOf(1, (kept + table.pageSize - 1) / table.pageSize)
+        if (view.page >= pages) return "page does not exist"
+        if (view.selected.toSet().size != view.selected.size) return "selection repeats a row"
+        val selectable = rows.filter { it.selectable }.map { it.id }.toSet()
+        if (!table.selectable && view.selected.isNotEmpty()) return "the table does not select rows"
+        if (view.selected.any { it !in selectable }) return "selection names a row that cannot be selected"
+        return null
+    }
+
+    /**
      * Returns the items of an accordion, in order.
      *
      * @param accordion the accordion
@@ -701,6 +734,17 @@ object ElementRules {
         )
         register(BreadcrumbPageElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(TableCaptionElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(
+            DataTableElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { it.value.toJson() },
+                    violation = { e, v -> DataTableView.parse(v)?.let { dataTableViolation(e, it) } ?: "value is not a data table view".takeIf { DataTableView.parse(v) == null } },
+                    withValue = { e, v -> DataTableView.parse(v)?.let { e.copy(value = it) } },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
         register(BreadcrumbEllipsisElement::class, ElementRule(action = { ActionRule(null, submitsInput = false) }))
         register(
             TabsElement::class,

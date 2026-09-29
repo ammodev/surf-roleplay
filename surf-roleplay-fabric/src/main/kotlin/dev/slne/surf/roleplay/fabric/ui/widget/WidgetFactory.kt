@@ -50,6 +50,10 @@ import dev.slne.surf.roleplay.protocol.screen.TableCaptionNode
 import dev.slne.surf.roleplay.protocol.screen.TableSectionNode
 import dev.slne.surf.roleplay.protocol.screen.TableRowNode
 import dev.slne.surf.roleplay.protocol.screen.TableCellNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
 import dev.slne.surf.roleplay.protocol.screen.LayoutDirection
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
@@ -376,6 +380,14 @@ object WidgetFactory {
             is TableSectionNode -> container(TableSectionWidget(node.id, node.section), node.children)
             is TableRowNode -> container(TableRowWidget(node.id, node.selected), node.children)
             is TableCellNode -> container(TableCellWidget(node.id, node.head, node.align), node.children)
+            is DataTableNode -> DataTableWidget(node.id, node.pageSize, node.selectable, node.filterColumn, node.filterPlaceholder).apply {
+                columns = node.children.filterIsInstance<DataTableColumnNode>().map { DataTableColumn(it.key, it.header, it.sortable, it.align) }
+                build(node.children.filterIsInstance<DataTableRowNode>().mapIndexed { index, row -> (create(row) as DataTableRowWidget).apply { order = index } })
+                applyValue(node.value)
+            }
+            is DataTableColumnNode -> LabelWidget(node.id, node.header).apply { hidden = true }
+            is DataTableRowNode -> container(DataTableRowWidget(node.id, node.selectable), node.children)
+            is DataTableCellNode -> container(DataTableCellWidget(node.id, node.sortKey), node.children)
             is ResizablePanelGroupNode -> container(ResizablePanelGroupWidget(node.id, node.orientation), node.children).apply {
                 childList.filterIsInstance<ResizableHandleWidget>().forEach { it.group = this }
                 resetSizes()
@@ -501,6 +513,7 @@ object WidgetFactory {
             is CarouselNode -> node.notifyChange
             is NavigationMenuItemNode -> node.notifyChange
             is SidebarProviderNode -> node.notifyChange
+            is DataTableNode -> node.notifyChange
             else -> false
         }
         return widget

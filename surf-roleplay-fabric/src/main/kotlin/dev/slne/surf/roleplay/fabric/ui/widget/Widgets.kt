@@ -438,7 +438,7 @@ class NumberInputWidget(
  * @property label the label as component JSON
  * @property checked whether the box is checked
  */
-class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = false) : Widget(id) {
+open class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = false) : Widget(id) {
 
     /**
      * Whether the widget can take the keyboard focus, which it can while enabled.
@@ -448,7 +448,7 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
     /**
      * `true` if the box is checked, `false` otherwise.
      */
-    override val inputValue: String get() = checked.toString()
+    override val inputValue: String? get() = checked.toString()
 
     /**
      * Returns the size of the box and its label.
@@ -522,7 +522,7 @@ class CheckboxWidget(id: String, var label: String = "", var checked: Boolean = 
      *
      * @param context the screen showing the widget
      */
-    fun toggle(context: UiContext) {
+    open fun toggle(context: UiContext) {
         checked = !checked
         markChanged(context, immediate = true)
     }

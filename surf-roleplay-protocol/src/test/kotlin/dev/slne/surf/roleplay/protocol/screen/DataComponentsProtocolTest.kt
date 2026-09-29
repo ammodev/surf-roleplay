@@ -47,4 +47,51 @@ class DataComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that a data table with columns, rows and cells survives a round trip.
+     */
+    @Test
+    fun `data tables round-trip`() {
+        val root = DataTableNode(
+            "units",
+            pageSize = 5,
+            selectable = true,
+            filterColumn = "name",
+            filterPlaceholder = "\"Filtern\"",
+            value = DataTableView(sort = "name").toJson(),
+            notifyChange = true,
+            children = listOf(
+                DataTableColumnNode("name_column", key = "name", header = "\"Name\"", sortable = true),
+                DataTableColumnNode("amount_column", key = "amount", header = "\"Betrag\"", align = Align.END),
+                DataTableRowNode("r1", selectable = false, children = listOf(DataTableCellNode("r1_name", sortKey = "RTW", children = listOf(LabelNode("t"))), DataTableCellNode("r1_amount", sortKey = "10"))),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
+
+    /**
+     * Verifies that a view survives writing and reading, including texts that need escapes.
+     */
+    @Test
+    fun `data table views round-trip as json`() {
+        val view = DataTableView(sort = "na\"me", desc = true, filter = "a,b;c\\\n{}\u0001", page = 3, selected = listOf("r1", "r\"2"))
+
+        assertEquals(view, DataTableView.parse(view.toJson()))
+        assertEquals(DataTableView(), DataTableView.parse(""))
+        assertEquals(DataTableView(page = 2), DataTableView.parse(" { \"page\" : 2 } "))
+        assertEquals(DataTableView(filter = "ä"), DataTableView.parse("{\"filter\":\"\\u00e4\"}"))
+    }
+
+    /**
+     * Verifies that texts that are not a valid view are rejected.
+     */
+    @Test
+    fun `invalid data table views are rejected`() {
+        listOf(
+            "[]", "{", "{\"page\":-1}", "{\"page\":1.5}", "{\"page\":\"1\"}", "{\"desc\":1}",
+            "{\"selected\":[1]}", "{\"other\":true}", "{} {}", "{\"sort\":\"a\"", "null",
+        ).forEach { assertEquals(null, DataTableView.parse(it), it) }
+    }
 }
