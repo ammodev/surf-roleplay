@@ -66,6 +66,27 @@ class ThemesTest {
     }
 
     /**
+     * Verifies that every theme variant has five opaque chart colours that differ from each other
+     * and from its background, and that series colours are picked by their number, wrapping
+     * around after five.
+     */
+    @Test
+    fun `every theme has five chart colours`() {
+        for (tokens in Themes.all) {
+            val charts = listOf(tokens.chart1, tokens.chart2, tokens.chart3, tokens.chart4, tokens.chart5)
+            assertEquals(5, charts.toSet().size)
+            charts.forEach {
+                assertEquals(0xFF, it ushr 24)
+                assertNotEquals(tokens.background, it)
+            }
+            assertEquals(tokens.chart1, tokens.chart(1))
+            assertEquals(tokens.chart5, tokens.chart(5))
+            assertEquals(tokens.chart1, tokens.chart(6))
+            assertEquals(tokens.chart1, tokens.chart(0))
+        }
+    }
+
+    /**
      * Verifies alpha replacement and blending.
      */
     @Test
