@@ -26,6 +26,11 @@ import kotlin.math.roundToInt
  * @property input the colour of input borders and backgrounds
  * @property ring the colour of the keyboard focus ring
  * @property radius the corner radius of panels and widgets, in GUI pixels
+ * @property chart1 the colour of the first chart series
+ * @property chart2 the colour of the second chart series
+ * @property chart3 the colour of the third chart series
+ * @property chart4 the colour of the fourth chart series
+ * @property chart5 the colour of the fifth chart series
  */
 data class ThemeTokens(
     val background: Int,
@@ -48,7 +53,27 @@ data class ThemeTokens(
     val input: Int,
     val ring: Int,
     val radius: Int,
-)
+    val chart1: Int,
+    val chart2: Int,
+    val chart3: Int,
+    val chart4: Int,
+    val chart5: Int,
+) {
+    /**
+     * Returns the chart colour with a number from 1 to 5; other numbers wrap around, so 6 is the
+     * first colour again and 0 or less is the first.
+     *
+     * @param number the number of the chart colour
+     * @return the colour
+     */
+    fun chart(number: Int): Int = when ((number - 1).coerceAtLeast(0) % 5) {
+        0 -> chart1
+        1 -> chart2
+        2 -> chart3
+        3 -> chart4
+        else -> chart5
+    }
+}
 
 /**
  * The themes the mod ships, each in a dark and a light variant.
@@ -74,6 +99,8 @@ object Themes {
         destructive = opaque(0xFF6467), destructiveForeground = opaque(0xFAFAFA),
         border = translucentWhite(0.10f), input = translucentWhite(0.15f),
         ring = opaque(0x737373), radius = 3,
+        chart1 = opaque(0x2662D9), chart2 = opaque(0x2EB88A), chart3 = opaque(0xE88C30),
+        chart4 = opaque(0xAF57DB), chart5 = opaque(0xE23670),
     )
 
     /**
@@ -90,6 +117,8 @@ object Themes {
         destructive = opaque(0xE7000B), destructiveForeground = opaque(0xFAFAFA),
         border = opaque(0xE5E5E5), input = opaque(0xE5E5E5),
         ring = opaque(0xA1A1A1), radius = 3,
+        chart1 = opaque(0xE76E50), chart2 = opaque(0x2A9D90), chart3 = opaque(0x274754),
+        chart4 = opaque(0xE8C468), chart5 = opaque(0xF4A462),
     )
 
     /**

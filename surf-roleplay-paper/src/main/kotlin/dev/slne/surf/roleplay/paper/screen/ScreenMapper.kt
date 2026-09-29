@@ -303,8 +303,33 @@ import dev.slne.surf.roleplay.protocol.screen.PaginationNextNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationEllipsisNode
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
 import dev.slne.surf.roleplay.api.client.common.screen.DirectionElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableCaptionElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableSectionElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableRowElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableCellElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableColumnElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableRowElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableCellElement
+import dev.slne.surf.roleplay.api.client.common.screen.ChartElement
+import dev.slne.surf.roleplay.api.client.common.screen.ChatViewElement
+import dev.slne.surf.roleplay.api.client.common.screen.ChatMessageElement
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import dev.slne.surf.roleplay.protocol.screen.DirectionNode
+import dev.slne.surf.roleplay.protocol.screen.TableNode
+import dev.slne.surf.roleplay.protocol.screen.TableCaptionNode
+import dev.slne.surf.roleplay.protocol.screen.TableSectionNode
+import dev.slne.surf.roleplay.protocol.screen.TableRowNode
+import dev.slne.surf.roleplay.protocol.screen.TableCellNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
+import dev.slne.surf.roleplay.protocol.screen.ChartNode
+import dev.slne.surf.roleplay.protocol.screen.ChatViewNode
+import dev.slne.surf.roleplay.protocol.screen.ChatMessageNode
+import dev.slne.surf.roleplay.protocol.screen.ChartSeries as NodeChartSeries
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizableHandleElement
@@ -376,6 +401,7 @@ import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubButtonNode
 import dev.slne.surf.roleplay.protocol.screen.SidebarTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.SidebarRailNode
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
 /**
@@ -390,6 +416,15 @@ object ScreenMapper {
      * @return the component JSON
      */
     fun text(component: Component): String = GsonComponentSerializer.gson().serialize(component)
+
+    /**
+     * Serializes a text that may be left out: an empty text becomes an empty string.
+     *
+     * @param component the text
+     * @return the component JSON, or an empty string for an empty text
+     */
+    fun optionalText(component: Component): String =
+        if (component is TextComponent && component.content().isEmpty() && component.children().isEmpty()) "" else text(component)
 
     /**
      * Maps an element, with its children, to a protocol node.
@@ -603,6 +638,29 @@ object ScreenMapper {
             is PaginationEllipsisElement -> PaginationEllipsisNode(element.id, width, height)
             is ScrollAreaElement -> ScrollAreaNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation))
             is DirectionElement -> DirectionNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
+            is TableElement -> TableNode(element.id, width, height, element.children.map(::toNode))
+            is TableCaptionElement -> TableCaptionNode(element.id, width, height, text(element.text))
+            is TableSectionElement -> TableSectionNode(element.id, width, height, element.children.map(::toNode), enumOf(element.section))
+            is TableRowElement -> TableRowNode(element.id, width, height, element.children.map(::toNode), element.selected)
+            is TableCellElement -> TableCellNode(element.id, width, height, element.children.map(::toNode), element.head, align(element.align))
+            is DataTableElement -> DataTableNode(
+                element.id, width, height, element.children.map(::toNode), element.pageSize, element.selectable, element.filterColumn,
+                text(element.filterPlaceholder), element.value.toJson(), element.onChange != null,
+            )
+            is DataTableColumnElement -> DataTableColumnNode(element.id, width, height, element.key, text(element.header), element.sortable, align(element.align))
+            is DataTableRowElement -> DataTableRowNode(element.id, width, height, element.children.map(::toNode), element.selectable)
+            is DataTableCellElement -> DataTableCellNode(element.id, width, height, element.children.map(::toNode), element.sortKey)
+            is ChatViewElement -> ChatViewNode(element.id, width, height, element.children.map(::toNode))
+            is ChatMessageElement -> ChatMessageNode(
+                element.id, width, height, element.children.map(::toNode), element.own, element.playerId?.toString(), element.texture, element.fallback,
+                optionalText(element.name), optionalText(element.time),
+            )
+            is ChartElement -> ChartNode(
+                element.id, width, height, enumOf(element.kind), element.categories.map(::text),
+                element.series.map { NodeChartSeries(it.key, text(it.label), it.color.coerceIn(1, 5), it.values.map { value -> if (value.isFinite()) value else 0.0 }) },
+                element.categoryColors.map { it.coerceIn(1, 5) }, element.stacked, element.horizontal, enumOf(element.curve), element.dots, element.grid,
+                element.categoryAxis, element.valueAxis, element.legend, element.tooltip, enumOf(element.indicator), element.donut, element.labels,
+            )
             is ResizablePanelGroupElement -> ResizablePanelGroupNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation), element.onChange != null)
             is ResizablePanelElement -> ResizablePanelNode(element.id, width, height, element.children.map(::toNode), element.defaultSize, element.minSize, element.maxSize)
             is ResizableHandleElement -> ResizableHandleNode(element.id, width, height, element.withHandle)

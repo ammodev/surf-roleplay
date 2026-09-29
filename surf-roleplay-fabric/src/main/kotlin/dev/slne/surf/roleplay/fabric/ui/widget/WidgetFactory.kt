@@ -44,6 +44,19 @@ import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import dev.slne.surf.roleplay.protocol.screen.DirectionNode
+import dev.slne.surf.roleplay.protocol.screen.TextKind
+import dev.slne.surf.roleplay.protocol.screen.TableNode
+import dev.slne.surf.roleplay.protocol.screen.TableCaptionNode
+import dev.slne.surf.roleplay.protocol.screen.TableSectionNode
+import dev.slne.surf.roleplay.protocol.screen.TableRowNode
+import dev.slne.surf.roleplay.protocol.screen.TableCellNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
+import dev.slne.surf.roleplay.protocol.screen.ChartNode
+import dev.slne.surf.roleplay.protocol.screen.ChatViewNode
+import dev.slne.surf.roleplay.protocol.screen.ChatMessageNode
 import dev.slne.surf.roleplay.protocol.screen.LayoutDirection
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
@@ -365,6 +378,32 @@ object WidgetFactory {
             is PaginationEllipsisNode -> EllipsisWidget(node.id, PaginationLinkWidget.HEIGHT, clickable = false)
             is ScrollAreaNode -> container(ScrollAreaWidget(node.id, node.orientation), node.children)
             is DirectionNode -> container(DirectionWidget(node.id, node.direction), node.children)
+            is TableNode -> container(TableWidget(node.id), node.children)
+            is TableCaptionNode -> TextWidget(node.id, TextKind.MUTED, node.text, 0, Align.CENTER)
+            is TableSectionNode -> container(TableSectionWidget(node.id, node.section), node.children)
+            is TableRowNode -> container(TableRowWidget(node.id, node.selected), node.children)
+            is TableCellNode -> container(TableCellWidget(node.id, node.head, node.align), node.children)
+            is DataTableNode -> DataTableWidget(node.id, node.pageSize, node.selectable, node.filterColumn, node.filterPlaceholder).apply {
+                columns = node.children.filterIsInstance<DataTableColumnNode>().map { DataTableColumn(it.key, it.header, it.sortable, it.align) }
+                build(node.children.filterIsInstance<DataTableRowNode>().mapIndexed { index, row -> (create(row) as DataTableRowWidget).apply { order = index } })
+                applyValue(node.value)
+            }
+            is DataTableColumnNode -> LabelWidget(node.id, node.header).apply { hidden = true }
+            is DataTableRowNode -> container(DataTableRowWidget(node.id, node.selectable), node.children)
+            is DataTableCellNode -> container(DataTableCellWidget(node.id, node.sortKey), node.children)
+            is ChatViewNode -> container(ChatViewWidget(node.id), node.children)
+            is ChatMessageNode -> ChatMessageWidget.build(
+                node.id, node.own,
+                AvatarWidget("${node.id}:avatar", AvatarWidget.playerId(node.playerId), node.texture, node.fallback, ChatMessageWidget.AVATAR_SIZE, false, null),
+                node.name, node.time, node.children.map { create(it) },
+            )
+            is ChartNode -> ChartWidget(
+                node.id, node.kind, node.categories, node.series, node.categoryColors,
+                ChartOptions(
+                    node.stacked, node.horizontal, node.curve, node.dots, node.grid, node.xAxis, node.yAxis, node.legend, node.tooltip,
+                    node.indicator, node.donut, node.labels,
+                ),
+            )
             is ResizablePanelGroupNode -> container(ResizablePanelGroupWidget(node.id, node.orientation), node.children).apply {
                 childList.filterIsInstance<ResizableHandleWidget>().forEach { it.group = this }
                 resetSizes()
@@ -458,6 +497,7 @@ object WidgetFactory {
         }
         widget.width = node.width
         widget.height = node.height
+        if (widget is TableWidget && node.width.mode == SizeMode.FIT) widget.width = Sizing.grow()
         widget.notifyChange = when (node) {
             is TextInputNode -> node.notifyChange
             is NumberInputNode -> node.notifyChange
@@ -489,6 +529,7 @@ object WidgetFactory {
             is CarouselNode -> node.notifyChange
             is NavigationMenuItemNode -> node.notifyChange
             is SidebarProviderNode -> node.notifyChange
+            is DataTableNode -> node.notifyChange
             else -> false
         }
         return widget
