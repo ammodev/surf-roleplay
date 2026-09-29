@@ -387,8 +387,8 @@ object ElementRules {
     }
 
     /**
-     * Checks the shares a resizable group would take: one number per panel, each inside its
-     * panel's limits, together 100 percent.
+     * Checks the shares a resizable group would take: one finite number per panel, each inside
+     * its panel's limits, together 100 percent.
      *
      * @param group the group
      * @param value the shares in percent, comma separated
@@ -396,7 +396,7 @@ object ElementRules {
      */
     private fun resizableViolation(group: ResizablePanelGroupElement, value: String): String? {
         val panels = group.children.filterIsInstance<ResizablePanelElement>()
-        val shares = value.split(',').map { it.trim().toDoubleOrNull() ?: return "value is not a list of numbers" }
+        val shares = value.split(',').map { it.trim().toDoubleOrNull()?.takeIf(Double::isFinite) ?: return "value is not a list of numbers" }
         if (shares.size != panels.size) return "value does not name every panel"
         if (shares.indices.any { shares[it] < panels[it].minSize - SHARE_TOLERANCE || shares[it] > panels[it].maxSize + SHARE_TOLERANCE }) return "a share is outside its panel's limits"
         if (kotlin.math.abs(shares.sum() - 100.0) > SUM_TOLERANCE) return "the shares do not sum to 100"

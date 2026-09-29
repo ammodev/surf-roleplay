@@ -497,6 +497,8 @@ class NavigationComponentsTest {
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "30,30")))
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "100")))
         assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "a,b")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "NaN,NaN")))
+        assertIs<PlayerScreenState.Outcome.Rejected>(state.handleInputChange(ScreenInputChange(session, "group", "30,NaN")))
         assertEquals(listOf("group=45.5,54.5"), reports)
     }
 
