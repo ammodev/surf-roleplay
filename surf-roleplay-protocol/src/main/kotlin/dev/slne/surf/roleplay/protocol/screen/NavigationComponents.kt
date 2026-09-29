@@ -1651,3 +1651,50 @@ data class SidebarRailNode(
     @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
     @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
 ) : ScreenNode
+
+/**
+ * The direction a subtree is laid out in.
+ */
+@Serializable
+enum class LayoutDirection {
+    /**
+     * Left to right: rows start at the left.
+     */
+    @ProtoNumber(0)
+    LTR,
+
+    /**
+     * Right to left: rows start at the right, start and end alignment swap, and components with a
+     * side use the mirrored side. Text is still drawn left to right.
+     */
+    @ProtoNumber(1)
+    RTL,
+}
+
+/**
+ * Sets the layout direction of its children, stacked. A nested direction node sets the direction
+ * of its own subtree.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content, stacked
+ * @property direction the direction of the content
+ */
+@Serializable
+@SerialName("direction")
+data class DirectionNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val direction: LayoutDirection = LayoutDirection.LTR,
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): DirectionNode = copy(children = children)
+}

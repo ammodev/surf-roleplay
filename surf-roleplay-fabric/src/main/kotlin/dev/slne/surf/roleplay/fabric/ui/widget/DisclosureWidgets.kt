@@ -278,12 +278,12 @@ class AccordionTriggerWidget(id: String, var text: String) : Widget(id) {
         val usable = focusable
         val color = if (usable) ui.tokens.foreground else ThemeColors.withAlpha(ui.tokens.foreground, DISABLED_ALPHA)
         val textY = bounds.y + PADDING_Y
-        ui.text(text, bounds.x, textY, color)
+        ui.text(text, mirroredX(bounds.x, ui.width(text)), textY, color)
         if (usable && isOver(mouseX, mouseY)) {
             val width = ui.width(text).coerceAtMost(bounds.width - GAP - CHEVRON)
-            ui.fill(Rect(bounds.x, textY + ui.lineHeight, width, 1), color)
+            ui.fill(mirrored(Rect(bounds.x, textY + ui.lineHeight, width, 1)), color)
         }
-        val chevron = Rect(bounds.right - CHEVRON, textY, CHEVRON, CHEVRON)
+        val chevron = mirrored(Rect(bounds.right - CHEVRON, textY, CHEVRON, CHEVRON))
         ui.rotatedIcon("chevron-down", chevron, ui.tokens.mutedForeground, if (item?.open == true) 180f else 0f)
     }
 

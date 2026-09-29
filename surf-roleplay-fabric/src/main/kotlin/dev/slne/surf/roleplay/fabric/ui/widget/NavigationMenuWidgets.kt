@@ -198,8 +198,8 @@ class NavigationMenuTriggerWidget(id: String, var text: String) : ClickableWidge
         val open = item?.open == true
         NavigationMenuStyle.background(ui, bounds, enabled && isOver(mouseX, mouseY), open)
         val color = if (enabled) ui.tokens.foreground else ui.disabled(ui.tokens.foreground)
-        ui.text(text, bounds.x + NavigationMenuStyle.PADDING_X, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
-        val chevron = Rect(bounds.right - NavigationMenuStyle.PADDING_X - CHEVRON, bounds.y + (bounds.height - CHEVRON) / 2 + 1, CHEVRON, CHEVRON)
+        ui.text(text, mirroredX(bounds.x + NavigationMenuStyle.PADDING_X, ui.width(text)), bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
+        val chevron = mirrored(Rect(bounds.right - NavigationMenuStyle.PADDING_X - CHEVRON, bounds.y + (bounds.height - CHEVRON) / 2 + 1, CHEVRON, CHEVRON))
         ui.rotatedIcon("chevron-down", chevron, color, if (open) 180f else 0f)
     }
 

@@ -158,9 +158,14 @@ class SidebarWidget(id: String, val side: SidebarSide, val variant: SidebarVaria
         private set
 
     /**
+     * The side the sidebar is shown on: its own side, mirrored when right-to-left.
+     */
+    val shownSide: SidebarSide get() = side.inDirection(rtl)
+
+    /**
      * The side of a menu button the tooltip of a collapsed sidebar is shown on.
      */
-    val tooltipSide: OverlaySide get() = if (side == SidebarSide.LEFT) OverlaySide.RIGHT else OverlaySide.LEFT
+    val tooltipSide: OverlaySide get() = if (shownSide == SidebarSide.LEFT) OverlaySide.RIGHT else OverlaySide.LEFT
 
     /**
      * Applies the expanded state: the width, whether the sidebar is shown, and the icon mode of
@@ -208,7 +213,7 @@ class SidebarWidget(id: String, val side: SidebarSide, val variant: SidebarVaria
      */
     override fun applyLayout() {
         super.applyLayout()
-        val edge = if (side == SidebarSide.LEFT) bounds.right else bounds.x
+        val edge = if (shownSide == SidebarSide.LEFT) bounds.right else bounds.x
         childList.filterIsInstance<SidebarRailWidget>().forEach { it.bounds = Rect(edge - SidebarRailWidget.HALF, bounds.y, 2 * SidebarRailWidget.HALF, bounds.height) }
     }
 
@@ -224,7 +229,7 @@ class SidebarWidget(id: String, val side: SidebarSide, val variant: SidebarVaria
         when (variant) {
             SidebarVariant.SIDEBAR -> {
                 ui.fill(bounds, SidebarStyle.background(ui))
-                val x = if (side == SidebarSide.LEFT) bounds.right - 1 else bounds.x
+                val x = if (shownSide == SidebarSide.LEFT) bounds.right - 1 else bounds.x
                 ui.fill(Rect(x, bounds.y, 1, bounds.height), ui.tokens.border)
             }
             SidebarVariant.FLOATING -> {

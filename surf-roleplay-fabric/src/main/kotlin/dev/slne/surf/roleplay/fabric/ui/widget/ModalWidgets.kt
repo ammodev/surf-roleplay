@@ -155,7 +155,7 @@ class ModalHostWidget(id: String, val kind: ModalKind) : OverlayHostWidget(id) {
      */
     override fun createPopover(): Popover {
         val edge = when (val shown = content) {
-            is SheetContentWidget -> shown.side
+            is SheetContentWidget -> shown.shownSide
             is DrawerContentWidget -> shown.direction
             else -> OverlaySide.BOTTOM
         }
@@ -178,11 +178,12 @@ abstract class ModalSurfaceWidget(id: String, val showCloseButton: Boolean) : Ov
     var host: OverlayHostWidget? = null
 
     /**
-     * Returns the area of the close button.
+     * Returns the area of the close button: the top right corner, or the top left when
+     * right-to-left.
      *
      * @return the area
      */
-    fun closeButton(): Rect = Rect(bounds.right - CLOSE_INSET - CLOSE_SIZE, bounds.y + CLOSE_INSET, CLOSE_SIZE, CLOSE_SIZE)
+    fun closeButton(): Rect = mirrored(Rect(bounds.right - CLOSE_INSET - CLOSE_SIZE, bounds.y + CLOSE_INSET, CLOSE_SIZE, CLOSE_SIZE))
 
     /**
      * Draws the close button, brighter under the mouse.
@@ -457,6 +458,12 @@ open class SheetContentWidget(id: String, val side: OverlaySide, showCloseButton
     }
 
     /**
+     * The edge of the window the sheet is shown at: its own side, with left and right swapped
+     * when right-to-left.
+     */
+    val shownSide: OverlaySide get() = side.inDirection(rtl)
+
+    /**
      * Creates a stack of the parts with a growing space before the footer.
      *
      * @param measurer the text measurer
@@ -493,7 +500,7 @@ open class SheetContentWidget(id: String, val side: OverlaySide, showCloseButton
     protected open fun drawSurface(ui: UiGraphics) {
         val tokens = ui.tokens
         ui.fill(bounds, tokens.background)
-        val border = when (side) {
+        val border = when (shownSide) {
             OverlaySide.RIGHT -> Rect(bounds.x, bounds.y, 1, bounds.height)
             OverlaySide.LEFT -> Rect(bounds.right - 1, bounds.y, 1, bounds.height)
             OverlaySide.TOP -> Rect(bounds.x, bounds.bottom - 1, bounds.width, 1)

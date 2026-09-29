@@ -242,4 +242,18 @@ class NavigationComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that nested direction nodes survive a round trip.
+     */
+    @Test
+    fun `directions round-trip`() {
+        val root = DirectionNode(
+            "rtl",
+            direction = LayoutDirection.RTL,
+            children = listOf(RowNode("row", children = listOf(LabelNode("a"), DirectionNode("ltr", children = listOf(LabelNode("b")))))),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

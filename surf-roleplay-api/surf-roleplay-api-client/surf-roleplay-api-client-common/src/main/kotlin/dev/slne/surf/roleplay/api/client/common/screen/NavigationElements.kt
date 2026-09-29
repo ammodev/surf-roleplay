@@ -2012,3 +2012,56 @@ fun ElementsBuilder.sidebarInput(id: String, placeholder: Component = Component.
 fun ElementsBuilder.sidebarSeparator(id: String) {
     separator(id)
 }
+
+/**
+ * The direction a subtree is laid out in.
+ */
+enum class LayoutDirection {
+    /**
+     * Left to right: rows start at the left.
+     */
+    LTR,
+
+    /**
+     * Right to left: rows start at the right, start and end alignment swap, and components with a
+     * side use the mirrored side. Text is still drawn left to right.
+     */
+    RTL,
+}
+
+/**
+ * Sets the layout direction of its children, stacked. A nested direction sets the direction of
+ * its own subtree.
+ *
+ * @property id the id of this element
+ * @property children the content, stacked
+ * @property direction the direction of the content
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class DirectionElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val direction: LayoutDirection = LayoutDirection.LTR,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a direction: its content, stacked, laid out left to right or mirrored right to left.
+ *
+ * @param id the id of the direction
+ * @param direction the direction of the content
+ * @param width how wide the direction is laid out
+ * @param height how tall the direction is laid out
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.direction(
+    id: String,
+    direction: LayoutDirection,
+    width: ElementSize = ElementSize.FIT,
+    height: ElementSize = ElementSize.FIT,
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += DirectionElement(id, build(children), direction, width, height)
+}

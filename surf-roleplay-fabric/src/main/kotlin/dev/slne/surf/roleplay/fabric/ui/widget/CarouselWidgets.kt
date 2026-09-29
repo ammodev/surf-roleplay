@@ -18,7 +18,8 @@ import kotlin.math.roundToInt
  * A carousel: its previous button, its content of slides and its next button, in a row or, for a
  * vertical carousel, a column. The index of the first shown slide is its input value. The
  * buttons and the Left and Right keys move it by one slide; without loop it stops at the first
- * slide and at the last position that still fills the content.
+ * slide and at the last position that still fills the content. Right-to-left, the previous button
+ * is on the right and the slides run from the right.
  *
  * @param id the id of the widget
  * @property orientation whether the slides move sideways or up and down
@@ -124,7 +125,9 @@ class CarouselWidget(id: String, val orientation: Orientation, val loop: Boolean
     }
 
     /**
-     * Moves the carousel on Left and Right while a widget inside it has the focus.
+     * Moves the carousel on Left and Right while a widget inside it has the focus: the key towards
+     * the previous button moves back and the other one forward, so Left moves forward when
+     * right-to-left.
      *
      * @param context the screen showing the widget
      * @param focused the focused widget
@@ -132,9 +135,10 @@ class CarouselWidget(id: String, val orientation: Orientation, val loop: Boolean
      * @return whether the key moved the carousel
      */
     override fun descendantKeyPressed(context: UiContext, focused: Widget, event: KeyEvent): Boolean {
+        val back = if (rtl) GLFW.GLFW_KEY_RIGHT else GLFW.GLFW_KEY_LEFT
         val delta = when (event.key()) {
-            GLFW.GLFW_KEY_LEFT -> -1
-            GLFW.GLFW_KEY_RIGHT -> 1
+            back -> -1
+            GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_RIGHT -> 1
             else -> return false
         }
         if (enabled) move(context, delta)
@@ -210,7 +214,8 @@ class CarouselContentWidget(id: String, val orientation: Orientation) : Containe
 
     /**
      * Lays the slides out at their shares along the content and shifts them so that the current
-     * slide starts at the start of the content.
+     * slide starts at the start of the content, which is its right edge when horizontal and
+     * right-to-left.
      */
     override fun applyLayout() {
         bounds = layoutBox?.bounds ?: Rect.EMPTY
@@ -220,7 +225,7 @@ class CarouselContentWidget(id: String, val orientation: Orientation) : Containe
         val lengths = shown.map { (it.basis * main / 100.0).roundToInt() }
         var cursor = (if (horizontal) bounds.x else bounds.y) - lengths.take(index.coerceIn(0, lengths.size)).sum()
         shown.forEachIndexed { i, item ->
-            val area = if (horizontal) Rect(cursor, bounds.y, lengths[i], bounds.height) else Rect(bounds.x, cursor, bounds.width, lengths[i])
+            val area = if (horizontal) mirrored(Rect(cursor, bounds.y, lengths[i], bounds.height)) else Rect(bounds.x, cursor, bounds.width, lengths[i])
             item.layoutBox?.let { FlexLayout.layout(it, area) }
             item.applyLayout()
             cursor += lengths[i]
@@ -278,7 +283,8 @@ class CarouselItemWidget(id: String, val basis: Double) : ContainerWidget(id, Ax
 
 /**
  * The previous or next button of a carousel: a round outline button with an arrow, pointing up
- * or down in a vertical carousel.
+ * or down in a vertical carousel. Right-to-left, the arrows of a horizontal carousel point the
+ * other way.
  *
  * @param id the id of the widget
  * @property next whether the button shows the next slide rather than the previous one
@@ -309,7 +315,7 @@ class CarouselButtonWidget(id: String, val next: Boolean, val usable: Boolean, v
         colors.background?.let { ui.fillRounded(bounds, fade(it), SIZE / 2) }
         colors.border?.let { ui.borderRounded(bounds, fade(it), SIZE / 2) }
         val icon = Rect(bounds.x + (SIZE - ICON) / 2, bounds.y + (SIZE - ICON) / 2, ICON, ICON)
-        ui.rotatedIcon(if (next) "arrow-right" else "arrow-left", icon, fade(colors.foreground), if (vertical) 90f else 0f)
+        ui.rotatedIcon(directionalIcon(if (next) "arrow-right" else "arrow-left", rtl && !vertical), icon, fade(colors.foreground), if (vertical) 90f else 0f)
     }
 
     /**

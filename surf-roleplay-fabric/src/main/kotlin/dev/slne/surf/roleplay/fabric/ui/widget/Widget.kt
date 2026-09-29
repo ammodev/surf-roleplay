@@ -5,6 +5,7 @@ import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.PanelSizing
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout
 import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
@@ -237,9 +238,20 @@ abstract class Widget(val id: String) {
         internal set
 
     /**
-     * The layout box created for the widget by the last [createLayout].
+     * Whether the widget lies in a right-to-left subtree, set from the nearest direction widget
+     * around it before every layout. A right-to-left widget's layout box mirrors its children.
+     */
+    var rtl: Boolean = false
+
+    /**
+     * The layout box created for the widget by the last [createLayout]. Setting it marks the box
+     * as mirrored when the widget is right-to-left.
      */
     internal var layoutBox: LayoutBox? = null
+        set(value) {
+            value?.mirrored = rtl
+            field = value
+        }
 
     /**
      * Whether a click can give this widget the keyboard focus.
@@ -293,6 +305,26 @@ abstract class Widget(val id: String) {
     open fun applyLayout() {
         bounds = layoutBox?.bounds ?: Rect.EMPTY
     }
+
+    /**
+     * Returns a rectangle inside the widget at its mirror image when the widget is right-to-left,
+     * for parts of the widget that sit on one side of it.
+     *
+     * @param rect the rectangle as it is placed from left to right
+     * @return the rectangle mirrored within [bounds] when right-to-left, and [rect] otherwise
+     */
+    fun mirrored(rect: Rect): Rect = if (rtl) FlexLayout.mirror(rect, bounds) else rect
+
+    /**
+     * Returns the left edge of a part of the widget at its mirror image when the widget is
+     * right-to-left, such as a text drawn at a point.
+     *
+     * @param x the left edge of the part as it is placed from left to right
+     * @param width the width of the part
+     * @return the left edge of the part mirrored within [bounds] when right-to-left, and [x]
+     *         otherwise
+     */
+    fun mirroredX(x: Int, width: Int): Int = if (rtl) bounds.x + bounds.right - x - width else x
 
     /**
      * Moves the widget and its children by an offset.

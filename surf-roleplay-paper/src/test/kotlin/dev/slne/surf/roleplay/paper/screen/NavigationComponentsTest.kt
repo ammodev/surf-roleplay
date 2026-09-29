@@ -53,6 +53,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.resizablePanelGroup
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollOrientation
 import dev.slne.surf.roleplay.api.client.common.screen.scrollArea
+import dev.slne.surf.roleplay.api.client.common.screen.direction
+import dev.slne.surf.roleplay.api.client.common.screen.LayoutDirection
 import dev.slne.surf.roleplay.api.client.common.screen.breadcrumb
 import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbList
 import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbItem
@@ -116,7 +118,9 @@ import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
+import dev.slne.surf.roleplay.protocol.screen.DirectionNode
 import dev.slne.surf.roleplay.protocol.screen.ScrollOrientation as NodeScrollOrientation
+import dev.slne.surf.roleplay.protocol.screen.LayoutDirection as NodeLayoutDirection
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
@@ -422,6 +426,29 @@ class NavigationComponentsTest {
         assertEquals(120, area.width.value)
         assertEquals(80, area.height.value)
         assertEquals(1, area.children.size)
+    }
+
+    /**
+     * Verifies that nested directions map to their nodes with their directions.
+     */
+    @Test
+    fun `directions map to their nodes`() {
+        state.open(
+            screen(Component.text("Richtung")) {
+                direction("rtl", LayoutDirection.RTL, width = ElementSize.fixed(200)) {
+                    label("text", Component.text("Rechts"))
+                    direction("ltr", LayoutDirection.LTR) { label("inner", Component.text("Links")) }
+                }
+            },
+            null,
+        )
+
+        val rtl = assertIs<DirectionNode>(assertIs<WidgetScreenBody>((sent.last() as ScreenOpen).body).root)
+        assertEquals(NodeLayoutDirection.RTL, rtl.direction)
+        assertEquals(200, rtl.width.value)
+        val ltr = assertIs<DirectionNode>(rtl.children[1])
+        assertEquals(NodeLayoutDirection.LTR, ltr.direction)
+        assertEquals(1, ltr.children.size)
     }
 
     /**

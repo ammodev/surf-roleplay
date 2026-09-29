@@ -185,19 +185,20 @@ class TextWidget(id: String, val kind: TextKind, var text: String, val maxLines:
         val tokens = ui.tokens
         when (kind) {
             TextKind.H2 -> ui.fill(Rect(bounds.x, bounds.bottom - 1, bounds.width, 1), tokens.border)
-            TextKind.BLOCKQUOTE -> ui.fill(Rect(bounds.x, bounds.y, TextStyle.QUOTE_LINE, bounds.height), tokens.border)
+            TextKind.BLOCKQUOTE -> ui.fill(mirrored(Rect(bounds.x, bounds.y, TextStyle.QUOTE_LINE, bounds.height)), tokens.border)
             TextKind.INLINE_CODE -> ui.fillRounded(bounds, tokens.muted, 2)
             else -> Unit
         }
         val padding = style.padding
-        val placement = alignOverride ?: when (align) {
+        val placement = (alignOverride ?: when (align) {
             Align.CENTER -> TextAlign.CENTER
             Align.END -> TextAlign.END
             Align.START, Align.STRETCH -> style.align
-        }
+        }).let { if (!rtl) it else if (it == TextAlign.START) TextAlign.END else if (it == TextAlign.END) TextAlign.START else it }
         val color = tint ?: if (style.muted) tokens.mutedForeground else tokens.foreground
+        val left = if (rtl) padding.right else padding.left
         ui.wrappedText(
-            styledText, bounds.x + padding.left, bounds.y + padding.top, bounds.width - padding.left - padding.right,
+            styledText, bounds.x + left, bounds.y + padding.top, bounds.width - padding.left - padding.right,
             color, lineLimit, placement, style.scale,
         )
     }

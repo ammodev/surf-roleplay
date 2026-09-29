@@ -174,7 +174,7 @@ class MutedIconWidget(id: String, val icon: String, val side: Int) : Widget(id) 
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        ui.icon(icon, bounds, ui.tokens.mutedForeground)
+        ui.icon(directionalIcon(icon, rtl), bounds, ui.tokens.mutedForeground)
     }
 }
 
@@ -300,12 +300,12 @@ class PaginationLinkWidget(id: String, var text: String, val active: Boolean, va
         when (kind) {
             PaginationLinkKind.PAGE -> ui.centeredText(text, bounds, color)
             PaginationLinkKind.PREVIOUS -> {
-                ui.icon("chevron-left", Rect(bounds.x + PADDING_X, iconY, ICON, ICON), color)
-                ui.text(text, bounds.x + PADDING_X + ICON + ICON_GAP, textY, color)
+                ui.icon(directionalIcon("chevron-left", rtl), mirrored(Rect(bounds.x + PADDING_X, iconY, ICON, ICON)), color)
+                ui.text(text, mirroredX(bounds.x + PADDING_X + ICON + ICON_GAP, ui.width(text)), textY, color)
             }
             PaginationLinkKind.NEXT -> {
-                ui.text(text, bounds.x + PADDING_X, textY, color)
-                ui.icon("chevron-right", Rect(bounds.right - PADDING_X - ICON, iconY, ICON, ICON), color)
+                ui.text(text, mirroredX(bounds.x + PADDING_X, ui.width(text)), textY, color)
+                ui.icon(directionalIcon("chevron-right", rtl), mirrored(Rect(bounds.right - PADDING_X - ICON, iconY, ICON, ICON)), color)
             }
         }
     }

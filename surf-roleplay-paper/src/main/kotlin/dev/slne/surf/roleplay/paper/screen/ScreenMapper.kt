@@ -302,7 +302,9 @@ import dev.slne.surf.roleplay.protocol.screen.PaginationPreviousNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationNextNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationEllipsisNode
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
+import dev.slne.surf.roleplay.api.client.common.screen.DirectionElement
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
+import dev.slne.surf.roleplay.protocol.screen.DirectionNode
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
 import dev.slne.surf.roleplay.api.client.common.screen.ResizableHandleElement
@@ -600,6 +602,7 @@ object ScreenMapper {
             is PaginationNextElement -> PaginationNextNode(element.id, width, height, text(element.text), element.enabled)
             is PaginationEllipsisElement -> PaginationEllipsisNode(element.id, width, height)
             is ScrollAreaElement -> ScrollAreaNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation))
+            is DirectionElement -> DirectionNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
             is ResizablePanelGroupElement -> ResizablePanelGroupNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation), element.onChange != null)
             is ResizablePanelElement -> ResizablePanelNode(element.id, width, height, element.children.map(::toNode), element.defaultSize, element.minSize, element.maxSize)
             is ResizableHandleElement -> ResizableHandleNode(element.id, width, height, element.withHandle)

@@ -278,6 +278,7 @@ class ScreenPanel(
     private fun layout(measurer: TextMeasurer) {
         layoutPending = false
         this.measurer = measurer
+        WidgetTree.resolveDirection(root)
         val box = root.createLayout(measurer)
         val chromeX = 2 * UiMetrics.PANEL_PADDING
         val chromeY = 2 * UiMetrics.PANEL_PADDING + UiMetrics.TITLE_BAR_HEIGHT

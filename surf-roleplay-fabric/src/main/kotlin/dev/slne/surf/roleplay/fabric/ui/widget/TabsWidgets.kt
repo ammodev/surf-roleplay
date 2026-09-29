@@ -239,7 +239,7 @@ class TabsTriggerWidget(id: String, val value: String, var text: String, val ico
             ui.borderRounded(bounds, ui.tokens.input)
         }
         if (active && line) {
-            if (vertical) ui.fill(Rect(bounds.right + 1, bounds.y, 1, bounds.height), ui.tokens.foreground)
+            if (vertical) ui.fill(mirrored(Rect(bounds.right + 1, bounds.y, 1, bounds.height)), ui.tokens.foreground)
             else ui.fill(Rect(bounds.x, bounds.bottom + 1, bounds.width, 1), ui.tokens.foreground)
         }
         val base = if (active || (enabled && isOver(mouseX, mouseY))) ui.tokens.foreground else ui.tokens.mutedForeground
@@ -248,10 +248,10 @@ class TabsTriggerWidget(id: String, val value: String, var text: String, val ico
         var x = if (vertical) bounds.x + PADDING_X else bounds.x + (bounds.width - contentWidth) / 2
         val y = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
         icon?.let {
-            ui.icon(it, Rect(x, bounds.y + (bounds.height - ICON) / 2, ICON, ICON), color)
+            ui.icon(it, mirrored(Rect(x, bounds.y + (bounds.height - ICON) / 2, ICON, ICON)), color)
             x += ICON + ICON_GAP
         }
-        ui.text(text, x, y, color)
+        ui.text(text, mirroredX(x, ui.width(text)), y, color)
     }
 
     /**

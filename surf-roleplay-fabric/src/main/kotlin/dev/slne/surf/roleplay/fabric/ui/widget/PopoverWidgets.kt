@@ -271,7 +271,7 @@ class TooltipWidget(id: String, var text: String, val side: OverlaySide) : Conta
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         super.render(ui, context, mouseX, mouseY)
-        if (text.isNotEmpty() && wantsTooltip(context.focusedWidget, mouseX, mouseY)) context.showTooltip(text, bounds, side)
+        if (text.isNotEmpty() && wantsTooltip(context.focusedWidget, mouseX, mouseY)) context.showTooltip(text, bounds, side.inDirection(rtl))
     }
 
     /**

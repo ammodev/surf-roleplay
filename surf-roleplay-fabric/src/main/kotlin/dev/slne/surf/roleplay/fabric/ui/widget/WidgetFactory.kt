@@ -43,6 +43,8 @@ import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
+import dev.slne.surf.roleplay.protocol.screen.DirectionNode
+import dev.slne.surf.roleplay.protocol.screen.LayoutDirection
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
@@ -362,6 +364,7 @@ object WidgetFactory {
             is PaginationNextNode -> PaginationLinkWidget(node.id, node.text, false, PaginationLinkKind.NEXT).apply { enabled = node.enabled }
             is PaginationEllipsisNode -> EllipsisWidget(node.id, PaginationLinkWidget.HEIGHT, clickable = false)
             is ScrollAreaNode -> container(ScrollAreaWidget(node.id, node.orientation), node.children)
+            is DirectionNode -> container(DirectionWidget(node.id, node.direction), node.children)
             is ResizablePanelGroupNode -> container(ResizablePanelGroupWidget(node.id, node.orientation), node.children).apply {
                 childList.filterIsInstance<ResizableHandleWidget>().forEach { it.group = this }
                 resetSizes()
@@ -620,6 +623,19 @@ object WidgetTree {
      * @param root the root of the tree
      */
     fun touchAll(root: Widget) = visit(root) { it.touched = true }
+
+    /**
+     * Sets for every widget of a tree whether it is right-to-left: as its nearest direction
+     * widget says, itself included, or left-to-right without one.
+     *
+     * @param root the root of the tree
+     * @param rtl whether the root lies in a right-to-left subtree
+     */
+    fun resolveDirection(root: Widget, rtl: Boolean = false) {
+        val own = if (root is DirectionWidget) root.direction == LayoutDirection.RTL else rtl
+        root.rtl = own
+        root.children.forEach { resolveDirection(it, own) }
+    }
 
     /**
      * Calls a function for every widget of a tree, parents before children.
