@@ -188,6 +188,7 @@ class DataComponentsTest {
             DataTableView(selected = listOf("r0", "r0")), DataTableView(selected = listOf("x")),
         ).forEach { assertIs<PlayerScreenState.Outcome.Rejected>(change(it.toJson()), it.toString()) }
         assertIs<PlayerScreenState.Outcome.Rejected>(change("{\"page\":"))
+        assertIs<PlayerScreenState.Outcome.Rejected>(change("{\"selected\":" + "[".repeat(5000)))
         assertEquals(2, reports.size)
     }
 

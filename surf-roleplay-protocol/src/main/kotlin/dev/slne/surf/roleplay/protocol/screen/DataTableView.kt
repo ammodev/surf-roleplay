@@ -43,14 +43,21 @@ data class DataTableView(
      */
     companion object {
         /**
+         * The longest text accepted as a view.
+         */
+        const val MAX_LENGTH: Int = 8192
+
+        /**
          * Reads a view from a JSON object. Missing fields take their defaults; unknown fields,
-         * fields of the wrong type, negative pages and anything that is not one JSON object make
-         * the text invalid. An empty text is the default view.
+         * fields of the wrong type, negative pages, nested arrays, texts longer than
+         * [MAX_LENGTH] and anything that is not one JSON object make the text invalid. An empty
+         * text is the default view.
          *
          * @param json the JSON text
          * @return the view, or `null` if the text is not a valid view
          */
         fun parse(json: String): DataTableView? {
+            if (json.length > MAX_LENGTH) return null
             if (json.isBlank()) return DataTableView()
             val fields = JsonReader(json).readObjectOrNull() ?: return null
             var view = DataTableView()
@@ -97,7 +104,7 @@ private fun StringBuilder.appendString(text: String): StringBuilder {
 
 /**
  * Reads the small subset of JSON a data table view uses: one object whose values are strings,
- * booleans, whole numbers, `null`, or arrays of those.
+ * booleans, whole numbers, `null`, or arrays of strings and `null`; arrays do not nest.
  *
  * @property text the JSON text
  */
@@ -181,6 +188,8 @@ private class JsonReader(private val text: String) {
             return values
         }
         while (true) {
+            skipSpace()
+            if (peek() == '[' || peek() == '{') throw IllegalArgumentException("nested value")
             values += readValue()
             skipSpace()
             when (next()) {
@@ -224,7 +233,9 @@ private class JsonReader(private val text: String) {
                     't' -> result.append('\t')
                     'u' -> {
                         if (position + 4 > text.length) throw IllegalArgumentException("short escape")
-                        result.append(text.substring(position, position + 4).toIntOrNull(16)?.toChar() ?: throw IllegalArgumentException("bad escape"))
+                        val digits = text.substring(position, position + 4)
+                        if (!digits.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) throw IllegalArgumentException("bad escape")
+                        result.append(digits.toInt(16).toChar())
                         position += 4
                     }
                     else -> throw IllegalArgumentException("bad escape")

@@ -140,4 +140,16 @@ class DataComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that deeply nested, overlong or badly escaped values are rejected without
+     * throwing.
+     */
+    @Test
+    fun `hostile data table views are rejected safely`() {
+        assertEquals(null, DataTableView.parse("{\"selected\":" + "[".repeat(5000)))
+        assertEquals(null, DataTableView.parse("{\"selected\":[[\"a\"]]}"))
+        assertEquals(null, DataTableView.parse("{\"filter\":\"" + "a".repeat(DataTableView.MAX_LENGTH) + "\"}"))
+        assertEquals(null, DataTableView.parse("{\"filter\":\"\\u-041\"}"))
+    }
 }
