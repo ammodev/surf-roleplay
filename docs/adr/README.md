@@ -70,3 +70,6 @@ Create the next record with `/surf:new-adr`.
 | [0061](0061-content-of-an-unreachable-overlay-rejects-input.md) | Content of an unreachable overlay rejects input | Accepted | 2026-09-28 |
 | [0062](0062-disclosure-and-layout-state-lives-on-the-client.md) | Disclosure and layout state lives on the client | Accepted | 2026-09-28 |
 | [0063](0063-a-direction-node-mirrors-horizontal-layouts.md) | A direction node mirrors horizontal layouts | Accepted | 2026-09-28 |
+| [0064](0064-charts-colour-their-series-with-five-theme-chart-tokens.md) | Charts colour their series with five theme chart tokens | Accepted | 2026-09-29 |
+| [0065](0065-data-table-state-lives-on-the-client-as-one-json-value.md) | Data table state lives on the client as one JSON value | Accepted | 2026-09-29 |
+| [0066](0066-the-chat-view-is-a-native-node-the-server-appends-to.md) | The chat view is a native node the server appends to | Accepted | 2026-09-29 |
