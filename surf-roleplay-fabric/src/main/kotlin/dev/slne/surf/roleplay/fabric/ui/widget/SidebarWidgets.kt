@@ -2,7 +2,9 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
+import dev.slne.surf.roleplay.fabric.ui.TextAlign
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout
 import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
@@ -356,7 +358,7 @@ class SidebarGroupLabelWidget(id: String, var text: String) : Widget(id) {
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        ui.clipped(bounds) { ui.text(text, bounds.x + PADDING_X, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, ui.tokens.mutedForeground) }
+        ui.clipped(bounds) { ui.text(text, mirroredX(bounds.x + PADDING_X, ui.width(text)), bounds.y + (bounds.height - ui.lineHeight + 1) / 2, ui.tokens.mutedForeground) }
     }
 
     /**
@@ -526,20 +528,21 @@ class SidebarMenuItemWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
 
     /**
      * Lays the column out and places the action at the end of the button and the badge before
-     * it.
+     * it; the end is the left edge when right-to-left.
      */
     override fun applyLayout() {
         super.applyLayout()
         val button = childList.firstOrNull { it is SidebarMenuButtonWidget }?.bounds ?: return
+        val place: (Rect) -> Rect = { if (rtl) FlexLayout.mirror(it, button) else it }
         var end = button.right - INSET
         childList.filterIsInstance<SidebarMenuActionWidget>().filter { !it.hidden }.forEach { action ->
             val size = SidebarIconButtonWidget.SIZE
-            action.bounds = Rect(end - size, button.y + (button.height - size) / 2, size, size)
+            action.bounds = place(Rect(end - size, button.y + (button.height - size) / 2, size, size))
             end -= size + INSET
         }
         childList.filterIsInstance<SidebarMenuBadgeWidget>().filter { !it.hidden }.forEach { badge ->
             val size = badge.layoutBox?.content ?: Size.ZERO
-            badge.bounds = Rect(end - size.width, button.y + (button.height - size.height) / 2, size.width, size.height)
+            badge.bounds = place(Rect(end - size.width, button.y + (button.height - size.height) / 2, size.width, size.height))
             end -= size.width + INSET
         }
     }
@@ -674,11 +677,11 @@ class SidebarMenuButtonWidget(
         }
         var x = bounds.x + PADDING
         icon?.let {
-            ui.icon(it, Rect(x, bounds.y + (bounds.height - ICON) / 2, ICON, ICON), color)
+            ui.icon(it, mirrored(Rect(x, bounds.y + (bounds.height - ICON) / 2, ICON, ICON)), color)
             x += ICON + GAP
         }
-        ui.clipped(Rect(bounds.x, bounds.y, (bounds.width - reservedEnd - PADDING).coerceAtLeast(0), bounds.height)) {
-            ui.text(text, x, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
+        ui.clipped(mirrored(Rect(bounds.x, bounds.y, (bounds.width - reservedEnd - PADDING).coerceAtLeast(0), bounds.height))) {
+            ui.text(text, mirroredX(x, ui.width(text)), bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
         }
     }
 
@@ -844,7 +847,7 @@ class SidebarMenuSubWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        ui.fill(Rect(bounds.x + LINE_OFFSET, bounds.y, 1, bounds.height), ui.tokens.border)
+        ui.fill(mirrored(Rect(bounds.x + LINE_OFFSET, bounds.y, 1, bounds.height)), ui.tokens.border)
         super.render(ui, context, mouseX, mouseY)
     }
 
@@ -895,12 +898,16 @@ class SidebarMenuSubButtonWidget(id: String, var text: String, val icon: String?
         val color = if (enabled) base else ui.disabled(base)
         var x = bounds.x + PADDING
         icon?.let {
-            ui.icon(it, Rect(x, bounds.y + (bounds.height - ICON) / 2, ICON, ICON), color)
+            ui.icon(it, mirrored(Rect(x, bounds.y + (bounds.height - ICON) / 2, ICON, ICON)), color)
             x += ICON + GAP
         }
         ui.clipped(bounds) {
-            if (size == SidebarMenuSubButtonSize.SM) ui.wrappedText(text, x, bounds.y + (bounds.height - ui.lineHeight) / 2 + 1, bounds.right - x, color, maxLines = 1, scale = SMALL)
-            else ui.text(text, x, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
+            if (size == SidebarMenuSubButtonSize.SM) {
+                val width = bounds.right - x
+                ui.wrappedText(text, mirroredX(x, width), bounds.y + (bounds.height - ui.lineHeight) / 2 + 1, width, color, maxLines = 1, align = if (rtl) TextAlign.END else TextAlign.START, scale = SMALL)
+            } else {
+                ui.text(text, mirroredX(x, ui.width(text)), bounds.y + (bounds.height - ui.lineHeight + 1) / 2, color)
+            }
         }
     }
 

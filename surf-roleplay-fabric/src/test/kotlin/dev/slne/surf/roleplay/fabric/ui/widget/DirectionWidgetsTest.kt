@@ -22,7 +22,15 @@ import dev.slne.surf.roleplay.protocol.screen.MenuContentNode
 import dev.slne.surf.roleplay.protocol.screen.MenuSubNode
 import dev.slne.surf.roleplay.protocol.screen.MenuSubTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.OverlaySide
+import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
 import dev.slne.surf.roleplay.protocol.screen.RowNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuBadgeNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.SheetContentNode
 import dev.slne.surf.roleplay.protocol.screen.SheetNode
@@ -250,6 +258,81 @@ class DirectionWidgetsTest {
         sub.bounds = anchor
         val subPlaced = assertIs<WidgetPopover>(sub.createPopover()).place(Size(80, 30), window)
         assertTrue(subPlaced.right <= anchor.x)
+    }
+
+    /**
+     * Verifies that a horizontal resizable group inside a right-to-left direction places its
+     * first panel at the right, and that Left moves the handle left and so grows that panel.
+     */
+    @Test
+    fun `resizable groups mirror`() {
+        val group = ResizablePanelGroupNode(
+            "group",
+            width = Sizing.grow(),
+            height = Sizing.fixed(40),
+            children = listOf(
+                ResizablePanelNode("first", defaultSize = 30.0, children = listOf(LabelNode("a", text = "a"))),
+                ResizableHandleNode("handle"),
+                ResizablePanelNode("second", defaultSize = 70.0, children = listOf(LabelNode("b", text = "b"))),
+            ),
+        )
+        val panel = panel(rtl(group))
+        val bounds = widget(panel, "group").bounds
+
+        assertEquals(bounds.right, widget(panel, "first").bounds.right)
+        assertEquals(bounds.x, widget(panel, "second").bounds.x)
+        assertEquals(widget(panel, "first").bounds.x, widget(panel, "handle").bounds.right)
+
+        panel.focus(widget(panel, "handle"))
+        panel.keyPressed(KeyEvent(GLFW.GLFW_KEY_LEFT, 0, 0))
+        assertEquals("35,65", widget(panel, "group").inputValue)
+
+        val handle = assertIs<ResizableHandleWidget>(widget(panel, "handle"))
+        val resizable = assertIs<ResizablePanelGroupWidget>(widget(panel, "group"))
+        resizable.moveTo(handle, bounds.right - ResizablePanelGroupWidget.HANDLE - resizable.available / 2)
+        assertEquals("49.7,50.3", resizable.inputValue)
+    }
+
+    /**
+     * Verifies that the action and badge of a sidebar menu item sit at the left end of its
+     * button inside a right-to-left direction.
+     */
+    @Test
+    fun `sidebar menu parts mirror`() {
+        val provider = SidebarProviderNode(
+            "provider",
+            width = Sizing.fixed(200),
+            height = Sizing.fixed(100),
+            children = listOf(
+                SidebarNode(
+                    "sidebar",
+                    children = listOf(
+                        SidebarMenuNode(
+                            "menu",
+                            children = listOf(
+                                SidebarMenuItemNode(
+                                    "item",
+                                    children = listOf(
+                                        SidebarMenuButtonNode("button", text = "\"Start\"", icon = "house"),
+                                        SidebarMenuActionNode("action"),
+                                        SidebarMenuBadgeNode("badge", text = "\"3\""),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+                SidebarInsetNode("inset"),
+            ),
+        )
+        val panel = panel(rtl(provider))
+        val button = widget(panel, "button").bounds
+        val action = widget(panel, "action").bounds
+        val badge = widget(panel, "badge").bounds
+
+        assertTrue(action.x < button.x + button.width / 2)
+        assertTrue(badge.x > action.right)
+        assertTrue(badge.right < button.x + button.width / 2)
     }
 
     /**

@@ -107,7 +107,7 @@ class ResizablePanelGroupWidget(id: String, val orientation: Orientation) : Cont
                 is ResizablePanelWidget -> if (child === lastPanel) (end - cursor).coerceAtLeast(0) else (sizes[panelIndex++] * total / 100.0).roundToInt()
                 else -> 0
             }
-            val area = if (axis == Axis.HORIZONTAL) Rect(cursor, bounds.y, length, bounds.height) else Rect(bounds.x, cursor, bounds.width, length)
+            val area = if (axis == Axis.HORIZONTAL) mirrored(Rect(cursor, bounds.y, length, bounds.height)) else Rect(bounds.x, cursor, bounds.width, length)
             child.layoutBox?.let { FlexLayout.layout(it, area) }
             child.applyLayout()
             cursor += length
@@ -125,9 +125,13 @@ class ResizablePanelGroupWidget(id: String, val orientation: Orientation) : Cont
     fun moveTo(handle: ResizableHandleWidget, position: Int): Boolean {
         val before = beforeIndex(handle) ?: return false
         val panel = panels[before]
-        val start = if (axis == Axis.HORIZONTAL) panel.bounds.x else panel.bounds.y
         val total = available.takeIf { it > 0 } ?: return false
-        return resize(before, (position - start) * 100.0 / total - sizes[before])
+        val length = when {
+            axis == Axis.VERTICAL -> position - panel.bounds.y
+            rtl -> panel.bounds.right - position - HANDLE
+            else -> position - panel.bounds.x
+        }
+        return resize(before, length * 100.0 / total - sizes[before])
     }
 
     /**
@@ -356,9 +360,19 @@ class ResizableHandleWidget(id: String, val withHandle: Boolean) : Widget(id) {
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         val group = group ?: return false
         val vertical = group.orientation == Orientation.VERTICAL
+        val grow = when {
+            vertical -> GLFW.GLFW_KEY_DOWN
+            group.rtl -> GLFW.GLFW_KEY_LEFT
+            else -> GLFW.GLFW_KEY_RIGHT
+        }
+        val shrink = when {
+            vertical -> GLFW.GLFW_KEY_UP
+            group.rtl -> GLFW.GLFW_KEY_RIGHT
+            else -> GLFW.GLFW_KEY_LEFT
+        }
         val delta = when (event.key()) {
-            if (vertical) GLFW.GLFW_KEY_DOWN else GLFW.GLFW_KEY_RIGHT -> ResizablePanelGroupWidget.KEY_STEP
-            if (vertical) GLFW.GLFW_KEY_UP else GLFW.GLFW_KEY_LEFT -> -ResizablePanelGroupWidget.KEY_STEP
+            grow -> ResizablePanelGroupWidget.KEY_STEP
+            shrink -> -ResizablePanelGroupWidget.KEY_STEP
             GLFW.GLFW_KEY_HOME -> -100.0
             GLFW.GLFW_KEY_END -> 100.0
             else -> return false
