@@ -1,6 +1,6 @@
 # Plan 0012: shadcn data, chat and charts
 
-- **Status:** In progress
+- **Status:** Done
 - **Date:** 2026-09-29
 - **Accepted proposal:** Port the data, chat and chart components of the shadcn registry (table, data table, chart) and a chat view modelled on shadcn's AI chat blocks as native screen nodes; pre-accepted under the standing autonomy for shadcn-faithful components
 - **Decision records:** ADR-0051, ADR-0052, ADR-0056, ADR-0064, ADR-0065, ADR-0066
