@@ -25,6 +25,10 @@ import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElemen
 import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
 import dev.slne.surf.roleplay.api.client.common.screen.DirectionElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableSectionElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableRowElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableCellElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbListElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbItemElement
@@ -374,6 +378,10 @@ class ServerScreenTree(root: ScreenElement) {
             is PaginationItemElement -> container.copy(children = children)
             is ScrollAreaElement -> container.copy(children = children)
             is DirectionElement -> container.copy(children = children)
+            is TableElement -> container.copy(children = children)
+            is TableSectionElement -> container.copy(children = children)
+            is TableRowElement -> container.copy(children = children)
+            is TableCellElement -> container.copy(children = children)
             is ResizablePanelGroupElement -> container.copy(children = children)
             is ResizablePanelElement -> container.copy(children = children)
             is CarouselElement -> container.copy(children = children)

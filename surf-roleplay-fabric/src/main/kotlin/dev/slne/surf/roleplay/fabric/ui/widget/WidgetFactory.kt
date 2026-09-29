@@ -44,6 +44,12 @@ import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
 import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
 import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import dev.slne.surf.roleplay.protocol.screen.DirectionNode
+import dev.slne.surf.roleplay.protocol.screen.TextKind
+import dev.slne.surf.roleplay.protocol.screen.TableNode
+import dev.slne.surf.roleplay.protocol.screen.TableCaptionNode
+import dev.slne.surf.roleplay.protocol.screen.TableSectionNode
+import dev.slne.surf.roleplay.protocol.screen.TableRowNode
+import dev.slne.surf.roleplay.protocol.screen.TableCellNode
 import dev.slne.surf.roleplay.protocol.screen.LayoutDirection
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
@@ -365,6 +371,11 @@ object WidgetFactory {
             is PaginationEllipsisNode -> EllipsisWidget(node.id, PaginationLinkWidget.HEIGHT, clickable = false)
             is ScrollAreaNode -> container(ScrollAreaWidget(node.id, node.orientation), node.children)
             is DirectionNode -> container(DirectionWidget(node.id, node.direction), node.children)
+            is TableNode -> container(TableWidget(node.id), node.children)
+            is TableCaptionNode -> TextWidget(node.id, TextKind.MUTED, node.text, 0, Align.CENTER)
+            is TableSectionNode -> container(TableSectionWidget(node.id, node.section), node.children)
+            is TableRowNode -> container(TableRowWidget(node.id, node.selected), node.children)
+            is TableCellNode -> container(TableCellWidget(node.id, node.head, node.align), node.children)
             is ResizablePanelGroupNode -> container(ResizablePanelGroupWidget(node.id, node.orientation), node.children).apply {
                 childList.filterIsInstance<ResizableHandleWidget>().forEach { it.group = this }
                 resetSizes()
@@ -458,6 +469,7 @@ object WidgetFactory {
         }
         widget.width = node.width
         widget.height = node.height
+        if (widget is TableWidget && node.width.mode == SizeMode.FIT) widget.width = Sizing.grow()
         widget.notifyChange = when (node) {
             is TextInputNode -> node.notifyChange
             is NumberInputNode -> node.notifyChange

@@ -75,6 +75,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.PaginationLinkElement
 import dev.slne.surf.roleplay.api.client.common.screen.PaginationPreviousElement
 import dev.slne.surf.roleplay.api.client.common.screen.PaginationNextElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbPageElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableCaptionElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbEllipsisElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
 import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
@@ -699,6 +700,7 @@ object ElementRules {
             ),
         )
         register(BreadcrumbPageElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(TableCaptionElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(BreadcrumbEllipsisElement::class, ElementRule(action = { ActionRule(null, submitsInput = false) }))
         register(
             TabsElement::class,
