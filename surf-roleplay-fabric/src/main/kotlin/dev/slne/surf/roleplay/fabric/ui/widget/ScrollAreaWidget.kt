@@ -39,10 +39,16 @@ interface ScrollContainer {
  * @param id the id of the widget
  * @property orientation the directions the area scrolls in
  */
-class ScrollAreaWidget(id: String, val orientation: ScrollOrientation) : ContainerWidget(id, Axis.VERTICAL), ScrollContainer {
+open class ScrollAreaWidget(id: String, val orientation: ScrollOrientation) : ContainerWidget(id, Axis.VERTICAL), ScrollContainer {
     init {
         crossAlign = Align.STRETCH
     }
+
+    /**
+     * Whether the area starts scrolled to its end and stays there when its content grows, as long
+     * as it was scrolled to the end before.
+     */
+    var stickToBottom: Boolean = false
 
     /**
      * How far the content is scrolled from the left.
@@ -118,13 +124,14 @@ class ScrollAreaWidget(id: String, val orientation: ScrollOrientation) : Contain
     override fun applyLayout() {
         bounds = layoutBox?.bounds ?: Rect.EMPTY
         val content = contentBox ?: return
+        val atBottom = scrollY >= maxScrollY
         val width = if (scrollsX) FlexLayout.measure(content).width.coerceAtLeast(bounds.width) else bounds.width
         val height = FlexLayout.measureAt(content, width).height.let { if (scrollsY) it.coerceAtLeast(bounds.height) else bounds.height }
         FlexLayout.layout(content, Rect(bounds.x, bounds.y, width, height))
         maxScrollX = (width - bounds.width).coerceAtLeast(0)
         maxScrollY = (height - bounds.height).coerceAtLeast(0)
         scrollX = scrollX.coerceIn(0, maxScrollX)
-        scrollY = scrollY.coerceIn(0, maxScrollY)
+        scrollY = if (stickToBottom && atBottom) maxScrollY else scrollY.coerceIn(0, maxScrollY)
         childList.forEach { if (it.hidden) it.bounds = Rect.EMPTY else it.applyLayout() }
         shownChildren.forEach { it.offset(-scrollX, -scrollY) }
     }

@@ -1,6 +1,14 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
+import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
+import dev.slne.surf.roleplay.protocol.screen.InsertNode
+import dev.slne.surf.roleplay.protocol.screen.ChatMessageNode
+import dev.slne.surf.roleplay.protocol.screen.ChatViewNode
+import dev.slne.surf.roleplay.api.client.common.screen.text
+import dev.slne.surf.roleplay.api.client.common.screen.chatView
+import dev.slne.surf.roleplay.api.client.common.screen.chatMessage
+import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.protocol.screen.ChartIndicator as NodeChartIndicator
 import dev.slne.surf.roleplay.protocol.screen.ChartCurve as NodeChartCurve
 import dev.slne.surf.roleplay.protocol.screen.ChartKind as NodeChartKind
@@ -215,5 +223,37 @@ class DataComponentsTest {
         assertTrue(chart.stacked && chart.legend)
         assertEquals(NodeChartCurve.STEP, chart.curve)
         assertEquals(NodeChartIndicator.LINE, chart.indicator)
+    }
+
+    /**
+     * Verifies that a chat view maps to its nodes, leaving out empty names and times, and that
+     * appended messages reach the open screen as insert patches at the end.
+     */
+    @Test
+    fun `chat views map and append messages`() {
+        val screen = state.open(
+            screen(Component.text("Chat")) {
+                chatView("chat", ElementSize.fixed(100)) {
+                    chatMessage("m1", name = Component.text("Leitstelle"), time = Component.text("12:30"), playerId = UUID(1, 2)) { text("m1_text", Component.text("Hallo")) }
+                    chatMessage("m2", own = true) { text("m2_text", Component.text("Hi")) }
+                }
+            },
+            null,
+        )
+
+        val view = assertIs<ChatViewNode>(root())
+        val first = assertIs<ChatMessageNode>(view.children[0])
+        assertEquals(UUID(1, 2).toString(), first.playerId)
+        assertTrue(first.name.contains("Leitstelle"))
+        val second = assertIs<ChatMessageNode>(view.children[1])
+        assertTrue(second.own)
+        assertEquals("", second.name)
+        assertEquals("", second.time)
+
+        screen.patch { append("chat") { chatMessage("m3") { text("m3_text", Component.text("Neu")) } } }
+        val insert = assertIs<InsertNode>(assertIs<ScreenPatch>(sent.last()).operations.single())
+        assertEquals("chat", insert.parentId)
+        assertTrue(insert.index >= 2)
+        assertEquals("m3", insert.node.id)
     }
 }

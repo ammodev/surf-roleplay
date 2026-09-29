@@ -375,6 +375,17 @@ class ScreenPatchBuilder {
     }
 
     /**
+     * Appends the elements built by the element DSL to a container, after its other children,
+     * such as a new message of a chat view.
+     *
+     * @param parentId the id of the container
+     * @param build the builder of the elements, appended in order
+     */
+    fun append(parentId: String, build: ElementsBuilder.() -> Unit) {
+        ElementsBuilder().apply(build).elements.forEach { insert(parentId, Int.MAX_VALUE, it) }
+    }
+
+    /**
      * Removes an element.
      *
      * @param targetId the id of the element to remove

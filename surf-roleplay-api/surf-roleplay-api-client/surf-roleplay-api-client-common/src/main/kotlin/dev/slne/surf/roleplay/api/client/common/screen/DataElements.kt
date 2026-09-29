@@ -1,6 +1,7 @@
 package dev.slne.surf.roleplay.api.client.common.screen
 
 import net.kyori.adventure.text.Component
+import java.util.UUID
 
 /**
  * Builds the elements of a builder block.
@@ -568,4 +569,86 @@ fun ElementsBuilder.chart(
         id, kind, categories, series, categoryColors, stacked, horizontal, curve, dots, grid, categoryAxis, valueAxis, legend, tooltip,
         indicator, donut, labels, width, height,
     )
+}
+
+/**
+ * A chat view: its messages, stacked in a scrolling column that starts at the newest message and
+ * stays there while new messages are appended, unless the player scrolled up. Append messages
+ * with [ScreenPatchBuilder.append].
+ *
+ * @property id the id of this element
+ * @property children the messages, oldest first
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out, usually fixed
+ */
+data class ChatViewElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * A message of a chat view: a bubble with any content, the name of the sender and the time above
+ * it, and for messages of others the avatar of the sender beside it.
+ *
+ * @property id the id of this element
+ * @property children the content of the bubble, stacked
+ * @property own whether the message is the player's own, shown at the right
+ * @property playerId the player whose head is the avatar, or `null`
+ * @property texture the resource-pack texture of the avatar when there is no player, or `null`
+ * @property fallback the initials shown while the avatar cannot be drawn
+ * @property name the name of the sender, empty for none
+ * @property time the time of the message, empty for none
+ * @property width how wide this element is laid out
+ * @property height how tall this element is laid out
+ */
+data class ChatMessageElement(
+    override val id: String,
+    override val children: List<ScreenElement>,
+    val own: Boolean = false,
+    val playerId: UUID? = null,
+    val texture: String? = null,
+    val fallback: String = "",
+    val name: Component = Component.empty(),
+    val time: Component = Component.empty(),
+    override val width: ElementSize = ElementSize.FIT,
+    override val height: ElementSize = ElementSize.FIT,
+) : ContainerElement
+
+/**
+ * Adds a chat view. Its children are [chatMessage]s, oldest first.
+ *
+ * @param id the id of the view
+ * @param height how tall the view is laid out, usually fixed
+ * @param width how wide the view is laid out
+ * @param children the builder of the messages
+ */
+fun ElementsBuilder.chatView(id: String, height: ElementSize, width: ElementSize = ElementSize.FIT, children: ElementsBuilder.() -> Unit) {
+    elements += ChatViewElement(id, build(children), width, height)
+}
+
+/**
+ * Adds a message of a chat view.
+ *
+ * @param id the id of the message
+ * @param own whether the message is the player's own, shown at the right
+ * @param name the name of the sender, empty for none
+ * @param time the time of the message, empty for none
+ * @param playerId the player whose head is the avatar, or `null`
+ * @param texture the resource-pack texture of the avatar when there is no player, or `null`
+ * @param fallback the initials shown while the avatar cannot be drawn
+ * @param children the builder of the content
+ */
+fun ElementsBuilder.chatMessage(
+    id: String,
+    own: Boolean = false,
+    name: Component = Component.empty(),
+    time: Component = Component.empty(),
+    playerId: UUID? = null,
+    texture: String? = null,
+    fallback: String = "",
+    children: ElementsBuilder.() -> Unit,
+) {
+    elements += ChatMessageElement(id, build(children), own, playerId, texture, fallback, name, time)
 }

@@ -123,4 +123,21 @@ class DataComponentsProtocolTest {
 
         assertEquals(root, roundTrip(root))
     }
+
+    /**
+     * Verifies that a chat view with own and other messages survives a round trip.
+     */
+    @Test
+    fun `chat views round-trip`() {
+        val root = ChatViewNode(
+            "chat",
+            height = Sizing.fixed(120),
+            children = listOf(
+                ChatMessageNode("m1", playerId = "069a79f4-44e9-4726-a5be-fca90e38aaf5", fallback = "NO", name = "\"Notch\"", time = "\"12:30\"", children = listOf(LabelNode("t1"))),
+                ChatMessageNode("m2", own = true, texture = "surf:avatar/me", children = listOf(LabelNode("t2"))),
+            ),
+        )
+
+        assertEquals(root, roundTrip(root))
+    }
 }

@@ -425,3 +425,68 @@ data class ChartNode(
     @ProtoNumber(18) val donut: Boolean = false,
     @ProtoNumber(19) val labels: Boolean = false,
 ) : ScreenNode
+
+/**
+ * A chat view: its messages, stacked in a scrolling column that starts at the newest message and
+ * stays there while new messages are appended, unless the player scrolled up.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out, usually fixed
+ * @property children the messages, oldest first
+ */
+@Serializable
+@SerialName("chat_view")
+data class ChatViewNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ChatViewNode = copy(children = children)
+}
+
+/**
+ * A message of a chat view: a bubble with any content, the sender's name and the time above it,
+ * and for messages of others the sender's avatar beside it. The player's own messages sit at the
+ * right in the primary colour, those of others at the left on a muted background.
+ *
+ * @property id the id of this node
+ * @property width how wide this node is laid out
+ * @property height how tall this node is laid out
+ * @property children the content of the bubble, stacked
+ * @property own whether the message is the player's own
+ * @property playerId the UUID of the player whose head is the avatar, or `null`
+ * @property texture the resource-pack texture of the avatar when there is no player, or `null`
+ * @property fallback the initials shown while the avatar cannot be drawn
+ * @property name the sender's name as component JSON, empty for none
+ * @property time the time of the message as component JSON, empty for none
+ */
+@Serializable
+@SerialName("chat_message")
+data class ChatMessageNode(
+    @ProtoNumber(1) override val id: String,
+    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
+    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
+    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
+    @ProtoNumber(5) val own: Boolean = false,
+    @ProtoNumber(6) val playerId: String? = null,
+    @ProtoNumber(7) val texture: String? = null,
+    @ProtoNumber(8) val fallback: String = "",
+    @ProtoNumber(9) val name: String = "",
+    @ProtoNumber(10) val time: String = "",
+) : ContainerNode {
+    /**
+     * Returns a copy of this node with other children.
+     *
+     * @param children the new children
+     * @return the copy
+     */
+    override fun withChildren(children: List<ScreenNode>): ChatMessageNode = copy(children = children)
+}

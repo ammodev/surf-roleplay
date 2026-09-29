@@ -32,6 +32,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.TableCellElement
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableElement
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableRowElement
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableCellElement
+import dev.slne.surf.roleplay.api.client.common.screen.ChatViewElement
+import dev.slne.surf.roleplay.api.client.common.screen.ChatMessageElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbListElement
 import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbItemElement
@@ -388,6 +390,8 @@ class ServerScreenTree(root: ScreenElement) {
             is DataTableElement -> container.copy(children = children)
             is DataTableRowElement -> container.copy(children = children)
             is DataTableCellElement -> container.copy(children = children)
+            is ChatViewElement -> container.copy(children = children)
+            is ChatMessageElement -> container.copy(children = children)
             is ResizablePanelGroupElement -> container.copy(children = children)
             is ResizablePanelElement -> container.copy(children = children)
             is CarouselElement -> container.copy(children = children)

@@ -55,6 +55,8 @@ import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
 import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
 import dev.slne.surf.roleplay.protocol.screen.ChartNode
+import dev.slne.surf.roleplay.protocol.screen.ChatViewNode
+import dev.slne.surf.roleplay.protocol.screen.ChatMessageNode
 import dev.slne.surf.roleplay.protocol.screen.LayoutDirection
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
@@ -389,6 +391,12 @@ object WidgetFactory {
             is DataTableColumnNode -> LabelWidget(node.id, node.header).apply { hidden = true }
             is DataTableRowNode -> container(DataTableRowWidget(node.id, node.selectable), node.children)
             is DataTableCellNode -> container(DataTableCellWidget(node.id, node.sortKey), node.children)
+            is ChatViewNode -> container(ChatViewWidget(node.id), node.children)
+            is ChatMessageNode -> ChatMessageWidget.build(
+                node.id, node.own,
+                AvatarWidget("${node.id}:avatar", AvatarWidget.playerId(node.playerId), node.texture, node.fallback, ChatMessageWidget.AVATAR_SIZE, false, null),
+                node.name, node.time, node.children.map { create(it) },
+            )
             is ChartNode -> ChartWidget(
                 node.id, node.kind, node.categories, node.series, node.categoryColors,
                 ChartOptions(
