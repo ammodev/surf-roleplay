@@ -171,7 +171,8 @@ abstract class MenuEntryWidget(id: String) : Widget(id) {
     }
 
     /**
-     * Draws the text of a one-line entry after its indent, and an optional text at its end.
+     * Draws the text of a one-line entry after its indent, and an optional text at its end, both
+     * mirrored when right-to-left.
      *
      * @param ui the graphics to draw with
      * @param text the text as component JSON
@@ -181,8 +182,8 @@ abstract class MenuEntryWidget(id: String) : Widget(id) {
      */
     protected fun drawLine(ui: UiGraphics, text: String, indent: Boolean, end: String?, color: Int) {
         val y = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
-        ui.text(text, bounds.x + MenuStyle.PADDING_X + if (indent) MenuStyle.INSET - MenuStyle.PADDING_X else 0, y, color)
-        end?.let { ui.text(it, bounds.right - MenuStyle.PADDING_X - ui.width(it), y, ui.tokens.mutedForeground) }
+        ui.text(text, mirroredX(bounds.x + MenuStyle.PADDING_X + if (indent) MenuStyle.INSET - MenuStyle.PADDING_X else 0, ui.width(text)), y, color)
+        end?.let { ui.text(it, mirroredX(bounds.right - MenuStyle.PADDING_X - ui.width(it), ui.width(it)), y, ui.tokens.mutedForeground) }
     }
 
     /**
@@ -240,7 +241,7 @@ class MenuItemWidget(
         val lit = drawHighlight(ui, context, mouseX, mouseY)
         icon?.let {
             val color = if (destructive) ui.tokens.destructive else ui.tokens.mutedForeground
-            ui.icon(it, Rect(bounds.x + MenuStyle.PADDING_X, bounds.y + (bounds.height - MenuStyle.ICON) / 2, MenuStyle.ICON, MenuStyle.ICON), if (enabled) color else ui.disabled(color))
+            ui.icon(it, mirrored(Rect(bounds.x + MenuStyle.PADDING_X, bounds.y + (bounds.height - MenuStyle.ICON) / 2, MenuStyle.ICON, MenuStyle.ICON)), if (enabled) color else ui.disabled(color))
         }
         drawLine(ui, text, inset || icon != null, shortcut, textColor(ui, lit))
     }
@@ -305,7 +306,7 @@ class MenuCheckboxItemWidget(id: String, var text: String, var checked: Boolean)
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val lit = drawHighlight(ui, context, mouseX, mouseY)
         val color = textColor(ui, lit)
-        if (checked) ui.icon("check", Rect(bounds.x + MenuStyle.PADDING_X, bounds.y + (bounds.height - MenuStyle.ICON) / 2, MenuStyle.ICON, MenuStyle.ICON), color)
+        if (checked) ui.icon("check", mirrored(Rect(bounds.x + MenuStyle.PADDING_X, bounds.y + (bounds.height - MenuStyle.ICON) / 2, MenuStyle.ICON, MenuStyle.ICON)), color)
         drawLine(ui, text, true, null, color)
     }
 
@@ -420,7 +421,7 @@ class MenuRadioItemWidget(id: String, var text: String, val value: String) : Men
         val color = textColor(ui, lit)
         if (group?.value == value) {
             val dot = MenuStyle.ICON / 2
-            ui.fillRounded(Rect(bounds.x + MenuStyle.PADDING_X + dot / 2, bounds.y + (bounds.height - dot) / 2, dot, dot), color, dot / 2)
+            ui.fillRounded(mirrored(Rect(bounds.x + MenuStyle.PADDING_X + dot / 2, bounds.y + (bounds.height - dot) / 2, dot, dot)), color, dot / 2)
         }
         drawLine(ui, text, true, null, color)
     }
@@ -471,8 +472,9 @@ class MenuLabelWidget(id: String, var text: String, val inset: Boolean) : Widget
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        val x = bounds.x + if (inset) MenuStyle.INSET else MenuStyle.PADDING_X
-        ui.text(TextStyle.styled(text, bold = true, italic = false), x, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, ui.tokens.popoverForeground)
+        val label = TextStyle.styled(text, bold = true, italic = false)
+        val x = mirroredX(bounds.x + if (inset) MenuStyle.INSET else MenuStyle.PADDING_X, ui.width(label))
+        ui.text(label, x, bounds.y + (bounds.height - ui.lineHeight + 1) / 2, ui.tokens.popoverForeground)
     }
 
     /**
@@ -613,10 +615,10 @@ class MenuSubTriggerWidget(id: String, var text: String, val icon: String?, val 
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         val lit = drawHighlight(ui, context, mouseX, mouseY)
         val iconY = bounds.y + (bounds.height - MenuStyle.ICON) / 2
-        icon?.let { ui.icon(it, Rect(bounds.x + MenuStyle.PADDING_X, iconY, MenuStyle.ICON, MenuStyle.ICON), ui.tokens.mutedForeground) }
+        icon?.let { ui.icon(it, mirrored(Rect(bounds.x + MenuStyle.PADDING_X, iconY, MenuStyle.ICON, MenuStyle.ICON)), ui.tokens.mutedForeground) }
         val color = textColor(ui, lit)
         drawLine(ui, text, inset || icon != null, null, color)
-        ui.icon("chevron-right", Rect(bounds.right - MenuStyle.PADDING_X - MenuStyle.ICON, iconY, MenuStyle.ICON, MenuStyle.ICON), color)
+        ui.icon(directionalIcon("chevron-right", rtl), mirrored(Rect(bounds.right - MenuStyle.PADDING_X - MenuStyle.ICON, iconY, MenuStyle.ICON, MenuStyle.ICON)), color)
     }
 
     /**

@@ -51,6 +51,38 @@ import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuLabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupLabelElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuBadgeElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselNextElement
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationNextElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbPageElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbEllipsisElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenubarTriggerElement
 import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
@@ -318,6 +350,95 @@ object ElementRules {
     fun splitList(value: String): List<String> = value.split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
     /**
+     * Returns the triggers of every tab list of tabs, in order.
+     *
+     * @param tabs the tabs
+     * @return the triggers
+     */
+    private fun tabTriggers(tabs: TabsElement): List<TabsTriggerElement> =
+        tabs.children.filterIsInstance<TabsListElement>().flatMap { list -> list.children.filterIsInstance<TabsTriggerElement>() }
+
+    /**
+     * Returns the shares of the panels of a resizable group as the server holds them: the stored
+     * shares, or else the default sizes of the panels, where panels without one share what the
+     * others leave equally.
+     *
+     * @param group the group
+     * @return the shares in percent, in the order of the panels
+     */
+    private fun resizableSizes(group: ResizablePanelGroupElement): List<Double> {
+        val panels = group.children.filterIsInstance<ResizablePanelElement>()
+        if (group.sizes.size == panels.size) return group.sizes
+        val fixed = panels.filter { it.defaultSize > 0.0 }.sumOf { it.defaultSize }
+        val open = panels.count { it.defaultSize <= 0.0 }
+        val rest = if (open > 0) ((100.0 - fixed) / open).coerceAtLeast(0.0) else 0.0
+        return panels.map { (if (it.defaultSize > 0.0) it.defaultSize else rest).coerceIn(it.minSize, it.maxSize) }
+    }
+
+    /**
+     * Formats a share with at most one decimal.
+     *
+     * @param share the share in percent
+     * @return the share as text
+     */
+    private fun formatShare(share: Double): String {
+        val rounded = kotlin.math.round(share * 10) / 10
+        return if (rounded == rounded.toLong().toDouble()) rounded.toLong().toString() else rounded.toString()
+    }
+
+    /**
+     * Checks the shares a resizable group would take: one finite number per panel, each inside
+     * its panel's limits, together 100 percent.
+     *
+     * @param group the group
+     * @param value the shares in percent, comma separated
+     * @return a description of the violated constraint, or `null` if the shares are valid
+     */
+    private fun resizableViolation(group: ResizablePanelGroupElement, value: String): String? {
+        val panels = group.children.filterIsInstance<ResizablePanelElement>()
+        val shares = value.split(',').map { it.trim().toDoubleOrNull()?.takeIf(Double::isFinite) ?: return "value is not a list of numbers" }
+        if (shares.size != panels.size) return "value does not name every panel"
+        if (shares.indices.any { shares[it] < panels[it].minSize - SHARE_TOLERANCE || shares[it] > panels[it].maxSize + SHARE_TOLERANCE }) return "a share is outside its panel's limits"
+        if (kotlin.math.abs(shares.sum() - 100.0) > SUM_TOLERANCE) return "the shares do not sum to 100"
+        return null
+    }
+
+    /**
+     * How far a panel share may lie outside its limits through rounding, in percent.
+     */
+    private const val SHARE_TOLERANCE: Double = 0.05
+
+    /**
+     * How far the shares of a resizable group may miss 100 percent through rounding.
+     */
+    private const val SUM_TOLERANCE: Double = 0.5
+
+    /**
+     * Returns the items of an accordion, in order.
+     *
+     * @param accordion the accordion
+     * @return the items
+     */
+    private fun accordionItems(accordion: AccordionElement): List<AccordionItemElement> = accordion.children.filterIsInstance<AccordionItemElement>()
+
+    /**
+     * Checks the items an accordion would have open.
+     *
+     * @param accordion the accordion
+     * @param open the values of the items that would be open
+     * @return a description of the violated constraint, or `null` if the choice is valid
+     */
+    private fun accordionViolation(accordion: AccordionElement, open: List<String>): String? {
+        val items = accordionItems(accordion).associateBy { it.value }
+        if (open.any { it !in items }) return "value is not an item"
+        if (open.toSet().size != open.size) return "value repeats an item"
+        if (accordion.type == AccordionType.SINGLE && open.size > 1) return "only one item can be open"
+        val changed = (open.toSet() - accordion.value.toSet()) + (accordion.value.toSet() - open.toSet())
+        if (changed.any { items[it]?.enabled == false }) return "a disabled item changed"
+        return null
+    }
+
+    /**
      * Checks the items a toggle group would have switched on.
      *
      * @param group the toggle group
@@ -482,6 +603,125 @@ object ElementRules {
         )
         register(CommandEmptyElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(DialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(CollapsibleElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(
+            AccordionElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { e -> accordionItems(e).filter { it.value in e.value }.joinToString(",") { it.value } },
+                    violation = { e, v -> accordionViolation(e, splitList(v)) },
+                    withValue = { e, v -> e.copy(value = splitList(v)) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(AccordionItemElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
+        register(AccordionTriggerElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(NavigationMenuItemElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(
+            NavigationMenuTriggerElement::class,
+            ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }),
+        )
+        register(
+            NavigationMenuLinkElement::class,
+            ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }),
+        )
+        register(SidebarProviderElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
+        register(SidebarGroupLabelElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(SidebarMenuBadgeElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(SidebarGroupActionElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }))
+        register(SidebarMenuActionElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }))
+        register(SidebarMenuButtonElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }))
+        register(SidebarMenuSubButtonElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }, action = { ActionRule(it.onClick, submitsInput = false) }))
+        register(SidebarTriggerElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
+        register(
+            CarouselElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { it.index.toString() },
+                    violation = { e, v ->
+                        val slides = e.children.filterIsInstance<CarouselContentElement>().sumOf { content -> content.children.count { it is CarouselItemElement } }
+                        val index = v.toIntOrNull()
+                        if (index == null || index < 0 || index >= slides) "value is not a slide" else null
+                    },
+                    withValue = { e, v -> e.copy(index = v.toInt()) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(CarouselPreviousElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
+        register(CarouselNextElement::class, ElementRule(enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }))
+        register(
+            ResizablePanelGroupElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { e -> resizableSizes(e).joinToString(",") { formatShare(it) } },
+                    violation = { e, v -> resizableViolation(e, v) },
+                    withValue = { e, v -> e.copy(sizes = v.split(',').map { it.trim().toDouble() }) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            BreadcrumbLinkElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(
+            PaginationLinkElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(
+            PaginationPreviousElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(
+            PaginationNextElement::class,
+            ElementRule(
+                withText = { e, t -> e.copy(text = t) },
+                enabled = { it.enabled },
+                withEnabled = { e, on -> e.copy(enabled = on) },
+                action = { ActionRule(it.onClick, submitsInput = false) },
+            ),
+        )
+        register(BreadcrumbPageElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
+        register(BreadcrumbEllipsisElement::class, ElementRule(action = { ActionRule(null, submitsInput = false) }))
+        register(
+            TabsElement::class,
+            ElementRule(
+                input = InputRule(
+                    current = { it.value },
+                    violation = { e, v ->
+                        val trigger = tabTriggers(e).firstOrNull { it.value == v }
+                        when {
+                            trigger == null -> "value is not a tab"
+                            !trigger.enabled && v != e.value -> "the tab is disabled"
+                            else -> null
+                        }
+                    },
+                    withValue = { e, v -> e.copy(value = v) },
+                    onChange = { it.onChange },
+                ),
+            ),
+        )
+        register(
+            TabsTriggerElement::class,
+            ElementRule(withText = { e, t -> e.copy(text = t) }, enabled = { it.enabled }, withEnabled = { e, on -> e.copy(enabled = on) }),
+        )
         register(AlertDialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(SheetElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(DrawerElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))

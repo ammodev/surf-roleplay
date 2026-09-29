@@ -9,10 +9,13 @@ import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.fabric.ui.widget.ButtonWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.FormWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.ActionInterceptor
+import dev.slne.surf.roleplay.fabric.ui.widget.KeyInterceptor
+import dev.slne.surf.roleplay.fabric.ui.widget.ShortcutWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayContainerWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.OverlayHostWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Popover
-import dev.slne.surf.roleplay.fabric.ui.widget.ScrollListWidget
+import dev.slne.surf.roleplay.fabric.ui.widget.ScrollContainer
 import dev.slne.surf.roleplay.fabric.ui.widget.UiContext
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetTree
@@ -156,6 +159,11 @@ class ScreenPanel(
     private var dragTarget: Widget? = null
 
     /**
+     * The widget that asked to be dragged during the current click, or `null` if none did.
+     */
+    private var requestedDrag: Widget? = null
+
+    /**
      * Whether the tree must be laid out before the next frame.
      */
     private var layoutPending: Boolean = true
@@ -270,6 +278,7 @@ class ScreenPanel(
     private fun layout(measurer: TextMeasurer) {
         layoutPending = false
         this.measurer = measurer
+        WidgetTree.resolveDirection(root)
         val box = root.createLayout(measurer)
         val chromeX = 2 * UiMetrics.PANEL_PADDING
         val chromeY = 2 * UiMetrics.PANEL_PADDING + UiMetrics.TITLE_BAR_HEIGHT
@@ -372,8 +381,8 @@ class ScreenPanel(
         style.presentation == Presentation.SHEET && System.currentTimeMillis() - openedAt < SLIDE_MILLIS
 
     /**
-     * Scrolls the scroll lists around the focused widget, innermost first, so that the widget is
-     * visible inside them.
+     * Scrolls the scroll lists and scroll areas around the focused widget, innermost first, so
+     * that the widget is visible inside them.
      *
      * @return whether a list scrolled, in which case the panel must be laid out again
      */
@@ -383,7 +392,7 @@ class ScreenPanel(
         var current: Widget = focused
         while (true) {
             val parent = WidgetTree.parentOf(root, current.id) ?: break
-            if (parent is ScrollListWidget) moved = parent.ensureVisible(focused) || moved
+            if (parent is ScrollContainer) moved = parent.ensureVisible(focused) || moved
             current = parent
         }
         return moved
@@ -539,14 +548,26 @@ class ScreenPanel(
     }
 
     /**
-     * Starts a drag on the focused widget after a left click on it, if it can be dragged.
+     * Starts a drag after a left click on the widget that asked for one, or else on the focused
+     * widget, if it can be dragged.
      *
      * @param x the mouse x position
      * @param y the mouse y position
      * @param button the mouse button
      */
     private fun startDrag(x: Double, y: Double, button: Int) {
-        dragTarget = focusedWidget?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
+        val requested = requestedDrag
+        requestedDrag = null
+        dragTarget = (requested ?: focusedWidget)?.takeIf { it.draggable && it.isOver(x, y) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT }
+    }
+
+    /**
+     * Makes a widget receive the mouse movement while the pressed button stays held.
+     *
+     * @param widget the widget to drag
+     */
+    override fun beginDrag(widget: Widget) {
+        requestedDrag = widget
     }
 
     /**
@@ -619,9 +640,43 @@ class ScreenPanel(
             return true
         }
         if (event.isEscape) return false
-        val focused = focusedWidget ?: return false
-        if (focused.keyPressed(this, event)) return true
-        return (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) && submitForm(focused)
+        val focused = focusedWidget
+        if (focused != null) {
+            if (focused.keyPressed(this, event)) return true
+            if (offerKey(focused, event)) return true
+        }
+        if (offerShortcut(event)) return true
+        return focused != null && (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) && submitForm(focused)
+    }
+
+    /**
+     * Offers a key that nothing else used to the widgets of the tree that react to shortcuts, in
+     * tree order, until one handles it.
+     *
+     * @param event the key event
+     * @return whether a widget handled the key
+     */
+    private fun offerShortcut(event: KeyEvent): Boolean {
+        val handlers = mutableListOf<ShortcutWidget>()
+        WidgetTree.visit(root) { if (it is ShortcutWidget) handlers += it }
+        return handlers.any { it.shortcut(this, event) }
+    }
+
+    /**
+     * Offers a key the focused widget did not use to the containers around it, nearest first,
+     * until one handles it.
+     *
+     * @param focused the focused widget
+     * @param event the key event
+     * @return whether a container handled the key
+     */
+    private fun offerKey(focused: Widget, event: KeyEvent): Boolean {
+        var current: Widget = focused
+        while (true) {
+            val parent = WidgetTree.parentOf(root, current.id) ?: return false
+            if (parent is KeyInterceptor && parent.descendantKeyPressed(this, focused, event)) return true
+            current = parent
+        }
     }
 
     /**
@@ -733,6 +788,7 @@ class ScreenPanel(
      * @param submitsInput whether the action submits the screen's input
      */
     override fun actionTriggered(widget: Widget, submitsInput: Boolean) {
+        if (interceptAction(widget)) return
         OverlayHostWidget.hostOfTrigger(root, widget)?.let { host ->
             if (host.enabled) host.toggle(this)
             return
@@ -742,6 +798,21 @@ class ScreenPanel(
         if (submitsInput) WidgetTree.touchAll(root)
         listener.actionTriggered(this, widget)
         stack.lastOrNull { it.containsWidget(widget) }?.afterAction(this, widget, submitsInput)
+    }
+
+    /**
+     * Offers an action to the containers around the widget, nearest first, until one handles it.
+     *
+     * @param widget the widget whose action fired
+     * @return whether a container handled the action
+     */
+    private fun interceptAction(widget: Widget): Boolean {
+        var via = widget
+        while (true) {
+            val parent = WidgetTree.parentOf(root, via.id) ?: return false
+            if (parent is ActionInterceptor && parent.interceptAction(this, widget, via)) return true
+            via = parent
+        }
     }
 
     /**

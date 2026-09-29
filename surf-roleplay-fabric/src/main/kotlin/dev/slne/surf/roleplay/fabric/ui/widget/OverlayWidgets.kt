@@ -295,14 +295,25 @@ open class WidgetPopover(
     override val focusRoot: Widget? get() = if (trapFocus) content else null
 
     /**
-     * Computes the area the content is placed in, given its size.
+     * Computes the area the content is placed in, given its size. When the host is
+     * right-to-left, left and right swap, and so do start and end alignment above and below the
+     * anchor.
      *
      * @param size the size of the content
      * @param window the window area
      * @return the area
      */
-    open fun place(size: dev.slne.surf.roleplay.fabric.ui.layout.Size, window: Rect): Rect =
-        OverlayPlacement.place(owner.anchor(), size, window, side, align, offset)
+    open fun place(size: dev.slne.surf.roleplay.fabric.ui.layout.Size, window: Rect): Rect {
+        val rtl = owner.rtl
+        val across = side == OverlaySide.TOP || side == OverlaySide.BOTTOM
+        val shownAlign = when {
+            !rtl || !across -> align
+            align == Align.START -> Align.END
+            align == Align.END -> Align.START
+            else -> align
+        }
+        return OverlayPlacement.place(owner.anchor(), size, window, side.inDirection(rtl), shownAlign, offset)
+    }
 
     /**
      * Returns the largest width the content may take.

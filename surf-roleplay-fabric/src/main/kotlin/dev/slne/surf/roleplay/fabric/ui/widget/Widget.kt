@@ -5,6 +5,7 @@ import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.PanelSizing
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
+import dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout
 import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
@@ -32,6 +33,14 @@ interface UiContext {
      * @param widget the widget to focus, or `null` to clear the focus
      */
     fun focus(widget: Widget?)
+
+    /**
+     * Makes a widget receive the mouse movement while the button that was just pressed stays
+     * held, without giving it the focus.
+     *
+     * @param widget the widget to drag
+     */
+    fun beginDrag(widget: Widget) = Unit
 
     /**
      * Whether the focus ring is shown: after the player used the keyboard, and not after a mouse
@@ -229,9 +238,20 @@ abstract class Widget(val id: String) {
         internal set
 
     /**
-     * The layout box created for the widget by the last [createLayout].
+     * Whether the widget lies in a right-to-left subtree, set from the nearest direction widget
+     * around it before every layout. A right-to-left widget's layout box mirrors its children.
+     */
+    var rtl: Boolean = false
+
+    /**
+     * The layout box created for the widget by the last [createLayout]. Setting it marks the box
+     * as mirrored when the widget is right-to-left.
      */
     internal var layoutBox: LayoutBox? = null
+        set(value) {
+            value?.mirrored = rtl
+            field = value
+        }
 
     /**
      * Whether a click can give this widget the keyboard focus.
@@ -285,6 +305,26 @@ abstract class Widget(val id: String) {
     open fun applyLayout() {
         bounds = layoutBox?.bounds ?: Rect.EMPTY
     }
+
+    /**
+     * Returns a rectangle inside the widget at its mirror image when the widget is right-to-left,
+     * for parts of the widget that sit on one side of it.
+     *
+     * @param rect the rectangle as it is placed from left to right
+     * @return the rectangle mirrored within [bounds] when right-to-left, and [rect] otherwise
+     */
+    fun mirrored(rect: Rect): Rect = if (rtl) FlexLayout.mirror(rect, bounds) else rect
+
+    /**
+     * Returns the left edge of a part of the widget at its mirror image when the widget is
+     * right-to-left, such as a text drawn at a point.
+     *
+     * @param x the left edge of the part as it is placed from left to right
+     * @param width the width of the part
+     * @return the left edge of the part mirrored within [bounds] when right-to-left, and [x]
+     *         otherwise
+     */
+    fun mirroredX(x: Int, width: Int): Int = if (rtl) bounds.x + bounds.right - x - width else x
 
     /**
      * Moves the widget and its children by an offset.
@@ -389,7 +429,7 @@ abstract class Widget(val id: String) {
      * @param y the y position
      * @return whether the point lies within [bounds]
      */
-    fun isOver(x: Double, y: Double): Boolean = bounds.contains(x, y)
+    open fun isOver(x: Double, y: Double): Boolean = bounds.contains(x, y)
 
     /**
      * Checks whether a point is on this widget.
@@ -398,7 +438,7 @@ abstract class Widget(val id: String) {
      * @param y the y position
      * @return whether the point lies within [bounds]
      */
-    fun isOver(x: Int, y: Int): Boolean = bounds.contains(x.toDouble(), y.toDouble())
+    fun isOver(x: Int, y: Int): Boolean = isOver(x.toDouble(), y.toDouble())
 }
 
 /**
@@ -545,7 +585,7 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
  *
  * @param id the id of the widget
  */
-class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
+class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL), ScrollContainer {
     /**
      * Always `true`: the list scrolls its children.
      */
@@ -640,7 +680,7 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
      * @param widget the descendant
      * @return whether the list scrolled
      */
-    fun ensureVisible(widget: Widget): Boolean {
+    override fun ensureVisible(widget: Widget): Boolean {
         val top = widget.bounds.y - bounds.y + scrollOffset
         val bottom = top + widget.bounds.height
         var next = scrollOffset
@@ -666,4 +706,52 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
          */
         const val SCROLL_HANDLE_ALPHA: Float = 0.4f
     }
+}
+
+/**
+ * A container that takes the actions of some of its descendants for itself instead of letting
+ * them reach the server, such as a collapsible whose trigger button shows its content.
+ */
+interface ActionInterceptor {
+    /**
+     * Handles an action of a descendant, or declines it.
+     *
+     * @param context the screen showing the widget
+     * @param widget the widget whose action fired
+     * @param via the child of this container that holds the widget, or the widget itself
+     * @return whether the action was handled and must not reach the server
+     */
+    fun interceptAction(context: UiContext, widget: Widget, via: Widget): Boolean
+}
+
+/**
+ * A container that handles the keys its focused descendants do not use, such as a tab list that
+ * moves between its triggers on the arrow keys.
+ */
+interface KeyInterceptor {
+    /**
+     * Handles a key the focused descendant did not use, or declines it.
+     *
+     * @param context the screen showing the widget
+     * @param focused the focused descendant
+     * @param event the key event
+     * @return whether the key was handled
+     */
+    fun descendantKeyPressed(context: UiContext, focused: Widget, event: KeyEvent): Boolean
+}
+
+/**
+ * A widget that reacts to a keyboard shortcut anywhere on its screen, such as a sidebar provider
+ * that toggles its sidebar on Ctrl+B.
+ */
+interface ShortcutWidget {
+    /**
+     * Handles a key that neither the focused widget nor the containers around it used, or
+     * declines it.
+     *
+     * @param context the screen showing the widget
+     * @param event the key event
+     * @return whether the key was the shortcut and was handled
+     */
+    fun shortcut(context: UiContext, event: KeyEvent): Boolean
 }

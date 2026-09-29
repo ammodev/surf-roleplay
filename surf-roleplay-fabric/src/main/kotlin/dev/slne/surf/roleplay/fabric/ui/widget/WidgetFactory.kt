@@ -3,6 +3,75 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.layout.Axis
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
 import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarProviderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarInsetNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarFooterNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupLabelNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuBadgeNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarRailNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarSide
+import dev.slne.surf.roleplay.protocol.screen.ScrollOrientation
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuLinkNode
+import dev.slne.surf.roleplay.protocol.screen.Sizing
+import dev.slne.surf.roleplay.protocol.screen.SizeMode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNextNode
+import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
+import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
+import dev.slne.surf.roleplay.protocol.screen.DirectionNode
+import dev.slne.surf.roleplay.protocol.screen.LayoutDirection
+import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbLinkNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbPageNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbEllipsisNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationContentNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationItemNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationLinkNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNextNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationEllipsisNode
+import dev.slne.surf.roleplay.protocol.screen.Orientation
+import dev.slne.surf.roleplay.protocol.screen.TabsNode
+import dev.slne.surf.roleplay.protocol.screen.TabsListNode
+import dev.slne.surf.roleplay.protocol.screen.TabsTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionItemNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleContentNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
 import dev.slne.surf.roleplay.protocol.screen.DialogNode
 import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
@@ -262,6 +331,129 @@ object WidgetFactory {
             is DrawerNode -> container(ModalHostWidget(node.id, ModalKind.DRAWER), node.children).apply { requestOpen(node.open) }
             is DrawerContentNode -> container(DrawerContentWidget(node.id, node.direction), node.children)
             is OverlayContainerNode -> container(OverlayContainerWidget(node.id), node.children)
+            is CollapsibleNode -> container(CollapsibleWidget(node.id), node.children).apply { setOpen(node.open) }
+            is CollapsibleTriggerNode -> container(CollapsibleTriggerWidget(node.id), node.children)
+            is CollapsibleContentNode -> container(CollapsibleContentWidget(node.id), node.children)
+            is AccordionNode -> container(AccordionWidget(node.id, node.type, node.collapsible), node.children).apply { open(node.value.toSet()) }
+            is AccordionItemNode -> container(AccordionItemWidget(node.id, node.value), node.children).apply {
+                enabled = node.enabled
+                trigger?.item = this
+            }
+            is AccordionTriggerNode -> AccordionTriggerWidget(node.id, node.text)
+            is AccordionContentNode -> container(AccordionContentWidget(node.id), node.children)
+            is TabsNode -> TabsWidget(node.id, node.orientation).apply {
+                node.children.mapTo(childList) { child -> if (child is TabsListNode) tabsList(child, node.orientation) else create(child) }
+                triggers.forEach { it.tabs = this }
+                select(node.value)
+            }
+            is TabsListNode -> tabsList(node, Orientation.HORIZONTAL)
+            is TabsTriggerNode -> TabsTriggerWidget(node.id, node.value, node.text, node.icon).apply { enabled = node.enabled }
+            is TabsContentNode -> container(TabsContentWidget(node.id, node.value), node.children)
+            is BreadcrumbNode -> container(ContainerWidget(node.id, Axis.VERTICAL), node.children)
+            is BreadcrumbListNode -> container(PathRowWidget(node.id, BREADCRUMB_GAP), node.children)
+            is BreadcrumbItemNode -> container(PathRowWidget(node.id, BREADCRUMB_ITEM_GAP), node.children)
+            is BreadcrumbLinkNode -> BreadcrumbLinkWidget(node.id, node.text).apply { enabled = node.enabled }
+            is BreadcrumbPageNode -> BreadcrumbPageWidget(node.id, node.text)
+            is BreadcrumbSeparatorNode -> MutedIconWidget(node.id, node.icon, BREADCRUMB_SEPARATOR)
+            is BreadcrumbEllipsisNode -> EllipsisWidget(node.id, BREADCRUMB_ELLIPSIS, clickable = true)
+            is PaginationNode -> container(PathRowWidget(node.id, 0, Align.CENTER), node.children)
+            is PaginationContentNode -> container(PathRowWidget(node.id, PAGINATION_GAP), node.children)
+            is PaginationItemNode -> container(PathRowWidget(node.id, 0), node.children)
+            is PaginationLinkNode -> PaginationLinkWidget(node.id, node.text, node.active, PaginationLinkKind.PAGE).apply { enabled = node.enabled }
+            is PaginationPreviousNode -> PaginationLinkWidget(node.id, node.text, false, PaginationLinkKind.PREVIOUS).apply { enabled = node.enabled }
+            is PaginationNextNode -> PaginationLinkWidget(node.id, node.text, false, PaginationLinkKind.NEXT).apply { enabled = node.enabled }
+            is PaginationEllipsisNode -> EllipsisWidget(node.id, PaginationLinkWidget.HEIGHT, clickable = false)
+            is ScrollAreaNode -> container(ScrollAreaWidget(node.id, node.orientation), node.children)
+            is DirectionNode -> container(DirectionWidget(node.id, node.direction), node.children)
+            is ResizablePanelGroupNode -> container(ResizablePanelGroupWidget(node.id, node.orientation), node.children).apply {
+                childList.filterIsInstance<ResizableHandleWidget>().forEach { it.group = this }
+                resetSizes()
+            }
+            is ResizablePanelNode -> container(ResizablePanelWidget(node.id, node.defaultSize, node.minSize, node.maxSize), node.children)
+            is ResizableHandleNode -> ResizableHandleWidget(node.id, node.withHandle)
+            is CarouselNode -> CarouselWidget(node.id, node.orientation, node.loop).apply {
+                val parts = node.children.map { child ->
+                    when (child) {
+                        is CarouselContentNode -> container(CarouselContentWidget(child.id, node.orientation), child.children).apply {
+                            width = child.width
+                            height = child.height
+                            if (node.orientation == Orientation.HORIZONTAL && width.mode == SizeMode.FIT) width = Sizing.grow()
+                            if (node.orientation == Orientation.VERTICAL && height.mode == SizeMode.FIT) height = Sizing.grow()
+                            if (node.orientation == Orientation.VERTICAL && width.mode == SizeMode.FIT) width = Sizing.grow()
+                        }
+                        is CarouselPreviousNode -> CarouselButtonWidget(child.id, next = false, usable = child.enabled, vertical = node.orientation == Orientation.VERTICAL)
+                        is CarouselNextNode -> CarouselButtonWidget(child.id, next = true, usable = child.enabled, vertical = node.orientation == Orientation.VERTICAL)
+                        else -> create(child)
+                    }
+                }
+                childList += parts.filter { it is CarouselButtonWidget && !it.next }
+                childList += parts.filter { !(it is CarouselButtonWidget) }
+                childList += parts.filter { it is CarouselButtonWidget && it.next }
+                show(node.index)
+            }
+            is CarouselContentNode -> container(CarouselContentWidget(node.id, Orientation.HORIZONTAL), node.children)
+            is CarouselItemNode -> container(CarouselItemWidget(node.id, node.basis), node.children)
+            is CarouselPreviousNode -> CarouselButtonWidget(node.id, next = false, usable = node.enabled, vertical = false)
+            is CarouselNextNode -> CarouselButtonWidget(node.id, next = true, usable = node.enabled, vertical = false)
+            is NavigationMenuNode -> container(NavigationMenuWidget(node.id), node.children).apply { items.forEach { it.menu = this } }
+            is NavigationMenuListNode -> container(PathRowWidget(node.id, NAVIGATION_MENU_GAP), node.children)
+            is NavigationMenuItemNode -> NavigationMenuItemWidget(node.id).apply {
+                node.children.mapTo(childList) { child ->
+                    if (child is NavigationMenuLinkNode) navigationMenuLink(child, triggerStyle = true) else create(child)
+                }
+                childList.filterIsInstance<NavigationMenuTriggerWidget>().forEach { it.item = this }
+                requestOpen(node.open)
+            }
+            is NavigationMenuTriggerNode -> NavigationMenuTriggerWidget(node.id, node.text).apply { enabled = node.enabled }
+            is NavigationMenuContentNode -> container(NavigationMenuContentWidget(node.id), node.children)
+            is NavigationMenuLinkNode -> navigationMenuLink(node, triggerStyle = false)
+            is SidebarProviderNode -> SidebarProviderWidget(node.id).apply {
+                val parts = node.children.map { create(it) }
+                val sidebar = parts.firstOrNull { it is SidebarWidget } as SidebarWidget?
+                childList += if (sidebar?.side == SidebarSide.RIGHT) parts.filter { it !== sidebar } + sidebar else parts
+                childList.filterIsInstance<SidebarInsetWidget>().forEach { if (it.width.mode == SizeMode.FIT) it.width = Sizing.grow() }
+                setOpen(node.open)
+            }
+            is SidebarNode -> container(SidebarWidget(node.id, node.side, node.variant, node.collapsible), node.children)
+            is SidebarInsetNode -> container(SidebarInsetWidget(node.id), node.children)
+            is SidebarHeaderNode -> container(SidebarSectionWidget(node.id), node.children)
+            is SidebarFooterNode -> container(SidebarSectionWidget(node.id), node.children)
+            is SidebarContentNode -> container(ScrollAreaWidget(node.id, ScrollOrientation.VERTICAL), node.children).apply { if (node.height.mode == SizeMode.FIT) height = Sizing.grow() }
+            is SidebarGroupNode -> SidebarGroupWidget(node.id).apply {
+                val parts = node.children.map { create(it) }
+                val label = parts.firstOrNull { it is SidebarGroupLabelWidget }
+                val action = parts.firstOrNull { it is SidebarGroupActionWidget }
+                if (label != null && action != null) {
+                    label.width = Sizing.grow()
+                    val header = ContainerWidget("${node.id}:header", Axis.HORIZONTAL).apply {
+                        crossAlign = Align.CENTER
+                        childList += label
+                        childList += action
+                    }
+                    childList += parts.map { if (it === label) header else it }.filter { it !== action }
+                } else {
+                    childList += parts
+                }
+            }
+            is SidebarGroupLabelNode -> SidebarGroupLabelWidget(node.id, node.text)
+            is SidebarGroupActionNode -> SidebarGroupActionWidget(node.id, node.icon).apply { enabled = node.enabled }
+            is SidebarGroupContentNode -> container(ContainerWidget(node.id, Axis.VERTICAL).apply { crossAlign = Align.STRETCH }, node.children)
+            is SidebarMenuNode -> container(ContainerWidget(node.id, Axis.VERTICAL).apply {
+                crossAlign = Align.STRETCH
+                gap = SIDEBAR_MENU_GAP
+            }, node.children)
+            is SidebarMenuItemNode -> container(SidebarMenuItemWidget(node.id), node.children).apply {
+                childList.filterIsInstance<SidebarMenuActionWidget>().forEach { it.item = this }
+            }
+            is SidebarMenuButtonNode -> SidebarMenuButtonWidget(node.id, node.text, node.icon, node.size, node.variant, node.active, node.tooltip).apply { enabled = node.enabled }
+            is SidebarMenuActionNode -> SidebarMenuActionWidget(node.id, node.icon, node.showOnHover).apply { enabled = node.enabled }
+            is SidebarMenuBadgeNode -> SidebarMenuBadgeWidget(node.id, node.text)
+            is SidebarMenuSkeletonNode -> SidebarMenuSkeletonWidget(node.id, node.showIcon)
+            is SidebarMenuSubNode -> container(SidebarMenuSubWidget(node.id), node.children)
+            is SidebarMenuSubItemNode -> container(ContainerWidget(node.id, Axis.VERTICAL).apply { crossAlign = Align.STRETCH }, node.children)
+            is SidebarMenuSubButtonNode -> SidebarMenuSubButtonWidget(node.id, node.text, node.icon, node.size, node.active).apply { enabled = node.enabled }
+            is SidebarTriggerNode -> SidebarTriggerWidget(node.id).apply { enabled = node.enabled }
+            is SidebarRailNode -> SidebarRailWidget(node.id)
             is InputOtpNode -> InputOtpWidget(node.id, node.length, node.groups, node.pattern, node.value, node.required).apply { enabled = node.enabled }
         }
         widget.width = node.width
@@ -290,10 +482,80 @@ object WidgetFactory {
             is AlertDialogNode -> node.notifyChange
             is SheetNode -> node.notifyChange
             is DrawerNode -> node.notifyChange
+            is CollapsibleNode -> node.notifyChange
+            is AccordionNode -> node.notifyChange
+            is TabsNode -> node.notifyChange
+            is ResizablePanelGroupNode -> node.notifyChange
+            is CarouselNode -> node.notifyChange
+            is NavigationMenuItemNode -> node.notifyChange
+            is SidebarProviderNode -> node.notifyChange
             else -> false
         }
         return widget
     }
+
+    /**
+     * The space between the items and separators of a breadcrumb.
+     */
+    private const val BREADCRUMB_GAP: Int = 4
+
+    /**
+     * The space between the parts of a breadcrumb item.
+     */
+    private const val BREADCRUMB_ITEM_GAP: Int = 3
+
+    /**
+     * The size of a breadcrumb separator.
+     */
+    private const val BREADCRUMB_SEPARATOR: Int = 7
+
+    /**
+     * The size of the box of a breadcrumb ellipsis.
+     */
+    private const val BREADCRUMB_ELLIPSIS: Int = 12
+
+    /**
+     * The space between the items of a pagination.
+     */
+    private const val PAGINATION_GAP: Int = 2
+
+    /**
+     * The space between the items of a sidebar menu.
+     */
+    private const val SIDEBAR_MENU_GAP: Int = 2
+
+    /**
+     * The space between the items of a navigation menu.
+     */
+    private const val NAVIGATION_MENU_GAP: Int = 2
+
+    /**
+     * Creates a navigation menu link.
+     *
+     * @param node the link node
+     * @param triggerStyle whether the link is drawn like a trigger, as it is directly in an item
+     * @return the link
+     */
+    private fun navigationMenuLink(node: NavigationMenuLinkNode, triggerStyle: Boolean): NavigationMenuLinkWidget =
+        container(NavigationMenuLinkWidget(node.id, node.active, triggerStyle), node.children).apply {
+            enabled = node.enabled
+            width = node.width
+            height = node.height
+        }
+
+    /**
+     * Creates a tab list whose triggers are laid out across the orientation of its tabs.
+     *
+     * @param node the list node
+     * @param orientation the orientation of the tabs around the list
+     * @return the list
+     */
+    private fun tabsList(node: TabsListNode, orientation: Orientation): TabsListWidget =
+        container(TabsListWidget(node.id, node.variant, if (orientation == Orientation.HORIZONTAL) Axis.HORIZONTAL else Axis.VERTICAL), node.children).apply {
+            childList.filterIsInstance<TabsTriggerWidget>().forEach { it.list = this }
+            width = node.width
+            height = node.height
+        }
 
     /**
      * Fills a container with the widgets of child nodes.
@@ -362,6 +624,19 @@ object WidgetTree {
      * @param root the root of the tree
      */
     fun touchAll(root: Widget) = visit(root) { it.touched = true }
+
+    /**
+     * Sets for every widget of a tree whether it is right-to-left: as its nearest direction
+     * widget says, itself included, or left-to-right without one.
+     *
+     * @param root the root of the tree
+     * @param rtl whether the root lies in a right-to-left subtree
+     */
+    fun resolveDirection(root: Widget, rtl: Boolean = false) {
+        val own = if (root is DirectionWidget) root.direction == LayoutDirection.RTL else rtl
+        root.rtl = own
+        root.children.forEach { resolveDirection(it, own) }
+    }
 
     /**
      * Calls a function for every widget of a tree, parents before children.

@@ -251,6 +251,130 @@ import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
 import dev.slne.surf.roleplay.protocol.screen.AlertDialogMediaNode
 import dev.slne.surf.roleplay.api.client.common.screen.OverlayContainerElement
 import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleElement
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.CollapsibleContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.AccordionContentElement
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.CollapsibleContentNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionItemNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
+import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsListElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsContentElement
+import dev.slne.surf.roleplay.protocol.screen.TabsNode
+import dev.slne.surf.roleplay.protocol.screen.TabsListNode
+import dev.slne.surf.roleplay.protocol.screen.TabsTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbListElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbPageElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbSeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.BreadcrumbEllipsisElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationLinkElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationNextElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationEllipsisElement
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationContentNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationItemNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbLinkNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbPageNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbEllipsisNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationLinkNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNextNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationEllipsisNode
+import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
+import dev.slne.surf.roleplay.api.client.common.screen.DirectionElement
+import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
+import dev.slne.surf.roleplay.protocol.screen.DirectionNode
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelElement
+import dev.slne.surf.roleplay.api.client.common.screen.ResizableHandleElement
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
+import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.CarouselNextElement
+import dev.slne.surf.roleplay.protocol.screen.CarouselNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselPreviousNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNextNode
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuListElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuLinkElement
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuLinkNode
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarInsetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupLabelElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarGroupActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuActionElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuBadgeElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSkeletonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuSubButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarTriggerElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarRailElement
+import dev.slne.surf.roleplay.protocol.screen.SidebarProviderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarInsetNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarHeaderNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarFooterNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupLabelNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuActionNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuBadgeNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuSubButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarRailNode
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
@@ -452,6 +576,71 @@ object ScreenMapper {
             is DrawerElement -> DrawerNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
             is OverlayContainerElement -> OverlayContainerNode(element.id, width, height, element.children.map(::toNode))
             is DrawerContentElement -> DrawerContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
+            is CollapsibleElement -> CollapsibleNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is CollapsibleTriggerElement -> CollapsibleTriggerNode(element.id, width, height, element.children.map(::toNode))
+            is CollapsibleContentElement -> CollapsibleContentNode(element.id, width, height, element.children.map(::toNode))
+            is AccordionElement -> AccordionNode(element.id, width, height, element.children.map(::toNode), enumOf(element.type), element.collapsible, element.value, element.onChange != null)
+            is AccordionItemElement -> AccordionItemNode(element.id, width, height, element.children.map(::toNode), element.value, element.enabled)
+            is AccordionTriggerElement -> AccordionTriggerNode(element.id, width, height, text(element.text))
+            is AccordionContentElement -> AccordionContentNode(element.id, width, height, element.children.map(::toNode))
+            is TabsElement -> TabsNode(element.id, width, height, element.children.map(::toNode), element.value, enumOf(element.orientation), element.onChange != null)
+            is TabsListElement -> TabsListNode(element.id, width, height, element.children.map(::toNode), enumOf(element.variant))
+            is TabsTriggerElement -> TabsTriggerNode(element.id, width, height, element.value, text(element.text), element.icon, element.enabled)
+            is TabsContentElement -> TabsContentNode(element.id, width, height, element.children.map(::toNode), element.value)
+            is BreadcrumbElement -> BreadcrumbNode(element.id, width, height, element.children.map(::toNode))
+            is BreadcrumbListElement -> BreadcrumbListNode(element.id, width, height, element.children.map(::toNode))
+            is BreadcrumbItemElement -> BreadcrumbItemNode(element.id, width, height, element.children.map(::toNode))
+            is PaginationElement -> PaginationNode(element.id, width, height, element.children.map(::toNode))
+            is PaginationContentElement -> PaginationContentNode(element.id, width, height, element.children.map(::toNode))
+            is PaginationItemElement -> PaginationItemNode(element.id, width, height, element.children.map(::toNode))
+            is BreadcrumbLinkElement -> BreadcrumbLinkNode(element.id, width, height, text(element.text), element.enabled)
+            is BreadcrumbPageElement -> BreadcrumbPageNode(element.id, width, height, text(element.text))
+            is BreadcrumbSeparatorElement -> BreadcrumbSeparatorNode(element.id, width, height, element.icon)
+            is BreadcrumbEllipsisElement -> BreadcrumbEllipsisNode(element.id, width, height)
+            is PaginationLinkElement -> PaginationLinkNode(element.id, width, height, text(element.text), element.active, element.enabled)
+            is PaginationPreviousElement -> PaginationPreviousNode(element.id, width, height, text(element.text), element.enabled)
+            is PaginationNextElement -> PaginationNextNode(element.id, width, height, text(element.text), element.enabled)
+            is PaginationEllipsisElement -> PaginationEllipsisNode(element.id, width, height)
+            is ScrollAreaElement -> ScrollAreaNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation))
+            is DirectionElement -> DirectionNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
+            is ResizablePanelGroupElement -> ResizablePanelGroupNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation), element.onChange != null)
+            is ResizablePanelElement -> ResizablePanelNode(element.id, width, height, element.children.map(::toNode), element.defaultSize, element.minSize, element.maxSize)
+            is ResizableHandleElement -> ResizableHandleNode(element.id, width, height, element.withHandle)
+            is CarouselElement -> CarouselNode(element.id, width, height, element.children.map(::toNode), enumOf(element.orientation), element.loop, element.index, element.onChange != null)
+            is CarouselContentElement -> CarouselContentNode(element.id, width, height, element.children.map(::toNode))
+            is CarouselItemElement -> CarouselItemNode(element.id, width, height, element.children.map(::toNode), element.basis)
+            is CarouselPreviousElement -> CarouselPreviousNode(element.id, width, height, element.enabled)
+            is CarouselNextElement -> CarouselNextNode(element.id, width, height, element.enabled)
+            is NavigationMenuElement -> NavigationMenuNode(element.id, width, height, element.children.map(::toNode))
+            is NavigationMenuListElement -> NavigationMenuListNode(element.id, width, height, element.children.map(::toNode))
+            is NavigationMenuItemElement -> NavigationMenuItemNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is NavigationMenuTriggerElement -> NavigationMenuTriggerNode(element.id, width, height, text(element.text), element.enabled)
+            is NavigationMenuContentElement -> NavigationMenuContentNode(element.id, width, height, element.children.map(::toNode))
+            is NavigationMenuLinkElement -> NavigationMenuLinkNode(element.id, width, height, element.children.map(::toNode), element.active, element.enabled)
+            is SidebarProviderElement -> SidebarProviderNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
+            is SidebarElement -> SidebarNode(element.id, width, height, element.children.map(::toNode), enumOf(element.side), enumOf(element.variant), enumOf(element.collapsible))
+            is SidebarInsetElement -> SidebarInsetNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarHeaderElement -> SidebarHeaderNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarFooterElement -> SidebarFooterNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarContentElement -> SidebarContentNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarGroupElement -> SidebarGroupNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarGroupLabelElement -> SidebarGroupLabelNode(element.id, width, height, text(element.text))
+            is SidebarGroupActionElement -> SidebarGroupActionNode(element.id, width, height, element.icon, element.enabled)
+            is SidebarGroupContentElement -> SidebarGroupContentNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuElement -> SidebarMenuNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuItemElement -> SidebarMenuItemNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuButtonElement -> SidebarMenuButtonNode(
+                element.id, width, height, text(element.text), element.icon, enumOf(element.size), enumOf(element.variant), element.active,
+                element.tooltip?.let { text(it) } ?: "", element.enabled,
+            )
+            is SidebarMenuActionElement -> SidebarMenuActionNode(element.id, width, height, element.icon, element.showOnHover, element.enabled)
+            is SidebarMenuBadgeElement -> SidebarMenuBadgeNode(element.id, width, height, text(element.text))
+            is SidebarMenuSkeletonElement -> SidebarMenuSkeletonNode(element.id, width, height, element.showIcon)
+            is SidebarMenuSubElement -> SidebarMenuSubNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuSubItemElement -> SidebarMenuSubItemNode(element.id, width, height, element.children.map(::toNode))
+            is SidebarMenuSubButtonElement -> SidebarMenuSubButtonNode(element.id, width, height, text(element.text), element.icon, enumOf(element.size), element.active, element.enabled)
+            is SidebarTriggerElement -> SidebarTriggerNode(element.id, width, height, element.enabled)
+            is SidebarRailElement -> SidebarRailNode(element.id, width, height)
         }
     }
 

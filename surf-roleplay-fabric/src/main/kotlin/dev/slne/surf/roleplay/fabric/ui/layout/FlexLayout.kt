@@ -112,6 +112,8 @@ enum class Axis {
  * @property minWidth the narrowest width a leaf whose content wraps can take, such as the width
  *           of its longest word, or `null` for the width it takes when it may be no wider than
  *           nothing
+ * @property mirrored whether a container places its children mirrored from right to left, or
+ *           `null` to follow the container it is laid out in
  */
 class LayoutBox(
     val width: Sizing = Sizing.FIT,
@@ -127,6 +129,7 @@ class LayoutBox(
     val measureContent: ((Int) -> Size)? = null,
     val aspectRatio: Float = 0f,
     val minWidth: Int? = null,
+    var mirrored: Boolean? = null,
 ) {
     /**
      * The sizes measured for this box, keyed by the width that was available.
@@ -191,13 +194,19 @@ object FlexLayout {
     }
 
     /**
-     * Lays out a box in exactly the given area, and its children within it.
+     * Lays out a box in exactly the given area, and its children within it. A mirrored container
+     * places each child at the horizontal mirror image, within the container's area, of the place
+     * it would get from left to right, so rows start at the right and start and end alignment
+     * swap.
      *
      * @param box the box
      * @param area the area the box occupies
+     * @param mirroredAround whether the container the box is laid out in is mirrored, which the
+     *        box follows unless it sets [LayoutBox.mirrored] itself
      */
-    fun layout(box: LayoutBox, area: Rect) {
+    fun layout(box: LayoutBox, area: Rect, mirroredAround: Boolean = false) {
         box.bounds = area
+        val mirrored = box.mirrored ?: mirroredAround
         val axis = box.axis
         if (axis == null) {
             box.contentExtent = 0
@@ -213,7 +222,8 @@ object FlexLayout {
         val children = box.children
         if (box.aspectRatio > 0f) {
             val inner = Rect(area.x + padding.left, area.y + padding.top, (area.width - padding.left - padding.right).coerceAtLeast(0), (area.height - padding.top - padding.bottom).coerceAtLeast(0))
-            children.forEach { layout(it, inner) }
+            val placed = if (mirrored) mirror(inner, area) else inner
+            children.forEach { layout(it, placed, mirrored) }
             box.contentExtent = if (axis == Axis.HORIZONTAL) area.width else area.height
             return
         }
@@ -258,13 +268,23 @@ object FlexLayout {
             } else {
                 Rect(innerCrossStart + crossOffset, cursor, crossSize, mainSize)
             }
-            layout(child, childArea)
+            layout(child, if (mirrored) mirror(childArea, area) else childArea, mirrored)
             cursor += mainSize + box.gap
         }
 
         val paddingMain = if (axis == Axis.HORIZONTAL) padding.left + padding.right else padding.top + padding.bottom
         box.contentExtent = used + paddingMain
     }
+
+    /**
+     * Returns the horizontal mirror image of a rectangle within an area.
+     *
+     * @param rect the rectangle
+     * @param area the area it is mirrored in
+     * @return the rectangle at the same distance from the area's right edge as [rect] has from
+     *         its left edge
+     */
+    fun mirror(rect: Rect, area: Rect): Rect = rect.copy(x = area.x + area.right - rect.right)
 
     /**
      * Computes the size a box prefers when it may be at most a given width wide: its fixed size,
