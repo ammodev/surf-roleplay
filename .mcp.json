@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "surf-roadmap": {
+    "roadmap-old": {
       "type": "http",
-      "url": "${ROADMAP_URL:-http://localhost:3000}/api/mcp",
+      "url": "https://rp.slne.dev/api/mcp",
       "headers": {
         "Authorization": "Bearer ${ROADMAP_TOKEN}"
       }
