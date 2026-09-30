@@ -180,8 +180,10 @@ private fun resolve(token: ActionToken): BoundAction?
 
 surf-roleplay is a Kotlin multi-module Gradle build:
 
-- `surf-roleplay-api`: public API, including the server-driven screen API
-- `surf-roleplay-core`: shared core logic
+- `surf-roleplay-api` (`-api-common`, `-api-client`): public API modules, including the
+  server-driven screen API
+- `surf-roleplay-core` (`-core-common`, `-core-client`): implementations of the API, such as users,
+  identities and licenses
 - `surf-roleplay-protocol`: the ProtoBuf protocol shared by server and client mod
 - `surf-roleplay-fabric`: the Fabric client mod
 - `surf-roleplay-paper`: the Paper plugin on a Folia-based server
