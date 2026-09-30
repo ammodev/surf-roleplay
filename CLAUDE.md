@@ -175,3 +175,28 @@ Good:
 private fun resolve(token: ActionToken): BoundAction?
 ```
 <!-- surf-roadmap:end id=doc-comments -->
+
+## Repository layout
+
+surf-roleplay is a Kotlin multi-module Gradle build:
+
+- `surf-roleplay-api`: public API, including the server-driven screen API
+- `surf-roleplay-core`: shared core logic
+- `surf-roleplay-protocol`: the ProtoBuf protocol shared by server and client mod
+- `surf-roleplay-fabric`: the Fabric client mod
+- `surf-roleplay-paper`: the Paper plugin on a Folia-based server
+- `surf-roleplay-velocity`: the Velocity proxy plugin
+- `surf-roleplay-microservice`: the microservice that owns persistent game data
+- `tools/devenv`: the local Docker Compose dev stack
+
+## Review checks
+
+Every code review in this repository also checks:
+
+- Security: the server is authoritative (roadmap ADR 14). Can a modified client trigger
+  something a normal player could not, bypass validation, exhaust memory or flood logs?
+- Threading on the Folia-based server: region ownership, locks, re-entrancy, deadlocks.
+- Protocol changes against the "Protocol versioning" section of the `protocol` system's spec in
+  the roadmap: `@ProtoNumber` on every property, `@SerialName` on every sealed subclass,
+  `@ProtoNumber` on every enum constant, and version bumps.
+- Player-facing text is German; code, identifiers and comments are English.
