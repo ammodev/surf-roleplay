@@ -129,7 +129,9 @@ class StorybookPage(
     override val variant: ScreenVariant get() = if (dark) ScreenVariant.DARK else ScreenVariant.LIGHT
 
     /**
-     * Renders the sidebar and the content area with the shown story.
+     * Renders the sidebar and the content area with the shown story. The page fills the window
+     * height; the story list and the story content scroll on their own, so the sidebar header and
+     * the story header stay in place.
      */
     override fun ComponentScope.render() {
         val shown = stories.firstOrNull { it.key == storyKey }
@@ -138,8 +140,10 @@ class StorybookPage(
                 SidebarHeader {
                     Large("Storybook")
                 }
-                SidebarContent {
-                    StoryCategory.entries.forEach { category -> categoryGroup(category, shown) }
+                ScrollArea(ElementSize.grow(), ElementSize.grow(), id = "storybook_stories") {
+                    SidebarContent {
+                        StoryCategory.entries.forEach { category -> categoryGroup(category, shown) }
+                    }
                 }
             }
             SidebarInset {

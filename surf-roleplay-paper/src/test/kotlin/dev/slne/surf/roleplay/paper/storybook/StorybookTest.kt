@@ -10,7 +10,12 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
+import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarHeaderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
@@ -398,6 +403,27 @@ class StorybookTest {
                 }
             }
         }
+    }
+
+    /**
+     * The storybook fills the window height: its root grows in height, and the story list of the
+     * sidebar and the story content each sit in a scroll area that takes the remaining height, so
+     * that the sidebar header and the story header stay in place.
+     */
+    @Test
+    fun `only the story list and the story content scroll`() {
+        val page = StorybookPage(UUID.randomUUID(), reports::add) { testStories }
+        val root = definition(page).root
+        assertEquals(ElementSize.grow(), (root as SidebarProviderElement).height)
+
+        val sidebar = elements(root).filterIsInstance<SidebarElement>().single()
+        assertIs<SidebarHeaderElement>(sidebar.children.first())
+        val list = assertIs<ScrollAreaElement>(sidebar.children.last())
+        assertEquals(ElementSize.grow(), list.height)
+        assertIs<SidebarContentElement>(list.children.single())
+
+        val content = elements(root).filterIsInstance<ScrollAreaElement>().single { it.id == "storybook_content" }
+        assertEquals(ElementSize.grow(), content.height)
     }
 
     /**
