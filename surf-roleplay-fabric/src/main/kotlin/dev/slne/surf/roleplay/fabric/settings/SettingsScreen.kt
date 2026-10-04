@@ -212,24 +212,25 @@ object SettingsScreen {
          * @param widget the widget that triggered the action
          */
         override fun actionTriggered(panel: ScreenPanel, widget: Widget) {
-            val id = widget.id
-            when {
-                id == SettingsView.RESET_ALL_ID -> {
+            when (val action = SettingsAction.of(widget.id)) {
+                SettingsAction.ResetAll -> {
                     capturing = null
                     mappings().forEach { it.setKey(it.defaultKey) }
                     applyKeys()
                 }
 
-                id.startsWith(SettingsView.BINDING_PREFIX) -> {
-                    capturing = id.removePrefix(SettingsView.BINDING_PREFIX)
+                is SettingsAction.StartCapture -> {
+                    capturing = action.id
                     render()
                 }
 
-                id.startsWith(SettingsView.RESET_PREFIX) -> {
+                is SettingsAction.Reset -> {
                     capturing = null
-                    mappings().firstOrNull { idOf(it) == id.removePrefix(SettingsView.RESET_PREFIX) }?.let { it.setKey(it.defaultKey) }
+                    mappings().firstOrNull { idOf(it) == action.id }?.let { it.setKey(it.defaultKey) }
                     applyKeys()
                 }
+
+                null -> Unit
             }
         }
 
