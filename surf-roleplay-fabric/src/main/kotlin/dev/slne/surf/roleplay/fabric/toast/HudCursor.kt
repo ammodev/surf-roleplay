@@ -3,11 +3,11 @@ package dev.slne.surf.roleplay.fabric.toast
 import com.mojang.blaze3d.platform.InputConstants
 import dev.slne.surf.roleplay.fabric.RoleplayClient
 import dev.slne.surf.roleplay.fabric.settings.KeyMode
+import dev.slne.surf.roleplay.fabric.settings.RoleplayKeys
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
 import net.minecraft.client.MouseHandler
-import net.minecraft.resources.Identifier
 import org.lwjgl.glfw.GLFW
 
 /**
@@ -45,7 +45,7 @@ object HudCursor {
                 "key.surf-roleplay.hud_cursor",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_LEFT_ALT,
-                KeyMapping.Category.register(Identifier.fromNamespaceAndPath("surf-roleplay", "roleplay")),
+                RoleplayKeys.category,
             ),
         )
     }
