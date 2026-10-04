@@ -31,6 +31,12 @@ class RoleplayScreen : Screen(Component.empty()) {
     var keyInterceptor: ((KeyEvent) -> Boolean)? = null
 
     /**
+     * Receives every key release before the default screen behaviour; returning `true` takes the
+     * release. `null` passes every release on.
+     */
+    var keyReleaseInterceptor: ((KeyEvent) -> Boolean)? = null
+
+    /**
      * Receives every mouse click before the panels; returning `true` takes the click, so that the
      * panels do not see it. `null` passes every click to the panels.
      */
@@ -150,13 +156,15 @@ class RoleplayScreen : Screen(Component.empty()) {
     }
 
     /**
-     * Records that a key was released, so that a held activation key can trigger again.
+     * Records that a key was released, so that a held activation key can trigger again, then
+     * offers the release to the key release interceptor and the default screen behaviour.
      *
      * @param event the key event
-     * @return whether the release was handled by the default screen behaviour
+     * @return whether the release was handled
      */
     override fun keyReleased(event: KeyEvent): Boolean {
         repeats.release(event.key())
+        if (keyReleaseInterceptor?.invoke(event) == true) return true
         return super.keyReleased(event)
     }
 

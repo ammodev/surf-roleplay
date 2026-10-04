@@ -1,6 +1,5 @@
 package dev.slne.surf.roleplay.fabric.settings
 
-import com.mojang.blaze3d.platform.InputConstants
 import dev.slne.surf.roleplay.fabric.RoleplayClient
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerState
 import dev.slne.surf.roleplay.fabric.ui.PanelStyle
@@ -58,9 +57,10 @@ object SettingsScreen {
     private var previous: Screen? = null
 
     /**
-     * The id of the binding that waits for a new key, or `null` if none does.
+     * The key capture state: the binding that waits for a new key and the key that ended the
+     * last capture while it is held.
      */
-    private var capturing: String? = null
+    private var capture = CaptureState()
 
     /**
      * Closes the settings screen whenever the roleplay server becomes inactive.
@@ -81,10 +81,11 @@ object SettingsScreen {
         val minecraft = Minecraft.getInstance()
         val current = minecraft.gui.screen()
         if (current != null && current === screen) return
-        capturing = null
+        capture = CaptureState()
         previous = current
         val opened = RoleplayScreen()
         opened.keyInterceptor = ::interceptKey
+        opened.keyReleaseInterceptor = ::interceptKeyRelease
         opened.mouseInterceptor = ::interceptMouse
         val created = ScreenPanel(
             SettingsView.text(SettingsView.TITLE),
@@ -111,7 +112,7 @@ object SettingsScreen {
         screen = null
         panel = null
         previous = null
-        capturing = null
+        capture = CaptureState()
         if (shown != null && minecraft.gui.screen() === shown) minecraft.gui.setScreen(if (returnToPrevious) back else null)
     }
 
@@ -143,7 +144,7 @@ object SettingsScreen {
         }
         val others = Minecraft.getInstance().options.keyMappings.filter { it.category != RoleplayKeys.category }.map { it.saveString() }
         val conflicts = KeyBindings.conflicts(mappings.map { idOf(it) to it.saveString() }, others)
-        return SettingsView.build(rows, conflicts, capturing, RoleplayClient.settings.current)
+        return SettingsView.build(rows, conflicts, capture.capturing, RoleplayClient.settings.current)
     }
 
     /**
@@ -154,40 +155,46 @@ object SettingsScreen {
     }
 
     /**
-     * Takes the next key while a binding waits for one: Escape unbinds the binding, any other
-     * key becomes its key.
+     * Offers a key press to the key capture: while a binding waits, the key becomes its key or,
+     * for Escape, unbinds it; the key that ended a capture is kept from the panels until released.
      *
      * @param event the key event
      * @return whether the key was taken
      */
-    private fun interceptKey(event: KeyEvent): Boolean {
-        val id = capturing ?: return false
-        bind(id, if (event.isEscape) InputConstants.UNKNOWN else InputConstants.getKey(event))
-        return true
-    }
+    private fun interceptKey(event: KeyEvent): Boolean = applyStep(KeyCapture.keyPressed(capture, event))
 
     /**
-     * Takes the next mouse button while a binding waits for a key, and makes it the binding's key.
+     * Offers a key release to the key capture.
+     *
+     * @param event the key event
+     * @return whether the release was taken
+     */
+    private fun interceptKeyRelease(event: KeyEvent): Boolean = applyStep(KeyCapture.keyReleased(capture, event))
+
+    /**
+     * Offers a mouse click to the key capture: while a binding waits, the button becomes its key.
      *
      * @param event the mouse event
      * @return whether the click was taken
      */
-    private fun interceptMouse(event: MouseButtonEvent): Boolean {
-        val id = capturing ?: return false
-        bind(id, InputConstants.Type.MOUSE.getOrCreate(event.button()))
-        return true
-    }
+    private fun interceptMouse(event: MouseButtonEvent): Boolean = applyStep(KeyCapture.mousePressed(capture, event))
 
     /**
-     * Sets the key of one binding, ends the capture, saves and shows the result.
+     * Applies one capture step: stores the new state and, if a binding got a new key, sets it,
+     * saves and shows the result.
      *
-     * @param id the id of the binding
-     * @param key the new key
+     * @param step the capture step
+     * @return whether the event was taken
      */
-    private fun bind(id: String, key: InputConstants.Key) {
-        capturing = null
-        mappings().firstOrNull { idOf(it) == id }?.setKey(key)
-        applyKeys()
+    private fun applyStep(step: CaptureStep): Boolean {
+        capture = step.state
+        val id = step.binding
+        val key = step.key
+        if (id != null && key != null) {
+            mappings().firstOrNull { idOf(it) == id }?.setKey(key)
+            applyKeys()
+        }
+        return step.taken
     }
 
     /**
@@ -214,18 +221,18 @@ object SettingsScreen {
         override fun actionTriggered(panel: ScreenPanel, widget: Widget) {
             when (val action = SettingsAction.of(widget.id)) {
                 SettingsAction.ResetAll -> {
-                    capturing = null
+                    capture = capture.copy(capturing = null)
                     mappings().forEach { it.setKey(it.defaultKey) }
                     applyKeys()
                 }
 
                 is SettingsAction.StartCapture -> {
-                    capturing = action.id
+                    capture = capture.copy(capturing = action.id)
                     render()
                 }
 
                 is SettingsAction.Reset -> {
-                    capturing = null
+                    capture = capture.copy(capturing = null)
                     mappings().firstOrNull { idOf(it) == action.id }?.let { it.setKey(it.defaultKey) }
                     applyKeys()
                 }
