@@ -935,10 +935,14 @@ class ComboboxWidget(
     private var measurer: TextMeasurer? = null
 
     /**
-     * The x position the typed query started at in the last frame, or `null` before the first
-     * frame.
+     * Returns the x position the typed query starts at: after the padding and, in a multiple
+     * combobox, after the chips on its row.
+     *
+     * @param measurer the text measurer
+     * @return the x position
      */
-    private var queryLeft: Int? = null
+    private fun queryLeft(measurer: TextMeasurer): Int =
+        bounds.x + UiMetrics.WIDGET_PADDING + if (multiple) placeChips(measurer, innerWidth).second.first else 0
 
     /**
      * Counts consecutive clicks on the query to tell single, double and triple clicks apart.
@@ -1065,7 +1069,6 @@ class ComboboxWidget(
         } else {
             chipRemoves = emptyList()
         }
-        queryLeft = textX
         ui.clipped(Rect(textX, bounds.y, (textRight - textX).coerceAtLeast(0), bounds.height)) {
             when {
                 edit.text.isNotEmpty() -> {
@@ -1205,12 +1208,11 @@ class ComboboxWidget(
             return true
         }
         val measurer = measurer
-        val left = queryLeft
-        if (measurer == null || left == null) {
+        if (measurer == null) {
             edit.cursor = edit.text.length
         } else {
             val line = TextLines.Line(0, edit.text.length)
-            val offset = (x - left).toInt()
+            val offset = (x - queryLeft(measurer)).toInt()
             val position = TextLines.positionAt(edit.text, line, offset, measurer::plainWidth)
             val charIndex = TextLines.charIndexAt(edit.text, line, offset, measurer::plainWidth)
             applyTextClick(edit, edit.text, clicks, context, x, y, context.timeMillis, position, charIndex) { TextRange(0, edit.text.length) }
@@ -1235,8 +1237,7 @@ class ComboboxWidget(
      */
     override fun mouseDragged(context: UiContext, x: Double, y: Double) {
         val measurer = measurer ?: return
-        val left = queryLeft ?: return
-        val position = TextLines.positionAt(edit.text, TextLines.Line(0, edit.text.length), (x - left).toInt(), measurer::plainWidth)
+        val position = TextLines.positionAt(edit.text, TextLines.Line(0, edit.text.length), (x - queryLeft(measurer)).toInt(), measurer::plainWidth)
         edit.moveCursorTo(position, extend = true)
     }
 

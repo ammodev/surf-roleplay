@@ -3,6 +3,8 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
+import dev.slne.surf.roleplay.protocol.screen.SelectGroup
+import dev.slne.surf.roleplay.protocol.screen.SelectOption
 import org.lwjgl.glfw.GLFW
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -126,6 +128,43 @@ class TextFieldClicksTest {
 
         assertFalse(field.edit.hasSelection)
         assertEquals(8, field.edit.cursor)
+    }
+
+    /**
+     * Verifies that clicking a combobox's typed query places the cursor where the click lands,
+     * and that a double click selects the word.
+     */
+    @Test
+    fun `combobox clicks position the cursor in the query`() {
+        val combobox = ComboboxWidget("c", emptyList(), emptyList(), multiple = false, placeholder = "", emptyText = "", showClear = false, required = false, plainText = { it })
+        combobox.edit.text = "rote Beere"
+        combobox.contentSize(measurer)
+        combobox.bounds = Rect(0, 0, 200, 20)
+        val x = UiMetrics.WIDGET_PADDING + 6 * 5 + 2.0
+
+        combobox.mouseClicked(context, x, 10.0, GLFW.GLFW_MOUSE_BUTTON_LEFT)
+        assertEquals(6, combobox.edit.cursor)
+        combobox.mouseClicked(context, x, 10.0, GLFW.GLFW_MOUSE_BUTTON_LEFT)
+        assertEquals("Beere", combobox.edit.selectedText)
+    }
+
+    /**
+     * Verifies that Backspace with a selection in a multiple combobox removes the selected text
+     * and keeps the chips.
+     */
+    @Test
+    fun `combobox backspace removes the selection before chips`() {
+        val groups = listOf(SelectGroup(null, listOf(SelectOption("a", "Apfel"))))
+        val combobox = ComboboxWidget("c", groups, listOf("a"), multiple = true, placeholder = "", emptyText = "", showClear = false, required = false, plainText = { it })
+        combobox.edit.text = "Bir"
+        combobox.edit.select(0, 3)
+
+        combobox.keyPressed(context, TestKeys.key(GLFW.GLFW_KEY_BACKSPACE))
+        assertEquals("", combobox.edit.text)
+        assertEquals(listOf("a"), combobox.selectedValues)
+
+        combobox.keyPressed(context, TestKeys.key(GLFW.GLFW_KEY_BACKSPACE))
+        assertEquals(emptyList(), combobox.selectedValues)
     }
 
     /**
