@@ -189,7 +189,7 @@ class ChartWidget(
         val tokens = ui.tokens
         var layers: ChartLayers? = null
         ui.fine { scale ->
-            layers = layers(ui, tokens, scale)
+            layers = cartesianLayers(geometry, tokens, scale)
             layers?.under?.draw(ui, bounds.x * scale, bounds.y * scale)
         }
         if (options.valueAxis) {
@@ -234,25 +234,51 @@ class ChartWidget(
      * @param scale the number of screen pixels per GUI pixel
      * @return the shapes, or `null` for pie and radial charts and charts too small to draw
      */
-    internal fun layers(measurer: TextMeasurer, tokens: ThemeTokens, scale: Int): ChartLayers? {
-        val key: ChartRasterKey
-        val draw: () -> ChartLayers
-        when (kind) {
-            ChartKind.AREA, ChartKind.BAR, ChartKind.LINE -> {
-                val geometry = geometry(measurer)
-                val plot = geometry.plot
-                if (plot.width <= 0 || plot.height <= 0) return null
-                key = ChartRasterKey(bounds.width, bounds.height, scale, tokens, listOf(plot.x - bounds.x, plot.y - bounds.y, plot.width, plot.height, geometry.min, geometry.max))
-                draw = { cartesianLayers(geometry, tokens, scale) }
-            }
-            ChartKind.RADAR -> {
-                val geometry = polar(measurer)
-                if (geometry.radius <= 0f || categories.size < 3) return null
-                key = ChartRasterKey(bounds.width, bounds.height, scale, tokens, listOf(geometry.centerX - bounds.x, geometry.centerY - bounds.y, geometry.radius))
-                draw = { radarLayers(geometry, tokens, scale) }
-            }
-            else -> return null
-        }
+    internal fun layers(measurer: TextMeasurer, tokens: ThemeTokens, scale: Int): ChartLayers? = when (kind) {
+        ChartKind.AREA, ChartKind.BAR, ChartKind.LINE -> cartesianLayers(geometry(measurer), tokens, scale)
+        ChartKind.RADAR -> radarLayers(polar(measurer), tokens, scale)
+        else -> null
+    }
+
+    /**
+     * Returns the kept shapes of an area, bar or line chart for its geometry, drawing them again
+     * when anything they depend on changed.
+     *
+     * @param geometry the chart geometry
+     * @param tokens the design tokens
+     * @param scale the number of screen pixels per GUI pixel
+     * @return the shapes, or `null` if the plot is empty
+     */
+    private fun cartesianLayers(geometry: CartesianGeometry, tokens: ThemeTokens, scale: Int): ChartLayers? {
+        val plot = geometry.plot
+        if (plot.width <= 0 || plot.height <= 0) return null
+        val key = ChartRasterKey(bounds.width, bounds.height, scale, tokens, listOf(plot.x - bounds.x, plot.y - bounds.y, plot.width, plot.height, geometry.min, geometry.max))
+        return cached(key) { buildCartesian(geometry, tokens, scale) }
+    }
+
+    /**
+     * Returns the kept shapes of a radar chart for its geometry, drawing them again when anything
+     * they depend on changed.
+     *
+     * @param geometry the geometry
+     * @param tokens the design tokens
+     * @param scale the number of screen pixels per GUI pixel
+     * @return the shapes, or `null` if the chart has no room or fewer than three categories
+     */
+    private fun radarLayers(geometry: PolarGeometry, tokens: ThemeTokens, scale: Int): ChartLayers? {
+        if (geometry.radius <= 0f || categories.size < 3) return null
+        val key = ChartRasterKey(bounds.width, bounds.height, scale, tokens, listOf(geometry.centerX - bounds.x, geometry.centerY - bounds.y, geometry.radius))
+        return cached(key) { buildRadar(geometry, tokens, scale) }
+    }
+
+    /**
+     * Returns the kept shapes if they were drawn for a key, and otherwise draws and keeps them.
+     *
+     * @param key everything the shapes depend on
+     * @param draw draws the shapes
+     * @return the shapes
+     */
+    private fun cached(key: ChartRasterKey, draw: () -> ChartLayers): ChartLayers {
         layerCache?.let { (cached, layers) -> if (cached == key) return layers }
         return draw().also { layerCache = key to it }
     }
@@ -265,7 +291,7 @@ class ChartWidget(
      * @param scale the number of screen pixels per GUI pixel
      * @return the shapes
      */
-    private fun cartesianLayers(geometry: CartesianGeometry, tokens: ThemeTokens, scale: Int): ChartLayers {
+    private fun buildCartesian(geometry: CartesianGeometry, tokens: ThemeTokens, scale: Int): ChartLayers {
         val originX = bounds.x * scale
         val originY = bounds.y * scale
         val plot = geometry.plot
@@ -548,10 +574,12 @@ class ChartWidget(
         val fractions = sliceFractions()
         val inner = innerRadius(geometry)
         ui.fine { scale ->
+            val fills = FillList()
             raster(geometry, scale, "pie") { x, y -> geometry.sliceAt(fractions, inner, x, y) ?: -1 }.forEach { run ->
                 val color = ui.tokens.chart(categoryColor(run[3]))
-                ui.fineFill(run[1] + bounds.x * scale, run[0] + bounds.y * scale, run[2] + bounds.x * scale, run[0] + 1 + bounds.y * scale, if (hovered == null || hovered == run[3]) color else ThemeColors.withAlpha(color, FADED_ALPHA))
+                fills.add(run[1], run[0], run[2], run[0] + 1, if (hovered == null || hovered == run[3]) color else ThemeColors.withAlpha(color, FADED_ALPHA))
             }
+            fills.draw(ui, bounds.x * scale, bounds.y * scale)
         }
         if (options.labels) {
             var start = 0.0
@@ -588,6 +616,7 @@ class ChartWidget(
         val shares = categories.indices.map { (series.firstOrNull()?.values?.getOrElse(it) { 0.0 } ?: 0.0).coerceAtLeast(0.0) / max }
         val ring = (geometry.radius - inner) / count.coerceAtLeast(1)
         ui.fine { scale ->
+            val fills = FillList()
             raster(geometry, scale, "radial") { x, y ->
                 val index = geometry.ringAt(count, inner, x, y) ?: return@raster -1
                 val offset = geometry.distanceOf(x, y) - inner - index * ring
@@ -596,8 +625,9 @@ class ChartWidget(
             }.forEach { run ->
                 val shape = run[3]
                 val color = if (shape < count) ui.tokens.chart(categoryColor(shape)) else ui.tokens.muted
-                ui.fineFill(run[1] + bounds.x * scale, run[0] + bounds.y * scale, run[2] + bounds.x * scale, run[0] + 1 + bounds.y * scale, color)
+                fills.add(run[1], run[0], run[2], run[0] + 1, color)
             }
+            fills.draw(ui, bounds.x * scale, bounds.y * scale)
         }
     }
 
@@ -613,7 +643,7 @@ class ChartWidget(
         val count = categories.size
         if (count < 3) return
         val step = 2 * Math.PI / count
-        ui.fine { scale -> layers(ui, ui.tokens, scale)?.under?.draw(ui, bounds.x * scale, bounds.y * scale) }
+        ui.fine { scale -> radarLayers(geometry, ui.tokens, scale)?.under?.draw(ui, bounds.x * scale, bounds.y * scale) }
         if (options.categoryAxis) {
             categories.forEachIndexed { index, label ->
                 val angle = index * step
@@ -645,7 +675,7 @@ class ChartWidget(
      * @param scale the number of screen pixels per GUI pixel
      * @return the shapes, all below the hover marks
      */
-    private fun radarLayers(geometry: PolarGeometry, tokens: ThemeTokens, scale: Int): ChartLayers {
+    private fun buildRadar(geometry: PolarGeometry, tokens: ThemeTokens, scale: Int): ChartLayers {
         val count = categories.size
         val step = 2 * Math.PI / count
         val max = polarMax()

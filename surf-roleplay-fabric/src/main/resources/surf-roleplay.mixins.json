@@ -5,12 +5,14 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "DebugScreenEntryListMixin",
+    "GuiGraphicsExtractorAccessor",
     "HudMixin",
     "InventoryScreenMixin",
     "KeyboardHandlerMixin",
     "MouseHandlerMixin",
     "RecipeBookComponentMixin",
     "RecipeBookScreenMixin",
+    "ScissorStackAccessor",
     "SlotMixin"
   ],
   "injectors": {

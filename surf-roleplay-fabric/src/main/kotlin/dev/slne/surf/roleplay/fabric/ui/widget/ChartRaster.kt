@@ -94,21 +94,16 @@ class FillList {
      * @param index the index of the rectangle
      * @return its left, top, right and bottom edge and its colour
      */
-    fun fill(index: Int): List<Int> = (0 until FIELDS).map { data[index * FIELDS + it] }
+    internal fun fill(index: Int): List<Int> = (0 until FIELDS).map { data[index * FIELDS + it] }
 
     /**
-     * Draws every rectangle moved by an offset, inside [UiGraphics.fine].
+     * Draws every rectangle moved by an offset as one GUI element, inside [UiGraphics.fine].
      *
      * @param ui the graphics to draw with
      * @param dx the horizontal offset in screen pixels
      * @param dy the vertical offset in screen pixels
      */
-    fun draw(ui: UiGraphics, dx: Int, dy: Int) {
-        for (index in 0 until count) {
-            val at = index * FIELDS
-            ui.fineFill(data[at] + dx, data[at + 1] + dy, data[at + 2] + dx, data[at + 3] + dy, data[at + 4])
-        }
-    }
+    fun draw(ui: UiGraphics, dx: Int, dy: Int) = ui.fills(data, count, dx, dy)
 
     /**
      * Holds the storage layout.

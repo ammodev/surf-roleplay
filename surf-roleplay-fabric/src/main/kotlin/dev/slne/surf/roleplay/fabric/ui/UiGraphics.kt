@@ -15,6 +15,9 @@ import net.minecraft.network.chat.FormattedText
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
+import dev.slne.surf.roleplay.fabric.mixin.GuiGraphicsExtractorAccessor
+import dev.slne.surf.roleplay.fabric.mixin.ScissorStackAccessor
+import org.joml.Matrix3x2f
 import kotlin.math.roundToInt
 
 /**
@@ -460,6 +463,22 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     fun fineFill(x0: Int, y0: Int, x1: Int, y1: Int, color: Int) {
         if (x1 <= x0 || y1 <= y0) return
         graphics.fill(x0, y0, x1, y1, color)
+    }
+
+    /**
+     * Fills many rectangles as one GUI element, with the current pose and scissor, which looks
+     * the same as filling them one by one in order.
+     *
+     * @param data the rectangles, five numbers each: left, top, right, bottom and the ARGB colour
+     * @param count the number of rectangles in [data]
+     * @param dx the horizontal offset added to every rectangle
+     * @param dy the vertical offset added to every rectangle
+     */
+    fun fills(data: IntArray, count: Int, dx: Int, dy: Int) {
+        if (count <= 0) return
+        val access = graphics as GuiGraphicsExtractorAccessor
+        val scissor = (access.`surfRoleplay$scissorStack`() as ScissorStackAccessor).`surfRoleplay$peek`()
+        access.`surfRoleplay$guiRenderState`().addGuiElement(FillBatchRenderState(data, count, dx, dy, Matrix3x2f(graphics.pose()), scissor))
     }
 
     /**
