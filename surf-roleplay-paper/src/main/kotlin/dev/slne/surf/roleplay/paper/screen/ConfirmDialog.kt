@@ -1,15 +1,14 @@
 package dev.slne.surf.roleplay.paper.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.Alignment
+import dev.slne.surf.roleplay.api.client.common.screen.IconTint
+import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Icon
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
-import dev.slne.surf.roleplay.api.client.common.screen.Alignment
-import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.IconTint
-import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
-import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import net.kyori.adventure.text.Component
 

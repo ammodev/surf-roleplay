@@ -1,25 +1,12 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
-import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
-import dev.slne.surf.roleplay.protocol.screen.InsertNode
-import dev.slne.surf.roleplay.protocol.screen.ChatMessageNode
-import dev.slne.surf.roleplay.protocol.screen.ChatViewNode
-import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.protocol.screen.ChartIndicator as NodeChartIndicator
-import dev.slne.surf.roleplay.protocol.screen.ChartCurve as NodeChartCurve
-import dev.slne.surf.roleplay.protocol.screen.ChartKind as NodeChartKind
-import dev.slne.surf.roleplay.protocol.screen.ChartNode
-import dev.slne.surf.roleplay.api.client.common.screen.ChartSeries
-import dev.slne.surf.roleplay.api.client.common.screen.ChartKind
-import dev.slne.surf.roleplay.api.client.common.screen.ChartIndicator
 import dev.slne.surf.roleplay.api.client.common.screen.ChartCurve
-import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
-import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
-import dev.slne.surf.roleplay.protocol.screen.DataTableNode
-import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
-import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
+import dev.slne.surf.roleplay.api.client.common.screen.ChartIndicator
+import dev.slne.surf.roleplay.api.client.common.screen.ChartKind
+import dev.slne.surf.roleplay.api.client.common.screen.ChartSeries
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableView
+import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Chart
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ChatMessage
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ChatView
@@ -41,9 +28,19 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableRow
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.ChartNode
+import dev.slne.surf.roleplay.protocol.screen.ChatMessageNode
+import dev.slne.surf.roleplay.protocol.screen.ChatViewNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
+import dev.slne.surf.roleplay.protocol.screen.InsertNode
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
-import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
+import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
+import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.TableCaptionNode
 import dev.slne.surf.roleplay.protocol.screen.TableCellNode
 import dev.slne.surf.roleplay.protocol.screen.TableNode
@@ -57,6 +54,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import dev.slne.surf.roleplay.protocol.screen.ChartCurve as NodeChartCurve
+import dev.slne.surf.roleplay.protocol.screen.ChartIndicator as NodeChartIndicator
+import dev.slne.surf.roleplay.protocol.screen.ChartKind as NodeChartKind
 
 /**
  * Tests for the data, chat and chart components in the API and on Paper.

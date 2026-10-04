@@ -1,5 +1,15 @@
 package dev.slne.surf.roleplay.paper.screen.debug
 
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogSize
+import dev.slne.surf.roleplay.api.client.common.screen.Alignment
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonVariant
+import dev.slne.surf.roleplay.api.client.common.screen.CalendarMode
+import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
+import dev.slne.surf.roleplay.api.client.common.screen.OverlaySide
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialog
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogAction
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogCancel
@@ -16,6 +26,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandInput
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandItem
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandList
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ContextMenu
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Dialog
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogClose
@@ -54,6 +65,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverDescription
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverHeader
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverTitle
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Sheet
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetContent
@@ -62,19 +74,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetFooter
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetHeader
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetTitle
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Tooltip
-import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogSize
-import dev.slne.surf.roleplay.api.client.common.screen.Alignment
-import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
-import dev.slne.surf.roleplay.api.client.common.screen.ButtonVariant
-import dev.slne.surf.roleplay.api.client.common.screen.CalendarMode
-import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
-import dev.slne.surf.roleplay.api.client.common.screen.OverlaySide
-import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
-import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
-import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
-import dev.slne.surf.roleplay.api.client.common.screen.TextKind
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.api.client.common.toast.Toast
 import dev.slne.surf.roleplay.api.client.common.toast.ToastButton
 import dev.slne.surf.roleplay.api.client.common.toast.ToastType

@@ -5,8 +5,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.MultiCombobox
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputOtp
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MultiCombobox
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType

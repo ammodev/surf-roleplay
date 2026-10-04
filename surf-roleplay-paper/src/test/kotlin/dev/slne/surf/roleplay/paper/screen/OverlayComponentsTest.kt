@@ -25,7 +25,6 @@ import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.PopoverContentNode
 import dev.slne.surf.roleplay.protocol.screen.PopoverHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.PopoverNode
-import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
@@ -41,6 +40,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import dev.slne.surf.roleplay.protocol.screen.Align as NodeAlign
 import dev.slne.surf.roleplay.protocol.screen.OverlaySide as NodeOverlaySide
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
 import dev.slne.surf.roleplay.protocol.screen.TextKind as NodeTextKind
 
 /**

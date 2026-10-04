@@ -1,14 +1,13 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
-import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange as ApiInputChange
-import dev.slne.surf.roleplay.api.client.common.screen.SidebarCollapsible
-import dev.slne.surf.roleplay.api.client.common.screen.SidebarVariant
-import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonSize
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.ScrollOrientation
 import dev.slne.surf.roleplay.api.client.common.screen.LayoutDirection
 import dev.slne.surf.roleplay.api.client.common.screen.Orientation
+import dev.slne.surf.roleplay.api.client.common.screen.ScrollOrientation
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarCollapsible
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonSize
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarVariant
 import dev.slne.surf.roleplay.api.client.common.screen.TabsVariant
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Accordion
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.AccordionContent
@@ -84,69 +83,70 @@ import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionItemNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionNode
 import dev.slne.surf.roleplay.protocol.screen.AccordionTriggerNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbLinkNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
+import dev.slne.surf.roleplay.protocol.screen.BreadcrumbSeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNextNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselNode
+import dev.slne.surf.roleplay.protocol.screen.CarouselPreviousNode
 import dev.slne.surf.roleplay.protocol.screen.CollapsibleContentNode
 import dev.slne.surf.roleplay.protocol.screen.CollapsibleNode
 import dev.slne.surf.roleplay.protocol.screen.CollapsibleTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.InputValue
-import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
-import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
-import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
-import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
-import dev.slne.surf.roleplay.protocol.screen.SidebarProviderNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarInsetNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarContentNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarGroupNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarGroupContentNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarMenuNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarMenuItemNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonNode
-import dev.slne.surf.roleplay.protocol.screen.TextInputNode
-import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
-import dev.slne.surf.roleplay.protocol.screen.SidebarCollapsible as NodeSidebarCollapsible
-import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonSize as NodeSidebarMenuButtonSize
-import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
-import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
-import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
-import dev.slne.surf.roleplay.protocol.screen.NavigationMenuTriggerNode
-import dev.slne.surf.roleplay.protocol.screen.NavigationMenuContentNode
-import dev.slne.surf.roleplay.protocol.screen.NavigationMenuLinkNode
-import dev.slne.surf.roleplay.protocol.screen.CarouselNode
-import dev.slne.surf.roleplay.protocol.screen.CarouselContentNode
-import dev.slne.surf.roleplay.protocol.screen.CarouselItemNode
-import dev.slne.surf.roleplay.protocol.screen.CarouselPreviousNode
-import dev.slne.surf.roleplay.protocol.screen.CarouselNextNode
-import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
-import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
-import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
-import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
 import dev.slne.surf.roleplay.protocol.screen.DirectionNode
-import dev.slne.surf.roleplay.protocol.screen.ScrollOrientation as NodeScrollOrientation
-import dev.slne.surf.roleplay.protocol.screen.LayoutDirection as NodeLayoutDirection
-import dev.slne.surf.roleplay.protocol.screen.BreadcrumbNode
-import dev.slne.surf.roleplay.protocol.screen.BreadcrumbListNode
-import dev.slne.surf.roleplay.protocol.screen.BreadcrumbItemNode
-import dev.slne.surf.roleplay.protocol.screen.BreadcrumbLinkNode
-import dev.slne.surf.roleplay.protocol.screen.BreadcrumbSeparatorNode
-import dev.slne.surf.roleplay.protocol.screen.PaginationNode
+import dev.slne.surf.roleplay.protocol.screen.InputValue
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuContentNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuLinkNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuListNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuNode
+import dev.slne.surf.roleplay.protocol.screen.NavigationMenuTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationContentNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationItemNode
 import dev.slne.surf.roleplay.protocol.screen.PaginationLinkNode
+import dev.slne.surf.roleplay.protocol.screen.PaginationNode
+import dev.slne.surf.roleplay.protocol.screen.ResizableHandleNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelGroupNode
+import dev.slne.surf.roleplay.protocol.screen.ResizablePanelNode
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
+import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
+import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
+import dev.slne.surf.roleplay.protocol.screen.ScrollAreaNode
+import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupContentNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarGroupNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarInsetNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuItemNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarNode
+import dev.slne.surf.roleplay.protocol.screen.SidebarProviderNode
 import dev.slne.surf.roleplay.protocol.screen.SizeMode
 import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
 import dev.slne.surf.roleplay.protocol.screen.TabsListNode
 import dev.slne.surf.roleplay.protocol.screen.TabsNode
 import dev.slne.surf.roleplay.protocol.screen.TabsTriggerNode
-import dev.slne.surf.roleplay.protocol.screen.Orientation as NodeOrientation
-import dev.slne.surf.roleplay.protocol.screen.TabsVariant as NodeTabsVariant
+import dev.slne.surf.roleplay.protocol.screen.TextInputNode
+import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
 import net.kyori.adventure.text.Component
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange as ApiInputChange
 import dev.slne.surf.roleplay.protocol.screen.AccordionType as NodeAccordionType
+import dev.slne.surf.roleplay.protocol.screen.LayoutDirection as NodeLayoutDirection
+import dev.slne.surf.roleplay.protocol.screen.Orientation as NodeOrientation
+import dev.slne.surf.roleplay.protocol.screen.ScrollOrientation as NodeScrollOrientation
+import dev.slne.surf.roleplay.protocol.screen.SidebarCollapsible as NodeSidebarCollapsible
+import dev.slne.surf.roleplay.protocol.screen.SidebarMenuButtonSize as NodeSidebarMenuButtonSize
+import dev.slne.surf.roleplay.protocol.screen.TabsVariant as NodeTabsVariant
 
 /**
  * Tests for the navigation and layout components in the API and on Paper.

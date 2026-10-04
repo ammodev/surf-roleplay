@@ -6,10 +6,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
-import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
+import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.TextInputNode
-import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
 import net.kyori.adventure.text.Component
 import java.util.UUID
@@ -17,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
 
 /**
  * Tests for input change events.

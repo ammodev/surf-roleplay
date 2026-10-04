@@ -16,12 +16,12 @@ import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
+import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
-import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
-import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
+import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.SetOptions
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody

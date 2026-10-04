@@ -1,16 +1,8 @@
 package dev.slne.surf.roleplay.paper.screen.debug
 
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Card
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Icon
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Item
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Separator
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Small
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.IconTint
 import dev.slne.surf.roleplay.api.client.common.screen.ItemSize
 import dev.slne.surf.roleplay.api.client.common.screen.ItemVariant
@@ -18,8 +10,15 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.Spacing
-import dev.slne.surf.roleplay.api.client.common.screen.TextKind
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Card
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Icon
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Item
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Separator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Small
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
