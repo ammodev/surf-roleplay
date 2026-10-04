@@ -5,6 +5,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.EmptyMediaVariant
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarCollapsible
 import dev.slne.surf.roleplay.api.client.common.screen.Spacing
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
@@ -35,10 +36,18 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarProvider
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Switch
 import dev.slne.surf.roleplay.api.client.paper.screen.gui.GuiPage
-import dev.slne.surf.roleplay.paper.screen.debug.InputsDemo
 import dev.slne.surf.roleplay.paper.storybook.stories.IconGalleryState
 import net.kyori.adventure.text.Component
 import java.util.UUID
+
+/**
+ * The themes offered by the storybook's theme select.
+ */
+private val STORYBOOK_THEMES = listOf(
+    SelectChoice(ScreenThemes.DEFAULT, Component.text("Standard")),
+    SelectChoice(ScreenThemes.SAR, Component.text("Rettungsdienst")),
+    SelectChoice(ScreenThemes.POLICE, Component.text("Polizei")),
+)
 
 /**
  * The fullscreen storybook: a sidebar that lists the stories by category and a content area that
@@ -181,7 +190,7 @@ class StorybookPage(
                 H2(shown?.name ?: "Storybook")
                 if (shown != null) Muted(shown.key)
             }
-            Select(InputsDemo.THEMES, selected = themeName, width = ElementSize.fixed(120), id = "storybook_theme") { change -> themeName = change.value }
+            Select(STORYBOOK_THEMES, selected = themeName, width = ElementSize.fixed(120), id = "storybook_theme") { change -> themeName = change.value }
             Switch(checked = dark, id = "storybook_dark") { change -> dark = change.value == "true" }
             Label("Dunkel", forId = "storybook_dark")
         }
