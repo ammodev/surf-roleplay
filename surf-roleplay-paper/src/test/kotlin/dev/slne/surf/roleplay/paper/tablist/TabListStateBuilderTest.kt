@@ -12,6 +12,7 @@ import java.time.LocalTime
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -269,6 +270,20 @@ class TabListStateBuilderTest {
         assertNull(state.job)
         assertEquals("Notarzt", state.rank)
         assertEquals(1, logged.size)
+    }
+
+    /**
+     * Verifies that an error other than a virtual machine error is treated as a provider failure,
+     * and that a virtual machine error is passed on.
+     */
+    @Test
+    fun `errors are failures but virtual machine errors pass`() {
+        val counts = builder.organisations(listOf(FakeOrganisation("police", 1)), { throw NotImplementedError() }, TabListConfig())
+        assertEquals(OnlineLevel.UNKNOWN, counts.single().level)
+
+        assertFailsWith<StackOverflowError> {
+            builder.organisations(listOf(FakeOrganisation("police", 1)), { throw StackOverflowError() }, TabListConfig())
+        }
     }
 
     /**

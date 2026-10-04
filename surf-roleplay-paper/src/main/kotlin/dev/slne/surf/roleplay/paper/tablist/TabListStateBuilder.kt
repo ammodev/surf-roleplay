@@ -115,8 +115,8 @@ class TabListStateBuilder(
         providers.firstNotNullOfOrNull { provider -> guarded(provider, { "self info ${provider.javaClass.name}" }) { value(provider) } }
 
     /**
-     * Runs a provider call and turns an exception into `null`, reporting it at most once per
-     * [LOG_INTERVAL_MILLIS] per provider.
+     * Runs a provider call and turns any throwable except a [VirtualMachineError] into `null`,
+     * reporting it at most once per [LOG_INTERVAL_MILLIS] per provider.
      *
      * @param provider the provider, used to rate-limit its reports
      * @param name returns the name the provider is reported under
@@ -125,7 +125,9 @@ class TabListStateBuilder(
      */
     private fun <T> guarded(provider: Any, name: () -> String, block: () -> T): T? = try {
         block()
-    } catch (exception: Exception) {
+    } catch (error: VirtualMachineError) {
+        throw error
+    } catch (exception: Throwable) {
         val now = clock()
         var report = false
         lastLogged.compute(provider) { _, last ->

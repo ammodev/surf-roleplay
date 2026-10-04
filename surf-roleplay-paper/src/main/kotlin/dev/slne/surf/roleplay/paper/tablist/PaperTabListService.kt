@@ -22,6 +22,7 @@ import org.bukkit.plugin.Plugin
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.TimeUnit
 
 private val log = logger()
 
@@ -174,17 +175,27 @@ class PaperTabListService : TabListService, Listener {
 
     /**
      * Releases the due players and sends each of them the current state on the player's own
-     * scheduler.
+     * scheduler. A due player who is no longer online is forgotten. If the release fails before
+     * the states are scheduled, the due players are marked as changed again.
      */
     private fun flush() {
         val due = coalescer.due()
         if (due.isEmpty()) return
-        val players = presentPlayers()
-        val counts = countOrganisations(players)
-        val onlineTotal = players.size
-        due.forEach { id ->
-            val player = plugin.server.getPlayer(id) ?: return@forEach
-            player.scheduler.run(plugin, { push(player, counts, onlineTotal) }, null)
+        try {
+            val players = presentPlayers()
+            val counts = countOrganisations(players)
+            val onlineTotal = players.size
+            due.forEach { id ->
+                val player = plugin.server.getPlayer(id)
+                if (player == null) {
+                    coalescer.remove(id)
+                    return@forEach
+                }
+                player.scheduler.run(plugin, { push(player, counts, onlineTotal) }, null)
+            }
+        } catch (exception: Exception) {
+            coalescer.markDirty(due)
+            log.atWarning().withCause(exception).atMostEvery(1, TimeUnit.MINUTES).log("Could not send the tab list states")
         }
     }
 
