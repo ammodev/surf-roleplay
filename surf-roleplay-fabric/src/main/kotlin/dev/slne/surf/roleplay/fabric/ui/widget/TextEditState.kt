@@ -250,11 +250,7 @@ class TextEditState(initial: String = "", val filter: TextFilter = TextFilter.NO
      *
      * @return whether the text changed
      */
-    fun deleteWordBackward(): Boolean = when {
-        hasSelection -> replace(selectionStart, selectionEnd, "")
-        cursor == 0 -> false
-        else -> replace(TextBoundaries.previousWord(text, cursor), cursor, "")
-    }
+    fun deleteWordBackward(): Boolean = deleteTo(TextBoundaries.previousWord(text, cursor))
 
     /**
      * Removes the selection, or else everything from the cursor to the start of the next word, if
@@ -262,10 +258,20 @@ class TextEditState(initial: String = "", val filter: TextFilter = TextFilter.NO
      *
      * @return whether the text changed
      */
-    fun deleteWordForward(): Boolean = when {
-        hasSelection -> replace(selectionStart, selectionEnd, "")
-        cursor >= text.length -> false
-        else -> replace(cursor, TextBoundaries.nextWord(text, cursor), "")
+    fun deleteWordForward(): Boolean = deleteTo(TextBoundaries.nextWord(text, cursor))
+
+    /**
+     * Removes the selection, or else everything between the cursor and a position, if the filter
+     * accepts the result.
+     *
+     * @param target the other end of the removed range, before or after the cursor
+     * @return whether the text changed
+     */
+    fun deleteTo(target: Int): Boolean {
+        if (hasSelection) return replace(selectionStart, selectionEnd, "")
+        val end = target.coerceIn(0, text.length)
+        if (end == cursor) return false
+        return replace(minOf(cursor, end), maxOf(cursor, end), "")
     }
 
     /**

@@ -40,9 +40,11 @@ object TextEditKeys {
      *
      * @param edit the state of the field
      * @param event the key event
+     * @param oneWord whether the whole text counts as one word, as in password fields, so that
+     *        word moves and word deletion reach the start or end of the text
      * @return what the key did
      */
-    fun handle(edit: TextEditState, event: KeyEvent): Result {
+    fun handle(edit: TextEditState, event: KeyEvent, oneWord: Boolean = false): Result {
         if (event.isSelectAll) {
             edit.selectAll()
             return Result.MOVED
@@ -50,10 +52,34 @@ object TextEditKeys {
         val word = event.hasControlDownWithQuirk()
         val extend = event.hasShiftDown()
         when (event.key()) {
-            GLFW.GLFW_KEY_BACKSPACE -> return changed(if (word) edit.deleteWordBackward() else edit.backspace())
-            GLFW.GLFW_KEY_DELETE -> return changed(if (word) edit.deleteWordForward() else edit.delete())
-            GLFW.GLFW_KEY_LEFT -> if (word) edit.moveWord(forward = false, extend) else edit.moveCursor(-1, extend)
-            GLFW.GLFW_KEY_RIGHT -> if (word) edit.moveWord(forward = true, extend) else edit.moveCursor(1, extend)
+            GLFW.GLFW_KEY_BACKSPACE -> return changed(
+                when {
+                    !word -> edit.backspace()
+                    oneWord -> edit.deleteTo(0)
+                    else -> edit.deleteWordBackward()
+                },
+            )
+
+            GLFW.GLFW_KEY_DELETE -> return changed(
+                when {
+                    !word -> edit.delete()
+                    oneWord -> edit.deleteTo(edit.text.length)
+                    else -> edit.deleteWordForward()
+                },
+            )
+
+            GLFW.GLFW_KEY_LEFT -> when {
+                !word -> edit.moveCursor(-1, extend)
+                oneWord -> edit.moveCursorTo(0, extend)
+                else -> edit.moveWord(forward = false, extend)
+            }
+
+            GLFW.GLFW_KEY_RIGHT -> when {
+                !word -> edit.moveCursor(1, extend)
+                oneWord -> edit.moveCursorTo(edit.text.length, extend)
+                else -> edit.moveWord(forward = true, extend)
+            }
+
             GLFW.GLFW_KEY_HOME -> edit.moveCursorTo(0, extend)
             GLFW.GLFW_KEY_END -> edit.moveCursorTo(edit.text.length, extend)
             else -> return Result.IGNORED

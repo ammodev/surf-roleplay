@@ -380,7 +380,7 @@ open class TextInputWidget(
             if (edit.insert(context.clipboard.replace("\n", "").replace("\r", ""))) markChanged(context, immediate = false)
             return true
         }
-        return when (TextEditKeys.handle(edit, event)) {
+        return when (TextEditKeys.handle(edit, event, oneWord = type == TextInputType.PASSWORD)) {
             TextEditKeys.Result.IGNORED -> false
             TextEditKeys.Result.MOVED -> true
             TextEditKeys.Result.CHANGED -> true.also { markChanged(context, immediate = false) }
