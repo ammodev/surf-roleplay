@@ -306,5 +306,9 @@ class TabListStateBuilderTest {
         assertEquals(Component.text("Klar"), TabListStateBuilder.weather(storm = false, thundering = false))
         assertEquals(Component.text("Regen"), TabListStateBuilder.weather(storm = true, thundering = false))
         assertEquals(Component.text("Gewitter"), TabListStateBuilder.weather(storm = true, thundering = true))
+        assertEquals(Component.text("Schnee"), TabListStateBuilder.weather(storm = true, thundering = false, temperature = 0.1))
+        assertEquals(Component.text("Regen"), TabListStateBuilder.weather(storm = true, thundering = false, temperature = 0.15))
+        assertEquals(Component.text("Klar"), TabListStateBuilder.weather(storm = false, thundering = false, temperature = -0.5))
+        assertEquals(Component.text("Gewitter"), TabListStateBuilder.weather(storm = true, thundering = true, temperature = -0.5))
     }
 }

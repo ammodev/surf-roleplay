@@ -166,6 +166,11 @@ class TabListStateBuilder(
         const val LOG_INTERVAL_MILLIS: Long = 60_000
 
         /**
+         * The temperature below which a storm falls as snow.
+         */
+        const val SNOW_TEMPERATURE: Double = 0.15
+
+        /**
          * Returns the players who are not leaving.
          *
          * @param P the player type
@@ -200,14 +205,17 @@ class TabListStateBuilder(
         }
 
         /**
-         * Returns the German description of a world's weather.
+         * Returns the German description of the weather at a player's position.
          *
-         * @param storm whether it rains or snows
-         * @param thundering whether there is a thunderstorm
-         * @return "Gewitter" during a thunderstorm, "Regen" while it rains, otherwise "Klar"
+         * @param storm whether it rains or snows in the world
+         * @param thundering whether there is a thunderstorm in the world
+         * @param temperature the height-adjusted temperature at the player's position
+         * @return "Gewitter" during a thunderstorm, "Schnee" during a storm where it is colder than
+         *         [SNOW_TEMPERATURE], "Regen" during any other storm, otherwise "Klar"
          */
-        fun weather(storm: Boolean, thundering: Boolean): Component = when {
+        fun weather(storm: Boolean, thundering: Boolean, temperature: Double = SNOW_TEMPERATURE): Component = when {
             storm && thundering -> Component.text("Gewitter")
+            storm && temperature < SNOW_TEMPERATURE -> Component.text("Schnee")
             storm -> Component.text("Regen")
             else -> Component.text("Klar")
         }

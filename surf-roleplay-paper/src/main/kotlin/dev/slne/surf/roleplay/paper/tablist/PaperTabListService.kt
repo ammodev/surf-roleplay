@@ -214,7 +214,7 @@ class PaperTabListService : TabListService, Listener {
         val state = builder.build(
             organisations = counts,
             onlineTotal = onlineTotal,
-            weather = TabListStateBuilder.weather(world.hasStorm(), world.isThundering),
+            weather = TabListStateBuilder.weather(world.hasStorm(), world.isThundering, player.location.block.temperature),
             sessionStartMillis = sessionStarts[player.uniqueId] ?: System.currentTimeMillis(),
             selfInfo = selfInfo,
             read = TabListStateBuilder.reader(player),
