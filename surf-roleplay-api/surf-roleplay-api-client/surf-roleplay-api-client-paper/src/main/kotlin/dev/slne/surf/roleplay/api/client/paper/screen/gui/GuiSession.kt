@@ -300,7 +300,8 @@ internal class GuiSession(
      * Opens a definition in place of the page's screen, on top of the same parent and with the
      * same presentation. The service closes the previous screen and the screens above it; the
      * page itself stays open. If opening throws, the page stays changed, it is closed if its
-     * previous screen was closed, and the exception is rethrown.
+     * previous screen was closed, and the exception is rethrown. If closing the previous screen
+     * changed the page's state, the page is rendered again once the new screen is installed.
      *
      * @param old the page's open screen
      * @param definition the new definition
@@ -323,6 +324,7 @@ internal class GuiSession(
         screen = opened
         shown = definition
         reported.clear()
+        flush()
     }
 
     /**

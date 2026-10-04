@@ -418,6 +418,22 @@ class GuiNavigationTest {
     }
 
     /**
+     * Verifies that a reopen whose closing of a child page changes the reopened page's state
+     * shows that state afterwards.
+     */
+    @Test
+    fun `a reopen flushes state a child changed while closing`() {
+        val fake = FakeOpener()
+        val root = fake.open(NavPage())
+        root.target = ParentWritingPage(root)
+        fake.click("navigate", fake.lastScreen)
+        fake.click("dark", fake.opened.first())
+        assertEquals(10, root.count)
+        val reopened = fake.opened.last { it.definition.title == Component.text("Seite") }
+        assertEquals(Component.text("Wert: 10"), (reopened.find("value") as TextElement).text)
+    }
+
+    /**
      * Verifies that navigation calls fail while the page is not open.
      */
     @Test
