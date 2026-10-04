@@ -4,7 +4,14 @@
   "package": "dev.slne.surf.roleplay.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "MouseHandlerMixin"
+    "DebugScreenEntryListMixin",
+    "HudMixin",
+    "InventoryScreenMixin",
+    "KeyboardHandlerMixin",
+    "MouseHandlerMixin",
+    "RecipeBookComponentMixin",
+    "RecipeBookScreenMixin",
+    "SlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1

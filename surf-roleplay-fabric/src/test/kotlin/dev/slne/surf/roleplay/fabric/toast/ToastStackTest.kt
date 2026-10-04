@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.fabric.toast
 
+import dev.slne.surf.roleplay.fabric.settings.KeyMode
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.protocol.toast.ToastButtonKind
@@ -115,10 +116,10 @@ class ToastStackTest {
      */
     @Test
     fun `hud cursor follows the key`() {
-        assertEquals(HudCursor.Change.RELEASE, HudCursor.change(keyDown = true, screenOpen = false, active = false))
-        assertNull(HudCursor.change(keyDown = true, screenOpen = false, active = true))
-        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = false, screenOpen = false, active = true))
-        assertEquals(HudCursor.Change.END, HudCursor.change(keyDown = true, screenOpen = true, active = true))
-        assertNull(HudCursor.change(keyDown = true, screenOpen = true, active = false))
+        assertEquals(HudCursor.Change.RELEASE, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.HOLD, ready = true))
+        assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = true, mode = KeyMode.HOLD, ready = true))
+        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = false, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.HOLD, ready = true))
+        assertEquals(HudCursor.Change.END, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = true, active = true, mode = KeyMode.HOLD, ready = true))
+        assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = true, active = false, mode = KeyMode.HOLD, ready = true))
     }
 }

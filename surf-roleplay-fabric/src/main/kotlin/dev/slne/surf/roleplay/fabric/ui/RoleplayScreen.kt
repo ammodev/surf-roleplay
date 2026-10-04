@@ -25,6 +25,24 @@ class RoleplayScreen : Screen(Component.empty()) {
     var layers: List<ScreenPanel> = emptyList()
 
     /**
+     * Receives every key press before the panels; returning `true` takes the key, so that the
+     * panels do not see it. `null` passes every key to the panels.
+     */
+    var keyInterceptor: ((KeyEvent) -> Boolean)? = null
+
+    /**
+     * Receives every key release before the default screen behaviour; returning `true` takes the
+     * release. `null` passes every release on.
+     */
+    var keyReleaseInterceptor: ((KeyEvent) -> Boolean)? = null
+
+    /**
+     * Receives every mouse click before the panels; returning `true` takes the click, so that the
+     * panels do not see it. `null` passes every click to the panels.
+     */
+    var mouseInterceptor: ((MouseButtonEvent) -> Boolean)? = null
+
+    /**
      * The filter that lets held activation keys trigger only once.
      */
     private val repeats = KeyRepeatFilter()
@@ -63,7 +81,7 @@ class RoleplayScreen : Screen(Component.empty()) {
     }
 
     /**
-     * Passes a click to the top panel. A left click on the backdrop of a dialog or sheet asks it to
+     * Offers a click to the mouse interceptor, then passes it to the top panel. A left click on the backdrop of a dialog or sheet asks it to
      * close, unless the dialog or sheet opened only a moment ago.
      *
      * @param event the mouse event
@@ -71,6 +89,7 @@ class RoleplayScreen : Screen(Component.empty()) {
      * @return `true`, because the screen takes every click
      */
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
+        if (mouseInterceptor?.invoke(event) == true) return true
         val panel = top ?: return true
         val handled = panel.mouseClicked(event.x(), event.y(), event.button())
         val backdrop = !handled && panel.style.presentation != Presentation.SCREEN
@@ -118,13 +137,15 @@ class RoleplayScreen : Screen(Component.empty()) {
     }
 
     /**
-     * Passes a key to the top panel. Escape that the panel does not use asks it to close.
+     * Offers a key to the key interceptor, then passes it to the top panel. Escape that the panel
+     * does not use asks it to close. Repeats of a held activation key reach neither.
      *
      * @param event the key event
      * @return whether the key was handled
      */
     override fun keyPressed(event: KeyEvent): Boolean {
         if (!repeats.accept(event.key())) return true
+        if (keyInterceptor?.invoke(event) == true) return true
         val panel = top ?: return super.keyPressed(event)
         if (panel.keyPressed(event)) return true
         if (event.isEscape) {
@@ -135,13 +156,15 @@ class RoleplayScreen : Screen(Component.empty()) {
     }
 
     /**
-     * Records that a key was released, so that a held activation key can trigger again.
+     * Records that a key was released, so that a held activation key can trigger again, then
+     * offers the release to the key release interceptor and the default screen behaviour.
      *
      * @param event the key event
-     * @return whether the release was handled by the default screen behaviour
+     * @return whether the release was handled
      */
     override fun keyReleased(event: KeyEvent): Boolean {
         repeats.release(event.key())
+        if (keyReleaseInterceptor?.invoke(event) == true) return true
         return super.keyReleased(event)
     }
 
