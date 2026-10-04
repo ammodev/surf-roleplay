@@ -18,6 +18,7 @@ class ComponentCoverageTest {
     @Test
     fun `every element kind has a component`() {
         val built = mutableSetOf<Class<*>>()
+        /** Adds the class of [e] and of every element below it to the built classes. */
         fun walk(e: ScreenElement) {
             built += e.javaClass
             (e as? ContainerElement)?.children?.forEach(::walk)
@@ -45,6 +46,7 @@ class ComponentCoverageTest {
      */
     private fun concreteElementClasses(): Set<Class<*>> {
         val result = mutableSetOf<Class<*>>()
+        /** Adds [type] if it is concrete, or the concrete classes below it if it is sealed. */
         fun collect(type: Class<*>) {
             val permitted = type.permittedSubclasses
             if (permitted == null) {
