@@ -346,11 +346,15 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
-     * The area drawing is currently clipped to, the overlap of every clip in effect, or `null`
-     * while nothing clips the drawing.
+     * The clips in effect, which culling reads.
      */
-    var clip: Rect? = null
-        private set
+    private val clips = ClipStack()
+
+    /**
+     * The area drawing is currently clipped to, the overlap of every clip in effect, or `null`
+     * while nothing clips the drawing. Inside [clippedRound] it is the whole rounded rectangle.
+     */
+    val clip: Rect? get() = clips.current
 
     /**
      * Runs drawing code that is clipped to a rectangle, within any clip already in effect.
@@ -359,26 +363,35 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param block the drawing code
      */
     fun clipped(rect: Rect, block: () -> Unit) {
-        val outer = clip
-        clip = outer?.intersection(rect) ?: rect
-        graphics.enableScissor(rect.x, rect.y, rect.right, rect.bottom)
-        try {
-            block()
-        } finally {
-            graphics.disableScissor()
-            clip = outer
-        }
+        clips.push(rect) { scissored(rect, block) }
     }
 
     /**
-     * Runs drawing code that is clipped to a rectangle with rounded corners, one row at a time.
+     * Runs drawing code that is clipped to a rectangle with rounded corners, once for every row
+     * of the rectangle that lies within the clip already in effect.
      *
      * @param rect the rectangle to clip to
      * @param radius the corner radius; half the side of a square clips to a circle
      * @param block the drawing code, run once for every row
      */
     fun clippedRound(rect: Rect, radius: Int, block: () -> Unit) {
-        RoundedShape.spans(rect, radius).forEach { span -> clipped(Rect(span.x0, span.y, span.x1 - span.x0, 1), block) }
+        clips.roundedRows(rect, radius) { row -> scissored(row, block) }
+    }
+
+    /**
+     * Runs drawing code with the GPU scissor set to a rectangle within the scissor already in
+     * effect, without changing [clip].
+     *
+     * @param rect the rectangle
+     * @param block the drawing code
+     */
+    private fun scissored(rect: Rect, block: () -> Unit) {
+        graphics.enableScissor(rect.x, rect.y, rect.right, rect.bottom)
+        try {
+            block()
+        } finally {
+            graphics.disableScissor()
+        }
     }
 
     /**
@@ -466,4 +479,50 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
         const val ELLIPSIS: String = "…"
     }
 
+}
+
+/**
+ * The clips in effect while drawing, as the overlap of every clip pushed so far.
+ */
+class ClipStack {
+    /**
+     * The overlap of every clip in effect, or `null` while none is.
+     */
+    var current: Rect? = null
+        private set
+
+    /**
+     * Runs code with a rectangle added to the clips in effect.
+     *
+     * @param rect the rectangle
+     * @param block the code
+     */
+    fun push(rect: Rect, block: () -> Unit) {
+        val outer = current
+        current = outer?.intersection(rect) ?: rect
+        try {
+            block()
+        } finally {
+            current = outer
+        }
+    }
+
+    /**
+     * Runs code once for every one-pixel row of a rectangle with rounded corners that lies within
+     * the clips in effect. Throughout, the current clip is the whole rectangle within the outer
+     * clips, so that what is culled does not depend on the row.
+     *
+     * @param rect the rectangle
+     * @param radius the corner radius
+     * @param row the code, given the row
+     */
+    fun roundedRows(rect: Rect, radius: Int, row: (Rect) -> Unit) {
+        val outer = current
+        push(rect) {
+            RoundedShape.spans(rect, radius).forEach { span ->
+                val line = Rect(span.x0, span.y, span.x1 - span.x0, 1)
+                if (outer == null || line.intersects(outer)) row(line)
+            }
+        }
+    }
 }
