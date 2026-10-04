@@ -4,7 +4,11 @@ import org.bukkit.entity.Player
 
 /**
  * Provides the personal values shown in the footer of a player's own tab list. A value that is
- * not provided is shown as unknown. Reads in-memory state only.
+ * not provided is shown as unknown.
+ *
+ * Its functions may be called from any thread, including threads that do not own the player's
+ * region. They must read only thread-safe in-memory state, never world or entity state, must not
+ * block, and must return quickly.
  */
 interface SelfInfoProvider {
 
