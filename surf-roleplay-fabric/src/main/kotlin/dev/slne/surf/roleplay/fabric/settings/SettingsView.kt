@@ -9,6 +9,7 @@ import dev.slne.surf.roleplay.protocol.screen.ButtonSize
 import dev.slne.surf.roleplay.protocol.screen.ButtonVariant
 import dev.slne.surf.roleplay.protocol.screen.CardContentNode
 import dev.slne.surf.roleplay.protocol.screen.CardNode
+import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.RowNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.SelectGroup
@@ -67,9 +68,14 @@ object SettingsView {
     private const val KEY_BUTTON_WIDTH = 100
 
     /**
+     * The vertical gap between binding rows, in GUI pixels.
+     */
+    private const val ROW_GAP = 6
+
+    /**
      * The width of the card, in GUI pixels.
      */
-    private const val CARD_WIDTH = 320
+    private const val CARD_WIDTH = 380
 
     /**
      * Builds the settings tree.
@@ -90,7 +96,14 @@ object SettingsView {
                     width = Sizing.grow(),
                     children = buildList {
                         add(TextNode("bindings_heading", kind = TextKind.H4, text = text("Tastenbelegung")))
-                        rows.forEach { add(bindingRow(it, it.id in conflicts, it.id == capturing)) }
+                        add(
+                            ColumnNode(
+                                "binding_rows",
+                                width = Sizing.grow(),
+                                gap = ROW_GAP,
+                                children = rows.map { bindingRow(it, it.id in conflicts, it.id == capturing) },
+                            ),
+                        )
                         add(ButtonNode(RESET_ALL_ID, text = text("Alle zurücksetzen"), submitsInput = false, variant = ButtonVariant.OUTLINE))
                         add(SeparatorNode("cursor_separator", width = Sizing.grow()))
                         add(TextNode("cursor_heading", kind = TextKind.H4, text = text("Mauszeiger")))
