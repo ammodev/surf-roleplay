@@ -37,9 +37,11 @@ internal fun interface HandlerDispatcher {
      *
      * @param elementId the id of the element
      * @param kind the kind of handler
+     * @param reportedValue the value the player's screen now shows for the element, in the string
+     *        form of `ScreenValues.all`, or `null` if the event reports none
      * @param invoke the function that runs the handler, which is of the type [kind] names
      */
-    fun dispatch(elementId: String, kind: HandlerKind, invoke: (Any) -> Unit)
+    fun dispatch(elementId: String, kind: HandlerKind, reportedValue: String?, invoke: (Any) -> Unit)
 }
 
 /**
@@ -90,7 +92,7 @@ internal class BoundButtonHandler(elementId: String, dispatcher: HandlerDispatch
      *
      * @param click the click
      */
-    override fun onClick(click: ScreenClick) = dispatcher.dispatch(elementId, kind) { (it as ButtonHandler).onClick(click) }
+    override fun onClick(click: ScreenClick) = dispatcher.dispatch(elementId, kind, null) { (it as ButtonHandler).onClick(click) }
 }
 
 /**
@@ -102,11 +104,11 @@ internal class BoundButtonHandler(elementId: String, dispatcher: HandlerDispatch
 internal class BoundChangeHandler(elementId: String, dispatcher: HandlerDispatcher) :
     BoundHandler(elementId, HandlerKind.CHANGE, dispatcher), ChangeHandler {
     /**
-     * Runs the newest change handler of the input.
+     * Runs the newest change handler of the input, reporting the input's new value as shown.
      *
      * @param change the change
      */
-    override fun onChange(change: ScreenInputChange) = dispatcher.dispatch(elementId, kind) { (it as ChangeHandler).onChange(change) }
+    override fun onChange(change: ScreenInputChange) = dispatcher.dispatch(elementId, kind, change.value) { (it as ChangeHandler).onChange(change) }
 }
 
 /**
@@ -122,7 +124,7 @@ internal class BoundSearchHandler(elementId: String, dispatcher: HandlerDispatch
      *
      * @param search the changed query
      */
-    override fun onSearch(search: ScreenSearch) = dispatcher.dispatch(elementId, kind) { (it as SearchHandler).onSearch(search) }
+    override fun onSearch(search: ScreenSearch) = dispatcher.dispatch(elementId, kind, null) { (it as SearchHandler).onSearch(search) }
 }
 
 /**

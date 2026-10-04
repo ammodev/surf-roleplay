@@ -70,6 +70,12 @@ internal class GuiSession(
     private var shown: ScreenDefinition? = null
 
     /**
+     * The values the player's screen shows in place of those in [shown], reported by change
+     * events since the last patch, keyed by element id.
+     */
+    private val reported = HashMap<String, String>()
+
+    /**
      * Whether a state of the page changed since the tree the screen shows was rendered.
      */
     private var dirty: Boolean = false
@@ -134,12 +140,17 @@ internal class GuiSession(
      * exception of the handler is logged and does not stop the re-render. Does nothing once the
      * screen is closed, or if the newest render has no such handler.
      *
+     * A reported value counts as shown by the screen from then on: a render that holds the same
+     * value sends no change for it, and a render that holds another value sends that value.
+     *
      * @param elementId the id of the element
      * @param kind the kind of handler
+     * @param reportedValue the value the screen now shows for the element, or `null`
      * @param invoke the function that runs the handler
      */
-    override fun dispatch(elementId: String, kind: HandlerKind, invoke: (Any) -> Unit) {
+    override fun dispatch(elementId: String, kind: HandlerKind, reportedValue: String?, invoke: (Any) -> Unit) {
         if (!isOpen) return
+        if (reportedValue != null) reported[elementId] = reportedValue
         val handler = handlers[elementId, kind] ?: return
         try {
             invoke(handler)
@@ -175,7 +186,7 @@ internal class GuiSession(
             reopen(screen, definition)
             return
         }
-        val changes = ScreenDiff.diff(old.root, definition.root)
+        val changes = ScreenDiff.diff(old.root, definition.root, reported)
         if (changes.isNotEmpty()) {
             try {
                 screen.apply(changes)
@@ -185,6 +196,7 @@ internal class GuiSession(
             }
         }
         shown = definition
+        reported.clear()
     }
 
     /**
@@ -221,6 +233,7 @@ internal class GuiSession(
         }
         screen = opened
         shown = definition
+        reported.clear()
     }
 
     /**

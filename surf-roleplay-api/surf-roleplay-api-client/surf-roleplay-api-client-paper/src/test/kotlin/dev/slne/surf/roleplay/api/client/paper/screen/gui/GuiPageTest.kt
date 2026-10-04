@@ -129,6 +129,32 @@ class GuiPageTest {
     }
 
     /**
+     * A page with one input bound to a state that its change handler writes, and a button that
+     * clears it.
+     */
+    class BoundInputPage : GuiPage() {
+        /**
+         * The text of the input.
+         */
+        var name by state("")
+
+        /**
+         * The title of the page.
+         */
+        override val title: Component = Component.text("Eingabe")
+
+        /**
+         * Renders the input and the clear button.
+         */
+        override fun ComponentScope.render() {
+            Column {
+                Input(value = name, id = "name") { name = it.value }
+                Button("Leeren", id = "clear") { name = "" }
+            }
+        }
+    }
+
+    /**
      * A page that moves the paragraph `x` between the rows `A` and `B`.
      */
     class MovePage : GuiPage() {
@@ -191,7 +217,7 @@ class GuiPageTest {
 
     /**
      * Verifies that change handlers are bound to their input and run the newest closure, and that
-     * an input whose value follows the state gets a value change instead of a replacement.
+     * the value the player typed is not sent back to the input.
      */
     @Test
     fun `change handlers run the newest closure`() {
@@ -201,8 +227,35 @@ class GuiPageTest {
         fake.change("name", "ab")
         assertEquals(2, page.edits)
         assertEquals("ab", page.name)
-        assertEquals(listOf(ScreenChange.SetValue("name", "ab")), fake.lastScreen.applied.filterIsInstance<ScreenChange.SetValue>())
+        assertEquals(listOf("counts"), fake.lastScreen.applied.map { (it as ScreenChange.Replace).targetId })
         assertEquals(emptyList(), fake.lastScreen.refused)
+    }
+
+    /**
+     * Verifies that a state-bound input whose change handler stores the reported value sends no
+     * patch, because the screen already shows that value.
+     */
+    @Test
+    fun `storing the reported value sends nothing`() {
+        val fake = FakeOpener()
+        val page = fake.open(BoundInputPage())
+        fake.change("name", "abc")
+        assertEquals("abc", page.name)
+        assertTrue(fake.lastScreen.patches.isEmpty())
+    }
+
+    /**
+     * Verifies that a state change after a reported value sends the state's value to the input,
+     * because the screen shows the reported value and not the one rendered before.
+     */
+    @Test
+    fun `a value set after a reported value is sent`() {
+        val fake = FakeOpener()
+        val page = fake.open(BoundInputPage())
+        fake.change("name", "abc")
+        fake.click("clear")
+        assertEquals("", page.name)
+        assertEquals(listOf(ScreenChange.SetValue("name", "")), fake.lastScreen.applied)
     }
 
     /**
