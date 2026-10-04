@@ -66,7 +66,7 @@ class PaperMain : SuspendingJavaPlugin() {
         server.pluginManager.registerEvents(WelcomeListener(packetRegistry), this)
         PaperScreenService.INSTANCE.start(this, packetRegistry, config.getInt("screens.max-actions-per-second", 20))
         PaperToastService.INSTANCE.start(this, packetRegistry, PaperScreenService.INSTANCE.actionLimiter)
-        PaperTabListService.INSTANCE.start(this, packetRegistry, TabListConfig.from(config))
+        PaperTabListService.INSTANCE.start(this, packetRegistry, TabListConfig.from(config) { logger.warning(it) })
         StorybookCommand.register(this)
         server.pluginManager.registerEvents(CraftingBlocker(), this)
 

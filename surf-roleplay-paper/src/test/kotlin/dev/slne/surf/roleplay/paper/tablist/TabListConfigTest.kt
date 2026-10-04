@@ -6,7 +6,6 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 /**
@@ -88,16 +87,34 @@ class TabListConfigTest {
     }
 
     /**
-     * Verifies that invalid thresholds and restart times are rejected.
+     * Verifies that invalid thresholds and restart times fall back to their defaults with a
+     * warning, keeping the valid values.
      */
     @Test
-    fun `invalid values are rejected`() {
-        assertFailsWith<IllegalArgumentException> {
-            TabListConfig.from(yaml("tab-list:\n  organisations:\n    police:\n      thresholds: [3, 1]"))
-        }
-        assertFailsWith<IllegalArgumentException> {
-            TabListConfig.from(yaml("tab-list:\n  restart-time: \"25:00\""))
-        }
+    fun `invalid values fall back to defaults with a warning`() {
+        val warnings = mutableListOf<String>()
+        val config = TabListConfig.from(
+            yaml(
+                """
+                tab-list:
+                  restart-time: "25:00"
+                  announcement: "Hallo"
+                  organisations:
+                    police:
+                      exact: true
+                      thresholds: [3, 1]
+                    sar:
+                      thresholds: [2, 4]
+                """.trimIndent()
+            ),
+            warnings::add,
+        )
+
+        assertEquals(TabListConfig.DEFAULT_RESTART_TIME, config.restartTime)
+        assertEquals("Hallo", config.announcement)
+        assertEquals(TabListConfig.Organisation.DEFAULT, config.organisation("police"))
+        assertEquals(TabListConfig.Organisation(thresholds = listOf(2, 4)), config.organisation("sar"))
+        assertEquals(2, warnings.size)
     }
 
     /**

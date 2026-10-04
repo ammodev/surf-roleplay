@@ -131,14 +131,16 @@ data class TabListConfig(
         private const val THRESHOLDS = "thresholds"
 
         /**
-         * Reads the settings from the `tab-list` section of a configuration.
+         * Reads the settings from the `tab-list` section of a configuration. A restart time that
+         * is not `HH:mm` falls back to [DEFAULT_RESTART_TIME], and an organisation whose
+         * thresholds are not two strictly increasing, non-negative values falls back to
+         * [Organisation.DEFAULT]; each such value is reported to [warn].
          *
          * @param config the plugin configuration
-         * @return the settings, with defaults for missing values
-         * @throws IllegalArgumentException if the restart time is not `HH:mm` or an organisation's
-         *         thresholds are not two strictly increasing, non-negative values
+         * @param warn receives a message for every invalid value
+         * @return the settings, with defaults for missing and invalid values
          */
-        fun from(config: ConfigurationSection): TabListConfig {
+        fun from(config: ConfigurationSection, warn: (String) -> Unit = {}): TabListConfig {
             val section = config.getConfigurationSection(SECTION) ?: return TabListConfig()
             val restartText = section.getString(RESTART_TIME)
             val restartTime = when {
@@ -147,7 +149,8 @@ data class TabListConfig(
                 else -> try {
                     LocalTime.parse(restartText.trim(), TIME_FORMAT)
                 } catch (exception: DateTimeParseException) {
-                    throw IllegalArgumentException("$SECTION.$RESTART_TIME must be HH:mm, was '$restartText'", exception)
+                    warn("$SECTION.$RESTART_TIME must be HH:mm, was '$restartText'; using ${DEFAULT_RESTART_TIME.format(TIME_FORMAT)}")
+                    DEFAULT_RESTART_TIME
                 }
             }
             val announcement = section.getString(ANNOUNCEMENT)?.takeIf { it.isNotBlank() }
@@ -156,7 +159,12 @@ data class TabListConfig(
                 val organisation = organisationsSection.getConfigurationSection(key)
                     ?: return@associateWith Organisation.DEFAULT
                 val thresholds = if (organisation.contains(THRESHOLDS)) organisation.getIntegerList(THRESHOLDS) else OnlineLevels.DEFAULT_THRESHOLDS
-                Organisation(exact = organisation.getBoolean(EXACT, false), thresholds = thresholds)
+                try {
+                    Organisation(exact = organisation.getBoolean(EXACT, false), thresholds = thresholds)
+                } catch (exception: IllegalArgumentException) {
+                    warn("$SECTION.$ORGANISATIONS.$key is invalid (${exception.message}); using the defaults")
+                    Organisation.DEFAULT
+                }
             }.orEmpty()
             return TabListConfig(organisations, restartTime, announcement)
         }
