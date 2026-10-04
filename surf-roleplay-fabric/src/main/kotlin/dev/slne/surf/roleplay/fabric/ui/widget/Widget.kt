@@ -366,10 +366,8 @@ abstract class Widget(val id: String) {
     abstract fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int)
 
     /**
-     * Keeps the state a widget updates while it is drawn current during a frame in which it is
-     * not drawn because it lies outside the visible area. The mouse counts as away from the
-     * widget, as it is while the widget is drawn with the mouse hidden from it. Widgets without
-     * such state do nothing.
+     * Updates the per-frame state of a widget that is not drawn this frame because it lies
+     * outside the clip; the mouse counts as away. Widgets without such state do nothing.
      *
      * @param context the screen showing the widget
      */
