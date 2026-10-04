@@ -223,7 +223,8 @@ class StorybookPage(
 
     /**
      * Adds the header row: the sidebar trigger, the name and key of the shown story, the theme
-     * select and the light/dark switch.
+     * select and the light/dark switch. The name and key take the width the controls leave and
+     * are shortened to one line each.
      *
      * @param shown the shown story, or `null` for none
      */
@@ -231,8 +232,8 @@ class StorybookPage(
         Row(width = ElementSize.grow(), gap = 8, crossAlign = Alignment.CENTER) {
             SidebarTrigger()
             Column(width = ElementSize.grow(), gap = 2) {
-                H2(shown?.name ?: "Storybook")
-                if (shown != null) Muted(shown.key)
+                H2(shown?.name ?: "Storybook", maxLines = 1, width = ElementSize.grow())
+                if (shown != null) Muted(shown.key, maxLines = 1, width = ElementSize.grow())
             }
             Select(STORYBOOK_THEMES, selected = themeName, width = ElementSize.fixed(120), id = "storybook_theme") { change -> themeName = change.value }
             Switch(checked = dark, id = "storybook_dark") { change -> dark = change.value == "true" }

@@ -16,7 +16,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.SidebarElement
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarHeaderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextKind
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
@@ -424,6 +426,24 @@ class StorybookTest {
 
         val content = elements(root).filterIsInstance<ScrollAreaElement>().single { it.id == "storybook_content" }
         assertEquals(ElementSize.grow(), content.height)
+    }
+
+    /**
+     * The story name and key in the header take the width the controls leave and stay on one
+     * line, and the theme select keeps its fixed width.
+     */
+    @Test
+    fun `the header clamps the story name to one line`() {
+        val page = StorybookPage(UUID.randomUUID(), reports::add) { testStories }
+        val all = elements(definition(page).root)
+        val name = all.filterIsInstance<TextElement>().single { PlainTextComponentSerializer.plainText().serialize(it.text) == "Schaltfläche" && it.kind == TextKind.H2 }
+        val key = all.filterIsInstance<TextElement>().single { PlainTextComponentSerializer.plainText().serialize(it.text) == "button" }
+
+        assertEquals(1, name.maxLines)
+        assertEquals(ElementSize.grow(), name.width)
+        assertEquals(1, key.maxLines)
+        assertEquals(ElementSize.grow(), key.width)
+        assertEquals(ElementSize.fixed(120), all.filterIsInstance<SelectElement>().single { it.id == "storybook_theme" }.width)
     }
 
     /**
