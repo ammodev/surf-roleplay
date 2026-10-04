@@ -7,10 +7,12 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
 import dev.slne.surf.roleplay.api.client.common.screen.SliderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
 import dev.slne.surf.roleplay.api.client.common.screen.SwitchSize
-import dev.slne.surf.roleplay.api.client.common.screen.radioGroup
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.slider
-import dev.slne.surf.roleplay.api.client.common.screen.switch
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.RadioGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Slider
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Switch
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
@@ -72,17 +74,17 @@ class ChoiceComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Auswahl")) {
-            column("root") {
-                switch("notify", checked = true, size = SwitchSize.SM)
-                radioGroup(
-                    "plan",
+        Screen(Component.text("Auswahl")) {
+            Column(id = "root") {
+                Switch(checked = true, size = SwitchSize.SM, id = "notify")
+                RadioGroup(
                     listOf(RadioChoice("free", Component.text("Frei")), RadioChoice("pro", Component.text("Pro"), enabled = false)),
                     selected = "free",
                     orientation = Orientation.HORIZONTAL,
+                    id = "plan",
                 )
-                slider("price", listOf(20.0, 80.0), step = 5.0)
-                button("submit", Component.text("Senden")) { clicks += it }
+                Slider(listOf(20.0, 80.0), step = 5.0, id = "price")
+                Button(Component.text("Senden"), id = "submit") { clicks += it }
             }
         },
         null,

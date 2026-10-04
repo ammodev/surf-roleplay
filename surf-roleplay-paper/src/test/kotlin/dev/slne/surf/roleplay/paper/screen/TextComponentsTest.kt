@@ -9,13 +9,17 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputType
 import dev.slne.surf.roleplay.api.client.common.screen.TextareaElement
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroup
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroupAddon
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroupButton
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroupText
-import dev.slne.surf.roleplay.api.client.common.screen.inputOtp
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.textarea
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupAddon
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupButton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupText
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputOtp
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Textarea
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
@@ -85,19 +89,19 @@ class TextComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Text")) {
-            column("root") {
-                label("mail_label", Component.text("E-Mail"), forId = "mail")
-                textInput("mail", type = TextInputType.EMAIL, required = true)
-                textInput("password", type = TextInputType.PASSWORD)
-                textarea("bio", rows = 4, maxLength = 10)
-                inputGroup("search") {
-                    inputGroupAddon("search_start") { inputGroupText("search_hint", Component.text("@"), icon = "at-sign") }
-                    textInput("query")
-                    inputGroupAddon("search_end", InputGroupAlign.INLINE_END) { inputGroupButton("clear", icon = "x") }
+        Screen(Component.text("Text")) {
+            Column(id = "root") {
+                Label(Component.text("E-Mail"), forId = "mail", id = "mail_label")
+                Input(type = TextInputType.EMAIL, required = true, id = "mail")
+                Input(type = TextInputType.PASSWORD, id = "password")
+                Textarea(rows = 4, maxLength = 10, id = "bio")
+                InputGroup(id = "search") {
+                    InputGroupAddon(id = "search_start") { InputGroupText(Component.text("@"), icon = "at-sign", id = "search_hint") }
+                    Input(id = "query")
+                    InputGroupAddon(InputGroupAlign.INLINE_END, id = "search_end") { InputGroupButton(icon = "x", id = "clear") }
                 }
-                inputOtp("code", length = 4, groups = listOf(2, 2), pattern = OtpPattern.ALPHANUMERIC)
-                button("submit", Component.text("Senden")) { clicks += it }
+                InputOtp(length = 4, groups = listOf(2, 2), pattern = OtpPattern.ALPHANUMERIC, id = "code")
+                Button(Component.text("Senden"), id = "submit") { clicks += it }
             }
         },
         null,

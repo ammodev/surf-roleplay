@@ -3,15 +3,19 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.OverlaySide
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange
-import dev.slne.surf.roleplay.api.client.common.screen.hoverCard
-import dev.slne.surf.roleplay.api.client.common.screen.hoverCardContent
-import dev.slne.surf.roleplay.api.client.common.screen.popover
-import dev.slne.surf.roleplay.api.client.common.screen.popoverContent
-import dev.slne.surf.roleplay.api.client.common.screen.popoverDescription
-import dev.slne.surf.roleplay.api.client.common.screen.popoverHeader
-import dev.slne.surf.roleplay.api.client.common.screen.popoverTitle
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.tooltip
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.HoverCard
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.HoverCardContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Popover
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Tooltip
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
@@ -79,24 +83,24 @@ class OverlayComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Overlays")) {
-            column("root") {
-                popover("popover", OverlaySide.RIGHT, Alignment.START, onChange = { changes += it }) {
-                    button("trigger", Component.text("Öffnen"), submitsInput = false)
-                    popoverContent("content") {
-                        popoverHeader("header") {
-                            popoverTitle("title", Component.text("Maße"))
-                            popoverDescription("description", Component.text("Lege die Maße fest."))
+        Screen(Component.text("Overlays")) {
+            Column(id = "root") {
+                Popover(OverlaySide.RIGHT, Alignment.START, onChange = { changes += it }, id = "popover") {
+                    Button(Component.text("Öffnen"), submitsInput = false, id = "trigger")
+                    PopoverContent(id = "content") {
+                        PopoverHeader(id = "header") {
+                            PopoverTitle(Component.text("Maße"), id = "title")
+                            PopoverDescription(Component.text("Lege die Maße fest."), id = "description")
                         }
-                        textInput("width", required = true)
+                        Input(required = true, id = "width")
                     }
                 }
-                hoverCard("card", openDelay = 500) {
-                    label("name", Component.text("@max"))
-                    hoverCardContent("card_content") { label("bio", Component.text("Max Mustermann")) }
+                HoverCard(openDelay = 500, id = "card") {
+                    Label(Component.text("@max"), id = "name")
+                    HoverCardContent(id = "card_content") { Label(Component.text("Max Mustermann"), id = "bio") }
                 }
-                tooltip("tip", Component.text("Speichern"), OverlaySide.BOTTOM) {
-                    button("save", Component.text("S"))
+                Tooltip(Component.text("Speichern"), OverlaySide.BOTTOM, id = "tip") {
+                    Button(Component.text("S"), id = "save")
                 }
             }
         },
@@ -173,11 +177,11 @@ class OverlayComponentsTest {
     @Test
     fun `change events respect unreachable overlays`() {
         val session = state.open(
-            screen(Component.text("Gesperrt")) {
-                column("root") {
-                    popover("locked", onChange = { changes += it }) {
-                        button("locked_trigger", Component.text("Öffnen"), enabled = false)
-                        popoverContent("locked_content") { textInput("note", onChange = { changes += it }) }
+            Screen(Component.text("Gesperrt")) {
+                Column(id = "root") {
+                    Popover(onChange = { changes += it }, id = "locked") {
+                        Button(Component.text("Öffnen"), enabled = false, id = "locked_trigger")
+                        PopoverContent(id = "locked_content") { Input(onChange = { changes += it }, id = "note") }
                     }
                 }
             },

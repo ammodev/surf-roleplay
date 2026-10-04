@@ -1,7 +1,12 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.IconTint
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Icon
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.IconColor
@@ -23,12 +28,12 @@ class IconMappingTest {
      */
     @Test
     fun `icons map to their nodes`() {
-        val definition = screen(Component.text("Icons")) {
-            column("root") {
-                icon("shield", "shield", size = 24, tint = IconTint.PRIMARY)
-                label("info", Component.text("Hinweis"), icon = "info")
-                button("delete", Component.text("Löschen"), icon = "trash")
-                textInput("search", icon = "search")
+        val definition = Screen(Component.text("Icons")) {
+            Column(id = "root") {
+                Icon("shield", size = 24, tint = IconTint.PRIMARY, id = "shield")
+                Label(Component.text("Hinweis"), icon = "info", id = "info")
+                Button(Component.text("Löschen"), icon = "trash", id = "delete")
+                Input(icon = "search", id = "search")
             }
         }
 

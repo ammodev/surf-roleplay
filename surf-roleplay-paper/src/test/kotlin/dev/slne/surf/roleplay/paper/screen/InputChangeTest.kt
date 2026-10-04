@@ -1,7 +1,9 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
@@ -56,10 +58,10 @@ class InputChangeTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Suche")) {
-            column("root") {
-                textInput("search", maxLength = 10, onChange = { changes += it })
-                textInput("name")
+        Screen(Component.text("Suche")) {
+            Column(id = "root") {
+                Input(maxLength = 10, onChange = { changes += it }, id = "search")
+                Input(id = "name")
             }
         },
         null,

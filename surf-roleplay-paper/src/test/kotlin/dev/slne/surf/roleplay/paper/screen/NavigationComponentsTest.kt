@@ -2,79 +2,82 @@ package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AccordionType
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange as ApiInputChange
-import dev.slne.surf.roleplay.api.client.common.screen.accordion
-import dev.slne.surf.roleplay.api.client.common.screen.accordionContent
-import dev.slne.surf.roleplay.api.client.common.screen.accordionItem
-import dev.slne.surf.roleplay.api.client.common.screen.accordionTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.collapsible
-import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
-import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarProvider
-import dev.slne.surf.roleplay.api.client.common.screen.sidebar
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarInset
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarHeader
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarFooter
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarContent
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroup
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupLabel
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupAction
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupContent
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenu
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuItem
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuButton
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuAction
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuBadge
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSkeleton
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSub
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSubItem
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSubButton
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarRail
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarInput
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarSeparator
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarCollapsible
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarVariant
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonSize
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenu
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuList
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuItem
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuContent
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuLink
-import dev.slne.surf.roleplay.api.client.common.screen.carousel
-import dev.slne.surf.roleplay.api.client.common.screen.carouselContent
-import dev.slne.surf.roleplay.api.client.common.screen.carouselItem
-import dev.slne.surf.roleplay.api.client.common.screen.carouselNext
-import dev.slne.surf.roleplay.api.client.common.screen.carouselPrevious
-import dev.slne.surf.roleplay.api.client.common.screen.resizableHandle
-import dev.slne.surf.roleplay.api.client.common.screen.resizablePanel
-import dev.slne.surf.roleplay.api.client.common.screen.resizablePanelGroup
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollOrientation
-import dev.slne.surf.roleplay.api.client.common.screen.scrollArea
-import dev.slne.surf.roleplay.api.client.common.screen.direction
 import dev.slne.surf.roleplay.api.client.common.screen.LayoutDirection
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumb
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbList
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbItem
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbLink
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbPage
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbEllipsis
-import dev.slne.surf.roleplay.api.client.common.screen.pagination
-import dev.slne.surf.roleplay.api.client.common.screen.paginationContent
-import dev.slne.surf.roleplay.api.client.common.screen.paginationItem
-import dev.slne.surf.roleplay.api.client.common.screen.paginationLink
-import dev.slne.surf.roleplay.api.client.common.screen.paginationPrevious
-import dev.slne.surf.roleplay.api.client.common.screen.paginationNext
-import dev.slne.surf.roleplay.api.client.common.screen.paginationEllipsis
 import dev.slne.surf.roleplay.api.client.common.screen.Orientation
 import dev.slne.surf.roleplay.api.client.common.screen.TabsVariant
-import dev.slne.surf.roleplay.api.client.common.screen.tabs
-import dev.slne.surf.roleplay.api.client.common.screen.tabsContent
-import dev.slne.surf.roleplay.api.client.common.screen.tabsList
-import dev.slne.surf.roleplay.api.client.common.screen.tabsTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Accordion
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AccordionContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AccordionItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AccordionTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Breadcrumb
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbEllipsis
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbLink
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbPage
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Carousel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CarouselContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CarouselItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CarouselNext
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CarouselPrevious
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Collapsible
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CollapsibleContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CollapsibleTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Direction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuLink
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Pagination
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationEllipsis
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationLink
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationNext
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationPrevious
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ResizableHandle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ResizablePanel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ResizablePanelGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ScrollArea
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Sidebar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarGroupAction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarGroupContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarGroupLabel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarInput
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarInset
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuAction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuBadge
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuButton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuSkeleton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuSub
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuSubButton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuSubItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarProvider
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarRail
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Tabs
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TabsContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TabsList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TabsTrigger
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.AccordionContentNode
@@ -195,29 +198,29 @@ class NavigationComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Navigation")) {
-            column("root") {
-                collapsible("collapsible", onChange = { report(it) }) {
-                    collapsibleTrigger("trigger") { button("toggle", Component.text("Mehr"), submitsInput = false) }
-                    collapsibleContent("content") { label("hidden", Component.text("Versteckt")) }
+        Screen(Component.text("Navigation")) {
+            Column(id = "root") {
+                Collapsible(onChange = { report(it) }, id = "collapsible") {
+                    CollapsibleTrigger(id = "trigger") { Button(Component.text("Mehr"), submitsInput = false, id = "toggle") }
+                    CollapsibleContent(id = "content") { Label(Component.text("Versteckt"), id = "hidden") }
                 }
-                accordion("single", collapsible = true, value = listOf("a"), onChange = { report(it) }) {
+                Accordion(collapsible = true, value = listOf("a"), onChange = { report(it) }, id = "single") {
                     for (v in listOf("a", "b", "c")) {
-                        accordionItem("single_$v", v, enabled = v != "c") {
-                            accordionTrigger("single_trigger_$v", Component.text(v))
-                            accordionContent("single_content_$v") { label("single_text_$v", Component.text("Text")) }
+                        AccordionItem(v, enabled = v != "c", id = "single_$v") {
+                            AccordionTrigger(Component.text(v), id = "single_trigger_$v")
+                            AccordionContent(id = "single_content_$v") { Label(Component.text("Text"), id = "single_text_$v") }
                         }
                     }
                 }
-                accordion("multiple", type = AccordionType.MULTIPLE) {
+                Accordion(type = AccordionType.MULTIPLE, id = "multiple") {
                     for (v in listOf("a", "b")) {
-                        accordionItem("multiple_$v", v) {
-                            accordionTrigger("multiple_trigger_$v", Component.text(v))
-                            accordionContent("multiple_content_$v") {}
+                        AccordionItem(v, id = "multiple_$v") {
+                            AccordionTrigger(Component.text(v), id = "multiple_trigger_$v")
+                            AccordionContent(id = "multiple_content_$v") {}
                         }
                     }
                 }
-                button("save", Component.text("Speichern")) { reports += "save=${it.values.list("multiple")}" }
+                Button(Component.text("Speichern"), id = "save") { reports += "save=${it.values.list("multiple")}" }
             }
         },
         null,
@@ -293,16 +296,16 @@ class NavigationComponentsTest {
      * @return the session id
      */
     private fun openTabs(): Int = state.open(
-        screen(Component.text("Tabs")) {
-            tabs("tabs", value = "account", orientation = Orientation.VERTICAL, onChange = { report(it) }) {
-                tabsList("list", TabsVariant.LINE) {
-                    tabsTrigger("trigger_account", "account", Component.text("Konto"), icon = "user")
-                    tabsTrigger("trigger_password", "password", Component.text("Passwort"), enabled = false)
-                    tabsTrigger("trigger_billing", "billing", Component.text("Rechnung"))
+        Screen(Component.text("Tabs")) {
+            Tabs(value = "account", orientation = Orientation.VERTICAL, onChange = { report(it) }, id = "tabs") {
+                TabsList(TabsVariant.LINE, id = "list") {
+                    TabsTrigger("account", Component.text("Konto"), icon = "user", id = "trigger_account")
+                    TabsTrigger("password", Component.text("Passwort"), enabled = false, id = "trigger_password")
+                    TabsTrigger("billing", Component.text("Rechnung"), id = "trigger_billing")
                 }
-                tabsContent("content_account", "account") {}
-                tabsContent("content_password", "password") {}
-                tabsContent("content_billing", "billing") {}
+                TabsContent("account", id = "content_account") {}
+                TabsContent("password", id = "content_password") {}
+                TabsContent("billing", id = "content_billing") {}
             }
         },
         null,
@@ -347,23 +350,23 @@ class NavigationComponentsTest {
      * @return the session id
      */
     private fun openPaths(): Int = state.open(
-        screen(Component.text("Pfade")) {
-            column("root") {
-                breadcrumb("breadcrumb") {
-                    breadcrumbList("list") {
-                        breadcrumbItem("home_item") { breadcrumbLink("home", Component.text("Start")) { reports += it.buttonId } }
-                        breadcrumbSeparator("sep")
-                        breadcrumbItem("more_item") { breadcrumbEllipsis("ellipsis") }
-                        breadcrumbSeparator("slash", icon = "slash")
-                        breadcrumbItem("page_item") { breadcrumbPage("page", Component.text("Akte")) }
+        Screen(Component.text("Pfade")) {
+            Column(id = "root") {
+                Breadcrumb(id = "breadcrumb") {
+                    BreadcrumbList(id = "list") {
+                        BreadcrumbItem(id = "home_item") { BreadcrumbLink(Component.text("Start"), id = "home") { reports += it.buttonId } }
+                        BreadcrumbSeparator(id = "sep")
+                        BreadcrumbItem(id = "more_item") { BreadcrumbEllipsis(id = "ellipsis") }
+                        BreadcrumbSeparator(icon = "slash", id = "slash")
+                        BreadcrumbItem(id = "page_item") { BreadcrumbPage(Component.text("Akte"), id = "page") }
                     }
                 }
-                pagination("pagination") {
-                    paginationContent("content") {
-                        paginationItem("i1") { paginationPrevious("prev", enabled = false) { reports += it.buttonId } }
-                        paginationItem("i2") { paginationLink("p1", Component.text("1"), active = true) { reports += it.buttonId } }
-                        paginationItem("i3") { paginationEllipsis("gap") }
-                        paginationItem("i4") { paginationNext("next") { reports += it.buttonId } }
+                Pagination(id = "pagination") {
+                    PaginationContent(id = "content") {
+                        PaginationItem(id = "i1") { PaginationPrevious(enabled = false, id = "prev") { reports += it.buttonId } }
+                        PaginationItem(id = "i2") { PaginationLink(Component.text("1"), active = true, id = "p1") { reports += it.buttonId } }
+                        PaginationItem(id = "i3") { PaginationEllipsis(id = "gap") }
+                        PaginationItem(id = "i4") { PaginationNext(id = "next") { reports += it.buttonId } }
                     }
                 }
             }
@@ -415,8 +418,8 @@ class NavigationComponentsTest {
     @Test
     fun `scroll areas map to their nodes`() {
         state.open(
-            screen(Component.text("Scroll")) {
-                scrollArea("area", ElementSize.fixed(120), ElementSize.fixed(80), ScrollOrientation.BOTH) { label("text", Component.text("Lang")) }
+            Screen(Component.text("Scroll")) {
+                ScrollArea(ElementSize.fixed(120), ElementSize.fixed(80), ScrollOrientation.BOTH, id = "area") { Label(Component.text("Lang"), id = "text") }
             },
             null,
         )
@@ -434,10 +437,10 @@ class NavigationComponentsTest {
     @Test
     fun `directions map to their nodes`() {
         state.open(
-            screen(Component.text("Richtung")) {
-                direction("rtl", LayoutDirection.RTL, width = ElementSize.fixed(200)) {
-                    label("text", Component.text("Rechts"))
-                    direction("ltr", LayoutDirection.LTR) { label("inner", Component.text("Links")) }
+            Screen(Component.text("Richtung")) {
+                Direction(LayoutDirection.RTL, width = ElementSize.fixed(200), id = "rtl") {
+                    Label(Component.text("Rechts"), id = "text")
+                    Direction(LayoutDirection.LTR, id = "ltr") { Label(Component.text("Links"), id = "inner") }
                 }
             },
             null,
@@ -458,11 +461,11 @@ class NavigationComponentsTest {
      * @return the session id
      */
     private fun openResizable(): Int = state.open(
-        screen(Component.text("Resizable")) {
-            resizablePanelGroup("group", Orientation.VERTICAL, onChange = { report(it) }) {
-                resizablePanel("top", defaultSize = 30.0, minSize = 20.0, maxSize = 60.0) {}
-                resizableHandle("handle", withHandle = true)
-                resizablePanel("bottom") {}
+        Screen(Component.text("Resizable")) {
+            ResizablePanelGroup(Orientation.VERTICAL, onChange = { report(it) }, id = "group") {
+                ResizablePanel(defaultSize = 30.0, minSize = 20.0, maxSize = 60.0, id = "top") {}
+                ResizableHandle(withHandle = true, id = "handle")
+                ResizablePanel(id = "bottom") {}
             }
         },
         null,
@@ -508,13 +511,13 @@ class NavigationComponentsTest {
      * @return the session id
      */
     private fun openCarousel(): Int = state.open(
-        screen(Component.text("Karussell")) {
-            carousel("carousel", ElementSize.fixed(160), loop = true, onChange = { report(it) }) {
-                carouselContent("content") {
-                    for (i in 0 until 3) carouselItem("slide$i", basis = 50.0) { label("text$i", Component.text("$i")) }
+        Screen(Component.text("Karussell")) {
+            Carousel(ElementSize.fixed(160), loop = true, onChange = { report(it) }, id = "carousel") {
+                CarouselContent(id = "content") {
+                    for (i in 0 until 3) CarouselItem(basis = 50.0, id = "slide$i") { Label(Component.text("$i"), id = "text$i") }
                 }
-                carouselPrevious("prev")
-                carouselNext("next")
+                CarouselPrevious(id = "prev")
+                CarouselNext(id = "next")
             }
         },
         null,
@@ -557,23 +560,23 @@ class NavigationComponentsTest {
      * @return the session id
      */
     private fun openNavigation(): Int = state.open(
-        screen(Component.text("Navigation")) {
-            navigationMenu("nav") {
-                navigationMenuList("list") {
-                    navigationMenuItem("services", onChange = { report(it) }) {
-                        navigationMenuTrigger("services_trigger", Component.text("Dienste"))
-                        navigationMenuContent("services_content") {
-                            navigationMenuLink("police", active = true, onClick = { reports += it.buttonId }) { label("police_title", Component.text("Polizei")) }
+        Screen(Component.text("Navigation")) {
+            NavigationMenu(id = "nav") {
+                NavigationMenuList(id = "list") {
+                    NavigationMenuItem(onChange = { report(it) }, id = "services") {
+                        NavigationMenuTrigger(Component.text("Dienste"), id = "services_trigger")
+                        NavigationMenuContent(id = "services_content") {
+                            NavigationMenuLink(active = true, onClick = { reports += it.buttonId }, id = "police") { Label(Component.text("Polizei"), id = "police_title") }
                         }
                     }
-                    navigationMenuItem("locked") {
-                        navigationMenuTrigger("locked_trigger", Component.text("Gesperrt"), enabled = false)
-                        navigationMenuContent("locked_content") {
-                            navigationMenuLink("secret", onClick = { reports += it.buttonId }) { label("secret_title", Component.text("Geheim")) }
+                    NavigationMenuItem(id = "locked") {
+                        NavigationMenuTrigger(Component.text("Gesperrt"), enabled = false, id = "locked_trigger")
+                        NavigationMenuContent(id = "locked_content") {
+                            NavigationMenuLink(onClick = { reports += it.buttonId }, id = "secret") { Label(Component.text("Geheim"), id = "secret_title") }
                         }
                     }
-                    navigationMenuItem("docs_item") {
-                        navigationMenuLink("docs", onClick = { reports += it.buttonId }) { label("docs_title", Component.text("Doku")) }
+                    NavigationMenuItem(id = "docs_item") {
+                        NavigationMenuLink(onClick = { reports += it.buttonId }, id = "docs") { Label(Component.text("Doku"), id = "docs_title") }
                     }
                 }
             }
@@ -620,34 +623,34 @@ class NavigationComponentsTest {
      * @return the session id
      */
     private fun openSidebar(): Int = state.open(
-        screen(Component.text("Sidebar")) {
-            sidebarProvider("provider", ElementSize.fixed(300), ElementSize.fixed(160), onChange = { report(it) }) {
-                sidebar("sidebar", variant = SidebarVariant.FLOATING, collapsible = SidebarCollapsible.ICON) {
-                    sidebarHeader("header") { sidebarInput("search", Component.text("Suchen")) }
-                    sidebarSeparator("sep")
-                    sidebarContent("content") {
-                        sidebarGroup("group") {
-                            sidebarGroupLabel("label", Component.text("Dienst"))
-                            sidebarGroupAction("group_action", onClick = { reports += it.buttonId })
-                            sidebarGroupContent("group_content") {
-                                sidebarMenu("menu") {
-                                    sidebarMenuItem("home_item") {
-                                        sidebarMenuButton("home", Component.text("Start"), icon = "house", size = SidebarMenuButtonSize.LG, active = true, tooltip = Component.text("Start")) { reports += it.buttonId }
-                                        sidebarMenuAction("home_action") { reports += it.buttonId }
-                                        sidebarMenuBadge("home_badge", Component.text("3"))
-                                        sidebarMenuSub("sub") {
-                                            sidebarMenuSubItem("sub_item") { sidebarMenuSubButton("sub_button", Component.text("Neu")) { reports += it.buttonId } }
+        Screen(Component.text("Sidebar")) {
+            SidebarProvider(ElementSize.fixed(300), ElementSize.fixed(160), onChange = { report(it) }, id = "provider") {
+                Sidebar(variant = SidebarVariant.FLOATING, collapsible = SidebarCollapsible.ICON, id = "sidebar") {
+                    SidebarHeader(id = "header") { SidebarInput(Component.text("Suchen"), id = "search") }
+                    SidebarSeparator(id = "sep")
+                    SidebarContent(id = "content") {
+                        SidebarGroup(id = "group") {
+                            SidebarGroupLabel(Component.text("Dienst"), id = "label")
+                            SidebarGroupAction(onClick = { reports += it.buttonId }, id = "group_action")
+                            SidebarGroupContent(id = "group_content") {
+                                SidebarMenu(id = "menu") {
+                                    SidebarMenuItem(id = "home_item") {
+                                        SidebarMenuButton(Component.text("Start"), icon = "house", size = SidebarMenuButtonSize.LG, active = true, tooltip = Component.text("Start"), id = "home") { reports += it.buttonId }
+                                        SidebarMenuAction(id = "home_action") { reports += it.buttonId }
+                                        SidebarMenuBadge(Component.text("3"), id = "home_badge")
+                                        SidebarMenuSub(id = "sub") {
+                                            SidebarMenuSubItem(id = "sub_item") { SidebarMenuSubButton(Component.text("Neu"), id = "sub_button") { reports += it.buttonId } }
                                         }
                                     }
-                                    sidebarMenuItem("loading") { sidebarMenuSkeleton("skeleton", showIcon = true) }
+                                    SidebarMenuItem(id = "loading") { SidebarMenuSkeleton(showIcon = true, id = "skeleton") }
                                 }
                             }
                         }
                     }
-                    sidebarFooter("footer") {}
-                    sidebarRail("rail")
+                    SidebarFooter(id = "footer") {}
+                    SidebarRail(id = "rail")
                 }
-                sidebarInset("inset") { sidebarTrigger("trigger") }
+                SidebarInset(id = "inset") { SidebarTrigger(id = "trigger") }
             }
         },
         null,

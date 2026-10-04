@@ -3,7 +3,8 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.Presentation
@@ -58,10 +59,8 @@ class ConfirmDialogTest {
      * @return the parent's session id
      */
     private fun openParent(): Int = state.open(
-        screen(Component.text("Akte")) {
-            theme = "police"
-            variant = ScreenVariant.LIGHT
-            label("a", Component.empty())
+        Screen(Component.text("Akte"), theme = "police", variant = ScreenVariant.LIGHT) {
+            Label(Component.empty(), id = "a")
         },
         null,
     ).sessionId
@@ -90,10 +89,8 @@ class ConfirmDialogTest {
     @Test
     fun `opens carry theme and presentation`() {
         state.open(
-            screen(Component.text("x")) {
-                theme = "sar"
-                variant = ScreenVariant.LIGHT
-                label("l", Component.empty())
+            Screen(Component.text("x"), theme = "sar", variant = ScreenVariant.LIGHT) {
+                Label(Component.empty(), id = "l")
             },
             null,
             ScreenPresentation.SHEET,
@@ -182,9 +179,9 @@ class ConfirmDialogTest {
     fun `screens without a theme inherit the parent's theme`() {
         val parent = openParent()
 
-        state.open(screen(Component.text("Kind")) { label("c", Component.empty()) }, parent, ScreenPresentation.SHEET)
+        state.open(Screen(Component.text("Kind")) { Label(Component.empty(), id = "c") }, parent, ScreenPresentation.SHEET)
         val inherited = sent.last() as ScreenOpen
-        state.open(screen(Component.text("Eigen")) { theme = "sar"; label("o", Component.empty()) }, parent, ScreenPresentation.DIALOG)
+        state.open(Screen(Component.text("Eigen"), theme = "sar") { Label(Component.empty(), id = "o") }, parent, ScreenPresentation.DIALOG)
         val own = sent.last() as ScreenOpen
 
         assertEquals("police", inherited.theme)
@@ -197,7 +194,7 @@ class ConfirmDialogTest {
      */
     @Test
     fun `root screens without a theme use the default theme`() {
-        state.open(screen(Component.text("Wurzel")) { label("r", Component.empty()) }, null)
+        state.open(Screen(Component.text("Wurzel")) { Label(Component.empty(), id = "r") }, null)
 
         val open = sent.last() as ScreenOpen
         assertEquals("default", open.theme)

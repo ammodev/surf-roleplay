@@ -5,24 +5,26 @@ import dev.slne.surf.roleplay.api.client.common.screen.ItemMediaVariant
 import dev.slne.surf.roleplay.api.client.common.screen.ItemSize
 import dev.slne.surf.roleplay.api.client.common.screen.ItemVariant
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
-import dev.slne.surf.roleplay.api.client.common.screen.empty
-import dev.slne.surf.roleplay.api.client.common.screen.emptyContent
-import dev.slne.surf.roleplay.api.client.common.screen.emptyDescription
-import dev.slne.surf.roleplay.api.client.common.screen.emptyHeader
-import dev.slne.surf.roleplay.api.client.common.screen.emptyMedia
-import dev.slne.surf.roleplay.api.client.common.screen.emptyTitle
-import dev.slne.surf.roleplay.api.client.common.screen.item
-import dev.slne.surf.roleplay.api.client.common.screen.itemActions
-import dev.slne.surf.roleplay.api.client.common.screen.itemContent
-import dev.slne.surf.roleplay.api.client.common.screen.itemDescription
-import dev.slne.surf.roleplay.api.client.common.screen.itemFooter
-import dev.slne.surf.roleplay.api.client.common.screen.itemGroup
-import dev.slne.surf.roleplay.api.client.common.screen.itemHeader
-import dev.slne.surf.roleplay.api.client.common.screen.itemMedia
-import dev.slne.surf.roleplay.api.client.common.screen.itemSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.itemTitle
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.text
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Empty
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.EmptyContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.EmptyDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.EmptyHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.EmptyMedia
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.EmptyTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Item
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemActions
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemMedia
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ItemTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
@@ -94,29 +96,29 @@ class ItemComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Liste")) {
-            column("root") {
-                empty("empty", outline = true) {
-                    emptyHeader("empty_header") {
-                        emptyMedia("empty_media", EmptyMediaVariant.ICON, icon = "folder")
-                        emptyTitle("empty_title", Component.text("Keine Akten"))
-                        emptyDescription("empty_description", Component.text("Lege eine an."))
+        Screen(Component.text("Liste")) {
+            Column(id = "root") {
+                Empty(outline = true, id = "empty") {
+                    EmptyHeader(id = "empty_header") {
+                        EmptyMedia(EmptyMediaVariant.ICON, icon = "folder", id = "empty_media")
+                        EmptyTitle(Component.text("Keine Akten"), id = "empty_title")
+                        EmptyDescription(Component.text("Lege eine an."), id = "empty_description")
                     }
-                    emptyContent("empty_content") { button("create", Component.text("Neu")) }
+                    EmptyContent(id = "empty_content") { Button(Component.text("Neu"), id = "create") }
                 }
-                itemGroup("group") {
-                    item("clickable", ItemVariant.OUTLINE, ItemSize.SM, onClick = { clicks += it }) {
-                        itemHeader("header") { text("header_text", Component.text("Kopf")) }
-                        itemMedia("media", ItemMediaVariant.ICON, icon = "user")
-                        itemContent("content") {
-                            itemTitle("title", Component.text("Titel"))
-                            itemDescription("description", Component.text("Beschreibung"))
+                ItemGroup(id = "group") {
+                    Item(ItemVariant.OUTLINE, ItemSize.SM, onClick = { clicks += it }, id = "clickable") {
+                        ItemHeader(id = "header") { P(Component.text("Kopf"), id = "header_text") }
+                        ItemMedia(ItemMediaVariant.ICON, icon = "user", id = "media")
+                        ItemContent(id = "content") {
+                            ItemTitle(Component.text("Titel"), id = "title")
+                            ItemDescription(Component.text("Beschreibung"), id = "description")
                         }
-                        itemActions("actions") { button("open", Component.text("Öffnen")) }
-                        itemFooter("footer") { text("footer_text", Component.text("Fuß")) }
+                        ItemActions(id = "actions") { Button(Component.text("Öffnen"), id = "open") }
+                        ItemFooter(id = "footer") { P(Component.text("Fuß"), id = "footer_text") }
                     }
-                    itemSeparator("separator")
-                    item("plain") { itemContent("plain_content") { itemTitle("plain_title", Component.text("Einfach")) } }
+                    ItemSeparator(id = "separator")
+                    Item(id = "plain") { ItemContent(id = "plain_content") { ItemTitle(Component.text("Einfach"), id = "plain_title") } }
                 }
             }
         },

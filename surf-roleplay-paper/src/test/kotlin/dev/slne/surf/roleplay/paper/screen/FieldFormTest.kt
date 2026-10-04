@@ -2,17 +2,19 @@ package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Orientation
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
-import dev.slne.surf.roleplay.api.client.common.screen.field
-import dev.slne.surf.roleplay.api.client.common.screen.fieldContent
-import dev.slne.surf.roleplay.api.client.common.screen.fieldDescription
-import dev.slne.surf.roleplay.api.client.common.screen.fieldError
-import dev.slne.surf.roleplay.api.client.common.screen.fieldGroup
-import dev.slne.surf.roleplay.api.client.common.screen.fieldLabel
-import dev.slne.surf.roleplay.api.client.common.screen.fieldLegend
-import dev.slne.surf.roleplay.api.client.common.screen.fieldSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.fieldSet
-import dev.slne.surf.roleplay.api.client.common.screen.form
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Field
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldError
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldLabel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldLegend
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldSet
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Form
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.FieldContentNode
@@ -72,26 +74,26 @@ class FieldFormTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Konto")) {
-            form("form", submitId = "send") {
-                fieldSet("set") {
-                    fieldLegend("legend", Component.text("Konto"))
-                    fieldGroup("group") {
-                        field("name_field") {
-                            fieldLabel("name_label", Component.text("Name"), forId = "name")
-                            textInput("name")
-                            fieldDescription("name_hint", Component.text("Dein Rufname"))
-                            fieldError("name_error")
+        Screen(Component.text("Konto")) {
+            Form(submitId = "send", id = "form") {
+                FieldSet(id = "set") {
+                    FieldLegend(Component.text("Konto"), id = "legend")
+                    FieldGroup(id = "group") {
+                        Field(id = "name_field") {
+                            FieldLabel(Component.text("Name"), forId = "name", id = "name_label")
+                            Input(id = "name")
+                            FieldDescription(Component.text("Dein Rufname"), id = "name_hint")
+                            FieldError(id = "name_error")
                         }
-                        fieldSeparator("sep", Component.text("oder"))
-                        field("mail_field", orientation = Orientation.HORIZONTAL) {
-                            fieldContent("mail_content") { fieldLabel("mail_label", Component.text("E-Mail"), forId = "mail") }
-                            textInput("mail")
-                            fieldError("mail_error")
+                        FieldSeparator(Component.text("oder"), id = "sep")
+                        Field(orientation = Orientation.HORIZONTAL, id = "mail_field") {
+                            FieldContent(id = "mail_content") { FieldLabel(Component.text("E-Mail"), forId = "mail", id = "mail_label") }
+                            Input(id = "mail")
+                            FieldError(id = "mail_error")
                         }
                     }
                 }
-                button("send", Component.text("Senden")) { click: ScreenClick ->
+                Button(Component.text("Senden"), id = "send") { click: ScreenClick ->
                     if (click.values.text("name") == "Max") click.fail(mapOf("name" to Component.text("Name ist vergeben")))
                 }
             }
