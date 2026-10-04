@@ -230,12 +230,20 @@ open class ComponentScope internal constructor(internal val generatedId: (Int) -
         const val GENERATED_PREFIX: String = "_"
 
         /**
+         * The prefix of the generated root id of a tree that replaces an element with an explicit
+         * id; positional ids never contain `#`.
+         */
+        const val EXPLICIT_TARGET_PREFIX: String = "_#"
+
+        /**
          * Creates the scope that holds the root of a tree.
          *
          * Without a target the root's generated id is `_0`. With a generated target id, one that
          * starts with `_`, the root's generated id is the target id itself; with an explicit target
-         * id it is `_` followed by the target id. Further root elements, which a render rejects,
-         * get the root's generated id followed by `+` and their index.
+         * id it is `_#` followed by the target id, which no positional id starts with, so that an
+         * explicit id such as `0.2` cannot produce the positional id `_0.2`. Further root
+         * elements, which a render rejects, get the root's generated id followed by `+` and their
+         * index.
          *
          * @param at the id of the element the tree replaces, or `null` for the root of a screen
          * @param binder the binder every handler of the tree passes through
@@ -243,7 +251,7 @@ open class ComponentScope internal constructor(internal val generatedId: (Int) -
          */
         fun root(at: String?, binder: HandlerBinder): ComponentScope {
             if (at == null) return ComponentScope({ index -> "$GENERATED_PREFIX$index" }, binder)
-            val rootId = if (at.startsWith(GENERATED_PREFIX)) at else GENERATED_PREFIX + at
+            val rootId = if (at.startsWith(GENERATED_PREFIX)) at else EXPLICIT_TARGET_PREFIX + at
             return ComponentScope({ index -> if (index == 0) rootId else "$rootId+$index" }, binder)
         }
     }
@@ -287,9 +295,9 @@ fun Screen(
  * that replaces part of an open screen.
  *
  * The root's generated id is `_0` without [at], [at] itself if it is a generated id (it starts
- * with `_`), and `_` followed by [at] if it is an explicit id; the root's descendants get ids
- * below it, such as `_0.3.0` for the first child of a root at `_0.3`. An explicit id given to the
- * root component wins over the generated one.
+ * with `_`), and `_#` followed by [at] if it is an explicit id, so that it never equals a
+ * positional id. The root's descendants get ids below it, such as `_0.3.0` for the first child
+ * of a root at `_0.3`. An explicit id given to the root component wins over the generated one.
  *
  * @param binder the binder every handler of the tree passes through
  * @param at the id of the element the rendered element replaces, or `null` for the root of a

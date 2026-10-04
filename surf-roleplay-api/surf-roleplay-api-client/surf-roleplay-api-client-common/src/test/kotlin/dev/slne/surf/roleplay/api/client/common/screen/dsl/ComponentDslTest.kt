@@ -253,14 +253,18 @@ class ComponentDslTest {
     }
 
     /**
-     * Verifies that rendering at an explicit target id prefixes the generated root id.
+     * Verifies that rendering at an explicit target id prefixes the generated root id with `_#`, so
+     * that it cannot collide with a positional id.
      */
     @Test
     fun `rendering at an explicit id prefixes the root id`() {
         val root = assertIs<ColumnElement>(renderRoot(at = "list") { Column { Button("A"); Row { Button("B") } } })
-        assertEquals("_list", root.id)
-        assertEquals("_list.0", root.children[0].id)
-        assertEquals("_list.1.0", (root.children[1] as RowElement).children[0].id)
+        assertEquals("_#list", root.id)
+        assertEquals("_#list.0", root.children[0].id)
+        assertEquals("_#list.1.0", (root.children[1] as RowElement).children[0].id)
+        val digits = assertIs<ColumnElement>(renderRoot(at = "0.2") { Column { Button("A") } })
+        assertEquals("_#0.2", digits.id)
+        assertEquals("_#0.2.0", digits.children[0].id)
     }
 
     /**
