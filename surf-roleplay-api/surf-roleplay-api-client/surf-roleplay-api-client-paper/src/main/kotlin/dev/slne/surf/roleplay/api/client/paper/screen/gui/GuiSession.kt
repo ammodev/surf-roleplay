@@ -86,16 +86,18 @@ internal class GuiSession(
 
     /**
      * Runs the newest handler of an element and re-renders the page afterwards if it changed. An
-     * exception of the handler is logged and does not stop the re-render.
+     * exception of the handler is logged and does not stop the re-render. Does nothing once the
+     * screen is closed, or if the newest render has no such handler.
      *
      * @param elementId the id of the element
      * @param kind the kind of handler
      * @param invoke the function that runs the handler
      */
     override fun dispatch(elementId: String, kind: HandlerKind, invoke: (Any) -> Unit) {
-        val handler = handlers[elementId, kind]
+        if (!isOpen) return
+        val handler = handlers[elementId, kind] ?: return
         try {
-            if (handler != null) invoke(handler)
+            invoke(handler)
         } catch (exception: Exception) {
             log.atWarning().withCause(exception).log("The %s handler of element %s on page %s failed", kind, elementId, page.javaClass.name)
         }

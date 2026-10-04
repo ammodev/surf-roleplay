@@ -498,6 +498,20 @@ class GuiPageTest {
     }
 
     /**
+     * Verifies that a click after the screen closed runs no handler and sends nothing.
+     */
+    @Test
+    fun `a click after close does nothing`() {
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
+        val plus = fake.element<ButtonElement>("plus")
+        fake.lastScreen.close()
+        fake.click(plus)
+        assertEquals(0, page.count)
+        assertTrue(fake.lastScreen.patches.isEmpty())
+    }
+
+    /**
      * Verifies that a state change inside [GuiPage.update] re-renders the page.
      */
     @Test
