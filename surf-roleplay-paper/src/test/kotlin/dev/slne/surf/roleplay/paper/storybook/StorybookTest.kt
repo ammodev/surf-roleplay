@@ -1,13 +1,21 @@
 package dev.slne.surf.roleplay.paper.storybook
 
+import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
+import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.IconElement
 import dev.slne.surf.roleplay.api.client.common.screen.PaginationNextElement
 import dev.slne.surf.roleplay.api.client.common.screen.RowElement
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenValues
+import dev.slne.surf.roleplay.api.client.common.screen.SearchHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.ScrollAreaElement
@@ -20,9 +28,12 @@ import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextKind
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.diff.ScreenDiff
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.HandlerBinder
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.renderRoot
 import dev.slne.surf.roleplay.paper.screen.ActionRateLimiter
 import dev.slne.surf.roleplay.paper.screen.PlayerScreenState
 import dev.slne.surf.roleplay.paper.screen.ScreenPacketSender
@@ -191,6 +202,7 @@ class StorybookTest {
         setOf(
             "button", "button-group", "calendar", "checkbox", "combobox", "field", "form", "input", "input-group", "input-otp",
             "label", "native-select", "radio-group", "select", "slider", "switch", "textarea", "toggle", "toggle-group",
+            "state",
         ),
     )
 
@@ -373,6 +385,165 @@ class StorybookTest {
         assertEquals(bundled.icons.take(IconPaging.PAGE_SIZE).map { it.name }, shownIcons(page))
         open(page)
         assertIs<ScreenOpen>(sent.last())
+    }
+
+    /**
+     * A handler binder that returns, for each element and kind, a handler that compares equal
+     * across renders and runs the handler of the newest render, as the GUI runtime does.
+     */
+    private class StableBinder : HandlerBinder {
+        /**
+         * The click handlers of the newest render, keyed by element id.
+         */
+        val buttons = HashMap<String, ButtonHandler>()
+
+        /**
+         * The change handlers of the newest render, keyed by element id.
+         */
+        val changes = HashMap<String, ChangeHandler>()
+
+        /**
+         * The search handlers of the newest render, keyed by element id.
+         */
+        val searches = HashMap<String, SearchHandler>()
+
+        /**
+         * Stores a click handler and returns a stable one.
+         *
+         * @param elementId the element id
+         * @param handler the handler
+         * @return the stable handler
+         */
+        override fun button(elementId: String, handler: ButtonHandler): ButtonHandler {
+            buttons[elementId] = handler
+            return Stable(elementId, "button", this)
+        }
+
+        /**
+         * Stores a change handler and returns a stable one.
+         *
+         * @param elementId the element id
+         * @param handler the handler
+         * @return the stable handler
+         */
+        override fun change(elementId: String, handler: ChangeHandler): ChangeHandler {
+            changes[elementId] = handler
+            return Stable(elementId, "change", this)
+        }
+
+        /**
+         * Stores a search handler and returns a stable one.
+         *
+         * @param elementId the element id
+         * @param handler the handler
+         * @return the stable handler
+         */
+        override fun search(elementId: String, handler: SearchHandler): SearchHandler {
+            searches[elementId] = handler
+            return Stable(elementId, "search", this)
+        }
+
+        /**
+         * Renders a page with this binder.
+         *
+         * @param page the page
+         * @return the root of the rendered tree
+         */
+        fun render(page: StorybookPage): ScreenElement = renderRoot(this) { with(page) { render() } }
+    }
+
+    /**
+     * A handler that runs the newest handler of its element; equal to every stable handler of the
+     * same element and kind.
+     *
+     * @property elementId the element id
+     * @property kind the kind of handler
+     * @property binder the binder holding the newest handlers
+     */
+    private class Stable(val elementId: String, val kind: String, val binder: StableBinder) : ButtonHandler, ChangeHandler, SearchHandler {
+        /**
+         * Runs the newest click handler.
+         *
+         * @param click the click
+         */
+        override fun onClick(click: ScreenClick) = binder.buttons.getValue(elementId).onClick(click)
+
+        /**
+         * Runs the newest change handler.
+         *
+         * @param change the change
+         */
+        override fun onChange(change: ScreenInputChange) = binder.changes.getValue(elementId).onChange(change)
+
+        /**
+         * Runs the newest search handler.
+         *
+         * @param search the search
+         */
+        override fun onSearch(search: ScreenSearch) = binder.searches.getValue(elementId).onSearch(search)
+
+        /**
+         * Returns whether [other] is a stable handler of the same element and kind.
+         *
+         * @param other the other object
+         * @return whether both are equal
+         */
+        override fun equals(other: Any?): Boolean = other is Stable && other.elementId == elementId && other.kind == kind
+
+        /**
+         * Returns a hash of the element id and kind.
+         *
+         * @return the hash
+         */
+        override fun hashCode(): Int = 31 * elementId.hashCode() + kind.hashCode()
+    }
+
+    /**
+     * The reactive state story shows a counter and an input whose text is echoed below it.
+     */
+    @Test
+    fun `the reactive state story renders the counter and the echo`() {
+        val page = storybook()
+        page.storyKey = "state"
+        val texts = texts(definition(page))
+
+        assertEquals("Reaktiver Zustand", page.stories.single { it.key == "state" }.name)
+        assertTrue("0" in texts)
+        assertTrue("Noch kein Name eingegeben." in texts)
+        open(page)
+        assertIs<ScreenOpen>(sent.last())
+    }
+
+    /**
+     * The counter buttons change only the shown value, the input's text is echoed without
+     * touching the input, and reset sets the counter back to zero.
+     */
+    @Test
+    fun `the reactive state story patches only the changed elements`() {
+        val page = storybook()
+        page.storyKey = "state"
+        val binder = StableBinder()
+        val screen = state.open(definition(page), null)
+        fun click(id: String) = binder.buttons.getValue(id).onClick(ScreenClick(screen, id, ScreenValues(emptyMap())))
+
+        val start = binder.render(page)
+        click("state_increment")
+        val incremented = binder.render(page)
+        val changes = ScreenDiff.diff(start, incremented)
+        assertEquals(listOf("state_count"), changes.map { (it as ScreenChange.Replace).targetId })
+        assertEquals("1", PlainTextComponentSerializer.plainText().serialize((changes.single() as ScreenChange.Replace).element.let { it as TextElement }.text))
+
+        click("state_decrement")
+        click("state_decrement")
+        assertEquals(-1, page.stateCount)
+        click("state_reset")
+        assertEquals(0, page.stateCount)
+
+        val before = binder.render(page)
+        binder.changes.getValue("state_name").onChange(ScreenInputChange(screen, "state_name", "Max", ScreenValues(mapOf("state_name" to "Max"))))
+        val echoed = ScreenDiff.diff(before, binder.render(page), mapOf("state_name" to "Max"))
+        assertEquals(listOf("state_echo"), echoed.map { (it as ScreenChange.Replace).targetId })
+        assertEquals("Hallo, Max!", PlainTextComponentSerializer.plainText().serialize(((echoed.single() as ScreenChange.Replace).element as TextElement).text))
     }
 
     /**

@@ -37,7 +37,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarProvider
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Switch
 import dev.slne.surf.roleplay.api.client.paper.screen.gui.GuiPage
-import dev.slne.surf.roleplay.paper.storybook.stories.IconGalleryState
 import net.kyori.adventure.text.Component
 import java.util.UUID
 
@@ -59,20 +58,21 @@ private val STORYBOOK_THEMES = listOf(
  * are always reported.
  * The ids of the page's own elements start with `storybook_`.
  *
- * The page also holds the search, category filter and page of the icon gallery.
+ * The page also holds the search, category filter and page of the icon gallery, and the counter
+ * and text of the reactive state story.
  *
  * @property playerId the UUID of the viewing player, passed on to the stories
  * @property report shows a report of a click or change to the player
  * @property clock returns the current time in milliseconds, used to throttle change reports
- * @param stories creates the stories, in sidebar order within their category, from the gallery
+ * @param stories creates the stories, in sidebar order within their category, from the story
  *        state the page holds
  */
 class StorybookPage(
     private val playerId: UUID,
     private val report: (String) -> Unit,
     private val clock: () -> Long = System::currentTimeMillis,
-    stories: (IconGalleryState) -> List<Story>,
-) : GuiPage(), IconGalleryState {
+    stories: (StorybookState) -> List<Story>,
+) : GuiPage(), StorybookState {
 
     /**
      * The time of the last change report per story key and element id.
@@ -93,6 +93,16 @@ class StorybookPage(
      * The shown page of the icon gallery.
      */
     override var iconPage: Int by state(0)
+
+    /**
+     * The value of the reactive state story's counter.
+     */
+    override var stateCount: Int by state(0)
+
+    /**
+     * The text of the reactive state story's input.
+     */
+    override var stateName: String by state("")
 
     /**
      * The stories, in sidebar order within their category.

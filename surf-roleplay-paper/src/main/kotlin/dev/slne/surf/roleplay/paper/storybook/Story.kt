@@ -13,7 +13,9 @@ import dev.slne.surf.roleplay.paper.storybook.stories.IconGalleryState
 import dev.slne.surf.roleplay.paper.storybook.stories.INPUT_STORIES
 import dev.slne.surf.roleplay.paper.storybook.stories.NAVIGATION_STORIES
 import dev.slne.surf.roleplay.paper.storybook.stories.OVERLAY_STORIES
+import dev.slne.surf.roleplay.paper.storybook.stories.ReactiveStoryState
 import dev.slne.surf.roleplay.paper.storybook.stories.iconGalleryStory
+import dev.slne.surf.roleplay.paper.storybook.stories.reactiveStateStory
 import java.util.UUID
 
 /**
@@ -85,14 +87,20 @@ class StoryContext(val playerId: UUID, val report: (String) -> Unit, val reportC
 }
 
 /**
+ * The state the storybook page holds for its stateful stories: the icon gallery and the reactive
+ * state story.
+ */
+interface StorybookState : IconGalleryState, ReactiveStoryState
+
+/**
  * Returns every story of the storybook, grouped by category in sidebar order.
  *
  * @param catalog the icons the icon gallery lists
- * @param gallery the search, filter and page of the icon gallery
+ * @param state the state of the icon gallery and the reactive state story
  * @return the stories
  */
-internal fun storybookStories(catalog: LucideCatalog, gallery: IconGalleryState): List<Story> =
-    INPUT_STORIES + DISPLAY_STORIES + OVERLAY_STORIES + NAVIGATION_STORIES + DATA_STORIES + iconGalleryStory(catalog, gallery)
+internal fun storybookStories(catalog: LucideCatalog, state: StorybookState): List<Story> =
+    INPUT_STORIES + reactiveStateStory(state) + DISPLAY_STORIES + OVERLAY_STORIES + NAVIGATION_STORIES + DATA_STORIES + iconGalleryStory(catalog, state)
 
 /**
  * Adds a titled block of a story, such as all variants of a component.
