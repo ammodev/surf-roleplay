@@ -180,6 +180,9 @@ abstract class GuiPage {
      * Opens another page on top of this page's screen, with the presentation and sheet side the
      * other page declares. Must be called on the player's region thread.
      *
+     * A handler that also changes this page's [title], [theme], [variant] or [closable] reopens
+     * this page once it finished, which closes the page it just opened.
+     *
      * @param page the page to open
      * @throws IllegalStateException if this page is not open or [page] is already open
      * @throws IllegalArgumentException if an explicit element id of [page] starts with `_` or two
@@ -193,6 +196,9 @@ abstract class GuiPage {
      * Opens another page as a dialog on top of this page's screen. Must be called on the player's
      * region thread.
      *
+     * A handler that also changes this page's [title], [theme], [variant] or [closable] reopens
+     * this page once it finished, which closes the page it just opened.
+     *
      * @param page the page to open
      * @throws IllegalStateException if this page is not open or [page] is already open
      * @throws IllegalArgumentException if an explicit element id of [page] starts with `_` or two
@@ -205,6 +211,9 @@ abstract class GuiPage {
     /**
      * Opens another page as a sheet on top of this page's screen. Must be called on the player's
      * region thread.
+     *
+     * A handler that also changes this page's [title], [theme], [variant] or [closable] reopens
+     * this page once it finished, which closes the page it just opened.
      *
      * @param page the page to open
      * @param side the window edge the sheet is attached to
