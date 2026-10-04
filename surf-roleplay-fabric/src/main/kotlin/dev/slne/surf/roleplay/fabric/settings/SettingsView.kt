@@ -157,7 +157,7 @@ object SettingsView {
                     value = it.id,
                     children = listOf(
                         ScrollAreaNode(
-                            "scroll_${it.id}",
+                            scrollId(it.id),
                             width = Sizing.grow(),
                             height = Sizing.grow(),
                             children = listOf(
@@ -169,6 +169,14 @@ object SettingsView {
             },
         )
     }
+
+    /**
+     * Returns the id of the scroll area of a category.
+     *
+     * @param category the id of the category
+     * @return the id of its scroll area
+     */
+    fun scrollId(category: String): String = "scroll_$category"
 
     /**
      * Builds the content of the controls category: the key bindings with their conflict badges,

@@ -2,8 +2,8 @@ package dev.slne.surf.roleplay.fabric.settings
 
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ContainerNode
-import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.Orientation
+import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.Sizing
 import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
 import dev.slne.surf.roleplay.protocol.screen.TabsNode
@@ -92,7 +92,8 @@ class SettingsViewTest {
         val triggers = tree.all().filterIsInstance<TabsTriggerNode>().toList()
         assertEquals(listOf("controls", "cursor"), triggers.map { it.value })
         assertEquals(listOf("keyboard", "mouse-pointer"), triggers.map { it.icon })
-        assertTrue(triggers.all { "Steuerung" in it.text || "Mauszeiger" in it.text })
+        assertEquals(listOf("Steuerung", "Mauszeiger"), SettingsView.categories.map { it.title })
+        assertEquals(listOf(SettingsView.text("Steuerung"), SettingsView.text("Mauszeiger")), triggers.map { it.text })
         assertEquals(listOf("controls", "cursor"), tree.all().filterIsInstance<TabsContentNode>().map { it.value }.toList())
         assertTrue(tree.notifyChange)
     }

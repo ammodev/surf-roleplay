@@ -236,6 +236,16 @@ open class ScrollAreaWidget(id: String, val orientation: ScrollOrientation) : Co
     }
 
     /**
+     * Sets the vertical scroll offset to apply at the next layout, which limits it to the
+     * scrollable range.
+     *
+     * @param y the vertical offset, within the content
+     */
+    fun restoreScrollY(y: Int) {
+        scrollY = y.coerceAtLeast(0)
+    }
+
+    /**
      * Scrolls to new offsets by moving the content by the difference, without laying it out
      * again.
      *

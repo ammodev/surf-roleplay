@@ -7,8 +7,10 @@ import dev.slne.surf.roleplay.fabric.ui.RoleplayScreen
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
+import dev.slne.surf.roleplay.fabric.ui.widget.ScrollAreaWidget
 import dev.slne.surf.roleplay.fabric.ui.widget.Widget
 import dev.slne.surf.roleplay.fabric.ui.widget.WidgetFactory
+import dev.slne.surf.roleplay.fabric.ui.widget.WidgetTree
 import dev.slne.surf.roleplay.protocol.screen.Presentation
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
@@ -87,7 +89,7 @@ object SettingsScreen {
         val current = minecraft.gui.screen()
         if (current != null && current === screen) return
         capture = CaptureState()
-        category = SettingsView.categories.first().id
+        category = SettingsNavigation.select(null, SettingsView.categories.map { it.id })
         previous = current
         val opened = RoleplayScreen()
         opened.keyInterceptor = ::interceptKey
@@ -157,7 +159,18 @@ object SettingsScreen {
      * Shows the current state by replacing the panel's widget tree.
      */
     private fun render() {
-        panel?.root = WidgetFactory.create(view())
+        val shown = panel ?: return
+        var offsets = ScrollOffsets()
+        for (it in SettingsView.categories) {
+            val id = SettingsView.scrollId(it.id)
+            (WidgetTree.find(shown.root, id) as? ScrollAreaWidget)?.let { area -> offsets = offsets.with(id, area.scrollY) }
+        }
+        val next = WidgetFactory.create(view())
+        for (it in SettingsView.categories) {
+            val id = SettingsView.scrollId(it.id)
+            (WidgetTree.find(next, id) as? ScrollAreaWidget)?.restoreScrollY(offsets.of(id))
+        }
+        shown.root = next
     }
 
     /**
@@ -265,7 +278,7 @@ object SettingsScreen {
          */
         override fun valueChanged(panel: ScreenPanel, widget: Widget) {
             if (widget.id == SettingsView.TABS_ID) {
-                category = widget.inputValue ?: return
+                category = SettingsNavigation.select(widget.inputValue, SettingsView.categories.map { it.id })
                 return
             }
             if (widget.id != SettingsView.CURSOR_MODE_ID) return
