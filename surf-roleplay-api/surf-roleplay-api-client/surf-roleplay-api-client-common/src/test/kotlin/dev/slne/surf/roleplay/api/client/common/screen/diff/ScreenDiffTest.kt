@@ -1,12 +1,19 @@
 package dev.slne.surf.roleplay.api.client.common.screen.diff
 
+import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
+import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Checkbox
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NumberInput
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Popover
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.renderRoot
+import net.kyori.adventure.text.Component
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -170,5 +177,65 @@ class ScreenDiffTest {
         val new = tree { Column { Row(id = "B") { Row(id = "W") { P("x", id = "x") } } } }
         val change = assertIs<ScreenChange.Replace>(ScreenDiff.diff(old, new).single())
         assertEquals("_0", change.targetId)
+    }
+
+    /**
+     * Verifies that an input whose only change is its value gets a value change in the wire form.
+     */
+    @Test
+    fun `an input whose value changed gets a set value`() {
+        val changes = ScreenDiff.diff(tree { Column { Input(value = "a", id = "q") } }, tree { Column { Input(value = "ab", id = "q") } })
+        assertEquals(listOf(ScreenChange.SetValue("q", "ab")), changes)
+    }
+
+    /**
+     * Verifies the wire form of number, checkbox and select values, including empty values.
+     */
+    @Test
+    fun `value changes use the wire form of each input`() {
+        val choices = listOf(SelectChoice("a", Component.text("A")), SelectChoice("b", Component.text("B")))
+        val old = tree { Column { NumberInput(value = 3, id = "n"); Checkbox(checked = false, id = "c"); Select(options = choices, selected = "a", id = "s") } }
+        val new = tree { Column { NumberInput(value = null, id = "n"); Checkbox(checked = true, id = "c"); Select(options = choices, selected = null, id = "s") } }
+        assertEquals(
+            listOf(ScreenChange.SetValue("n", ""), ScreenChange.SetValue("c", "true"), ScreenChange.SetValue("s", "")),
+            ScreenDiff.diff(old, new),
+        )
+    }
+
+    /**
+     * Verifies that an input whose value and another field changed is replaced.
+     */
+    @Test
+    fun `an input with a changed value and placeholder is replaced`() {
+        val change = ScreenDiff.diff(
+            tree { Column { Input(value = "a", placeholder = Component.text("p"), id = "q") } },
+            tree { Column { Input(value = "b", placeholder = Component.text("r"), id = "q") } },
+        ).single()
+        assertEquals("q", assertIs<ScreenChange.Replace>(change).targetId)
+    }
+
+    /**
+     * Verifies that an overlay whose only change is its open state gets an open change, and its
+     * children are still diffed.
+     */
+    @Test
+    fun `an overlay whose open state changed gets a set open`() {
+        val old = tree { Column { Popover(open = false, id = "pop") { P("a", id = "a") } } }
+        val new = tree { Column { Popover(open = true, id = "pop") { P("b", id = "a") } } }
+        val changes = ScreenDiff.diff(old, new)
+        assertEquals(ScreenChange.SetOpen("pop", true), changes[0])
+        assertEquals("a", assertIs<ScreenChange.Replace>(changes[1]).targetId)
+        assertEquals(2, changes.size)
+    }
+
+    /**
+     * Verifies that an overlay whose open state changed and whose children were reordered is
+     * replaced without a separate open change.
+     */
+    @Test
+    fun `an overlay with a changed open state and reordered children is replaced`() {
+        val old = tree { Column { Popover(open = false, id = "pop") { P("a", id = "a"); P("b", id = "b") } } }
+        val new = tree { Column { Popover(open = true, id = "pop") { P("b", id = "b"); P("a", id = "a") } } }
+        assertEquals(listOf<ScreenChange>(ScreenChange.Replace("pop", (new as ContainerElement).children.single())), ScreenDiff.diff(old, new))
     }
 }

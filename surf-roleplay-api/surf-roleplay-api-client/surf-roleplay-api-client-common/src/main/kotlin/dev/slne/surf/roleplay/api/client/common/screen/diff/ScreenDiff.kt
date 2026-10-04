@@ -1,8 +1,29 @@
 package dev.slne.surf.roleplay.api.client.common.screen.diff
 
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
+import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
+import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
+import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenubarMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
+import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
+import dev.slne.surf.roleplay.api.client.common.screen.RadioGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
+import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
+import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextareaElement
+import dev.slne.surf.roleplay.api.client.common.screen.ToggleElement
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
@@ -13,6 +34,13 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * Elements are matched by id:
  * - An element equal to its counterpart produces no change.
+ * - An input whose only difference is its value gets a [ScreenChange.SetValue] with the value in
+ *   the string form of `ScreenValues.all`. This applies to text inputs, textareas, one-time
+ *   password inputs, number inputs, checkboxes, switches, toggles, selects, native selects and
+ *   radio groups.
+ * - A popover, hover card, dropdown, context, menubar or sub-menu, dialog, alert dialog, sheet,
+ *   drawer or navigation menu item whose fields other than its children differ only in its open
+ *   state gets a [ScreenChange.SetOpen], followed by the changes of its children.
  * - A container whose fields other than its children are equal is patched in place if the child
  *   ids both trees share keep their relative order: vanished children are removed, shared children
  *   are compared recursively, and new children are inserted at their index in ascending order.
@@ -28,6 +56,45 @@ object ScreenDiff {
      * The name of the field that holds the children of a container.
      */
     private const val CHILDREN_FIELD: String = "children"
+
+    /**
+     * The name of the field that holds the open state of an overlay.
+     */
+    private const val OPEN_FIELD: String = "open"
+
+    /**
+     * The value field of every input class whose value can be changed alone, with the function
+     * that writes the field's value in its string form.
+     */
+    private val valueFields: Map<Class<*>, ValueField> = mapOf(
+        TextInputElement::class.java to ValueField("value") { it as String },
+        TextareaElement::class.java to ValueField("value") { it as String },
+        InputOtpElement::class.java to ValueField("value") { it as String },
+        NumberInputElement::class.java to ValueField("value") { it?.toString() ?: "" },
+        CheckboxElement::class.java to ValueField("checked") { it.toString() },
+        SwitchElement::class.java to ValueField("checked") { it.toString() },
+        ToggleElement::class.java to ValueField("pressed") { it.toString() },
+        SelectElement::class.java to ValueField("selected") { it as String? ?: "" },
+        NativeSelectElement::class.java to ValueField("selected") { it as String? ?: "" },
+        RadioGroupElement::class.java to ValueField("selected") { it as String? ?: "" },
+    )
+
+    /**
+     * The overlay classes whose open state can be changed alone.
+     */
+    private val openableClasses: Set<Class<*>> = setOf(
+        PopoverElement::class.java,
+        HoverCardElement::class.java,
+        DropdownMenuElement::class.java,
+        MenuSubElement::class.java,
+        ContextMenuElement::class.java,
+        MenubarMenuElement::class.java,
+        DialogElement::class.java,
+        AlertDialogElement::class.java,
+        SheetElement::class.java,
+        DrawerElement::class.java,
+        NavigationMenuItemElement::class.java,
+    )
 
     /**
      * The declared non-static fields of each element class, made accessible.
@@ -72,9 +139,24 @@ object ScreenDiff {
             changes += ScreenChange.Replace(old.id, new)
             return
         }
+        val differing = differingFields(old, new)
         if (old is ContainerElement && new is ContainerElement) {
-            val shell = differingFields(old, new).filter { it.name != CHILDREN_FIELD }
-            if (shell.isEmpty() && diffChildren(old, new, replaced, changes)) return
+            val shell = differing.filter { it.name != CHILDREN_FIELD }
+            val openOnly = shell.size == 1 && shell[0].name == OPEN_FIELD && old.javaClass in openableClasses
+            if (shell.isEmpty() || openOnly) {
+                val childChanges = mutableListOf<ScreenChange>()
+                if (diffChildren(old, new, replaced, childChanges)) {
+                    if (openOnly) changes += ScreenChange.SetOpen(new.id, shell[0].get(new) as Boolean)
+                    changes += childChanges
+                    return
+                }
+            }
+        } else {
+            val valueField = valueFields[old.javaClass]
+            if (valueField != null && differing.size == 1 && differing[0].name == valueField.name) {
+                changes += ScreenChange.SetValue(new.id, valueField.encode(differing[0].get(new)))
+                return
+            }
         }
         changes += ScreenChange.Replace(old.id, new)
     }
@@ -161,4 +243,12 @@ object ScreenDiff {
             .filter { !Modifier.isStatic(it.modifiers) }
             .onEach { it.isAccessible = true }
     }
+
+    /**
+     * The field that holds the value of an input.
+     *
+     * @property name the field name
+     * @property encode writes a value of the field in its string form
+     */
+    private class ValueField(val name: String, val encode: (Any?) -> String)
 }
