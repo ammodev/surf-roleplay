@@ -1,6 +1,10 @@
 package dev.slne.surf.roleplay.api.client.paper.screen.gui
 
+import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
+import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import net.kyori.adventure.text.Component
@@ -26,30 +30,33 @@ import kotlin.reflect.KProperty
  * ```
  *
  * After every handler of the page, and after [update], a page whose state changed is rendered
- * again and only the difference to the tree the player sees is sent, so inputs whose elements did
- * not change keep the text the player typed. Handlers always run the closure of the newest render.
- * A handler that throws is logged; the page is still rendered again and stays usable.
+ * again and only the difference to the tree the player sees is sent: inputs whose elements did not
+ * change keep the text the player typed, and an input whose only change is its value gets just the
+ * new value. Handlers always run the closure of the newest render. A handler that throws is
+ * logged; the page is still rendered again and stays usable.
  *
  * Every member must be used on the player's region thread, where the page's handlers run.
  */
 abstract class GuiPage {
     /**
-     * The title shown above the screen.
+     * The title shown above the screen, read when the page is opened.
      */
     abstract val title: Component
 
     /**
-     * The name of the theme the screen is drawn with, or `null` for the default theme.
+     * The name of the theme the screen is drawn with, or `null` for the default theme, read when
+     * the page is opened.
      */
     open val theme: String? get() = null
 
     /**
-     * The light or dark variant of the theme, or `null` for the default variant.
+     * The light or dark variant of the theme, or `null` for the default variant, read when the
+     * page is opened.
      */
     open val variant: ScreenVariant? get() = null
 
     /**
-     * Whether the player can close the screen with Escape.
+     * Whether the player can close the screen with Escape, read when the page is opened.
      */
     open val closable: Boolean get() = true
 
@@ -77,7 +84,7 @@ abstract class GuiPage {
      *
      * @throws IllegalStateException if the page was not opened yet
      */
-    val player: Player get() = checkNotNull(session) { "The page ${javaClass.name} was not opened" }.player
+    val player: Player get() = checkNotNull(session) { "The page ${javaClass.name} was not opened" }.viewer as Player
 
     /**
      * Whether the page's screen is open.
@@ -111,8 +118,21 @@ abstract class GuiPage {
      *         share an id
      */
     fun open(player: Player, service: ScreenService = ScreenService.INSTANCE) {
+        openFor(player) { definition -> service.open(player, definition, null, ScreenPresentation.SCREEN, SheetSide.RIGHT) }
+    }
+
+    /**
+     * Renders the page and opens it with a function that shows a definition to a viewer.
+     *
+     * @param viewer the viewer the page is opened for, which [player] returns
+     * @param opener opens a definition as a screen and returns the open screen
+     * @throws IllegalStateException if the page is already open
+     * @throws IllegalArgumentException if an explicit element id starts with `_` or two elements
+     *         share an id
+     */
+    internal fun openFor(viewer: Any, opener: (ScreenDefinition) -> OpenScreen) {
         check(!isOpen) { "The page ${javaClass.name} is already open" }
-        val session = GuiSession(this, player, service)
+        val session = GuiSession(this, viewer, opener)
         this.session = session
         session.open()
     }

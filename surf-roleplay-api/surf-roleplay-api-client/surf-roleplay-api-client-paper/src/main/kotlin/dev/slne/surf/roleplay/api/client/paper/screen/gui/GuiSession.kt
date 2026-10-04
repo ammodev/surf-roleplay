@@ -4,12 +4,8 @@ import dev.slne.surf.api.core.util.logger
 import dev.slne.surf.roleplay.api.client.common.screen.CloseHandler
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
-import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
-import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.diff.ScreenDiff
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.renderRoot
-import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
-import org.bukkit.entity.Player
 
 /**
  * The logger of failed page handlers.
@@ -20,16 +16,16 @@ private val log = logger()
  * The runtime of one opened [GuiPage]: it renders the page, keeps the tree the open screen shows,
  * runs the handlers of the newest render and sends the difference after a state change.
  *
- * Every member must be used on the player's region thread.
+ * Every member must be used on the viewer's region thread.
  *
  * @property page the page
- * @property player the player the page is open for
- * @property service the service that opens the page's screen
+ * @property viewer the viewer the page is open for, a player outside of tests
+ * @property opener opens a definition as a screen for the viewer
  */
 internal class GuiSession(
     private val page: GuiPage,
-    val player: Player,
-    private val service: ScreenService,
+    val viewer: Any,
+    private val opener: (ScreenDefinition) -> OpenScreen,
 ) : HandlerDispatcher {
     /**
      * The handlers of the newest render.
@@ -57,13 +53,15 @@ internal class GuiSession(
     val isOpen: Boolean get() = screen?.isOpen == true
 
     /**
-     * Renders the page and opens it as a full screen that replaces every screen the player has
-     * open.
+     * Renders the page and opens it as a screen.
+     *
+     * @throws IllegalArgumentException if an explicit element id starts with `_` or two elements
+     *         share an id
      */
     fun open() {
         val definition = renderDefinition()
         shown = definition
-        screen = service.open(player, definition, null, ScreenPresentation.SCREEN, SheetSide.RIGHT)
+        screen = opener(definition)
     }
 
     /**

@@ -1,31 +1,35 @@
 package dev.slne.surf.roleplay.api.client.paper.screen.gui
 
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
+import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
+import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
+import dev.slne.surf.roleplay.api.client.common.screen.RowElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPatchBuilder
-import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenValues
-import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
+import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Combobox
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
-import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
 import net.kyori.adventure.text.Component
-import org.bukkit.entity.Player
-import java.lang.reflect.Proxy
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
-import kotlin.test.assertSame
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -33,7 +37,8 @@ import kotlin.test.assertTrue
  */
 class GuiPageTest {
     /**
-     * A page with a counter shown in a paragraph and buttons that change the page's state.
+     * A page with a counter, a conditional paragraph and buttons whose handlers capture the state
+     * of their render.
      */
     class CounterPage : GuiPage() {
         /**
@@ -47,29 +52,52 @@ class GuiPageTest {
         var hidden by state(0)
 
         /**
+         * Whether the extra paragraph and the hide button are shown.
+         */
+        var show by state(false)
+
+        /**
+         * Whether the next render throws.
+         */
+        var explode by state(false)
+
+        /**
          * The title of the page.
          */
         override val title: Component = Component.text("Zähler")
 
         /**
-         * Renders the counter, a search input and the buttons.
+         * Renders the counter, a search input, the conditional elements and the buttons.
          */
         override fun ComponentScope.render() {
+            check(!explode) { "render failed" }
+            val current = count
             Column {
                 Input(id = "query")
-                P("Wert: $count", id = "value")
-                Button("Plus", id = "plus") { count++ }
+                P("Wert: $current", id = "value")
+                if (show) {
+                    P("Extra", id = "extra")
+                    Button("Ausblenden", id = "hide") { show = false }
+                }
+                Button("Plus", id = "plus") { count = current + 1 }
                 Button("Unsichtbar", id = "hidden") { hidden++ }
+                Button("Einblenden", id = "show") { show = true }
                 Button("Kaputt", id = "broken") {
-                    count++
+                    count = current + 1
                     error("broken handler")
+                }
+                Button("Explodieren", id = "boom") {
+                    count = current + 1
+                    explode = true
                 }
             }
         }
     }
 
     /**
-     * An open screen that records every patch applied to it.
+     * An open screen that keeps a copy of the element tree and applies patches to it the way the
+     * server's tree does: a change whose target is missing, that would remove the root, or that
+     * would give two elements the same id is refused and recorded.
      *
      * @property definition the definition the screen was opened with
      */
@@ -78,6 +106,17 @@ class GuiPageTest {
          * The changes of every patch, in order.
          */
         val patches = mutableListOf<List<ScreenChange>>()
+
+        /**
+         * The changes that were refused, in order.
+         */
+        val refused = mutableListOf<ScreenChange>()
+
+        /**
+         * The current tree.
+         */
+        var tree: ScreenElement = definition.root
+            private set
 
         /**
          * The changes of the last patch, or an empty list if no patch was applied.
@@ -100,12 +139,14 @@ class GuiPageTest {
         override var isOpen: Boolean = true
 
         /**
-         * Records the changes of the patch.
+         * Records the changes of the patch and applies them to the tree.
          *
          * @param changes the builder of the changes
          */
         override fun patch(changes: ScreenPatchBuilder.() -> Unit) {
-            patches += ScreenPatchBuilder().apply(changes).changes
+            val recorded = ScreenPatchBuilder().apply(changes).changes
+            patches += recorded
+            recorded.forEach { change -> applyChange(change)?.let { tree = it } ?: run { refused += change } }
         }
 
         /**
@@ -123,12 +164,109 @@ class GuiPageTest {
             isOpen = false
             definition.onClose?.onClose(this)
         }
+
+        /**
+         * Returns the element with an id in the current tree.
+         *
+         * @param id the id
+         * @return the element, or `null`
+         */
+        fun find(id: String): ScreenElement? = all(tree).firstOrNull { it.id == id }
+
+        /**
+         * Returns the id of the parent of an element in the current tree.
+         *
+         * @param id the id of the element
+         * @return the parent id, or `null` if the element is missing or the root
+         */
+        fun parentOf(id: String): String? = all(tree).filterIsInstance<ContainerElement>().firstOrNull { parent -> parent.children.any { it.id == id } }?.id
+
+        /**
+         * Returns the tree after a change, or `null` if the change is refused.
+         *
+         * @param change the change
+         * @return the new tree, or `null`
+         */
+        private fun applyChange(change: ScreenChange): ScreenElement? {
+            val ids = all(tree).map { it.id }
+            return when (change) {
+                is ScreenChange.Replace -> {
+                    val target = find(change.targetId) ?: return null
+                    val remaining = ids - all(target).map { it.id }.toSet()
+                    if (all(change.element).any { it.id in remaining }) return null
+                    rebuild(tree, change.targetId) { change.element }
+                }
+                is ScreenChange.Insert -> {
+                    if (find(change.parentId) !is ContainerElement || all(change.element).any { it.id in ids }) return null
+                    rebuild(tree, change.parentId) { parent ->
+                        val children = (parent as ContainerElement).children.toMutableList()
+                        children.add(change.index.coerceIn(0, children.size), change.element)
+                        withChildren(parent, children)
+                    }
+                }
+                is ScreenChange.Remove -> {
+                    if (tree.id == change.targetId || find(change.targetId) == null) return null
+                    removeFrom(tree, change.targetId)
+                }
+                is ScreenChange.SetValue -> {
+                    val input = find(change.targetId) as? TextInputElement ?: return null
+                    rebuild(tree, input.id) { input.copy(value = change.value) }
+                }
+                else -> null
+            }
+        }
+
+        /**
+         * Returns an element and all its descendants.
+         *
+         * @param element the element
+         * @return the elements
+         */
+        private fun all(element: ScreenElement): List<ScreenElement> =
+            listOf(element) + ((element as? ContainerElement)?.children?.flatMap { all(it) } ?: emptyList())
+
+        /**
+         * Rebuilds a tree with one element transformed.
+         *
+         * @param element the root of the tree
+         * @param id the id of the element to transform
+         * @param transform the transformation
+         * @return the new tree
+         */
+        private fun rebuild(element: ScreenElement, id: String, transform: (ScreenElement) -> ScreenElement): ScreenElement = when {
+            element.id == id -> transform(element)
+            element is ContainerElement -> withChildren(element, element.children.map { rebuild(it, id, transform) })
+            else -> element
+        }
+
+        /**
+         * Rebuilds a tree without one element.
+         *
+         * @param element the root of the tree
+         * @param id the id of the element to remove
+         * @return the new tree
+         */
+        private fun removeFrom(element: ScreenElement, id: String): ScreenElement =
+            if (element is ContainerElement) withChildren(element, element.children.filter { it.id != id }.map { removeFrom(it, id) }) else element
+
+        /**
+         * Returns a column or row with other children.
+         *
+         * @param container the container
+         * @param children the new children
+         * @return the copy
+         */
+        private fun withChildren(container: ContainerElement, children: List<ScreenElement>): ScreenElement = when (container) {
+            is ColumnElement -> container.copy(children = children)
+            is RowElement -> container.copy(children = children)
+            else -> error("Unsupported container ${container.javaClass.simpleName}")
+        }
     }
 
     /**
-     * A screen service that records opened screens and lets a test click buttons.
+     * Opens pages for tests and acts on their screens.
      */
-    class FakeScreenService : ScreenService {
+    class FakeOpener {
         /**
          * Every opened screen, in order.
          */
@@ -140,93 +278,62 @@ class GuiPageTest {
         val lastScreen: FakeOpenScreen get() = opened.last()
 
         /**
-         * Records a screen as opened.
+         * Opens a page for an opaque viewer.
          *
-         * @return the fake open screen
+         * @param page the page
+         * @return [page]
          */
-        override fun open(player: Player, definition: ScreenDefinition, parent: OpenScreen?, presentation: ScreenPresentation, sheetSide: SheetSide): OpenScreen =
-            FakeOpenScreen(definition).also { opened += it }
+        fun <P : GuiPage> open(page: P): P = page.apply { openFor(Any()) { definition -> FakeOpenScreen(definition).also { opened += it } } }
 
         /**
-         * Not supported.
-         */
-        override fun confirm(
-            player: Player, parent: OpenScreen?, title: Component, text: Component, confirmLabel: Component,
-            cancelLabel: Component, destructive: Boolean, onConfirm: () -> Unit, onCancel: () -> Unit,
-        ): OpenScreen = throw UnsupportedOperationException()
-
-        /**
-         * Returns the open fake screens.
+         * Returns the element with an id on the last screen.
          *
-         * @return the screens
+         * @param id the id
+         * @return the element
          */
-        override fun openScreens(player: Player): List<OpenScreen> = opened.filter { it.isOpen }
+        inline fun <reified E : ScreenElement> element(id: String): E = assertIs<E>(assertNotNull(lastScreen.find(id), "No element $id"))
 
         /**
-         * Closes every fake screen.
-         */
-        override fun closeAll(player: Player) = opened.forEach { it.close() }
-
-        /**
-         * Clicks the button with an id on the last screen, using the newest copy of the button
-         * found in the patches or in the opened tree.
+         * Clicks a button on the last screen.
          *
          * @param id the button id
          */
-        fun click(id: String) {
-            val screen = lastScreen
-            val candidates = screen.patches.asReversed().flatMap { patch ->
-                patch.mapNotNull {
-                    when (it) {
-                        is ScreenChange.Replace -> it.element
-                        is ScreenChange.Insert -> it.element
-                        else -> null
-                    }
-                }
-            } + screen.definition.root
-            val button = candidates.firstNotNullOfOrNull { findButton(it, id) } ?: error("No button $id")
-            button.onClick!!.onClick(ScreenClick(screen, id, ScreenValues(emptyMap())))
-        }
+        fun click(id: String) = click(element<ButtonElement>(id))
 
         /**
-         * Finds a button by id in a tree.
+         * Clicks a button, which may be a copy from an earlier tree.
          *
-         * @param element the root of the tree
-         * @param id the button id
-         * @return the button, or `null` if the tree has none with that id
+         * @param button the button
          */
-        private fun findButton(element: ScreenElement, id: String): ButtonElement? = when {
-            element is ButtonElement && element.id == id -> element
-            element is ContainerElement -> element.children.firstNotNullOfOrNull { findButton(it, id) }
-            else -> null
-        }
+        fun click(button: ButtonElement) = button.onClick!!.onClick(ScreenClick(lastScreen, button.id, ScreenValues(emptyMap())))
+
+        /**
+         * Changes the value of a text input on the last screen.
+         *
+         * @param id the input id
+         * @param value the new value
+         */
+        fun change(id: String, value: String) =
+            element<TextInputElement>(id).onChange!!.onChange(ScreenInputChange(lastScreen, id, value, ScreenValues(mapOf(id to value))))
+
+        /**
+         * Types a query into a combobox on the last screen.
+         *
+         * @param id the combobox id
+         * @param query the query
+         */
+        fun search(id: String, query: String) = element<ComboboxElement>(id).onSearch!!.onSearch(ScreenSearch(lastScreen, id, query))
     }
-
-    /**
-     * Creates a player whose methods return `null`, except the identity methods.
-     *
-     * @return the player
-     */
-    private fun fakePlayer(): Player = Proxy.newProxyInstance(Player::class.java.classLoader, arrayOf(Player::class.java)) { proxy, method, args ->
-        when (method.name) {
-            "equals" -> proxy === args?.get(0)
-            "hashCode" -> System.identityHashCode(proxy)
-            "toString" -> "FakePlayer"
-            else -> null
-        }
-    } as Player
 
     /**
      * Verifies that opening a page opens its rendered tree with the page's title.
      */
     @Test
     fun `open renders the page`() {
-        val fake = FakeScreenService()
-        val player = fakePlayer()
-        val page = CounterPage().apply { open(player, fake) }
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
         assertEquals(Component.text("Zähler"), fake.lastScreen.definition.title)
         assertTrue(page.isOpen)
-        assertSame(player, page.player)
     }
 
     /**
@@ -234,8 +341,8 @@ class GuiPageTest {
      */
     @Test
     fun `a state change patches only the changed element`() {
-        val fake = FakeScreenService()
-        CounterPage().apply { open(fakePlayer(), fake) }
+        val fake = FakeOpener()
+        fake.open(CounterPage())
         fake.click("plus")
         assertEquals(listOf("value"), fake.lastScreen.applied.map { (it as ScreenChange.Replace).targetId })
     }
@@ -245,8 +352,8 @@ class GuiPageTest {
      */
     @Test
     fun `the newest closure handles the next click`() {
-        val fake = FakeScreenService()
-        val page = CounterPage().apply { open(fakePlayer(), fake) }
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
         fake.click("plus")
         fake.click("plus")
         assertEquals(2, page.count)
@@ -258,8 +365,8 @@ class GuiPageTest {
      */
     @Test
     fun `update re-renders`() {
-        val fake = FakeScreenService()
-        val page = CounterPage().apply { open(fakePlayer(), fake) }
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
         page.update { page.count = 5 }
         val change = fake.lastScreen.applied.single() as ScreenChange.Replace
         assertEquals("value", change.targetId)
@@ -271,8 +378,8 @@ class GuiPageTest {
      */
     @Test
     fun `a throwing handler still re-renders and the page stays usable`() {
-        val fake = FakeScreenService()
-        val page = CounterPage().apply { open(fakePlayer(), fake) }
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
         fake.click("broken")
         assertEquals(listOf("value"), fake.lastScreen.applied.map { (it as ScreenChange.Replace).targetId })
         fake.click("plus")
@@ -285,8 +392,8 @@ class GuiPageTest {
      */
     @Test
     fun `a render without changes sends nothing`() {
-        val fake = FakeScreenService()
-        val page = CounterPage().apply { open(fakePlayer(), fake) }
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
         fake.click("hidden")
         assertEquals(1, page.hidden)
         assertTrue(fake.lastScreen.patches.isEmpty())
@@ -297,7 +404,7 @@ class GuiPageTest {
      */
     @Test
     fun `closing the screen closes the page`() {
-        val fake = FakeScreenService()
+        val fake = FakeOpener()
         var closed = 0
         val page = object : GuiPage() {
             /**
@@ -319,7 +426,7 @@ class GuiPageTest {
                 closed++
             }
         }
-        page.open(fakePlayer(), fake)
+        fake.open(page)
         fake.lastScreen.close()
         assertFalse(page.isOpen)
         assertEquals(1, closed)
