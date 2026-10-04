@@ -1032,7 +1032,7 @@ data class SheetContentNode(
 }
 
 /**
- * The header of a sheet or drawer: its title and description, stacked.
+ * The header of a sheet: its title and description, stacked.
  *
  * @property id the id of this node
  * @property width how wide this node is laid out
@@ -1057,7 +1057,7 @@ data class SheetHeaderNode(
 }
 
 /**
- * The footer of a sheet or drawer: its buttons, stacked at the end of the content.
+ * The footer of a sheet: its buttons, stacked at the end of the content.
  *
  * @property id the id of this node
  * @property width how wide this node is laid out
@@ -1079,63 +1079,6 @@ data class SheetFooterNode(
      * @return the copy
      */
     override fun withChildren(children: List<ScreenNode>): SheetFooterNode = copy(children = children)
-}
-
-/**
- * A drawer: its triggers, and a modal content that comes in from an edge of the window, with a
- * handle.
- *
- * @property id the id of this node
- * @property width how wide this node is laid out
- * @property height how tall this node is laid out
- * @property children the triggers and one drawer content
- * @property open whether the overlay is open
- * @property notifyChange whether the mod reports every opening and closing at once
- */
-@Serializable
-@SerialName("drawer")
-data class DrawerNode(
-    @ProtoNumber(1) override val id: String,
-    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
-    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
-    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
-    @ProtoNumber(5) val open: Boolean = false,
-    @ProtoNumber(6) val notifyChange: Boolean = false,
-) : ContainerNode {
-    /**
-     * Returns a copy of this node with other children.
-     *
-     * @param children the new children
-     * @return the copy
-     */
-    override fun withChildren(children: List<ScreenNode>): DrawerNode = copy(children = children)
-}
-
-/**
- * The content of a drawer, attached to an edge of the window.
- *
- * @property id the id of this node
- * @property width how wide this node is laid out
- * @property height how tall this node is laid out
- * @property children the header, content and footer
- * @property direction the edge of the window the drawer comes in from
- */
-@Serializable
-@SerialName("drawer_content")
-data class DrawerContentNode(
-    @ProtoNumber(1) override val id: String,
-    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
-    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
-    @ProtoNumber(4) override val children: List<ScreenNode> = emptyList(),
-    @ProtoNumber(5) val direction: OverlaySide = OverlaySide.BOTTOM,
-) : ContainerNode {
-    /**
-     * Returns a copy of this node with other children.
-     *
-     * @param children the new children
-     * @return the copy
-     */
-    override fun withChildren(children: List<ScreenNode>): DrawerContentNode = copy(children = children)
 }
 
 /**

@@ -4,7 +4,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
@@ -23,7 +22,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ContextMenu
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Dialog
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Drawer
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenu
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.HoverCard
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
@@ -99,7 +97,6 @@ class ScreenDiffServerTreeTest {
             Dialog(id = "dialog", children = child)
             AlertDialog(id = "alert", children = child)
             Sheet(id = "sheet", children = child)
-            Drawer(id = "drawer", children = child)
             NavigationMenuItem(id = "nav", children = child)
         }
     }
@@ -120,7 +117,6 @@ class ScreenDiffServerTreeTest {
         is DialogElement -> element.copy(open = true)
         is AlertDialogElement -> element.copy(open = true)
         is SheetElement -> element.copy(open = true)
-        is DrawerElement -> element.copy(open = true)
         is NavigationMenuItemElement -> element.copy(open = true)
         is ColumnElement -> element.copy(children = element.children.map(::opened))
         else -> element
@@ -159,7 +155,7 @@ class ScreenDiffServerTreeTest {
     fun `open changes are accepted by the server tree`() {
         val closed = overlays()
         val forward = applyDiff(closed, opened(closed))
-        assertEquals(11, forward.size)
+        assertEquals(10, forward.size)
         assertTrue(forward.all { it is ScreenChange.SetOpen })
         assertTrue(applyDiff(opened(closed), closed).all { it is ScreenChange.SetOpen })
     }

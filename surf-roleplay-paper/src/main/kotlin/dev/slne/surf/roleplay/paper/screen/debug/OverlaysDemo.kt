@@ -35,8 +35,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogDescription
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogFooter
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogHeader
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogTitle
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Drawer
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerContent
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenu
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.H3
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.HoverCard
@@ -333,11 +331,11 @@ object OverlaysDemo {
     }
 
     /**
-     * Adds a dialog, alert dialogs in both sizes, sheets on every side and drawers.
+     * Adds a dialog, alert dialogs in both sizes and sheets on every side.
      *
      * @param clicked the handler that reports clicks
      */
-    private fun ComponentScope.modals(clicked: ButtonHandler) = section("modals", "Dialoge, Sheets, Drawer") {
+    private fun ComponentScope.modals(clicked: ButtonHandler) = section("modals", "Dialoge, Sheets") {
         Row(gap = 6, id = "dialogs_row") {
             Dialog(id = "dialog") {
                 Button(Component.text("Profil bearbeiten"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "dialog_trigger")
@@ -405,35 +403,18 @@ object OverlaysDemo {
             OverlayContainer(ElementSize.fixed(120), ElementSize.fixed(180), id = "phone") {
                 Column(width = ElementSize.grow(), height = ElementSize.grow(), gap = 6, padding = dev.slne.surf.roleplay.api.client.common.screen.Spacing(8, 8, 8, 8), crossAlign = Alignment.STRETCH, id = "phone_screen") {
                     Large(Component.text("Handy"), id = "phone_title")
-                    Drawer(id = "phone_drawer") {
-                        Button(Component.text("Nachrichten"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "phone_drawer_trigger")
-                        DrawerContent(id = "phone_drawer_content") {
-                            SheetHeader(id = "phone_drawer_header") {
-                                SheetTitle(Component.text("Neue Nachricht"), id = "phone_drawer_title")
-                                SheetDescription(Component.text("Von: Leitstelle"), id = "phone_drawer_description")
+                    Sheet(id = "phone_sheet") {
+                        Button(Component.text("Nachrichten"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "phone_sheet_trigger")
+                        SheetContent(OverlaySide.BOTTOM, id = "phone_sheet_content") {
+                            SheetHeader(id = "phone_sheet_header") {
+                                SheetTitle(Component.text("Neue Nachricht"), id = "phone_sheet_title")
+                                SheetDescription(Component.text("Von: Leitstelle"), id = "phone_sheet_description")
                             }
                         }
                     }
                 }
             }
-            Muted(Component.text("Dialoge, Sheets und Drawer bleiben in ihrem Overlay-Container, hier einem Handy."), width = ElementSize.grow(), id = "phone_hint")
-        }
-        Row(gap = 6, id = "drawers_row") {
-            listOf(OverlaySide.BOTTOM, OverlaySide.TOP).forEach { side ->
-                val name = side.name.lowercase()
-                Drawer(id = "drawer_$name") {
-                    Button(Component.text("Drawer $name"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "drawer_${name}_trigger")
-                    DrawerContent(side, id = "drawer_${name}_content") {
-                        SheetHeader(id = "drawer_${name}_header") {
-                            SheetTitle(Component.text("Tagesziel"), id = "drawer_${name}_title")
-                            SheetDescription(Component.text("Lege dein Tagesziel für Streifen fest."), id = "drawer_${name}_description")
-                        }
-                        SheetFooter(id = "drawer_${name}_footer") {
-                            DialogClose(id = "drawer_${name}_close") { Button(Component.text("Übernehmen"), submitsInput = false, width = ElementSize.grow(), onClick = clicked, id = "drawer_${name}_submit") }
-                        }
-                    }
-                }
-            }
+            Muted(Component.text("Dialoge und Sheets bleiben in ihrem Overlay-Container, hier einem Handy."), width = ElementSize.grow(), id = "phone_hint")
         }
     }
 

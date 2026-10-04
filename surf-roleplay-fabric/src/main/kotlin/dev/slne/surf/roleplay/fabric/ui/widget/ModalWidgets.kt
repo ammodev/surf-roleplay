@@ -1,6 +1,5 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
-import dev.slne.surf.roleplay.fabric.ui.Corners
 import dev.slne.surf.roleplay.fabric.ui.OverlayPlacement
 import dev.slne.surf.roleplay.fabric.ui.TextAlign
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
@@ -36,21 +35,15 @@ enum class ModalKind {
      * Attached to an edge of the window.
      */
     SHEET,
-
-    /**
-     * Attached to an edge of the window, and at most four fifths of its height when at the top or
-     * bottom.
-     */
-    DRAWER,
 }
 
 /**
- * A modal overlay: a dialog, alert dialog, sheet or drawer. It dims everything below it, keeps
+ * A modal overlay: a dialog, alert dialog or sheet. It dims everything below it, keeps
  * the focus inside its content, and closes after an action inside one of its close parts.
  *
  * @param owner the host that opened the overlay
  * @property kind how the overlay is placed
- * @property edge the window edge a sheet or drawer is attached to
+ * @property edge the window edge a sheet is attached to
  */
 class ModalPopover(owner: OverlayHostWidget, val kind: ModalKind, val edge: OverlaySide) :
     WidgetPopover(owner, OverlaySide.BOTTOM, Align.CENTER, modal = true, dismissOnOutsideClick = kind != ModalKind.ALERT_DIALOG, trapFocus = true) {
@@ -72,7 +65,7 @@ class ModalPopover(owner: OverlayHostWidget, val kind: ModalKind, val edge: Over
                 val height = FlexLayout.measureAt(box, width).height.coerceAtMost(window.height - 2 * MARGIN)
                 Rect(window.x + (window.width - width) / 2, window.y + (window.height - height) / 2, width, height)
             }
-            ModalKind.SHEET, ModalKind.DRAWER -> edgeArea(box, window)
+            ModalKind.SHEET -> edgeArea(box, window)
         }
         FlexLayout.layout(box, rect)
         shown.applyLayout()
@@ -80,7 +73,7 @@ class ModalPopover(owner: OverlayHostWidget, val kind: ModalKind, val edge: Over
     }
 
     /**
-     * Computes the area of a sheet or drawer at its edge.
+     * Computes the area of a sheet at its edge.
      *
      * @param box the layout box of the content
      * @param window the window area
@@ -92,8 +85,7 @@ class ModalPopover(owner: OverlayHostWidget, val kind: ModalKind, val edge: Over
             Rect(if (edge == OverlaySide.RIGHT) window.right - width else window.x, window.y, width, window.height)
         }
         OverlaySide.TOP, OverlaySide.BOTTOM -> {
-            val limit = if (kind == ModalKind.DRAWER) window.height * 4 / 5 else window.height
-            val height = FlexLayout.measureAt(box, window.width).height.coerceAtMost(limit)
+            val height = FlexLayout.measureAt(box, window.width).height.coerceAtMost(window.height)
             Rect(window.x, if (edge == OverlaySide.BOTTOM) window.bottom - height else window.y, window.width, height)
         }
     }
@@ -156,7 +148,6 @@ class ModalHostWidget(id: String, val kind: ModalKind) : OverlayHostWidget(id) {
     override fun createPopover(): Popover {
         val edge = when (val shown = content) {
             is SheetContentWidget -> shown.shownSide
-            is DrawerContentWidget -> shown.direction
             else -> OverlaySide.BOTTOM
         }
         (content as? ModalSurfaceWidget)?.host = this
@@ -452,7 +443,7 @@ class AlertDialogMediaWidget(id: String, val icon: String) : Widget(id) {
  * @property side the edge of the window the sheet is attached to
  * @param showCloseButton whether a close button is drawn at the top right
  */
-open class SheetContentWidget(id: String, val side: OverlaySide, showCloseButton: Boolean) : ModalSurfaceWidget(id, showCloseButton) {
+class SheetContentWidget(id: String, val side: OverlaySide, showCloseButton: Boolean) : ModalSurfaceWidget(id, showCloseButton) {
     init {
         gap = GAP
     }
@@ -497,7 +488,7 @@ open class SheetContentWidget(id: String, val side: OverlaySide, showCloseButton
      *
      * @param ui the graphics to draw with
      */
-    protected open fun drawSurface(ui: UiGraphics) {
+    private fun drawSurface(ui: UiGraphics) {
         val tokens = ui.tokens
         ui.fill(bounds, tokens.background)
         val border = when (shownSide) {
@@ -526,77 +517,7 @@ open class SheetContentWidget(id: String, val side: OverlaySide, showCloseButton
 }
 
 /**
- * The content of a drawer: like a sheet without a close button, with rounded corners on its inner
- * edge and a handle when it comes from the bottom.
- *
- * @param id the id of the widget
- * @property direction the edge of the window the drawer comes in from
- */
-class DrawerContentWidget(id: String, val direction: OverlaySide) : SheetContentWidget(id, direction, false) {
-    init {
-        if (direction == OverlaySide.BOTTOM) padding = Insets(top = HANDLE_SPACE)
-    }
-
-    /**
-     * Centers the header texts of drawers at the top or bottom, then creates the layout box.
-     *
-     * @param measurer the text measurer
-     * @return the layout box
-     */
-    override fun createLayout(measurer: TextMeasurer): LayoutBox {
-        val centered = direction == OverlaySide.BOTTOM || direction == OverlaySide.TOP
-        childList.filterIsInstance<SheetHeaderWidget>().forEach { it.centered = centered }
-        return super.createLayout(measurer)
-    }
-
-    /**
-     * Draws the surface with rounded inner corners, the border and the handle.
-     *
-     * @param ui the graphics to draw with
-     */
-    override fun drawSurface(ui: UiGraphics) {
-        val tokens = ui.tokens
-        val corners = when (direction) {
-            OverlaySide.BOTTOM -> Corners(topLeft = true, topRight = true, bottomLeft = false, bottomRight = false)
-            OverlaySide.TOP -> Corners(topLeft = false, topRight = false, bottomLeft = true, bottomRight = true)
-            OverlaySide.RIGHT -> Corners(topLeft = true, topRight = false, bottomLeft = true, bottomRight = false)
-            OverlaySide.LEFT -> Corners(topLeft = false, topRight = true, bottomLeft = false, bottomRight = true)
-        }
-        ui.fillRounded(bounds, tokens.background, corners = corners)
-        ui.borderRounded(bounds, tokens.border, corners = corners)
-        if (direction == OverlaySide.BOTTOM) {
-            ui.fillRounded(Rect(bounds.x + (bounds.width - HANDLE_WIDTH) / 2, bounds.y + HANDLE_TOP, HANDLE_WIDTH, HANDLE_HEIGHT), tokens.muted, HANDLE_HEIGHT / 2)
-        }
-    }
-
-    /**
-     * Holds the handle metrics.
-     */
-    private companion object {
-        /**
-         * The width of the handle.
-         */
-        const val HANDLE_WIDTH: Int = 50
-
-        /**
-         * The height of the handle.
-         */
-        const val HANDLE_HEIGHT: Int = 4
-
-        /**
-         * The space above the handle.
-         */
-        const val HANDLE_TOP: Int = 8
-
-        /**
-         * The space the handle takes above the content.
-         */
-        const val HANDLE_SPACE: Int = 16
-    }
-}
-
-/**
- * The header of a sheet or drawer: its title and description, stacked, optionally centered.
+ * The header of a sheet: its title and description, stacked.
  *
  * @param id the id of the widget
  */
@@ -606,26 +527,10 @@ class SheetHeaderWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
         padding = Insets(SheetFooterWidget.PADDING, SheetFooterWidget.PADDING, SheetFooterWidget.PADDING, SheetFooterWidget.PADDING)
         crossAlign = Align.STRETCH
     }
-
-    /**
-     * Whether the texts are centered.
-     */
-    var centered: Boolean = false
-
-    /**
-     * Centers or aligns the texts, then creates the layout box.
-     *
-     * @param measurer the text measurer
-     * @return the layout box
-     */
-    override fun createLayout(measurer: TextMeasurer): LayoutBox {
-        childList.filterIsInstance<TextWidget>().forEach { it.alignOverride = if (centered) TextAlign.CENTER else null }
-        return super.createLayout(measurer)
-    }
 }
 
 /**
- * The footer of a sheet or drawer: its buttons stacked at the end of the content.
+ * The footer of a sheet: its buttons stacked at the end of the content.
  *
  * @param id the id of the widget
  */
@@ -641,7 +546,7 @@ class SheetFooterWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
      */
     companion object {
         /**
-         * The space inside the header and footer of sheets and drawers.
+         * The space inside the header and footer of sheets.
          */
         const val PADDING: Int = 8
     }

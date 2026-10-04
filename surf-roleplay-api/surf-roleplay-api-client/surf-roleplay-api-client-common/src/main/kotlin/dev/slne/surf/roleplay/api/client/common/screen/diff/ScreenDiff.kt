@@ -5,7 +5,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
 import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
@@ -41,8 +40,8 @@ import java.util.concurrent.ConcurrentHashMap
  * - A sidebar provider whose fields other than its children differ only in its expanded state
  *   gets a [ScreenChange.SetValue] of `"true"` or `"false"`, followed by the changes of its
  *   children.
- * - A popover, hover card, dropdown, context, menubar or sub-menu, dialog, alert dialog, sheet,
- *   drawer or navigation menu item whose fields other than its children differ only in its open
+ * - A popover, hover card, dropdown, context, menubar or sub-menu, dialog, alert dialog, sheet or
+ *   navigation menu item whose fields other than its children differ only in its open
  *   state gets a [ScreenChange.SetOpen], followed by the changes of its children.
  * - A container whose fields other than its children are equal is patched in place if the child
  *   ids both trees share keep their relative order: vanished children are removed, shared children
@@ -107,7 +106,6 @@ object ScreenDiff {
         DialogElement::class.java,
         AlertDialogElement::class.java,
         SheetElement::class.java,
-        DrawerElement::class.java,
         NavigationMenuItemElement::class.java,
     )
 

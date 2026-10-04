@@ -144,7 +144,7 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
  *           ISO dates for calendars, comma-separated or as `first/last` for a range. Elements
  *           with a state report it as well: `true` or `false` for the open state of popovers,
  *           hover cards, dropdown, context and menubar menus, sub-menus, dialogs, alert dialogs,
- *           sheets, drawers, collapsibles, navigation menu items and sidebar providers, and for
+ *           sheets, collapsibles, navigation menu items and sidebar providers, and for
  *           menu checkbox items; the value of the chosen item or an empty string for menu radio
  *           groups; the value of the selected tab for tabs; the comma-separated values of the open
  *           items for accordions; the decimal index of the shown slide, from 0, for carousels;

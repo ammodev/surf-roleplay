@@ -116,8 +116,7 @@ class OverlayComponentsProtocolTest {
     }
 
     /**
-     * Verifies that dialogs, alert dialogs, sheets and drawers with every part survive a round
-     * trip.
+     * Verifies that dialogs, alert dialogs and sheets with every part survive a round trip.
      */
     @Test
     fun `modals round-trip`() {
@@ -145,7 +144,6 @@ class OverlayComponentsProtocolTest {
                         SheetContentNode("sheet_content", side = OverlaySide.LEFT, children = listOf(SheetHeaderNode("sheet_header", children = listOf(TextNode("sheet_title", kind = TextKind.SHEET_TITLE))), SheetFooterNode("sheet_footer"))),
                     ),
                 ),
-                DrawerNode("drawer", children = listOf(ButtonNode("open_drawer"), DrawerContentNode("drawer_content", direction = OverlaySide.TOP))),
             ),
         )
 

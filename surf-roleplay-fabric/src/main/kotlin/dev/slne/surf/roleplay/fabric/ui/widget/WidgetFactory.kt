@@ -98,8 +98,6 @@ import dev.slne.surf.roleplay.protocol.screen.SheetNode
 import dev.slne.surf.roleplay.protocol.screen.SheetContentNode
 import dev.slne.surf.roleplay.protocol.screen.SheetHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.SheetFooterNode
-import dev.slne.surf.roleplay.protocol.screen.DrawerNode
-import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
 import dev.slne.surf.roleplay.protocol.screen.CommandNode
 import dev.slne.surf.roleplay.protocol.screen.CommandInputNode
 import dev.slne.surf.roleplay.protocol.screen.CommandListNode
@@ -339,8 +337,6 @@ object WidgetFactory {
             is SheetContentNode -> container(SheetContentWidget(node.id, node.side, node.showCloseButton), node.children)
             is SheetHeaderNode -> container(SheetHeaderWidget(node.id), node.children)
             is SheetFooterNode -> container(SheetFooterWidget(node.id), node.children)
-            is DrawerNode -> container(ModalHostWidget(node.id, ModalKind.DRAWER), node.children).apply { requestOpen(node.open) }
-            is DrawerContentNode -> container(DrawerContentWidget(node.id, node.direction), node.children)
             is OverlayContainerNode -> container(OverlayContainerWidget(node.id), node.children)
             is CollapsibleNode -> container(CollapsibleWidget(node.id), node.children).apply { setOpen(node.open) }
             is CollapsibleTriggerNode -> container(CollapsibleTriggerWidget(node.id), node.children)
@@ -518,7 +514,6 @@ object WidgetFactory {
             is DialogNode -> node.notifyChange
             is AlertDialogNode -> node.notifyChange
             is SheetNode -> node.notifyChange
-            is DrawerNode -> node.notifyChange
             is CollapsibleNode -> node.notifyChange
             is AccordionNode -> node.notifyChange
             is TabsNode -> node.notifyChange

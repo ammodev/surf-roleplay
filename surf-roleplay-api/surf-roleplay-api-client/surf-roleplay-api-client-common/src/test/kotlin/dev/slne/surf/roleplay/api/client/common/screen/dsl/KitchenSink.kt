@@ -153,7 +153,6 @@ object KitchenSink {
                 Button("S")
                 SheetContent { SheetHeader { SheetTitle("T"); SheetDescription("D") }; SheetFooter { } }
             }
-            Drawer { Button("D"); DrawerContent { } }
         }
     }
 

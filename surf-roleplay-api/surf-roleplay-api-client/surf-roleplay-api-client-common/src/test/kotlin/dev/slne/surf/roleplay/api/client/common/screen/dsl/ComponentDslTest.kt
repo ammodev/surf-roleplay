@@ -890,8 +890,8 @@ class ComponentDslTest {
     }
 
     /**
-     * Verifies that menus and drawers built with the shadcn part names equal those built with the
-     * shared part names.
+     * Verifies that menus built with the shadcn part names equal those built with the shared part
+     * names.
      */
     @Test
     fun `shadcn part names build the shared parts`() {
@@ -908,7 +908,6 @@ class ComponentDslTest {
                 }
                 ContextMenu { Label("B"); MenuContent { MenuItem("K") } }
                 Menubar { MenubarMenu { MenubarTrigger("Datei"); MenuContent { MenuItem("Neu"); MenuSub { MenuSubTrigger("S"); MenuContent { } } } } }
-                Drawer { Button("D"); DrawerContent { SheetHeader { SheetTitle("T"); SheetDescription("D") }; SheetFooter { } } }
             }
         }
         val aliased = renderRoot {
@@ -923,7 +922,6 @@ class ComponentDslTest {
                 }
                 ContextMenu { Label("B"); ContextMenuContent { ContextMenuItem("K") } }
                 Menubar { MenubarMenu { MenubarTrigger("Datei"); MenubarContent { MenubarItem("Neu"); MenubarSub { MenubarSubTrigger("S"); MenubarSubContent { } } } } }
-                Drawer { Button("D"); DrawerContent { DrawerHeader { DrawerTitle("T"); DrawerDescription("D") }; DrawerFooter { } } }
             }
         }
         assertEquals(shared, aliased)

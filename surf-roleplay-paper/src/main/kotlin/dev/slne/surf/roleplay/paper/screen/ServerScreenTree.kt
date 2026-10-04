@@ -61,8 +61,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
 import dev.slne.surf.roleplay.api.client.common.screen.SheetContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.SheetHeaderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SheetFooterElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandListElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandGroupElement
@@ -424,8 +422,6 @@ class ServerScreenTree(root: ScreenElement) {
             is SheetContentElement -> container.copy(children = children)
             is SheetHeaderElement -> container.copy(children = children)
             is SheetFooterElement -> container.copy(children = children)
-            is DrawerElement -> container.copy(children = children)
-            is DrawerContentElement -> container.copy(children = children)
             is CommandElement -> container.copy(children = children)
             is CommandListElement -> container.copy(children = children)
             is CommandGroupElement -> container.copy(children = children)

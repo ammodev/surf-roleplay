@@ -34,12 +34,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogDescription
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogFooter
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogHeader
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogTitle
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Drawer
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerContent
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerDescription
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerFooter
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerHeader
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerTitle
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenu
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenuCheckboxItem
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenuContent
@@ -98,7 +92,6 @@ internal val OVERLAY_STORIES: List<Story> = listOf(
     Story("dialog", "Dialog", StoryCategory.OVERLAYS) { dialogStory(it) },
     Story("alert-dialog", "Bestätigungsdialog", StoryCategory.OVERLAYS) { alertDialogStory(it) },
     Story("sheet", "Seitenblatt", StoryCategory.OVERLAYS) { sheetStory(it) },
-    Story("drawer", "Schublade", StoryCategory.OVERLAYS) { drawerStory(it) },
     Story("popover", "Popover", StoryCategory.OVERLAYS) { popoverStory(it) },
     Story("hover-card", "Hover-Karte", StoryCategory.OVERLAYS) { hoverCardStory() },
     Story("tooltip", "Tooltip", StoryCategory.OVERLAYS) { tooltipStory(it) },
@@ -191,7 +184,8 @@ private fun ComponentScope.alertDialogStory(context: StoryContext) {
 }
 
 /**
- * Shows sheets on every side, with and without the close button.
+ * Shows sheets on every side, with and without the close button, and a sheet kept inside an
+ * overlay container.
  *
  * @param context the story context
  */
@@ -217,49 +211,23 @@ private fun ComponentScope.sheetStory(context: StoryContext) {
             }
         }
     }
-}
-
-/**
- * Shows drawers from the bottom and the top, and a drawer kept inside an overlay container.
- *
- * @param context the story context
- */
-private fun ComponentScope.drawerStory(context: StoryContext) {
-    storySection("Richtungen") {
-        Row(gap = 6) {
-            listOf(OverlaySide.BOTTOM, OverlaySide.TOP).forEach { side ->
-                Drawer {
-                    Button(side.slug(), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "drawer_trigger_${side.slug()}")
-                    DrawerContent(side) {
-                        DrawerHeader {
-                            DrawerTitle("Tagesziel")
-                            DrawerDescription("Lege dein Tagesziel für Streifen fest.")
-                        }
-                        DrawerFooter {
-                            DialogClose { Button("Übernehmen", submitsInput = false, width = ElementSize.grow(), id = "drawer_submit_${side.slug()}", onClick = context.clicked) }
-                        }
-                    }
-                }
-            }
-        }
-    }
     storySection("Beispiel") {
         Row(gap = 8) {
             OverlayContainer(ElementSize.fixed(120), ElementSize.fixed(180)) {
                 Column(width = ElementSize.grow(), height = ElementSize.grow(), gap = 6, padding = Spacing(8, 8, 8, 8), crossAlign = Alignment.STRETCH) {
                     Large("Handy")
-                    Drawer {
-                        Button("Nachrichten", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "drawer_phone_trigger")
-                        DrawerContent {
-                            DrawerHeader {
-                                DrawerTitle("Neue Nachricht")
-                                DrawerDescription("Von: Leitstelle")
+                    Sheet {
+                        Button("Nachrichten", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sheet_phone_trigger")
+                        SheetContent(OverlaySide.BOTTOM, showCloseButton = false) {
+                            SheetHeader {
+                                SheetTitle("Neue Nachricht")
+                                SheetDescription("Von: Leitstelle")
                             }
                         }
                     }
                 }
             }
-            Muted("Die Schublade bleibt in ihrem Overlay-Container, hier einem Handy.", width = ElementSize.grow())
+            Muted("Das Seitenblatt bleibt in seinem Overlay-Container, hier einem Handy.", width = ElementSize.grow())
         }
     }
 }

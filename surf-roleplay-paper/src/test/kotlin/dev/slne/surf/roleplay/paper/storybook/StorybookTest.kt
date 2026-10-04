@@ -59,7 +59,7 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputCh
 private val SHADCN_COMPONENTS = setOf(
     "accordion", "alert", "alert-dialog", "aspect-ratio", "avatar", "badge", "breadcrumb", "button", "button-group", "calendar",
     "card", "carousel", "chart", "checkbox", "collapsible", "combobox", "command", "context-menu", "data-table", "dialog",
-    "direction", "drawer", "dropdown-menu", "empty", "field", "form", "hover-card", "input", "input-group", "input-otp",
+    "direction", "dropdown-menu", "empty", "field", "form", "hover-card", "input", "input-group", "input-otp",
     "item", "kbd", "label", "menubar", "navigation-menu", "pagination", "popover", "progress", "radio-group",
     "resizable", "scroll-area", "select", "separator", "sheet", "sidebar", "skeleton", "slider", "sonner", "spinner",
     "switch", "table", "tabs", "textarea", "toast", "toggle", "toggle-group", "tooltip", "typography", "chat",
@@ -224,7 +224,7 @@ class StorybookTest {
     fun `the overlay stories cover their components and render`() = assertCategory(
         StoryCategory.OVERLAYS,
         setOf(
-            "alert-dialog", "command", "context-menu", "dialog", "drawer", "dropdown-menu", "hover-card", "menubar", "popover",
+            "alert-dialog", "command", "context-menu", "dialog", "dropdown-menu", "hover-card", "menubar", "popover",
             "sheet", "sonner", "toast", "tooltip",
         ),
     )
