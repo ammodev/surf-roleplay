@@ -1,5 +1,17 @@
 package dev.slne.surf.roleplay.api.client.common.screen.dsl
 
+import dev.slne.surf.roleplay.api.client.common.screen.AlertElement
+import dev.slne.surf.roleplay.api.client.common.screen.Alignment
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardFooterElement
+import dev.slne.surf.roleplay.api.client.common.screen.CardHeaderElement
+import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.Orientation
+import dev.slne.surf.roleplay.api.client.common.screen.SeparatorElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextElement
+import dev.slne.surf.roleplay.api.client.common.screen.TextKind
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonGroupSeparatorElement
@@ -534,5 +546,102 @@ class ComponentDslTest {
         assertEquals(listOf("a"), single.selected)
         assertEquals(false, single.multiple)
         assertEquals(true, assertIs<ComboboxElement>(root.children[1]).multiple)
+    }
+
+    /**
+     * Verifies that typography components build texts of their style with generated or explicit
+     * ids.
+     */
+    @Test
+    fun `typography components build styled texts`() {
+        val root = assertIs<ColumnElement>(
+            renderRoot {
+                Column {
+                    H1("Eins"); H2("Zwei"); H3("Drei"); H4("Vier")
+                    P("a", id = "a"); Lead("Lead"); Large("Groß"); Small("Klein"); Muted("Leise")
+                    Blockquote("Zitat"); InlineCode("code")
+                    H2(Component.text("Titel"), maxLines = 1, align = Alignment.CENTER)
+                }
+            },
+        )
+        val kinds = listOf(
+            TextKind.H1, TextKind.H2, TextKind.H3, TextKind.H4, TextKind.P, TextKind.LEAD, TextKind.LARGE, TextKind.SMALL, TextKind.MUTED,
+            TextKind.BLOCKQUOTE, TextKind.INLINE_CODE, TextKind.H2,
+        )
+        assertEquals(kinds, root.children.map { assertIs<TextElement>(it).kind })
+        assertEquals("a", root.children[4].id)
+        assertEquals(Component.text("a"), (root.children[4] as TextElement).text)
+        assertEquals("_0.5", root.children[5].id)
+        val title = root.children[11] as TextElement
+        assertEquals(1, title.maxLines)
+        assertEquals(Alignment.CENTER, title.align)
+    }
+
+    /**
+     * Verifies that display containers nest their parts and keep the rules of their elements.
+     */
+    @Test
+    fun `display components nest their parts`() {
+        val card = assertIs<CardElement>(
+            renderRoot {
+                Card(width = ElementSize.fixed(100)) {
+                    CardHeader {
+                        CardTitle("Fall 12")
+                        CardDescription("Offen")
+                    }
+                    CardContent { Separator(); Separator(Orientation.VERTICAL) }
+                    CardFooter { Avatar("AB", badgeIcon = "check") }
+                }
+            },
+        )
+        assertEquals(ElementSize.fixed(100), card.width)
+        val header = assertIs<CardHeaderElement>(card.children[0])
+        assertEquals("_0.0.0", header.children[0].id)
+        assertEquals(TextKind.CARD_TITLE, assertIs<TextElement>(header.children[0]).kind)
+        assertEquals(TextKind.CARD_DESCRIPTION, assertIs<TextElement>(header.children[1]).kind)
+        val content = assertIs<CardContentElement>(card.children[1])
+        assertEquals(ElementSize.grow(), assertIs<SeparatorElement>(content.children[0]).width)
+        assertEquals(ElementSize.grow(), assertIs<SeparatorElement>(content.children[1]).height)
+        val footer = assertIs<CardFooterElement>(card.children[2])
+        assertTrue(assertIs<AvatarElement>(footer.children[0]).badge)
+        assertFailsWith<IllegalArgumentException> { renderRoot { AspectRatio(0f) { Label("x") } } }
+    }
+
+    /**
+     * Verifies that a clickable item binds its handler with its id and grows across its container.
+     */
+    @Test
+    fun `a clickable item binds its handler`() {
+        val seen = mutableListOf<String>()
+        val binder = recordingBinder(seen)
+        val alert = assertIs<AlertElement>(
+            renderRoot(binder) {
+                Alert(icon = "info") {
+                    AlertTitle("Achtung")
+                    Item(onClick = { }, id = "item") { ItemContent { ItemTitle("Titel"); ItemDescription("Text") } }
+                }
+            },
+        )
+        val item = assertIs<ItemElement>(alert.children[1])
+        assertEquals(listOf("item"), seen)
+        assertEquals(ElementSize.grow(), item.width)
+        assertEquals(TextKind.ALERT_TITLE, assertIs<TextElement>(alert.children[0]).kind)
+    }
+
+    /**
+     * Creates a binder that records the element id of every handler it binds.
+     *
+     * @param seen the list the ids are added to
+     * @return the binder
+     */
+    private fun recordingBinder(seen: MutableList<String>): HandlerBinder = object : HandlerBinder {
+        /** Records the id. */
+        override fun button(elementId: String, handler: ButtonHandler) = handler.also { seen += elementId }
+
+        /** Records the id. */
+        override fun change(elementId: String, handler: ChangeHandler) = handler.also { seen += elementId }
+
+        /** Records the id. */
+        override fun search(elementId: String, handler: SearchHandler) = handler.also { seen += elementId }
     }
 }
