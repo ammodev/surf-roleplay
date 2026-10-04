@@ -6,8 +6,12 @@
   "client": [
     "DebugScreenEntryListMixin",
     "HudMixin",
+    "InventoryScreenMixin",
     "KeyboardHandlerMixin",
-    "MouseHandlerMixin"
+    "MouseHandlerMixin",
+    "RecipeBookComponentMixin",
+    "RecipeBookScreenMixin",
+    "SlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1
