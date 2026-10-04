@@ -10,6 +10,7 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedAction
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedUpdate
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
+import dev.slne.surf.roleplay.protocol.tablist.TabListState
 import dev.slne.surf.roleplay.protocol.toast.ToastAction
 import dev.slne.surf.roleplay.protocol.toast.ToastDismiss
 import dev.slne.surf.roleplay.protocol.toast.ToastShow
@@ -122,6 +123,16 @@ object Packets {
     )
 
     /**
+     * Replaces the state shown in the tab list.
+     */
+    val TAB_LIST_STATE: PacketType<TabListState> = PacketType(
+        "tab_list_state",
+        PacketDirection.CLIENTBOUND,
+        setOf(ConnectionPhase.PLAY),
+        TabListState.serializer(),
+    )
+
+    /**
      * Shows a toast, or replaces the shown toast with the same id.
      */
     val TOAST_SHOW: PacketType<ToastShow> = PacketType(
@@ -168,6 +179,7 @@ object Packets {
         TOAST_SHOW,
         TOAST_DISMISS,
         TOAST_ACTION,
+        TAB_LIST_STATE,
     )
 
     /**
