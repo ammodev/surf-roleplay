@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.api.client.common.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputRef
 import net.kyori.adventure.text.Component
 import java.time.LocalDate
 import java.util.UUID
@@ -83,7 +84,15 @@ fun interface ChangeHandler {
  * @property value the new value, in the string form of [ScreenValues.all]
  * @property values the values of every input of the screen after the change
  */
-data class ScreenInputChange(val screen: OpenScreen, val inputId: String, val value: String, val values: ScreenValues)
+data class ScreenInputChange(val screen: OpenScreen, val inputId: String, val value: String, val values: ScreenValues) {
+    /**
+     * Returns the typed value of an input after the change, as [ScreenValues.get] does.
+     *
+     * @param ref the reference to the input
+     * @return the typed value
+     */
+    operator fun <T> get(ref: InputRef<T>): T = values[ref]
+}
 
 /**
  * Handles the closing of a screen.
@@ -111,6 +120,14 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
      * @param errors the error of every invalid input, keyed by input id
      */
     fun fail(errors: Map<String, Component>) = screen.showErrors(errors)
+
+    /**
+     * Returns the typed value of an input, as [ScreenValues.get] does.
+     *
+     * @param ref the reference to the input
+     * @return the typed value
+     */
+    operator fun <T> get(ref: InputRef<T>): T = values[ref]
 }
 
 /**
@@ -123,6 +140,15 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
  *           ISO dates for calendars
  */
 class ScreenValues(val all: Map<String, String>) {
+
+    /**
+     * Returns the typed value of an input referenced by the component DSL.
+     *
+     * @param ref the reference to the input
+     * @return the value parsed by the reference: an empty text, `null`, `false` or an empty list
+     *         if the value is empty or the screen has no such input, as fits the input's type
+     */
+    operator fun <T> get(ref: InputRef<T>): T = ref.parse(all[ref.id])
 
     /**
      * Returns the text of a text input.
