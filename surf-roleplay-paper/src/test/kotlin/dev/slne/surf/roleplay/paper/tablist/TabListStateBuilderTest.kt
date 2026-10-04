@@ -206,7 +206,7 @@ class TabListStateBuilderTest {
     }
 
     /**
-     * Verifies that the online total is rounded to the nearest five and flagged approximate while
+     * Verifies that the online total is rounded to the nearest five, never to zero while players are online, and flagged approximate while
      * any organisation is coarse.
      */
     @Test
@@ -218,7 +218,7 @@ class TabListStateBuilderTest {
 
         assertEquals(40, state.onlineTotal)
         assertTrue(state.onlineTotalApproximate)
-        assertEquals(listOf(0, 0, 0, 5, 5, 5, 5, 5, 10), (0..8).map(TabListStateBuilder::approximateTotal))
+        assertEquals(listOf(0, 5, 5, 5, 5, 5, 5, 5, 10), (0..8).map(TabListStateBuilder::approximateTotal))
     }
 
     /**

@@ -183,12 +183,13 @@ class TabListStateBuilder(
             if (leaving.isEmpty()) players.toList() else players.filter { id(it) !in leaving }
 
         /**
-         * Rounds an online total to the nearest multiple of five.
+         * Rounds an online total to the nearest multiple of five. Zero stays zero and totals of
+         * one to four become five, so the result is zero only when nobody is online.
          *
          * @param total the exact total
          * @return the rounded total
          */
-        fun approximateTotal(total: Int): Int = (total + 2) / 5 * 5
+        fun approximateTotal(total: Int): Int = if (total <= 0) 0 else maxOf(5, (total + 2) / 5 * 5)
 
         /**
          * Returns a reader of a player's self values from a provider.
