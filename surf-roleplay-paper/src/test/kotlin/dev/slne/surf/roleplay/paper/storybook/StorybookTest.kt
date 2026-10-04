@@ -225,6 +225,18 @@ class StorybookTest {
     )
 
     /**
+     * The tabs, breadcrumb, scroll area and carousel stories end with a realistic example.
+     */
+    @Test
+    fun `the navigation stories show an example`() {
+        val page = storybook()
+        for (key in listOf("tabs", "breadcrumb", "scroll-area", "carousel")) {
+            page.storyKey = key
+            assertTrue("Beispiel" in texts(definition(page)), key)
+        }
+    }
+
+    /**
      * The icon gallery story is the only story of its category and renders.
      */
     @Test

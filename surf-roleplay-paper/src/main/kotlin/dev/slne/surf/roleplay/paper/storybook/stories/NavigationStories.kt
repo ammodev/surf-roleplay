@@ -190,7 +190,8 @@ private fun ComponentScope.collapsibleStory(context: StoryContext) {
 }
 
 /**
- * Shows tabs in every list variant and orientation, with an icon and a disabled tab.
+ * Shows tabs in every list variant and orientation, with an icon and a disabled tab, and the
+ * tabs of a person record.
  *
  * @param context the story context
  */
@@ -200,6 +201,18 @@ private fun ComponentScope.tabsStory(context: StoryContext) {
             Row(gap = 12, width = ElementSize.grow()) {
                 TabsVariant.entries.forEach { variant -> missionTabs("tabs_${variant.slug()}_${orientation.slug()}", variant, orientation, context) }
             }
+        }
+    }
+    storySection("Beispiel") {
+        Tabs(value = "person", id = "tabs_record", onChange = context.changed) {
+            TabsList {
+                TabsTrigger("person", Component.text("Person"), icon = "user")
+                TabsTrigger("vehicles", Component.text("Fahrzeuge"), icon = "car")
+                TabsTrigger("records", Component.text("Vorstrafen"), icon = "file-text")
+            }
+            TabsContent("person") { P("Max Mustermann, geboren am 12.03.1994, wohnhaft in Nordhafen.") }
+            TabsContent("vehicles") { P("NH-RP 112, schwarzer Kombi, zugelassen seit 2024.") }
+            TabsContent("records") { P("Keine Einträge.") }
         }
     }
 }
@@ -227,13 +240,24 @@ private fun ComponentScope.missionTabs(id: String, variant: TabsVariant, orienta
 
 /**
  * Shows breadcrumbs with the default and a custom separator, an ellipsis menu and a disabled
- * link.
+ * link, and the path to a person record.
  *
  * @param context the story context
  */
 private fun ComponentScope.breadcrumbStory(context: StoryContext) {
     storySection("Trenner") {
         listOf("chevron-right", "slash").forEach { separator -> missionTrail("breadcrumb_$separator", separator, context) }
+    }
+    storySection("Beispiel") {
+        Breadcrumb {
+            BreadcrumbList {
+                BreadcrumbItem { BreadcrumbLink("Akten", id = "breadcrumb_files", onClick = context.clicked) }
+                BreadcrumbSeparator()
+                BreadcrumbItem { BreadcrumbLink("Personen", id = "breadcrumb_people", onClick = context.clicked) }
+                BreadcrumbSeparator()
+                BreadcrumbItem { BreadcrumbPage(Component.text("Max Mustermann")) }
+            }
+        }
     }
 }
 
@@ -353,7 +377,7 @@ private fun ComponentScope.navigationLink(id: String, title: String, description
 }
 
 /**
- * Shows scroll areas in every scroll orientation.
+ * Shows scroll areas in every scroll orientation and a scrolling radio log.
  */
 private fun ComponentScope.scrollAreaStory() {
     storySection("Richtungen") {
@@ -382,7 +406,33 @@ private fun ComponentScope.scrollAreaStory() {
             }
         }
     }
+    storySection("Beispiel") {
+        ScrollArea(ElementSize.fixed(280), ElementSize.fixed(100)) {
+            Column(width = ElementSize.grow(), gap = 4, padding = Spacing(4, 6, 4, 6), crossAlign = Alignment.STRETCH) {
+                RADIO_LOG.forEach { (time, message) ->
+                    Row(gap = 6) {
+                        Small(time)
+                        P(message, width = ElementSize.grow())
+                    }
+                }
+            }
+        }
+    }
 }
+
+/**
+ * The radio log of the scroll area example: time and message.
+ */
+private val RADIO_LOG = listOf(
+    "12:30" to "Leitstelle: RTW 1, bitte melden.",
+    "12:31" to "RTW 1: Hört, Standort Wache Nord.",
+    "12:31" to "Leitstelle: Verkehrsunfall B7, zwei Verletzte.",
+    "12:32" to "RTW 1: Übernommen, rücken aus.",
+    "12:38" to "RTW 1: Am Einsatzort eingetroffen.",
+    "12:40" to "Streife 12: Sperren die B7 Richtung Süden.",
+    "12:52" to "RTW 1: Transport ins Klinikum Nordhafen.",
+    "13:05" to "RTW 1: Patient übergeben, wieder frei.",
+)
 
 /**
  * Shows resizable groups in both orientations, with and without a grip, nested.
@@ -417,7 +467,8 @@ private fun ComponentScope.centeredLabel(text: String) {
 }
 
 /**
- * Shows carousels in both orientations, with one and two slides at a time, and looping.
+ * Shows carousels in both orientations, with one and two slides at a time, and looping, and a
+ * carousel of vehicles.
  *
  * @param context the story context
  */
@@ -427,6 +478,24 @@ private fun ComponentScope.carouselStory(context: StoryContext) {
             numberCarousel("carousel_single", 100.0, Orientation.HORIZONTAL, loop = false, context)
             numberCarousel("carousel_half", 50.0, Orientation.HORIZONTAL, loop = true, context)
             numberCarousel("carousel_vertical", 50.0, Orientation.VERTICAL, loop = false, context)
+        }
+    }
+    storySection("Beispiel") {
+        Carousel(ElementSize.fixed(220), id = "carousel_vehicles", onChange = context.changed) {
+            CarouselPrevious()
+            CarouselContent {
+                listOf("Rettungswagen" to "RTW 1, Wache Nord", "Notarzt" to "NEF 2, Klinikum", "Streifenwagen" to "Streife 12, Altstadt").forEach { (title, detail) ->
+                    CarouselItem(100.0) {
+                        Card(width = ElementSize.grow()) {
+                            Column(width = ElementSize.grow(), gap = 2, padding = Spacing(8, 8, 8, 8)) {
+                                Large(title)
+                                Muted(detail)
+                            }
+                        }
+                    }
+                }
+            }
+            CarouselNext()
         }
     }
 }
