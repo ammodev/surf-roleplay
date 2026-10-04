@@ -876,6 +876,46 @@ class ComponentDslTest {
     }
 
     /**
+     * Verifies that menus and drawers built with the shadcn part names equal those built with the
+     * shared part names.
+     */
+    @Test
+    fun `shadcn part names build the shared parts`() {
+        val handler = ButtonHandler { }
+        val shared = renderRoot {
+            Column {
+                DropdownMenu {
+                    Button("M")
+                    MenuContent {
+                        MenuLabel("L"); MenuGroup { MenuItem("I", onClick = handler) }; MenuSeparator()
+                        MenuCheckboxItem("C"); MenuRadioGroup("a") { MenuRadioItem("A", "a") }
+                        MenuSub { MenuSubTrigger("S"); MenuContent { MenuItem("J") } }
+                    }
+                }
+                ContextMenu { Label("B"); MenuContent { MenuItem("K") } }
+                Menubar { MenubarMenu { MenubarTrigger("Datei"); MenuContent { MenuItem("Neu"); MenuSub { MenuSubTrigger("S"); MenuContent { } } } } }
+                Drawer { Button("D"); DrawerContent { SheetHeader { SheetTitle("T"); SheetDescription("D") }; SheetFooter { } } }
+            }
+        }
+        val aliased = renderRoot {
+            Column {
+                DropdownMenu {
+                    Button("M")
+                    DropdownMenuContent {
+                        DropdownMenuLabel("L"); DropdownMenuGroup { DropdownMenuItem("I", onClick = handler) }; DropdownMenuSeparator()
+                        DropdownMenuCheckboxItem("C"); DropdownMenuRadioGroup("a") { DropdownMenuRadioItem("A", "a") }
+                        DropdownMenuSub { DropdownMenuSubTrigger("S"); DropdownMenuSubContent { DropdownMenuItem("J") } }
+                    }
+                }
+                ContextMenu { Label("B"); ContextMenuContent { ContextMenuItem("K") } }
+                Menubar { MenubarMenu { MenubarTrigger("Datei"); MenubarContent { MenubarItem("Neu"); MenubarSub { MenubarSubTrigger("S"); MenubarSubContent { } } } } }
+                Drawer { Button("D"); DrawerContent { DrawerHeader { DrawerTitle("T"); DrawerDescription("D") }; DrawerFooter { } } }
+            }
+        }
+        assertEquals(shared, aliased)
+    }
+
+    /**
      * Creates a binder that records the element id of every handler it binds.
      *
      * @param seen the list the ids are added to
