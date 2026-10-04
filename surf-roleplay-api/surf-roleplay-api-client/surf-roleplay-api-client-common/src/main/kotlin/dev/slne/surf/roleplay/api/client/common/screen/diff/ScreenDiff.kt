@@ -20,6 +20,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextareaElement
@@ -38,6 +39,9 @@ import java.util.concurrent.ConcurrentHashMap
  *   the string form of `ScreenValues.all`. This applies to text inputs, textareas, one-time
  *   password inputs, number inputs, checkboxes, switches, toggles, selects, native selects and
  *   radio groups.
+ * - A sidebar provider whose fields other than its children differ only in its expanded state
+ *   gets a [ScreenChange.SetValue] of `"true"` or `"false"`, followed by the changes of its
+ *   children.
  * - A popover, hover card, dropdown, context, menubar or sub-menu, dialog, alert dialog, sheet,
  *   drawer or navigation menu item whose fields other than its children differ only in its open
  *   state gets a [ScreenChange.SetOpen], followed by the changes of its children.
@@ -82,6 +86,14 @@ object ScreenDiff {
         SelectElement::class.java to ValueField("selected") { it as String? ?: "" },
         NativeSelectElement::class.java to ValueField("selected") { it as String? ?: "" },
         RadioGroupElement::class.java to ValueField("selected") { it as String? ?: "" },
+    )
+
+    /**
+     * The value field of every container class whose value can be changed alone, with the
+     * function that writes the field's value in its string form.
+     */
+    private val containerValueFields: Map<Class<*>, ValueField> = mapOf(
+        SidebarProviderElement::class.java to ValueField("open") { it.toString() },
     )
 
     /**
@@ -152,13 +164,19 @@ object ScreenDiff {
         val differing = differingFields(old, new)
         if (old is ContainerElement && new is ContainerElement) {
             val openField = if (old.javaClass in openableClasses) fieldNamed(old.javaClass, OPEN_FIELD) else null
-            val shell = differing.filter { it.name != CHILDREN_FIELD && it.name != openField?.name }
+            val containerValue = containerValueFields[old.javaClass]
+            val shell = differing.filter { it.name != CHILDREN_FIELD && it.name != openField?.name && it.name != containerValue?.name }
             if (shell.isEmpty()) {
                 val childChanges = mutableListOf<ScreenChange>()
                 if (diffChildren(old, new, context, childChanges)) {
                     if (openField != null) {
                         val open = openField.get(new) as Boolean
                         if (open != openField.get(old) && open.toString() != reported) changes += ScreenChange.SetOpen(new.id, open)
+                    }
+                    if (containerValue != null) {
+                        val field = fieldNamed(old.javaClass, containerValue.name)
+                        val value = containerValue.encode(field.get(new))
+                        if (value != containerValue.encode(field.get(old)) && value != reported) changes += ScreenChange.SetValue(new.id, value)
                     }
                     changes += childChanges
                     return

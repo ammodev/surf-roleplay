@@ -12,6 +12,10 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Popover
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Sidebar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarInset
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarProvider
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.renderRoot
 import net.kyori.adventure.text.Component
 import kotlin.test.Test
@@ -270,6 +274,25 @@ class ScreenDiffTest {
         val old = tree { Column { Input(value = "y", id = "q") } }
         val new = tree { Column { Input(value = "x", id = "q") } }
         assertEquals(listOf(ScreenChange.SetValue("q", "x")), ScreenDiff.diff(old, new, mapOf("q" to "abc")))
+    }
+
+    /**
+     * Verifies that a sidebar provider whose only change is its expanded state gets a set value
+     * instead of being replaced, that its children are still diffed, and that a reported state
+     * counts as shown.
+     */
+    @Test
+    fun `a sidebar provider whose expanded state changed gets a set value`() {
+        fun provider(open: Boolean, text: String) = tree {
+            SidebarProvider(open = open, id = "sp") {
+                Sidebar { SidebarHeader { P(text, id = "t") } }
+                SidebarInset { P("x", id = "x") }
+            }
+        }
+        val changes = ScreenDiff.diff(provider(true, "a"), provider(false, "b"))
+        assertEquals(ScreenChange.SetValue("sp", "false"), changes[0])
+        assertEquals(listOf("t"), changes.drop(1).map { (it as ScreenChange.Replace).targetId })
+        assertEquals(listOf("t"), ScreenDiff.diff(provider(true, "a"), provider(false, "b"), mapOf("sp" to "false")).map { (it as ScreenChange.Replace).targetId })
     }
 
     /**
