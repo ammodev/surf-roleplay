@@ -4,14 +4,6 @@ import net.kyori.adventure.text.Component
 import java.util.UUID
 
 /**
- * Builds the elements of a builder block.
- *
- * @param children the builder block
- * @return the elements it added
- */
-private fun build(children: ElementsBuilder.() -> Unit): List<ScreenElement> = ElementsBuilder().apply(children).elements.toList()
-
-/**
  * A table: its header, body and footer rows with columns that line up across all rows, and an
  * optional caption below.
  *
@@ -116,114 +108,6 @@ data class TableCellElement(
 ) : ContainerElement
 
 /**
- * Adds a table. Its children are a [tableHeader], a [tableBody], a [tableFooter] and a
- * [tableCaption].
- *
- * @param id the id of the table
- * @param width how wide the table is laid out; fitting tables fill their container
- * @param children the builder of the parts
- */
-fun ElementsBuilder.table(id: String, width: ElementSize = ElementSize.FIT, children: ElementsBuilder.() -> Unit) {
-    elements += TableElement(id, build(children), width)
-}
-
-/**
- * Adds the caption of a table, shown below its rows.
- *
- * @param id the id of the caption
- * @param text the text
- */
-fun ElementsBuilder.tableCaption(id: String, text: Component) {
-    elements += TableCaptionElement(id, text)
-}
-
-/**
- * Adds the header of a table. Its children are [tableRow]s of [tableHead]s.
- *
- * @param id the id of the header
- * @param children the builder of the rows
- */
-fun ElementsBuilder.tableHeader(id: String, children: ElementsBuilder.() -> Unit) {
-    elements += TableSectionElement(id, build(children), TableSection.HEADER)
-}
-
-/**
- * Adds the body of a table. Its children are [tableRow]s.
- *
- * @param id the id of the body
- * @param children the builder of the rows
- */
-fun ElementsBuilder.tableBody(id: String, children: ElementsBuilder.() -> Unit) {
-    elements += TableSectionElement(id, build(children), TableSection.BODY)
-}
-
-/**
- * Adds the footer of a table. Its children are [tableRow]s.
- *
- * @param id the id of the footer
- * @param children the builder of the rows
- */
-fun ElementsBuilder.tableFooter(id: String, children: ElementsBuilder.() -> Unit) {
-    elements += TableSectionElement(id, build(children), TableSection.FOOTER)
-}
-
-/**
- * Adds a row of a table. Its children are [tableHead]s or [tableCell]s.
- *
- * @param id the id of the row
- * @param selected whether the row is drawn as selected
- * @param children the builder of the cells
- */
-fun ElementsBuilder.tableRow(id: String, selected: Boolean = false, children: ElementsBuilder.() -> Unit) {
-    elements += TableRowElement(id, build(children), selected)
-}
-
-/**
- * Adds a column heading with any content.
- *
- * @param id the id of the heading
- * @param align how the content is placed across the cell
- * @param children the builder of the content
- */
-fun ElementsBuilder.tableHead(id: String, align: Alignment = Alignment.START, children: ElementsBuilder.() -> Unit) {
-    elements += TableCellElement(id, build(children), head = true, align = align)
-}
-
-/**
- * Adds a column heading with a text, whose label has the id of the heading followed by
- * `_text`.
- *
- * @param id the id of the heading
- * @param text the text
- * @param align how the text is placed across the cell
- */
-fun ElementsBuilder.tableHead(id: String, text: Component, align: Alignment = Alignment.START) {
-    tableHead(id, align) { label("${id}_text", text) }
-}
-
-/**
- * Adds a cell with any content.
- *
- * @param id the id of the cell
- * @param align how the content is placed across the cell
- * @param children the builder of the content
- */
-fun ElementsBuilder.tableCell(id: String, align: Alignment = Alignment.START, children: ElementsBuilder.() -> Unit) {
-    elements += TableCellElement(id, build(children), align = align)
-}
-
-/**
- * Adds a cell with a text, whose label has the id of the cell followed by `_text`.
- *
- * @param id the id of the cell
- * @param text the text
- * @param align how the text is placed across the cell
- */
-fun ElementsBuilder.tableCell(id: String, text: Component, align: Alignment = Alignment.START) {
-    tableCell(id, align) { label("${id}_text", text) }
-}
-
-/**
  * A data table: a table of rows that the player sorts by a column, filters by a text, pages
  * through and selects, all in the mod. Its view is its input value, a [DataTableView] as JSON,
  * validated on the server.
@@ -307,81 +191,6 @@ data class DataTableCellElement(
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
 ) : ContainerElement
-
-/**
- * Adds a data table. Its children are [dataTableColumn]s, then [dataTableRow]s with one
- * [dataTableCell] per column.
- *
- * @param id the id of the table
- * @param pageSize the number of rows on a page, or `0` for one page of every row
- * @param selectable whether rows are selected with a checkbox column
- * @param filterColumn the key of the column the filter searches, or `null` for no filter
- * @param filterPlaceholder the placeholder of the filter input
- * @param value the view the table starts with
- * @param width how wide the table is laid out
- * @param onChange reports every change of the view at once, or `null` for none
- * @param children the builder of the columns and rows
- */
-fun ElementsBuilder.dataTable(
-    id: String,
-    pageSize: Int = 10,
-    selectable: Boolean = false,
-    filterColumn: String? = null,
-    filterPlaceholder: Component = Component.text("Filtern..."),
-    value: DataTableView = DataTableView(),
-    width: ElementSize = ElementSize.FIT,
-    onChange: ChangeHandler? = null,
-    children: ElementsBuilder.() -> Unit,
-) {
-    elements += DataTableElement(id, build(children), pageSize, selectable, filterColumn, filterPlaceholder, value, onChange, width)
-}
-
-/**
- * Adds a column of a data table.
- *
- * @param id the id of the column
- * @param key the key of the column, unique within its table
- * @param header the heading
- * @param sortable whether a click on the heading sorts by the column
- * @param align how the heading and the cells are placed across the column
- */
-fun ElementsBuilder.dataTableColumn(id: String, key: String, header: Component, sortable: Boolean = false, align: Alignment = Alignment.START) {
-    elements += DataTableColumnElement(id, key, header, sortable, align)
-}
-
-/**
- * Adds a row of a data table. Its children are [dataTableCell]s, one per column.
- *
- * @param id the id of the row, which the view's selection names it by
- * @param selectable whether the row can be selected
- * @param children the builder of the cells
- */
-fun ElementsBuilder.dataTableRow(id: String, selectable: Boolean = true, children: ElementsBuilder.() -> Unit) {
-    elements += DataTableRowElement(id, build(children), selectable)
-}
-
-/**
- * Adds a cell of a data table row with any content.
- *
- * @param id the id of the cell
- * @param sortKey the key the cell sorts and filters by
- * @param children the builder of the content
- */
-fun ElementsBuilder.dataTableCell(id: String, sortKey: String, children: ElementsBuilder.() -> Unit) {
-    elements += DataTableCellElement(id, build(children), sortKey)
-}
-
-/**
- * Adds a cell of a data table row with a text, whose label has the id of the cell followed by
- * `_text`.
- *
- * @param id the id of the cell
- * @param text the text
- * @param sortKey the key the cell sorts and filters by
- */
-fun ElementsBuilder.dataTableCell(id: String, text: Component, sortKey: String) {
-    dataTableCell(id, sortKey) { label("${id}_text", text) }
-}
 
 /**
  * The family of a chart.
@@ -522,56 +331,6 @@ data class ChartElement(
 ) : ScreenElement
 
 /**
- * Adds a chart.
- *
- * @param id the id of the chart
- * @param kind the family of the chart
- * @param categories the labels of the categories, in order
- * @param series the series
- * @param width how wide the chart is laid out
- * @param height how tall the chart is laid out; a fitting chart is 16 by 9
- * @param categoryColors the chart colour numbers of the categories of pie and radial charts
- * @param stacked whether the series of area and bar charts are stacked
- * @param horizontal whether bars run from the left instead of from the bottom
- * @param curve how lines run between their points
- * @param dots whether line charts mark their points
- * @param grid whether the value grid is drawn
- * @param categoryAxis whether the categories are labelled
- * @param valueAxis whether the values are labelled
- * @param legend whether the series are listed below the chart
- * @param tooltip whether hovering shows a tooltip
- * @param indicator how the tooltip marks each series
- * @param donut whether a pie chart is drawn as a ring
- * @param labels whether pie slices and bars show their values
- */
-fun ElementsBuilder.chart(
-    id: String,
-    kind: ChartKind,
-    categories: List<Component>,
-    series: List<ChartSeries>,
-    width: ElementSize = ElementSize.FIT,
-    height: ElementSize = ElementSize.FIT,
-    categoryColors: List<Int> = emptyList(),
-    stacked: Boolean = false,
-    horizontal: Boolean = false,
-    curve: ChartCurve = ChartCurve.NATURAL,
-    dots: Boolean = false,
-    grid: Boolean = true,
-    categoryAxis: Boolean = true,
-    valueAxis: Boolean = false,
-    legend: Boolean = false,
-    tooltip: Boolean = true,
-    indicator: ChartIndicator = ChartIndicator.DOT,
-    donut: Boolean = false,
-    labels: Boolean = false,
-) {
-    elements += ChartElement(
-        id, kind, categories, series, categoryColors, stacked, horizontal, curve, dots, grid, categoryAxis, valueAxis, legend, tooltip,
-        indicator, donut, labels, width, height,
-    )
-}
-
-/**
  * A chat view: its messages, stacked in a scrolling column that starts at the newest message and
  * stays there while new messages are appended, unless the player scrolled up. Append messages
  * with [ScreenPatchBuilder.append].
@@ -615,40 +374,3 @@ data class ChatMessageElement(
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
 ) : ContainerElement
-
-/**
- * Adds a chat view. Its children are [chatMessage]s, oldest first.
- *
- * @param id the id of the view
- * @param height how tall the view is laid out, usually fixed
- * @param width how wide the view is laid out
- * @param children the builder of the messages
- */
-fun ElementsBuilder.chatView(id: String, height: ElementSize, width: ElementSize = ElementSize.FIT, children: ElementsBuilder.() -> Unit) {
-    elements += ChatViewElement(id, build(children), width, height)
-}
-
-/**
- * Adds a message of a chat view.
- *
- * @param id the id of the message
- * @param own whether the message is the player's own, shown at the right
- * @param name the name of the sender, empty for none
- * @param time the time of the message, empty for none
- * @param playerId the player whose head is the avatar, or `null`
- * @param texture the resource-pack texture of the avatar when there is no player, or `null`
- * @param fallback the initials shown while the avatar cannot be drawn
- * @param children the builder of the content
- */
-fun ElementsBuilder.chatMessage(
-    id: String,
-    own: Boolean = false,
-    name: Component = Component.empty(),
-    time: Component = Component.empty(),
-    playerId: UUID? = null,
-    texture: String? = null,
-    fallback: String = "",
-    children: ElementsBuilder.() -> Unit,
-) {
-    elements += ChatMessageElement(id, build(children), own, playerId, texture, fallback, name, time)
-}

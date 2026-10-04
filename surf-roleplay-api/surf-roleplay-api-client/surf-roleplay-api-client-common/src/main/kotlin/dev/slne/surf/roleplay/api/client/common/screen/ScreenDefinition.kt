@@ -368,7 +368,6 @@ sealed interface ScreenChange {
 /**
  * Records the changes of one patch to an open screen.
  */
-@ScreenDsl
 class ScreenPatchBuilder {
     /**
      * The recorded changes, in order.

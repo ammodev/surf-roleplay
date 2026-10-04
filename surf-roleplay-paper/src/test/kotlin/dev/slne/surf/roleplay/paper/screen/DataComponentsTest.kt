@@ -38,7 +38,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableFooter
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableHead
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableHeader
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableRow
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.renderRoot
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.Align
@@ -253,7 +252,7 @@ class DataComponentsTest {
         assertEquals("", second.name)
         assertEquals("", second.time)
 
-        screen.patch { insert("chat", Int.MAX_VALUE, renderRoot { ChatMessage(id = "m3") { P(Component.text("Neu"), id = "m3_text") } }) }
+        screen.patch { append("chat") { ChatMessage(id = "m3") { P(Component.text("Neu"), id = "m3_text") } } }
         val insert = assertIs<InsertNode>(assertIs<ScreenPatch>(sent.last()).operations.single())
         assertEquals("chat", insert.parentId)
         assertTrue(insert.index >= 2)
