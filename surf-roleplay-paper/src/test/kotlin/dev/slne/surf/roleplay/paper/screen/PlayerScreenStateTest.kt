@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.paper.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
@@ -177,6 +178,20 @@ class PlayerScreenStateTest {
         val count = sent.size
         screen.patch { setText("title", Component.text("Zu")) }
         assertEquals(count, sent.size)
+    }
+
+    /**
+     * Verifies that applying changes reports whether every change was accepted, and that the
+     * accepted ones are still sent when another is refused.
+     */
+    @Test
+    fun `apply reports refused changes`() {
+        val screen = state.open(form("a"), null)
+
+        assertTrue(screen.apply(listOf(ScreenChange.SetText("title", Component.text("Neu")))))
+        assertFalse(screen.apply(listOf(ScreenChange.SetText("title", Component.text("Zwei")), ScreenChange.SetText("missing", Component.text("x")))))
+        val patch = assertIs<ScreenPatch>(sent.last())
+        assertEquals(listOf(SetText("title", ScreenMapper.text(Component.text("Zwei")))), patch.operations)
     }
 
     /**

@@ -10,6 +10,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
 import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
@@ -507,11 +508,23 @@ class PlayerScreenState(
          * @param changes the builder of the changes
          */
         override fun patch(changes: ScreenPatchBuilder.() -> Unit) {
+            apply(ScreenPatchBuilder().apply(changes).changes)
+        }
+
+        /**
+         * Applies changes to the server's tree and sends the ones that applied to the client.
+         * Changes that do not apply are logged and skipped.
+         *
+         * @param changes the changes
+         * @return `false` if at least one change did not apply, otherwise `true`
+         */
+        override fun apply(changes: List<ScreenChange>): Boolean {
             threadCheck()
-            if (!isOpen) return
-            val (applied, refused) = ScreenPatchBuilder().apply(changes).changes.partition { tree.apply(it) }
+            if (!isOpen) return true
+            val (applied, refused) = changes.partition { tree.apply(it) }
             if (refused.isNotEmpty()) log.atWarning().log("Screen patch for %s refused changes %s", viewer, refused)
             if (applied.isNotEmpty()) sender.send(Packets.SCREEN_PATCH, ScreenPatch(sessionId, applied.map(ScreenMapper::toOperation)))
+            return refused.isEmpty()
         }
 
         /**

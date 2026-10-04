@@ -183,6 +183,8 @@ internal class GuiSession(
      * the difference to the tree it shows. Sends nothing if the trees are equal. If the title,
      * theme, variant or closability changed, the page is reopened in place instead.
      *
+     * If the screen refuses part of the patch, the whole tree is replaced with the new render.
+     *
      * A render that throws is logged; the page stays changed and the screen keeps its tree, so a
      * later flush sends the change. If applying the patch throws, the page also stays changed and
      * the exception is rethrown.
@@ -204,17 +206,31 @@ internal class GuiSession(
             reopen(screen, definition)
             return
         }
-        val changes = ScreenDiff.diff(old.root, definition.root, reported)
-        if (changes.isNotEmpty()) {
-            try {
-                screen.apply(changes)
-            } catch (exception: Exception) {
-                dirty = true
-                throw exception
-            }
+        val diff = ScreenDiff.diff(old.root, definition.root, reported)
+        val changes = try {
+            if (diff.isEmpty() || screen.apply(diff)) diff else resync(screen, old.root.id, definition.root)
+        } catch (exception: Exception) {
+            dirty = true
+            throw exception
         }
         shown = definition
         forgetSuperseded(changes, definition.root)
+    }
+
+    /**
+     * Replaces the whole tree of the open screen with a new root after the screen refused part of
+     * a patch, so that the screen shows exactly the tree the page rendered. A refusal of the
+     * replacement is logged.
+     *
+     * @param screen the open screen
+     * @param rootId the id of the root the screen shows
+     * @param root the new root
+     * @return the change that was sent
+     */
+    private fun resync(screen: OpenScreen, rootId: String, root: ScreenElement): List<ScreenChange> {
+        val replace = listOf(ScreenChange.Replace(rootId, root))
+        if (!screen.apply(replace)) log.atWarning().log("Replacing the tree of page %s after a refused patch failed", page.javaClass.name)
+        return replace
     }
 
     /**

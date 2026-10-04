@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.api.client.paper.screen.gui
 
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
+import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Combobox
@@ -412,6 +413,28 @@ class GuiPageTest {
         fake.toggle("toggle", pressed = false)
         assertFalse(page.on)
         assertTrue(fake.lastScreen.patches.isEmpty())
+    }
+
+    /**
+     * Verifies that a patch the screen refuses in part is followed by a replacement of the whole
+     * tree with the newest render, so that the screen and the page agree again, and that later
+     * renders are diffed against that tree.
+     */
+    @Test
+    fun `a refused change replaces the whole tree`() {
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
+        val screen = fake.lastScreen
+        screen.refuse = { it is ScreenChange.Replace && it.targetId == "value" }
+        fake.click("plus")
+        assertEquals(1, page.count)
+        val root = screen.definition.root.id
+        assertEquals(ScreenChange.Replace(root, screen.tree), screen.applied.single())
+        assertEquals(Component.text("Wert: 1"), (screen.find("value") as TextElement).text)
+        screen.refuse = { false }
+        fake.click("plus")
+        assertEquals(listOf("value"), screen.applied.map { (it as ScreenChange.Replace).targetId })
+        assertEquals(Component.text("Wert: 2"), (screen.find("value") as TextElement).text)
     }
 
     /**

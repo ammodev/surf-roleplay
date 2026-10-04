@@ -84,14 +84,39 @@ class FakeOpenScreen(
     override val isOpen: Boolean get() = owner.stack.any { it === this }
 
     /**
+     * Refuses a change before it is applied when it returns `true`, in addition to the changes the
+     * tree cannot apply.
+     */
+    var refuse: (ScreenChange) -> Boolean = { false }
+
+    /**
      * Records the changes of the patch and applies them to the tree.
      *
      * @param changes the builder of the changes
      */
     override fun patch(changes: ScreenPatchBuilder.() -> Unit) {
-        val recorded = ScreenPatchBuilder().apply(changes).changes
-        patches += recorded
-        recorded.forEach { change -> applyChange(change)?.let { tree = it } ?: run { refused += change } }
+        apply(ScreenPatchBuilder().apply(changes).changes)
+    }
+
+    /**
+     * Records the changes as one patch and applies them to the tree.
+     *
+     * @param changes the changes
+     * @return whether every change was applied
+     */
+    override fun apply(changes: List<ScreenChange>): Boolean {
+        patches += changes
+        var accepted = true
+        for (change in changes) {
+            val updated = if (refuse(change)) null else applyChange(change)
+            if (updated == null) {
+                refused += change
+                accepted = false
+            } else {
+                tree = updated
+            }
+        }
+        return accepted
     }
 
     /**

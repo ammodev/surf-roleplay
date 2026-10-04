@@ -259,11 +259,19 @@ interface OpenScreen {
     fun patch(changes: ScreenPatchBuilder.() -> Unit)
 
     /**
-     * Applies changes that were computed before, in order, as one patch, as [patch] does.
+     * Applies changes that were computed before, in order, as one patch, as [patch] does, and
+     * reports whether the screen accepted every one of them. A change the screen refuses, such as
+     * one whose target is missing, is skipped while the others are applied. Screens that cannot
+     * tell refused changes apart report every change as accepted. A closed screen applies nothing
+     * and reports `true`.
      *
      * @param changes the changes
+     * @return `false` if the screen refused at least one change, otherwise `true`
      */
-    fun apply(changes: List<ScreenChange>) = patch { changes.forEach(::add) }
+    fun apply(changes: List<ScreenChange>): Boolean {
+        patch { changes.forEach(::add) }
+        return true
+    }
 
     /**
      * Shows the errors of inputs found by a check the server made. Every field that holds an
