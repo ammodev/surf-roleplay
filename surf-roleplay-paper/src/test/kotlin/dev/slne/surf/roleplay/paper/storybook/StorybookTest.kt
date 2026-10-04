@@ -61,7 +61,7 @@ private val SHADCN_COMPONENTS = setOf(
     "card", "carousel", "chart", "checkbox", "collapsible", "combobox", "command", "context-menu", "data-table", "dialog",
     "direction", "dropdown-menu", "empty", "field", "form", "hover-card", "input", "input-group", "input-otp",
     "item", "kbd", "label", "menubar", "navigation-menu", "pagination", "popover", "progress", "radio-group",
-    "resizable", "scroll-area", "select", "separator", "sheet", "sidebar", "skeleton", "slider", "sonner", "spinner",
+    "resizable", "scroll-area", "select", "separator", "sheet", "sidebar", "skeleton", "slider", "spinner",
     "switch", "table", "tabs", "textarea", "toast", "toggle", "toggle-group", "tooltip", "typography", "chat",
 )
 
@@ -225,7 +225,7 @@ class StorybookTest {
         StoryCategory.OVERLAYS,
         setOf(
             "alert-dialog", "command", "context-menu", "dialog", "dropdown-menu", "hover-card", "menubar", "popover",
-            "sheet", "sonner", "toast", "tooltip",
+            "sheet", "toast", "tooltip",
         ),
     )
 
@@ -256,6 +256,23 @@ class StorybookTest {
         for (key in listOf("tabs", "breadcrumb", "scroll-area", "carousel")) {
             page.storyKey = key
             assertTrue("Beispiel" in texts(definition(page)), key)
+        }
+    }
+
+    /**
+     * The toast story shows toasts of every type, toasts with actions, a loading toast that is
+     * replaced, a toast that stays until it is closed, and an example.
+     */
+    @Test
+    fun `the toast story shows every kind of toast`() {
+        val page = storybook()
+        page.storyKey = "toast"
+        val definition = definition(page)
+
+        assertTrue(texts(definition).containsAll(listOf("Typen", "Aktionen", "Laden und ersetzen", "Bleibt stehen", "Beispiel")))
+        val ids = elements(definition.root).map { it.id }
+        for (id in listOf("toast_success", "toast_action", "toast_upload", "toast_done", "toast_sticky", "toast_appointment")) {
+            assertTrue(id in ids, id)
         }
     }
 

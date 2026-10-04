@@ -100,7 +100,6 @@ internal val OVERLAY_STORIES: List<Story> = listOf(
     Story("menubar", "Menüleiste", StoryCategory.OVERLAYS) { menubarStory(it) },
     Story("command", "Befehlsmenü", StoryCategory.OVERLAYS) { commandStory(it) },
     Story("toast", "Toast", StoryCategory.OVERLAYS) { toastStory(it) },
-    Story("sonner", "Sonner", StoryCategory.OVERLAYS) { sonnerStory(it) },
 )
 
 /**
@@ -455,7 +454,8 @@ private fun showToast(context: StoryContext, toast: Toast) {
 }
 
 /**
- * Shows buttons that send a toast of every type, with a description and a close button.
+ * Shows buttons that send a toast of every type, toasts with actions, a loading toast that later
+ * succeeds, a toast that stays until it is closed, and one with a description and a close button.
  *
  * @param context the story context
  */
@@ -469,6 +469,35 @@ private fun ComponentScope.toastStory(context: StoryContext) {
             }
         }
     }
+    storySection("Aktionen") {
+        Button("Funkspruch", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_action") {
+            showToast(
+                context,
+                Toast(
+                    Component.text("Eingehender Funkspruch"),
+                    Component.text("Streife 12 ruft."),
+                    action = ToastButton(Component.text("Annehmen")) { context.report("toast_accept") },
+                    cancel = ToastButton(Component.text("Ablehnen")) { context.report("toast_decline") },
+                    durationMillis = 10_000,
+                ),
+            )
+        }
+    }
+    storySection("Laden und ersetzen") {
+        Row(gap = 4) {
+            Button("Hochladen", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_upload") {
+                showToast(context, Toast(Component.text("Akte wird hochgeladen …"), type = ToastType.LOADING, id = TOAST_UPLOAD))
+            }
+            Button("Fertig", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_done") {
+                showToast(context, Toast(Component.text("Akte hochgeladen"), type = ToastType.SUCCESS, id = TOAST_UPLOAD))
+            }
+        }
+    }
+    storySection("Bleibt stehen") {
+        Button("Wartungshinweis", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_sticky") {
+            showToast(context, Toast(Component.text("Wartungsarbeiten um 22:00 Uhr"), durationMillis = 0, closeButton = true, id = TOAST_STICKY))
+        }
+    }
     storySection("Beispiel") {
         Button("Termin speichern", submitsInput = false, id = "toast_appointment") {
             showToast(context, Toast(Component.text("Termin angelegt"), Component.text("Freitag, 18:00 Uhr"), ToastType.SUCCESS, closeButton = true))
@@ -477,50 +506,12 @@ private fun ComponentScope.toastStory(context: StoryContext) {
 }
 
 /**
- * Shows buttons that send toasts with actions, a loading toast that later succeeds, and a toast
- * that stays until it is closed.
- *
- * @param context the story context
+ * The id of the toast story's upload toast, which the done button replaces.
  */
-private fun ComponentScope.sonnerStory(context: StoryContext) {
-    storySection("Aktionen") {
-        Button("Funkspruch", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_action") {
-            showToast(
-                context,
-                Toast(
-                    Component.text("Eingehender Funkspruch"),
-                    Component.text("Streife 12 ruft."),
-                    action = ToastButton(Component.text("Annehmen")) { context.report("sonner_accept") },
-                    cancel = ToastButton(Component.text("Ablehnen")) { context.report("sonner_decline") },
-                    durationMillis = 10_000,
-                ),
-            )
-        }
-    }
-    storySection("Laden und ersetzen") {
-        Row(gap = 4) {
-            Button("Hochladen", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_upload") {
-                showToast(context, Toast(Component.text("Akte wird hochgeladen …"), type = ToastType.LOADING, id = SONNER_UPLOAD))
-            }
-            Button("Fertig", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_done") {
-                showToast(context, Toast(Component.text("Akte hochgeladen"), type = ToastType.SUCCESS, id = SONNER_UPLOAD))
-            }
-        }
-    }
-    storySection("Bleibt stehen") {
-        Button("Wartungshinweis", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_sticky") {
-            showToast(context, Toast(Component.text("Wartungsarbeiten um 22:00 Uhr"), durationMillis = 0, closeButton = true, id = SONNER_STICKY))
-        }
-    }
-}
+private const val TOAST_UPLOAD: String = "storybook-upload"
 
 /**
- * The id of the sonner story's upload toast, which the done button replaces.
- */
-private const val SONNER_UPLOAD: String = "storybook-upload"
-
-/**
- * The id of the sonner story's toast that stays until it is closed, so that a repeated click
+ * The id of the toast story's toast that stays until it is closed, so that a repeated click
  * replaces it instead of stacking another one.
  */
-private const val SONNER_STICKY: String = "storybook-sticky"
+private const val TOAST_STICKY: String = "storybook-sticky"
