@@ -22,6 +22,8 @@ dependencies {
     testRuntimeOnly("com.google.flogger:flogger-system-backend:0.9")
 }
 
+evaluationDependsOn(":surf-roleplay-fabric")
+
 /** The task of the Fabric module that generates the Lucide icon index. */
 val rasterizeLucide = rootProject.project(":surf-roleplay-fabric").tasks.named("rasterizeLucide")
 
