@@ -143,6 +143,15 @@ class StorybookTest {
     )
 
     /**
+     * The display stories cover the display components and render.
+     */
+    @Test
+    fun `the display stories cover their components and render`() = assertCategory(
+        StoryCategory.DISPLAY,
+        setOf("alert", "aspect-ratio", "avatar", "badge", "card", "empty", "item", "kbd", "progress", "separator", "skeleton", "spinner", "typography"),
+    )
+
+    /**
      * Every test story renders and maps in every theme and variant.
      */
     @Test
