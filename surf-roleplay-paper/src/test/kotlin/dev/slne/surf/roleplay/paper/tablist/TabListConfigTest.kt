@@ -105,6 +105,8 @@ class TabListConfigTest {
                       thresholds: [3, 1]
                     sar:
                       thresholds: [2, 4]
+                    zero:
+                      thresholds: [0, 4]
                 """.trimIndent()
             ),
             warnings::add,
@@ -114,7 +116,8 @@ class TabListConfigTest {
         assertEquals("Hallo", config.announcement)
         assertEquals(TabListConfig.Organisation.DEFAULT, config.organisation("police"))
         assertEquals(TabListConfig.Organisation(thresholds = listOf(2, 4)), config.organisation("sar"))
-        assertEquals(2, warnings.size)
+        assertEquals(TabListConfig.Organisation.DEFAULT, config.organisation("zero"))
+        assertEquals(3, warnings.size)
     }
 
     /**

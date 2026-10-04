@@ -133,7 +133,7 @@ data class TabListConfig(
         /**
          * Reads the settings from the `tab-list` section of a configuration. A restart time that
          * is not `HH:mm` falls back to [DEFAULT_RESTART_TIME], and an organisation whose
-         * thresholds are not two strictly increasing, non-negative values falls back to
+         * thresholds are not two strictly increasing, positive values falls back to
          * [Organisation.DEFAULT]; each such value is reported to [warn].
          *
          * @param config the plugin configuration

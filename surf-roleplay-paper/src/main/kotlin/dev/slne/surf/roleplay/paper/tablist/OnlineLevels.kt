@@ -17,15 +17,15 @@ object OnlineLevels {
      * second is [OnlineLevel.FEW], otherwise [OnlineLevel.MANY].
      *
      * @param count the number of members online
-     * @param thresholds exactly two strictly increasing, non-negative values
+     * @param thresholds exactly two strictly increasing, positive values
      * @return the level of the count
      * @throws IllegalArgumentException if the thresholds are not two strictly increasing,
-     *         non-negative values
+     *         positive values
      */
     fun level(count: Int, thresholds: List<Int> = DEFAULT_THRESHOLDS): OnlineLevel {
         require(thresholds.size == 2) { "Exactly two thresholds are required" }
-        require(thresholds[0] >= 0 && thresholds[0] < thresholds[1]) {
-            "Thresholds must be non-negative and strictly increasing"
+        require(thresholds[0] >= 1 && thresholds[0] < thresholds[1]) {
+            "Thresholds must be positive and strictly increasing"
         }
         return when {
             count < thresholds[0] -> OnlineLevel.NONE

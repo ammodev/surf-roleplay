@@ -51,5 +51,6 @@ class OnlineLevelsTest {
         assertFailsWith<IllegalArgumentException> { OnlineLevels.level(1, listOf(3, 3)) }
         assertFailsWith<IllegalArgumentException> { OnlineLevels.level(1, listOf(4, 2)) }
         assertFailsWith<IllegalArgumentException> { OnlineLevels.level(1, listOf(-1, 2)) }
+        assertFailsWith<IllegalArgumentException> { OnlineLevels.level(1, listOf(0, 2)) }
     }
 }
