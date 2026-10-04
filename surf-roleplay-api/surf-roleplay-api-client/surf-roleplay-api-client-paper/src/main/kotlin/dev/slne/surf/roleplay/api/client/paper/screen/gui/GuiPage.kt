@@ -67,7 +67,9 @@ abstract class GuiPage {
 
     /**
      * How the page's screen is shown relative to the screens below it when it is opened with
-     * [open] or [navigate]. [dialog] and [sheet] choose their own presentation.
+     * [open] or [navigate]. [dialog] and [sheet] choose their own presentation. A page opened
+     * with [open] has no parent, so opening it closes every other screen of the player first,
+     * even as a dialog or sheet; it is then shown over the world.
      */
     open val presentation: ScreenPresentation get() = ScreenPresentation.SCREEN
 
@@ -127,8 +129,8 @@ abstract class GuiPage {
 
     /**
      * Renders the page and opens it as a screen for a player, replacing every screen the player
-     * has open, with the page's [presentation] and [sheetSide]. Must be called on the player's
-     * region thread.
+     * has open, with the page's [presentation] and [sheetSide]. Every other screen is closed even
+     * if the page is presented as a dialog or sheet. Must be called on the player's region thread.
      *
      * @param player the player
      * @param service the service that opens the screen
