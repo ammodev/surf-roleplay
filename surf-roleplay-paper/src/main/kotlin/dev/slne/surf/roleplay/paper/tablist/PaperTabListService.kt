@@ -52,9 +52,10 @@ class PaperTabListService : TabListService, Listener {
     private val selfInfo = CopyOnWriteArrayList<SelfInfoProvider>()
 
     /**
-     * The pending changes of every player.
+     * The pending changes of every player. Its tolerance is one flush period, so a player is
+     * pushed at most 2 s plus one flush period after the previous push.
      */
-    private val coalescer = TabListCoalescer(toleranceMillis = FLUSH_PERIOD_TICKS * MILLIS_PER_TICK / 2)
+    private val coalescer = TabListCoalescer(toleranceMillis = FLUSH_PERIOD_TICKS * MILLIS_PER_TICK)
 
     /**
      * The time each online player joined, in epoch milliseconds.

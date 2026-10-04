@@ -9,7 +9,9 @@ import java.util.UUID
  * A change marks the player dirty. A dirty player becomes due once the window, less the tolerance,
  * has passed since the player's last push; [due] then returns the player once and starts a new
  * window. The tolerance lets a periodic caller of [due] whose calls jitter around the end of the
- * window push on time instead of one period late. Changes made
+ * window push on time instead of one period late. If the tolerance equals the period between
+ * calls, a dirty player is pushed at most one window plus one period (plus the jitter of a call)
+ * after its previous push, and never earlier than the window less the tolerance. Changes made
  * within the window are kept and released when the window ends, so none is lost. Every method is
  * thread-safe.
  *

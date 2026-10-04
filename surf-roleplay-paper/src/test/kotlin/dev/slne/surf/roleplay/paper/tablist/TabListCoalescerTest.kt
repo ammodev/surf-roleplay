@@ -103,7 +103,7 @@ class TabListCoalescerTest {
      */
     @Test
     fun `jittered flushes push every window`() {
-        val jittered = TabListCoalescer(windowMillis = 2000, toleranceMillis = 125) { now }
+        val jittered = TabListCoalescer(windowMillis = 2000, toleranceMillis = 250) { now }
         val jitter = longArrayOf(0, 60, -60, 35, -45, 10, -20, 55, -55, 25)
         val pushes = mutableListOf<Long>()
 
@@ -115,7 +115,7 @@ class TabListCoalescerTest {
 
         val intervals = pushes.zipWithNext { a, b -> b - a }
         assertTrue(intervals.size > 40)
-        assertTrue(intervals.all { it in 1875..2125 }, "intervals: $intervals")
+        assertTrue(intervals.all { it in 1750..2250 }, "intervals: $intervals")
     }
 
     /**
@@ -124,14 +124,14 @@ class TabListCoalescerTest {
      */
     @Test
     fun `tolerance bounds the earliest push`() {
-        val tolerant = TabListCoalescer(windowMillis = 2000, toleranceMillis = 125) { now }
+        val tolerant = TabListCoalescer(windowMillis = 2000, toleranceMillis = 250) { now }
         tolerant.markDirty(player)
         tolerant.due()
 
-        now = 1874
+        now = 1749
         tolerant.markDirty(player)
         assertTrue(tolerant.due().isEmpty())
-        now = 1875
+        now = 1750
         assertEquals(setOf(player), tolerant.due())
     }
 
