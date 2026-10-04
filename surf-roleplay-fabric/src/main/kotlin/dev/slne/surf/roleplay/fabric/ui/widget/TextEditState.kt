@@ -257,7 +257,7 @@ class TextEditState(initial: String = "", val filter: TextFilter = TextFilter.NO
     }
 
     /**
-     * Removes the selection, or else everything from the cursor to the next word boundary, if
+     * Removes the selection, or else everything from the cursor to the start of the next word, if
      * the filter accepts the result.
      *
      * @return whether the text changed

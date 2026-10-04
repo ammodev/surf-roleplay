@@ -212,7 +212,7 @@ class TextEditStateTest {
         assertEquals("schöne ", state.selectedText)
         state.cursor = 0
         state.moveWord(forward = true)
-        assertEquals(5, state.cursor)
+        assertEquals(6, state.cursor)
     }
 
     /**
@@ -226,7 +226,7 @@ class TextEditStateTest {
         assertEquals("Hallo schöne ", state.text)
         state.cursor = 0
         assertTrue(state.deleteWordForward())
-        assertEquals(" schöne ", state.text)
+        assertEquals("schöne ", state.text)
         assertEquals(0, state.cursor)
         assertFalse(state.deleteWordBackward())
     }

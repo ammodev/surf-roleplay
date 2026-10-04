@@ -9,7 +9,7 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 data class TextRange(val start: Int, val end: Int)
 
 /**
- * Finds word and line boundaries in a text the way a browser text field does.
+ * Finds word and line boundaries in a text the way a browser text field on Windows does.
  *
  * Characters fall into three classes: whitespace, word characters (letters, digits and the
  * underscore) and punctuation, which is everything else. A word is a run of characters of one
@@ -67,8 +67,9 @@ object TextBoundaries {
     }
 
     /**
-     * Finds the boundary a word-wise move to the right stops at: it skips the whitespace after
-     * the position, then the run of word characters or punctuation after that.
+     * Finds the boundary a word-wise move to the right stops at: it skips the rest of the run of
+     * word characters or punctuation the position is in, then the whitespace after it, and so
+     * stops at the start of the next word.
      *
      * @param text the text
      * @param from the position to move from
@@ -76,10 +77,13 @@ object TextBoundaries {
      */
     fun nextWord(text: String, from: Int): Int {
         var position = from.coerceIn(0, text.length)
+        if (position < text.length) {
+            val run = classOf(text[position])
+            if (run != CharClass.SPACE) {
+                while (position < text.length && classOf(text[position]) == run) position++
+            }
+        }
         while (position < text.length && classOf(text[position]) == CharClass.SPACE) position++
-        if (position == text.length) return position
-        val run = classOf(text[position])
-        while (position < text.length && classOf(text[position]) == run) position++
         return position
     }
 

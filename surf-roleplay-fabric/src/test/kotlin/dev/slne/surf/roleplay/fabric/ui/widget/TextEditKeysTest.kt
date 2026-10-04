@@ -44,7 +44,7 @@ class TextEditKeysTest {
         TextEditKeys.handle(edit, key(GLFW.GLFW_KEY_LEFT, ctrl = true, shift = true))
         assertEquals("schöne ", edit.selectedText)
         TextEditKeys.handle(edit, key(GLFW.GLFW_KEY_RIGHT, ctrl = true))
-        assertEquals(12, edit.cursor)
+        assertEquals(13, edit.cursor)
         assertFalse(edit.hasSelection)
     }
 
@@ -81,7 +81,7 @@ class TextEditKeysTest {
         assertEquals("Hallo schöne ", edit.text)
         edit.cursor = 0
         assertEquals(TextEditKeys.Result.CHANGED, TextEditKeys.handle(edit, key(GLFW.GLFW_KEY_DELETE, ctrl = true)))
-        assertEquals(" schöne ", edit.text)
+        assertEquals("schöne ", edit.text)
         assertEquals(TextEditKeys.Result.MOVED, TextEditKeys.handle(edit, key(GLFW.GLFW_KEY_BACKSPACE)))
     }
 

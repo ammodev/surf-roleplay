@@ -23,17 +23,19 @@ class TextBoundariesTest {
     }
 
     /**
-     * Verifies that the next boundary skips whitespace and then one word.
+     * Verifies that the next boundary skips the rest of the word and the whitespace after it,
+     * stopping at the start of the next word.
      */
     @Test
-    fun `next word skips whitespace then a word`() {
+    fun `next word stops at the start of the next word`() {
         val text = "Hallo schöne  Welt"
 
-        assertEquals(5, TextBoundaries.nextWord(text, 0))
-        assertEquals(12, TextBoundaries.nextWord(text, 5))
-        assertEquals(18, TextBoundaries.nextWord(text, 12))
+        assertEquals(6, TextBoundaries.nextWord(text, 0))
+        assertEquals(6, TextBoundaries.nextWord(text, 5))
+        assertEquals(14, TextBoundaries.nextWord(text, 6))
+        assertEquals(14, TextBoundaries.nextWord(text, 7))
+        assertEquals(18, TextBoundaries.nextWord(text, 14))
         assertEquals(18, TextBoundaries.nextWord(text, 18))
-        assertEquals(12, TextBoundaries.nextWord(text, 7))
     }
 
     /**
@@ -46,7 +48,7 @@ class TextBoundariesTest {
 
         assertEquals(5, TextBoundaries.nextWord(text, 0))
         assertEquals(7, TextBoundaries.nextWord(text, 5))
-        assertEquals(10, TextBoundaries.nextWord(text, 7))
+        assertEquals(11, TextBoundaries.nextWord(text, 7))
         assertEquals(7, TextBoundaries.previousWord(text, 10))
         assertEquals(5, TextBoundaries.previousWord(text, 7))
         assertEquals(0, TextBoundaries.previousWord(text, 5))
@@ -59,7 +61,8 @@ class TextBoundariesTest {
     fun `line breaks are whitespace`() {
         val text = "eins\nzwei"
 
-        assertEquals(9, TextBoundaries.nextWord(text, 4))
+        assertEquals(5, TextBoundaries.nextWord(text, 0))
+        assertEquals(5, TextBoundaries.nextWord(text, 4))
         assertEquals(0, TextBoundaries.previousWord(text, 5))
     }
 
