@@ -43,6 +43,26 @@ data class Rect(val x: Int, val y: Int, val width: Int, val height: Int) {
     fun grow(amount: Int): Rect = Rect(x - amount, y - amount, width + 2 * amount, height + 2 * amount)
 
     /**
+     * Checks whether this rectangle and another share at least one pixel.
+     *
+     * @param other the other rectangle
+     * @return whether the two overlap
+     */
+    fun intersects(other: Rect): Boolean = x < other.right && other.x < right && y < other.bottom && other.y < bottom
+
+    /**
+     * Returns the part of this rectangle that lies inside another.
+     *
+     * @param other the other rectangle
+     * @return the overlap, with no width or height if the two do not overlap
+     */
+    fun intersection(other: Rect): Rect {
+        val left = maxOf(x, other.x)
+        val top = maxOf(y, other.y)
+        return Rect(left, top, (minOf(right, other.right) - left).coerceAtLeast(0), (minOf(bottom, other.bottom) - top).coerceAtLeast(0))
+    }
+
+    /**
      * Holds the empty rectangle.
      */
     companion object {

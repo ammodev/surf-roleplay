@@ -47,7 +47,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupText
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputOtp
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.MultiCombobox
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.NativeSelect
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.NumberInput
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.RadioGroup
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
@@ -83,7 +82,6 @@ internal val INPUT_STORIES: List<Story> = listOf(
     Story("radio-group", "Optionsgruppe", StoryCategory.INPUTS) { radioGroupStory(it) },
     Story("slider", "Schieberegler", StoryCategory.INPUTS) { sliderStory(it) },
     Story("select", "Auswahl", StoryCategory.INPUTS) { selectStory(it) },
-    Story("native-select", "Native Auswahl", StoryCategory.INPUTS) { nativeSelectStory(it) },
     Story("combobox", "Combobox", StoryCategory.INPUTS) { comboboxStory(it) },
     Story("calendar", "Kalender", StoryCategory.INPUTS) { calendarStory(it) },
     Story("field", "Feld", StoryCategory.INPUTS) { fieldStory(it) },
@@ -490,30 +488,6 @@ private fun ComponentScope.selectStory(context: StoryContext) {
     }
     storySection("Beispiel") {
         Select(CITIES, placeholder = Component.text("Wohnort wählen"), width = ElementSize.fixed(200), id = "select_home", onChange = context.changed)
-    }
-}
-
-/**
- * Shows native selects in every size, with groups and disabled.
- *
- * @param context the story context
- */
-private fun ComponentScope.nativeSelectStory(context: StoryContext) {
-    storySection("Größen") {
-        Row(gap = 4) {
-            SelectSize.entries.forEach { size ->
-                NativeSelect(CITIES, selected = "south", size = size, id = "native_${size.slug()}", onChange = context.changed)
-            }
-        }
-    }
-    storySection("Gruppen und gesperrt") {
-        Row(gap = 4) {
-            NativeSelect(groups = UNITS, selected = "rtw", id = "native_grouped", onChange = context.changed)
-            NativeSelect(CITIES, selected = "old", enabled = false, id = "native_disabled")
-        }
-    }
-    storySection("Beispiel") {
-        NativeSelect(groups = UNITS, selected = "patrol", required = true, id = "native_unit", onChange = context.changed)
     }
 }
 

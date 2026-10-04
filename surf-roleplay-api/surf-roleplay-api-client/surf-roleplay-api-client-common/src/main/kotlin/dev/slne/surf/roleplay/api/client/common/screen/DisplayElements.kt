@@ -124,12 +124,12 @@ enum class TextKind {
     DIALOG_DESCRIPTION,
 
     /**
-     * The title of a sheet or drawer, bold.
+     * The title of a sheet, bold.
      */
     SHEET_TITLE,
 
     /**
-     * The description of a sheet or drawer, muted.
+     * The description of a sheet, muted.
      */
     SHEET_DESCRIPTION,
 }

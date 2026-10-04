@@ -143,6 +143,17 @@ class NavigationMenuItemWidget(id: String) : OverlayHostWidget(id) {
     }
 
     /**
+     * Follows the mouse while the trigger is not drawn, with the mouse away from it, so that
+     * content opened by hover still closes.
+     *
+     * @param context the screen showing the widget
+     */
+    override fun renderSkipped(context: UiContext) {
+        super.renderSkipped(context)
+        pointer(context, HIDDEN, HIDDEN, System.currentTimeMillis())
+    }
+
+    /**
      * Holds the hover timing.
      */
     companion object {
@@ -161,6 +172,11 @@ class NavigationMenuItemWidget(id: String) : OverlayHostWidget(id) {
          * How long the mouse counts as on the content after it was last seen there.
          */
         private const val FRAME_TOLERANCE_MILLIS: Long = 100
+
+        /**
+         * A mouse position that no widget is under.
+         */
+        private const val HIDDEN: Int = Int.MIN_VALUE / 2
     }
 }
 

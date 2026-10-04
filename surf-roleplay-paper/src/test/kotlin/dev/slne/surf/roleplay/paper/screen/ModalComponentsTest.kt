@@ -16,8 +16,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogDescription
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogFooter
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogHeader
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogTitle
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Drawer
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerContent
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Sheet
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetContent
@@ -36,8 +34,6 @@ import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
 import dev.slne.surf.roleplay.protocol.screen.DialogFooterNode
 import dev.slne.surf.roleplay.protocol.screen.DialogHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.DialogNode
-import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
-import dev.slne.surf.roleplay.protocol.screen.DrawerNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
@@ -57,7 +53,7 @@ import dev.slne.surf.roleplay.protocol.screen.OverlaySide as NodeOverlaySide
 import dev.slne.surf.roleplay.protocol.screen.TextKind as NodeTextKind
 
 /**
- * Tests for dialogs, alert dialogs, sheets and drawers in the API and on Paper.
+ * Tests for dialogs, alert dialogs and sheets in the API and on Paper.
  */
 class ModalComponentsTest {
 
@@ -91,7 +87,7 @@ class ModalComponentsTest {
     private val clicks = mutableListOf<String>()
 
     /**
-     * Opens a screen with a dialog, an alert dialog, a sheet and a drawer.
+     * Opens a screen with a dialog, an alert dialog and a sheet.
      *
      * @return the session id
      */
@@ -127,10 +123,6 @@ class ModalComponentsTest {
                         SheetFooter(id = "sheet_footer") { Button(Component.text("Anwenden"), id = "apply") }
                     }
                 }
-                Drawer(id = "drawer") {
-                    Button(Component.text("Drawer"), submitsInput = false, id = "open_drawer")
-                    DrawerContent(OverlaySide.TOP, id = "drawer_content") {}
-                }
             }
         },
         null,
@@ -159,7 +151,6 @@ class ModalComponentsTest {
         assertEquals(NodeOverlaySide.LEFT, sheet.side)
         assertIs<SheetHeaderNode>(sheet.children[0])
         assertIs<SheetFooterNode>(sheet.children[1])
-        assertEquals(NodeOverlaySide.TOP, assertIs<DrawerContentNode>(assertIs<DrawerNode>(root.children[3]).children[1]).direction)
     }
 
     /**

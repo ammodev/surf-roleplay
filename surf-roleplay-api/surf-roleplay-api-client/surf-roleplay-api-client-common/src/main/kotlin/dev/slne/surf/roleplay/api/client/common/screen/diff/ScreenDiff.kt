@@ -5,13 +5,11 @@ import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
 import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuSubElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenubarMenuElement
-import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.NavigationMenuItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
@@ -37,13 +35,13 @@ import java.util.concurrent.ConcurrentHashMap
  * - An element equal to its counterpart produces no change.
  * - An input whose only difference is its value gets a [ScreenChange.SetValue] with the value in
  *   the string form of `ScreenValues.all`. This applies to text inputs, textareas, one-time
- *   password inputs, number inputs, checkboxes, switches, toggles, selects, native selects and
+ *   password inputs, number inputs, checkboxes, switches, toggles, selects and
  *   radio groups.
  * - A sidebar provider whose fields other than its children differ only in its expanded state
  *   gets a [ScreenChange.SetValue] of `"true"` or `"false"`, followed by the changes of its
  *   children.
- * - A popover, hover card, dropdown, context, menubar or sub-menu, dialog, alert dialog, sheet,
- *   drawer or navigation menu item whose fields other than its children differ only in its open
+ * - A popover, hover card, dropdown, context, menubar or sub-menu, dialog, alert dialog, sheet or
+ *   navigation menu item whose fields other than its children differ only in its open
  *   state gets a [ScreenChange.SetOpen], followed by the changes of its children.
  * - A container whose fields other than its children are equal is patched in place if the child
  *   ids both trees share keep their relative order: vanished children are removed, shared children
@@ -84,7 +82,6 @@ object ScreenDiff {
         SwitchElement::class.java to ValueField("checked") { it.toString() },
         ToggleElement::class.java to ValueField("pressed") { it.toString() },
         SelectElement::class.java to ValueField("selected") { it as String? ?: "" },
-        NativeSelectElement::class.java to ValueField("selected") { it as String? ?: "" },
         RadioGroupElement::class.java to ValueField("selected") { it as String? ?: "" },
     )
 
@@ -109,7 +106,6 @@ object ScreenDiff {
         DialogElement::class.java,
         AlertDialogElement::class.java,
         SheetElement::class.java,
-        DrawerElement::class.java,
         NavigationMenuItemElement::class.java,
     )
 

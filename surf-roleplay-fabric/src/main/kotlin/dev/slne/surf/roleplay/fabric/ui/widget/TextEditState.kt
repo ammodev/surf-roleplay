@@ -116,7 +116,10 @@ class NumberFilter(val min: Long?, val max: Long?) : TextFilter {
 }
 
 /**
- * The text and cursor of an input field, edited under a [TextFilter].
+ * The text, cursor and selection of an input field, edited under a [TextFilter].
+ *
+ * The selection runs between the [anchor] and the [cursor]; it is empty while both are equal.
+ * Typing, deleting and pasting replace a non-empty selection.
  *
  * @param initial the initial text, which is not checked by the filter
  * @property filter the filter that every edit by the player must pass
@@ -125,7 +128,7 @@ class TextEditState(initial: String = "", val filter: TextFilter = TextFilter.NO
 
     /**
      * The text of the field. Setting it replaces the text without asking the filter and moves the
-     * cursor to its end.
+     * cursor to its end, clearing the selection.
      */
     var text: String = initial
         set(value) {
@@ -134,68 +137,184 @@ class TextEditState(initial: String = "", val filter: TextFilter = TextFilter.NO
         }
 
     /**
-     * The cursor position, from `0` (before the first character) to the text length.
+     * The fixed end of the selection, from `0` to the text length.
+     */
+    var anchor: Int = initial.length
+        private set
+
+    /**
+     * The cursor position, from `0` (before the first character) to the text length. Setting it
+     * clears the selection.
      */
     var cursor: Int = initial.length
         set(value) {
             field = value.coerceIn(0, text.length)
+            anchor = field
         }
 
     /**
-     * Inserts text at the cursor if the filter accepts the result, cutting it to the filter's
-     * maximum length first.
+     * The start of the selection, the smaller of [anchor] and [cursor].
+     */
+    val selectionStart: Int get() = minOf(anchor, cursor)
+
+    /**
+     * The end of the selection, the larger of [anchor] and [cursor].
+     */
+    val selectionEnd: Int get() = maxOf(anchor, cursor)
+
+    /**
+     * Whether at least one character is selected.
+     */
+    val hasSelection: Boolean get() = anchor != cursor
+
+    /**
+     * The selected characters, empty without a selection.
+     */
+    val selectedText: String get() = text.substring(selectionStart, selectionEnd)
+
+    /**
+     * Selects a range, with the anchor at [anchorAt] and the cursor at [cursorAt]. Both are kept
+     * within the text.
+     *
+     * @param anchorAt the fixed end of the selection
+     * @param cursorAt the moving end of the selection, where the cursor is drawn
+     */
+    fun select(anchorAt: Int, cursorAt: Int) {
+        cursor = cursorAt
+        anchor = anchorAt.coerceIn(0, text.length)
+    }
+
+    /**
+     * Selects the whole text, with the cursor at its end.
+     */
+    fun selectAll() {
+        select(0, text.length)
+    }
+
+    /**
+     * Moves the cursor to a position, keeping it within the text.
+     *
+     * @param position the new cursor position
+     * @param extend whether to keep the anchor and so extend the selection; otherwise the
+     *        selection is cleared
+     */
+    fun moveCursorTo(position: Int, extend: Boolean = false) {
+        if (extend) select(anchor, position) else cursor = position
+    }
+
+    /**
+     * Inserts text at the cursor, replacing the selection, if the filter accepts the result. The
+     * text is cut to the filter's maximum length first, counting the replaced selection as free
+     * room.
      *
      * @param inserted the text to insert
      * @return whether the text changed
      */
     fun insert(inserted: String): Boolean {
-        val room = filter.maxLength?.let { (it - text.length).coerceAtLeast(0) } ?: inserted.length
+        val start = selectionStart
+        val end = selectionEnd
+        val kept = text.length - (end - start)
+        val room = filter.maxLength?.let { (it - kept).coerceAtLeast(0) } ?: inserted.length
         val clipped = inserted.take(room)
         if (clipped.isEmpty()) return false
-        val candidate = text.substring(0, cursor) + clipped + text.substring(cursor)
-        if (!filter.accepts(candidate)) return false
-        val newCursor = cursor + clipped.length
-        text = candidate
-        cursor = newCursor
-        return true
+        return replace(start, end, clipped)
     }
 
     /**
-     * Removes the character before the cursor if the filter accepts the result.
+     * Removes the selection, or else the character before the cursor, if the filter accepts the
+     * result.
      *
      * @return whether the text changed
      */
-    fun backspace(): Boolean {
-        if (cursor == 0) return false
-        val candidate = text.substring(0, cursor - 1) + text.substring(cursor)
-        if (!filter.accepts(candidate)) return false
-        val newCursor = cursor - 1
-        text = candidate
-        cursor = newCursor
-        return true
+    fun backspace(): Boolean = when {
+        hasSelection -> replace(selectionStart, selectionEnd, "")
+        cursor == 0 -> false
+        else -> replace(cursor - 1, cursor, "")
     }
 
     /**
-     * Removes the character after the cursor if the filter accepts the result.
+     * Removes the selection, or else the character after the cursor, if the filter accepts the
+     * result.
      *
      * @return whether the text changed
      */
-    fun delete(): Boolean {
-        if (cursor >= text.length) return false
-        val candidate = text.substring(0, cursor) + text.substring(cursor + 1)
+    fun delete(): Boolean = when {
+        hasSelection -> replace(selectionStart, selectionEnd, "")
+        cursor >= text.length -> false
+        else -> replace(cursor, cursor + 1, "")
+    }
+
+    /**
+     * Removes the selection, or else everything from the previous word boundary to the cursor,
+     * if the filter accepts the result.
+     *
+     * @return whether the text changed
+     */
+    fun deleteWordBackward(): Boolean = deleteTo(TextBoundaries.previousWord(text, cursor))
+
+    /**
+     * Removes the selection, or else everything from the cursor to the start of the next word, if
+     * the filter accepts the result.
+     *
+     * @return whether the text changed
+     */
+    fun deleteWordForward(): Boolean = deleteTo(TextBoundaries.nextWord(text, cursor))
+
+    /**
+     * Removes the selection, or else everything between the cursor and a position, if the filter
+     * accepts the result.
+     *
+     * @param target the other end of the removed range, before or after the cursor
+     * @return whether the text changed
+     */
+    fun deleteTo(target: Int): Boolean {
+        if (hasSelection) return replace(selectionStart, selectionEnd, "")
+        val end = target.coerceIn(0, text.length)
+        if (end == cursor) return false
+        return replace(minOf(cursor, end), maxOf(cursor, end), "")
+    }
+
+    /**
+     * Replaces a range of the text if the filter accepts the result, and places the cursor after
+     * the replacement.
+     *
+     * @param start the index of the first replaced character
+     * @param end the index after the last replaced character
+     * @param replacement the new characters
+     * @return whether the filter accepted the edit
+     */
+    private fun replace(start: Int, end: Int, replacement: String): Boolean {
+        val candidate = text.substring(0, start) + replacement + text.substring(end)
         if (!filter.accepts(candidate)) return false
-        val newCursor = cursor
         text = candidate
-        cursor = newCursor
+        cursor = start + replacement.length
         return true
     }
 
     /**
-     * Moves the cursor, keeping it within the text.
+     * Moves the cursor by characters, keeping it within the text. Without [extend], a selection
+     * is cleared instead, leaving the cursor at the selection's edge in the direction of the move.
      *
      * @param delta the number of characters to move; negative moves left
+     * @param extend whether to extend the selection
      */
-    fun moveCursor(delta: Int) {
-        cursor += delta
+    fun moveCursor(delta: Int, extend: Boolean = false) {
+        when {
+            extend -> moveCursorTo(cursor + delta, extend = true)
+            hasSelection && delta < 0 -> cursor = selectionStart
+            hasSelection && delta > 0 -> cursor = selectionEnd
+            else -> cursor += delta
+        }
+    }
+
+    /**
+     * Moves the cursor to the previous or next word boundary, as found by [TextBoundaries].
+     *
+     * @param forward whether to move to the next boundary; otherwise to the previous one
+     * @param extend whether to extend the selection; otherwise the selection is cleared
+     */
+    fun moveWord(forward: Boolean, extend: Boolean = false) {
+        val target = if (forward) TextBoundaries.nextWord(text, cursor) else TextBoundaries.previousWord(text, cursor)
+        moveCursorTo(target, extend)
     }
 }

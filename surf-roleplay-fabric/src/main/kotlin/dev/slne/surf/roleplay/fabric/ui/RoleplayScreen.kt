@@ -91,7 +91,7 @@ class RoleplayScreen : Screen(Component.empty()) {
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
         if (mouseInterceptor?.invoke(event) == true) return true
         val panel = top ?: return true
-        val handled = panel.mouseClicked(event.x(), event.y(), event.button())
+        val handled = panel.mouseClicked(event.x(), event.y(), event.button(), event.hasShiftDown())
         val backdrop = !handled && panel.style.presentation != Presentation.SCREEN
         val settled = System.currentTimeMillis() - panel.openedAt >= BACKDROP_GRACE_MILLIS
         if (backdrop && settled && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) panel.requestClose()

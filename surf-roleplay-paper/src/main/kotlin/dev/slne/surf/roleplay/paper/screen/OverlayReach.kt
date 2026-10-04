@@ -6,8 +6,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContextMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerContentElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.HoverCardContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.HoverCardElement
@@ -125,7 +123,7 @@ class OverlayReach(tree: ServerScreenTree) {
          */
         fun isHost(element: ScreenElement): Boolean = when (element) {
             is PopoverElement, is HoverCardElement, is DropdownMenuElement, is MenuSubElement, is ContextMenuElement,
-            is MenubarMenuElement, is DialogElement, is AlertDialogElement, is SheetElement, is DrawerElement, is NavigationMenuItemElement,
+            is MenubarMenuElement, is DialogElement, is AlertDialogElement, is SheetElement, is NavigationMenuItemElement,
             -> true
             else -> false
         }
@@ -138,7 +136,7 @@ class OverlayReach(tree: ServerScreenTree) {
          */
         private fun isContent(element: ScreenElement): Boolean = when (element) {
             is PopoverContentElement, is HoverCardContentElement, is MenuContentElement, is DialogContentElement,
-            is AlertDialogContentElement, is SheetContentElement, is DrawerContentElement, is NavigationMenuContentElement,
+            is AlertDialogContentElement, is SheetContentElement, is NavigationMenuContentElement,
             -> true
             else -> false
         }

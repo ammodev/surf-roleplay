@@ -8,7 +8,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
-import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
@@ -37,7 +36,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.ItemElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
 import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
 import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandEmptyElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.CommandItemElement
@@ -770,7 +768,6 @@ object ElementRules {
         )
         register(AlertDialogElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(SheetElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
-        register(DrawerElement::class, ElementRule(input = openState({ it.open }, { e, open -> e.copy(open = open) }, { it.onChange })))
         register(CommandInputElement::class, ElementRule(withText = { e, t -> e.copy(placeholder = t) }))
         register(AvatarGroupCountElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
         register(FieldSeparatorElement::class, ElementRule(withText = { e, t -> e.copy(text = t) }))
@@ -870,19 +867,6 @@ object ElementRules {
             SelectElement::class,
             ElementRule(
                 withText = { e, t -> e.copy(placeholder = t) },
-                enabled = { it.enabled },
-                withEnabled = { e, on -> e.copy(enabled = on) },
-                input = InputRule(
-                    current = { it.selected ?: "" },
-                    violation = { e, v -> choiceViolation(e.groups, listOfNotNull(e.selected), listOfNotNull(v.takeIf { it.isNotEmpty() }), e.required) },
-                    withValue = { e, v -> if (v.isEmpty()) e.copy(selected = null) else e.copy(selected = v.takeIf { isOption(e.groups, it) }) },
-                    onChange = { it.onChange },
-                ),
-            ),
-        )
-        register(
-            NativeSelectElement::class,
-            ElementRule(
                 enabled = { it.enabled },
                 withEnabled = { e, on -> e.copy(enabled = on) },
                 input = InputRule(

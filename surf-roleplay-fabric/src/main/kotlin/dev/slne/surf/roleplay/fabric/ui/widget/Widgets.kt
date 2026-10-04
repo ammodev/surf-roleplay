@@ -220,6 +220,22 @@ open class TextInputWidget(
     private var scrollStart: Int = 0
 
     /**
+     * The measurer of the last layout or frame, used to find the clicked position.
+     */
+    private var measurer: TextMeasurer? = null
+
+    /**
+     * Counts consecutive clicks to tell single, double and triple clicks apart.
+     */
+    private val clicks: ClickCounter = ClickCounter()
+
+    /**
+     * The x position the field's text starts at, after the padding and the icon.
+     */
+    private val textLeft: Int
+        get() = bounds.x + UiMetrics.WIDGET_PADDING + if (icon != null) UiMetrics.INLINE_ICON + UiMetrics.ICON_GAP else 0
+
+    /**
      * Whether the field can be focused, which it can while enabled.
      */
     override val focusable: Boolean get() = enabled
@@ -250,11 +266,14 @@ open class TextInputWidget(
      * @param measurer the text measurer
      * @return the input size
      */
-    override fun contentSize(measurer: TextMeasurer): Size = Size(UiMetrics.INPUT_WIDTH, UiMetrics.WIDGET_HEIGHT)
+    override fun contentSize(measurer: TextMeasurer): Size {
+        this.measurer = measurer
+        return Size(UiMetrics.INPUT_WIDTH, UiMetrics.WIDGET_HEIGHT)
+    }
 
     /**
-     * Draws the field with its text or placeholder and, while focused, a blinking cursor. The
-     * border shows focus and invalid values.
+     * Draws the field with its text or placeholder and, while focused, the highlighted selection
+     * and a blinking cursor. The border shows focus and invalid values.
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -262,6 +281,7 @@ open class TextInputWidget(
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
+        measurer = ui
         val focused = context.focusedWidget === this
         val tokens = ui.tokens
         if (!embedded) {
@@ -283,7 +303,7 @@ open class TextInputWidget(
             ui.icon(name, Rect(bounds.x + UiMetrics.WIDGET_PADDING, bounds.y + (bounds.height - size) / 2, size, size), tokens.mutedForeground)
         }
         val innerWidth = bounds.width - 2 * UiMetrics.WIDGET_PADDING - iconWidth
-        val textX = bounds.x + UiMetrics.WIDGET_PADDING + iconWidth
+        val textX = textLeft
         val textY = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
         ui.clipped(Rect(textX, bounds.y, innerWidth.coerceAtLeast(0), bounds.height)) {
             if (edit.text.isEmpty()) {
@@ -292,6 +312,7 @@ open class TextInputWidget(
                 keepCursorVisible(ui, innerWidth)
                 val visible = ui.font.plainSubstrByWidth(shown.substring(scrollStart), innerWidth)
                 ui.plainText(visible, textX, textY, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
+                if (focused) ui.textSelection(shown, scrollStart, scrollStart + visible.length, edit, textX, textY)
             }
             if (focused && System.currentTimeMillis() / CURSOR_BLINK_MILLIS % 2 == 0L) {
                 keepCursorVisible(ui, innerWidth)
@@ -315,7 +336,10 @@ open class TextInputWidget(
     }
 
     /**
-     * Focuses an enabled field when it is clicked, and places the cursor at the end of the text.
+     * Focuses an enabled field when it is clicked. A left click places the cursor at the clicked
+     * position, a double click selects the word under the mouse and a triple click the whole
+     * text; with Shift, the click extends the selection. Before the field was measured, a click
+     * places the cursor at the end of the text.
      *
      * @param context the screen showing the widget
      * @param x the mouse x position
@@ -325,15 +349,50 @@ open class TextInputWidget(
      */
     override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
         if (!isOver(x, y)) return false
-        if (enabled) {
-            context.focus(this)
+        if (!enabled) return true
+        context.focus(this)
+        val measurer = measurer
+        if (measurer == null) {
             edit.cursor = edit.text.length
+            return true
         }
+        if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT) return true
+        val shown = shownText
+        val line = TextLines.Line(scrollStart.coerceIn(0, shown.length), shown.length)
+        val offset = (x - textLeft).toInt()
+        val position = TextLines.positionAt(shown, line, offset, measurer::plainWidth)
+        val charIndex = TextLines.charIndexAt(shown, line, offset, measurer::plainWidth)
+        applyTextClick(edit, shown, clicks, context, x, y, context.timeMillis, position, charIndex) { TextRange(0, edit.text.length) }
         return true
     }
 
     /**
-     * Handles cursor movement, deletion and pasting.
+     * Whether a press in the field starts a drag that selects text, which it does while enabled.
+     */
+    override val draggable: Boolean get() = enabled
+
+    /**
+     * Extends the selection to the mouse while the button stays held after a press in the field.
+     * Before the start of the visible text, the selection grows by one character per movement,
+     * which scrolls the field; past its end, the field scrolls to follow the cursor.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     */
+    override fun mouseDragged(context: UiContext, x: Double, y: Double) {
+        val measurer = measurer ?: return
+        val shown = shownText
+        val start = scrollStart.coerceIn(0, shown.length)
+        val offset = (x - textLeft).toInt()
+        val position = if (offset < 0) (start - 1).coerceAtLeast(0) else TextLines.positionAt(shown, TextLines.Line(start, shown.length), offset, measurer::plainWidth)
+        edit.moveCursorTo(position, extend = true)
+    }
+
+    /**
+     * Handles the clipboard and editing keys of [TextEditKeys]: copying, cutting and pasting
+     * without line breaks, cursor and word movement, selection and deletion. Password fields are
+     * neither copied nor cut, and their text counts as one word.
      *
      * @param context the screen showing the widget
      * @param event the key event
@@ -341,20 +400,15 @@ open class TextInputWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
-        if (event.isPaste) {
-            if (edit.insert(context.clipboard.replace("\n", "").replace("\r", ""))) markChanged(context, immediate = false)
-            return true
+        clicks.reset()
+        val secret = type == TextInputType.PASSWORD
+        val clipboard = TextEditKeys.handleClipboard(edit, event, context, secret)
+        val result = if (clipboard != TextEditKeys.Result.IGNORED) clipboard else TextEditKeys.handle(edit, event, oneWord = secret)
+        return when (result) {
+            TextEditKeys.Result.IGNORED -> false
+            TextEditKeys.Result.MOVED -> true
+            TextEditKeys.Result.CHANGED -> true.also { markChanged(context, immediate = false) }
         }
-        when (event.key()) {
-            GLFW.GLFW_KEY_BACKSPACE -> if (edit.backspace()) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_DELETE -> if (edit.delete()) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_LEFT -> edit.moveCursor(-1)
-            GLFW.GLFW_KEY_RIGHT -> edit.moveCursor(1)
-            GLFW.GLFW_KEY_HOME -> edit.cursor = 0
-            GLFW.GLFW_KEY_END -> edit.cursor = edit.text.length
-            else -> return false
-        }
-        return true
     }
 
     /**

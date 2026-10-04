@@ -9,8 +9,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
-import dev.slne.surf.roleplay.protocol.screen.CounterAction
-import dev.slne.surf.roleplay.protocol.screen.CounterState
 import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenClose
@@ -19,11 +17,12 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedAction
 import dev.slne.surf.roleplay.protocol.screen.ScreenTypedUpdate
-import dev.slne.surf.roleplay.protocol.screen.ScreenTypes
+import dev.slne.surf.roleplay.protocol.screen.ScreenType
 import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.SetText
 import dev.slne.surf.roleplay.protocol.screen.TypedScreenBody
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
+import kotlinx.serialization.builtins.serializer
 import net.kyori.adventure.text.Component
 import java.util.UUID
 import kotlin.test.Test
@@ -31,6 +30,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+
+/**
+ * A screen type that exists only for these tests, whose state and actions are plain numbers.
+ */
+private val TEST_TYPE: ScreenType<Int, Int> = ScreenType("test_counter", Int.serializer(), Int.serializer())
 
 /**
  * Tests for [PlayerScreenState].
@@ -244,24 +248,24 @@ class PlayerScreenStateTest {
      */
     @Test
     fun `typed screens route actions and send updates`() {
-        val actions = mutableListOf<CounterAction>()
+        val actions = mutableListOf<Int>()
         val typed = state.openTyped(
-            ScreenTypes.DEBUG_COUNTER,
+            TEST_TYPE,
             Component.text("Zähler"),
-            CounterState(1),
+            1,
             closable = true,
             parentSessionId = null,
             onAction = { _, action -> actions += action },
         )
         val body = assertIs<TypedScreenBody>(assertIs<ScreenOpen>(sent.last()).body)
-        assertEquals(CounterState(1), ScreenTypes.DEBUG_COUNTER.decodeState(body.state))
+        assertEquals(1, TEST_TYPE.decodeState(body.state))
 
-        state.handleTypedAction(ScreenTypedAction(typed.sessionId, ScreenTypes.DEBUG_COUNTER.encodeAction(CounterAction(2))))
-        typed.update(CounterState(3))
+        state.handleTypedAction(ScreenTypedAction(typed.sessionId, TEST_TYPE.encodeAction(2)))
+        typed.update(3)
 
-        assertEquals(listOf(CounterAction(2)), actions)
+        assertEquals(listOf(2), actions)
         val update = assertIs<ScreenTypedUpdate>(sent.last())
-        assertEquals(CounterState(3), ScreenTypes.DEBUG_COUNTER.decodeState(update.state))
+        assertEquals(3, TEST_TYPE.decodeState(update.state))
     }
 
     /**

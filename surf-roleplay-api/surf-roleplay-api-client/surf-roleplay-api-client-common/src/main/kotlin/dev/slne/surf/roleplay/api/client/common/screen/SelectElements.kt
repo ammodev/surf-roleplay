@@ -3,7 +3,7 @@ package dev.slne.surf.roleplay.api.client.common.screen
 import net.kyori.adventure.text.Component
 
 /**
- * The size of a select or native select trigger.
+ * The size of a select trigger.
  */
 enum class SelectSize {
     /**
@@ -18,7 +18,7 @@ enum class SelectSize {
 }
 
 /**
- * One option of a select, native select or combobox.
+ * One option of a select or combobox.
  *
  * @property value the value reported while this option is selected
  * @property label the label shown for this option
@@ -68,37 +68,6 @@ data class SelectElement(
     val groups: List<SelectChoiceGroup>,
     val selected: String? = null,
     val placeholder: Component = Component.empty(),
-    val size: SelectSize = SelectSize.DEFAULT,
-    val required: Boolean = false,
-    val enabled: Boolean = true,
-    val onChange: ChangeHandler? = null,
-    override val width: ElementSize = ElementSize.FIT,
-    override val height: ElementSize = ElementSize.FIT,
-) : ScreenElement {
-    init {
-        requireOptions(groups, listOfNotNull(selected))
-    }
-}
-
-/**
- * A plain choice of one option; the arrow keys change the selection without opening the list.
- * Handlers read the value of the selected option with [ScreenValues.selected].
- *
- * @property id the id of this element
- * @property groups the option groups, in display order
- * @property selected the value of the initially selected option, or `null` for none
- * @property size the size of the trigger
- * @property required whether having no selection is invalid
- * @property enabled whether the player can change the selection
- * @property onChange the handler run on every validated change, or `null`
- * @property width how wide this element is laid out
- * @property height how tall this element is laid out
- * @throws IllegalArgumentException if option values repeat or the selection is not an option
- */
-data class NativeSelectElement(
-    override val id: String,
-    val groups: List<SelectChoiceGroup>,
-    val selected: String? = null,
     val size: SelectSize = SelectSize.DEFAULT,
     val required: Boolean = false,
     val enabled: Boolean = true,

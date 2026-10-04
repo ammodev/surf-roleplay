@@ -728,43 +728,7 @@ open class SelectWidget(
 }
 
 /**
- * A plain choice of one option. Up and Down change the selection without opening the list;
- * Enter and Space open it.
- *
- * @param id the id of the widget
- * @param groups the option groups
- * @param selected the value of the selected option, or `null` if none is selected
- * @param size the size of the trigger
- * @param required whether having no selection is invalid
- */
-class NativeSelectWidget(id: String, groups: List<SelectGroup>, selected: String?, size: SelectSize, required: Boolean) :
-    SelectWidget(id, groups, selected, "", size, required) {
-
-    /**
-     * Selects the next or previous enabled option on Down or Up, and opens the list on Enter or
-     * Space.
-     *
-     * @param context the screen showing the widget
-     * @param event the key event
-     * @return whether the key was handled
-     */
-    override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
-        if (!enabled) return false
-        val delta = when (event.key()) {
-            GLFW.GLFW_KEY_DOWN -> 1
-            GLFW.GLFW_KEY_UP -> -1
-            else -> return super.keyPressed(context, event)
-        }
-        list.query = ""
-        list.highlightValue(selected)
-        if (selected != null) list.moveHighlight(delta)
-        list.highlightedOption?.let { choose(it.value, context) }
-        return true
-    }
-}
-
-/**
- * The option list of a select or native select. It takes every key while open: Up and Down move
+ * The option list of a select. It takes every key while open: Up and Down move
  * the highlight, Home and End jump to the ends, and Enter or Space choose the highlighted option.
  *
  * @property owner the select that opened the list
@@ -935,6 +899,21 @@ class ComboboxWidget(
     private var measurer: TextMeasurer? = null
 
     /**
+     * Returns the x position the typed query starts at: after the padding and, in a multiple
+     * combobox, after the chips on its row.
+     *
+     * @param measurer the text measurer
+     * @return the x position
+     */
+    private fun queryLeft(measurer: TextMeasurer): Int =
+        bounds.x + UiMetrics.WIDGET_PADDING + if (multiple) placeChips(measurer, innerWidth).second.first else 0
+
+    /**
+     * Counts consecutive clicks on the query to tell single, double and triple clicks apart.
+     */
+    private val clicks: ClickCounter = ClickCounter()
+
+    /**
      * Whether the combobox can take the keyboard focus, which it can while enabled.
      */
     override val focusable: Boolean get() = enabled
@@ -1056,7 +1035,10 @@ class ComboboxWidget(
         }
         ui.clipped(Rect(textX, bounds.y, (textRight - textX).coerceAtLeast(0), bounds.height)) {
             when {
-                edit.text.isNotEmpty() -> ui.plainText(edit.text, textX, textY, fade(tokens.foreground))
+                edit.text.isNotEmpty() -> {
+                    ui.plainText(edit.text, textX, textY, fade(tokens.foreground))
+                    if (focused) ui.textSelection(edit.text, 0, edit.text.length, edit, textX, textY)
+                }
                 !multiple && chosen.isNotEmpty() -> ui.text(chosenLabels[chosen.first()] ?: "", textX, textY, fade(if (focused) tokens.mutedForeground else tokens.foreground))
                 chosen.isEmpty() -> ui.text(placeholder, textX, textY, fade(tokens.mutedForeground))
             }
@@ -1167,7 +1149,9 @@ class ComboboxWidget(
 
     /**
      * Handles a click: a chip's remove button or the clear button act on the selection, anywhere
-     * else the combobox takes the focus and opens its list.
+     * else the combobox takes the focus and opens its list. Such a click places the cursor in the
+     * typed query, a double click selects the word under the mouse and a triple click the whole
+     * query; with Shift, the click extends the selection.
      *
      * @param context the screen showing the widget
      * @param x the mouse x position
@@ -1187,14 +1171,43 @@ class ComboboxWidget(
             clear(context)
             return true
         }
-        edit.cursor = edit.text.length
+        val measurer = measurer
+        if (measurer == null) {
+            edit.cursor = edit.text.length
+        } else {
+            val line = TextLines.Line(0, edit.text.length)
+            val offset = (x - queryLeft(measurer)).toInt()
+            val position = TextLines.positionAt(edit.text, line, offset, measurer::plainWidth)
+            val charIndex = TextLines.charIndexAt(edit.text, line, offset, measurer::plainWidth)
+            applyTextClick(edit, edit.text, clicks, context, x, y, context.timeMillis, position, charIndex) { TextRange(0, edit.text.length) }
+        }
         open(context)
         return true
     }
 
     /**
-     * Moves the list highlight, chooses the highlighted option, edits the query and removes the
-     * last chip with Backspace in an empty field.
+     * Whether a press in the combobox starts a drag that selects text in the typed query, which
+     * it does while enabled.
+     */
+    override val draggable: Boolean get() = enabled
+
+    /**
+     * Extends the selection in the typed query to the mouse while the button stays held after a
+     * press in the combobox.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     */
+    override fun mouseDragged(context: UiContext, x: Double, y: Double) {
+        val measurer = measurer ?: return
+        val position = TextLines.positionAt(edit.text, TextLines.Line(0, edit.text.length), (x - queryLeft(measurer)).toInt(), measurer::plainWidth)
+        edit.moveCursorTo(position, extend = true)
+    }
+
+    /**
+     * Moves the list highlight, chooses the highlighted option, edits the query with the editing
+     * keys of [TextEditKeys], and removes the last chip with Backspace at the start of the field.
      *
      * @param context the screen showing the widget
      * @param event the key event
@@ -1202,12 +1215,15 @@ class ComboboxWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
-        if (event.isPaste) {
-            if (edit.insert(context.clipboard.replace("\n", " ").replace("\r", ""))) {
+        clicks.reset()
+        when (TextEditKeys.handleClipboard(edit, event, context, lineBreak = " ")) {
+            TextEditKeys.Result.IGNORED -> Unit
+            TextEditKeys.Result.MOVED -> return true
+            TextEditKeys.Result.CHANGED -> {
                 queryChanged(context)
                 open(context)
+                return true
             }
-            return true
         }
         when (event.key()) {
             GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> {
@@ -1220,21 +1236,16 @@ class ComboboxWidget(
                 list.highlightedOption?.let { choose(it.value, context) }
             }
 
-            GLFW.GLFW_KEY_BACKSPACE -> when {
-                edit.backspace() -> {
+            else -> if (event.key() == GLFW.GLFW_KEY_BACKSPACE && multiple && chosen.isNotEmpty() && edit.cursor == 0 && !edit.hasSelection) {
+                remove(chosen.last(), context)
+            } else when (TextEditKeys.handle(edit, event)) {
+                TextEditKeys.Result.IGNORED -> return false
+                TextEditKeys.Result.MOVED -> Unit
+                TextEditKeys.Result.CHANGED -> {
                     queryChanged(context)
-                    open(context)
+                    if (event.key() == GLFW.GLFW_KEY_BACKSPACE) open(context)
                 }
-
-                multiple && chosen.isNotEmpty() -> remove(chosen.last(), context)
             }
-
-            GLFW.GLFW_KEY_DELETE -> if (edit.delete()) queryChanged(context)
-            GLFW.GLFW_KEY_LEFT -> edit.moveCursor(-1)
-            GLFW.GLFW_KEY_RIGHT -> edit.moveCursor(1)
-            GLFW.GLFW_KEY_HOME -> edit.cursor = 0
-            GLFW.GLFW_KEY_END -> edit.cursor = edit.text.length
-            else -> return false
         }
         return true
     }

@@ -68,7 +68,6 @@ object KitchenSink {
         RadioGroup(listOf(RadioChoice("a", Component.text("A"))))
         Slider(listOf(1.0))
         Select(options)
-        NativeSelect(options)
         Combobox(options)
         Calendar()
     }
@@ -154,7 +153,6 @@ object KitchenSink {
                 Button("S")
                 SheetContent { SheetHeader { SheetTitle("T"); SheetDescription("D") }; SheetFooter { } }
             }
-            Drawer { Button("D"); DrawerContent { } }
         }
     }
 

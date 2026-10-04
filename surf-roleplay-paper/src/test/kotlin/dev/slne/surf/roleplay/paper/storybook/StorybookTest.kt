@@ -31,6 +31,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.TextKind
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.diff.ScreenDiff
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.toast.Toast
+import dev.slne.surf.roleplay.api.client.common.toast.ToastType
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.HandlerBinder
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
@@ -49,6 +51,7 @@ import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
@@ -59,9 +62,9 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputCh
 private val SHADCN_COMPONENTS = setOf(
     "accordion", "alert", "alert-dialog", "aspect-ratio", "avatar", "badge", "breadcrumb", "button", "button-group", "calendar",
     "card", "carousel", "chart", "checkbox", "collapsible", "combobox", "command", "context-menu", "data-table", "dialog",
-    "direction", "drawer", "dropdown-menu", "empty", "field", "form", "hover-card", "input", "input-group", "input-otp",
-    "item", "kbd", "label", "menubar", "native-select", "navigation-menu", "pagination", "popover", "progress", "radio-group",
-    "resizable", "scroll-area", "select", "separator", "sheet", "sidebar", "skeleton", "slider", "sonner", "spinner",
+    "direction", "dropdown-menu", "empty", "field", "form", "hover-card", "input", "input-group", "input-otp",
+    "item", "kbd", "label", "menubar", "navigation-menu", "pagination", "popover", "progress", "radio-group",
+    "resizable", "scroll-area", "select", "separator", "sheet", "sidebar", "skeleton", "slider", "spinner",
     "switch", "table", "tabs", "textarea", "toast", "toggle", "toggle-group", "tooltip", "typography", "chat",
 )
 
@@ -203,7 +206,7 @@ class StorybookTest {
         StoryCategory.INPUTS,
         setOf(
             "button", "button-group", "calendar", "checkbox", "combobox", "field", "form", "input", "input-group", "input-otp",
-            "label", "native-select", "radio-group", "select", "slider", "switch", "textarea", "toggle", "toggle-group",
+            "label", "radio-group", "select", "slider", "switch", "textarea", "toggle", "toggle-group",
             "state",
         ),
     )
@@ -224,8 +227,8 @@ class StorybookTest {
     fun `the overlay stories cover their components and render`() = assertCategory(
         StoryCategory.OVERLAYS,
         setOf(
-            "alert-dialog", "command", "context-menu", "dialog", "drawer", "dropdown-menu", "hover-card", "menubar", "popover",
-            "sheet", "sonner", "toast", "tooltip",
+            "alert-dialog", "command", "context-menu", "dialog", "dropdown-menu", "hover-card", "menubar", "popover",
+            "sheet", "toast", "tooltip",
         ),
     )
 
@@ -257,6 +260,43 @@ class StorybookTest {
             page.storyKey = key
             assertTrue("Beispiel" in texts(definition(page)), key)
         }
+    }
+
+    /**
+     * The toast story shows toasts of every type, toasts with actions, a loading toast that is
+     * replaced, a toast that stays until it is closed, and an example.
+     */
+    @Test
+    fun `the toast story shows every kind of toast`() {
+        val page = storybook()
+        page.storyKey = "toast"
+        val definition = definition(page)
+
+        assertTrue(texts(definition).containsAll(listOf("Typen", "Aktionen", "Laden und ersetzen", "Bleibt stehen", "Beispiel")))
+        val ids = elements(definition.root).map { it.id }
+        for (id in listOf("toast_success", "toast_action", "toast_upload", "toast_done", "toast_sticky", "toast_appointment")) {
+            assertTrue(id in ids, id)
+        }
+    }
+
+    /**
+     * Clicking the upload button and then the done button of the toast story shows two toasts
+     * with the same id, so the second replaces the first, as a loading toast and then a success.
+     */
+    @Test
+    fun `the done button replaces the loading toast`() {
+        val toasts = mutableListOf<Toast>()
+        val context = StoryContext(UUID.randomUUID(), reports::add, showToast = { toasts += it })
+        val story = storybook().stories.single { it.key == "toast" }
+        val session = state.open(Screen(Component.text("Toast")) { Column(id = "root") { story.render(this, context) } }, null).sessionId
+
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "toast_upload")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "toast_done")))
+
+        assertEquals(listOf(ToastType.LOADING, ToastType.SUCCESS), toasts.map { it.type })
+        val id = toasts.first().id
+        assertNotNull(id)
+        assertEquals(id, toasts.last().id)
     }
 
     /**

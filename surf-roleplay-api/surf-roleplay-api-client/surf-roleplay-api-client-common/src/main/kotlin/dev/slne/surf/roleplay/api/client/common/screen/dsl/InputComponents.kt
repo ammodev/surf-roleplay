@@ -25,7 +25,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.InputGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupTextElement
 import dev.slne.surf.roleplay.api.client.common.screen.InputOtpElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
-import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.NumberInputElement
 import dev.slne.surf.roleplay.api.client.common.screen.Orientation
 import dev.slne.surf.roleplay.api.client.common.screen.OtpPattern
@@ -476,42 +475,6 @@ fun ComponentScope.Select(
 ): InputRef<String?> {
     val elementId = nextId(id)
     add(SelectElement(elementId, groups, selected, placeholder, size, required, enabled, bindChange(elementId, onChange), width, height))
-    return InputRef(elementId, InputParsers.selected)
-}
-
-/**
- * Adds a plain choice of one option, whose selection the arrow keys change without opening the
- * list. Options without groups are given as [options]; grouped options as [groups].
- *
- * @param options the options of a native select without groups
- * @param groups the option groups; by default one group without heading holding [options]
- * @param selected the value of the initially selected option, or `null` for none
- * @param size the size of the trigger
- * @param required whether having no selection is invalid
- * @param enabled whether the player can change the selection
- * @param width how wide the native select is laid out
- * @param height how tall the native select is laid out
- * @param id the id of the native select, or `null` for a generated one
- * @param onChange the handler run on every validated change, or `null`
- * @return the reference to the value of the selected option, which is `null` while nothing is
- *         selected
- * @throws IllegalArgumentException if [id] starts with `_`, option values repeat or the selection
- *         is not an option
- */
-fun ComponentScope.NativeSelect(
-    options: List<SelectChoice> = emptyList(),
-    groups: List<SelectChoiceGroup> = listOf(SelectChoiceGroup(null, options)),
-    selected: String? = null,
-    size: SelectSize = SelectSize.DEFAULT,
-    required: Boolean = false,
-    enabled: Boolean = true,
-    width: ElementSize = ElementSize.FIT,
-    height: ElementSize = ElementSize.FIT,
-    id: String? = null,
-    onChange: ChangeHandler? = null,
-): InputRef<String?> {
-    val elementId = nextId(id)
-    add(NativeSelectElement(elementId, groups, selected, size, required, enabled, bindChange(elementId, onChange), width, height))
     return InputRef(elementId, InputParsers.selected)
 }
 

@@ -34,12 +34,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogDescription
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogFooter
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogHeader
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogTitle
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.Drawer
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerContent
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerDescription
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerFooter
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerHeader
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerTitle
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenu
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenuCheckboxItem
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenuContent
@@ -82,14 +76,12 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.Tooltip
 import dev.slne.surf.roleplay.api.client.common.toast.Toast
 import dev.slne.surf.roleplay.api.client.common.toast.ToastButton
 import dev.slne.surf.roleplay.api.client.common.toast.ToastType
-import dev.slne.surf.roleplay.api.client.paper.toast.ToastService
 import dev.slne.surf.roleplay.paper.storybook.Story
 import dev.slne.surf.roleplay.paper.storybook.StoryCategory
 import dev.slne.surf.roleplay.paper.storybook.StoryContext
 import dev.slne.surf.roleplay.paper.storybook.slug
 import dev.slne.surf.roleplay.paper.storybook.storySection
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
 
 /**
  * The stories of the overlay and menu components, in sidebar order.
@@ -98,7 +90,6 @@ internal val OVERLAY_STORIES: List<Story> = listOf(
     Story("dialog", "Dialog", StoryCategory.OVERLAYS) { dialogStory(it) },
     Story("alert-dialog", "Bestätigungsdialog", StoryCategory.OVERLAYS) { alertDialogStory(it) },
     Story("sheet", "Seitenblatt", StoryCategory.OVERLAYS) { sheetStory(it) },
-    Story("drawer", "Schublade", StoryCategory.OVERLAYS) { drawerStory(it) },
     Story("popover", "Popover", StoryCategory.OVERLAYS) { popoverStory(it) },
     Story("hover-card", "Hover-Karte", StoryCategory.OVERLAYS) { hoverCardStory() },
     Story("tooltip", "Tooltip", StoryCategory.OVERLAYS) { tooltipStory(it) },
@@ -107,7 +98,6 @@ internal val OVERLAY_STORIES: List<Story> = listOf(
     Story("menubar", "Menüleiste", StoryCategory.OVERLAYS) { menubarStory(it) },
     Story("command", "Befehlsmenü", StoryCategory.OVERLAYS) { commandStory(it) },
     Story("toast", "Toast", StoryCategory.OVERLAYS) { toastStory(it) },
-    Story("sonner", "Sonner", StoryCategory.OVERLAYS) { sonnerStory(it) },
 )
 
 /**
@@ -191,7 +181,8 @@ private fun ComponentScope.alertDialogStory(context: StoryContext) {
 }
 
 /**
- * Shows sheets on every side, with and without the close button.
+ * Shows sheets on every side, with and without the close button, and a sheet kept inside an
+ * overlay container.
  *
  * @param context the story context
  */
@@ -217,49 +208,23 @@ private fun ComponentScope.sheetStory(context: StoryContext) {
             }
         }
     }
-}
-
-/**
- * Shows drawers from the bottom and the top, and a drawer kept inside an overlay container.
- *
- * @param context the story context
- */
-private fun ComponentScope.drawerStory(context: StoryContext) {
-    storySection("Richtungen") {
-        Row(gap = 6) {
-            listOf(OverlaySide.BOTTOM, OverlaySide.TOP).forEach { side ->
-                Drawer {
-                    Button(side.slug(), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "drawer_trigger_${side.slug()}")
-                    DrawerContent(side) {
-                        DrawerHeader {
-                            DrawerTitle("Tagesziel")
-                            DrawerDescription("Lege dein Tagesziel für Streifen fest.")
-                        }
-                        DrawerFooter {
-                            DialogClose { Button("Übernehmen", submitsInput = false, width = ElementSize.grow(), id = "drawer_submit_${side.slug()}", onClick = context.clicked) }
-                        }
-                    }
-                }
-            }
-        }
-    }
     storySection("Beispiel") {
         Row(gap = 8) {
             OverlayContainer(ElementSize.fixed(120), ElementSize.fixed(180)) {
                 Column(width = ElementSize.grow(), height = ElementSize.grow(), gap = 6, padding = Spacing(8, 8, 8, 8), crossAlign = Alignment.STRETCH) {
                     Large("Handy")
-                    Drawer {
-                        Button("Nachrichten", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "drawer_phone_trigger")
-                        DrawerContent {
-                            DrawerHeader {
-                                DrawerTitle("Neue Nachricht")
-                                DrawerDescription("Von: Leitstelle")
+                    Sheet {
+                        Button("Nachrichten", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sheet_phone_trigger")
+                        SheetContent(OverlaySide.BOTTOM, showCloseButton = false) {
+                            SheetHeader {
+                                SheetTitle("Neue Nachricht")
+                                SheetDescription("Von: Leitstelle")
                             }
                         }
                     }
                 }
             }
-            Muted("Die Schublade bleibt in ihrem Overlay-Container, hier einem Handy.", width = ElementSize.grow())
+            Muted("Das Seitenblatt bleibt in seinem Overlay-Container, hier einem Handy.", width = ElementSize.grow())
         }
     }
 }
@@ -476,18 +441,18 @@ private fun ComponentScope.commandStory(context: StoryContext) {
 }
 
 /**
- * Shows a toast to the viewing player if they are online.
+ * Shows a toast to the viewing player through the story context.
  *
  * @param context the story context
  * @param toast the toast
  */
 private fun showToast(context: StoryContext, toast: Toast) {
-    val player = Bukkit.getPlayer(context.playerId) ?: return
-    ToastService.show(player, toast)
+    context.showToast(toast)
 }
 
 /**
- * Shows buttons that send a toast of every type, with a description and a close button.
+ * Shows buttons that send a toast of every type, toasts with actions, a loading toast that later
+ * succeeds, a toast that stays until it is closed, and one with a description and a close button.
  *
  * @param context the story context
  */
@@ -501,6 +466,35 @@ private fun ComponentScope.toastStory(context: StoryContext) {
             }
         }
     }
+    storySection("Aktionen") {
+        Button("Funkspruch", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_action") {
+            showToast(
+                context,
+                Toast(
+                    Component.text("Eingehender Funkspruch"),
+                    Component.text("Streife 12 ruft."),
+                    action = ToastButton(Component.text("Annehmen")) { context.report("toast_accept") },
+                    cancel = ToastButton(Component.text("Ablehnen")) { context.report("toast_decline") },
+                    durationMillis = 10_000,
+                ),
+            )
+        }
+    }
+    storySection("Laden und ersetzen") {
+        Row(gap = 4) {
+            Button("Hochladen", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_upload") {
+                showToast(context, Toast(Component.text("Akte wird hochgeladen …"), type = ToastType.LOADING, id = TOAST_UPLOAD))
+            }
+            Button("Fertig", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_done") {
+                showToast(context, Toast(Component.text("Akte hochgeladen"), type = ToastType.SUCCESS, id = TOAST_UPLOAD))
+            }
+        }
+    }
+    storySection("Bleibt stehen") {
+        Button("Wartungshinweis", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_sticky") {
+            showToast(context, Toast(Component.text("Wartungsarbeiten um 22:00 Uhr"), durationMillis = 0, closeButton = true, id = TOAST_STICKY))
+        }
+    }
     storySection("Beispiel") {
         Button("Termin speichern", submitsInput = false, id = "toast_appointment") {
             showToast(context, Toast(Component.text("Termin angelegt"), Component.text("Freitag, 18:00 Uhr"), ToastType.SUCCESS, closeButton = true))
@@ -509,50 +503,12 @@ private fun ComponentScope.toastStory(context: StoryContext) {
 }
 
 /**
- * Shows buttons that send toasts with actions, a loading toast that later succeeds, and a toast
- * that stays until it is closed.
- *
- * @param context the story context
+ * The id of the toast story's upload toast, which the done button replaces.
  */
-private fun ComponentScope.sonnerStory(context: StoryContext) {
-    storySection("Aktionen") {
-        Button("Funkspruch", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_action") {
-            showToast(
-                context,
-                Toast(
-                    Component.text("Eingehender Funkspruch"),
-                    Component.text("Streife 12 ruft."),
-                    action = ToastButton(Component.text("Annehmen")) { context.report("sonner_accept") },
-                    cancel = ToastButton(Component.text("Ablehnen")) { context.report("sonner_decline") },
-                    durationMillis = 10_000,
-                ),
-            )
-        }
-    }
-    storySection("Laden und ersetzen") {
-        Row(gap = 4) {
-            Button("Hochladen", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_upload") {
-                showToast(context, Toast(Component.text("Akte wird hochgeladen …"), type = ToastType.LOADING, id = SONNER_UPLOAD))
-            }
-            Button("Fertig", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_done") {
-                showToast(context, Toast(Component.text("Akte hochgeladen"), type = ToastType.SUCCESS, id = SONNER_UPLOAD))
-            }
-        }
-    }
-    storySection("Bleibt stehen") {
-        Button("Wartungshinweis", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_sticky") {
-            showToast(context, Toast(Component.text("Wartungsarbeiten um 22:00 Uhr"), durationMillis = 0, closeButton = true, id = SONNER_STICKY))
-        }
-    }
-}
+private const val TOAST_UPLOAD: String = "storybook-upload"
 
 /**
- * The id of the sonner story's upload toast, which the done button replaces.
- */
-private const val SONNER_UPLOAD: String = "storybook-upload"
-
-/**
- * The id of the sonner story's toast that stays until it is closed, so that a repeated click
+ * The id of the toast story's toast that stays until it is closed, so that a repeated click
  * replaces it instead of stacking another one.
  */
-private const val SONNER_STICKY: String = "storybook-sticky"
+private const val TOAST_STICKY: String = "storybook-sticky"

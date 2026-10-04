@@ -23,8 +23,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.DialogContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogFooterElement
 import dev.slne.surf.roleplay.api.client.common.screen.DialogHeaderElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerContentElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
 import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.HOVER_CARD_WIDTH
@@ -1020,7 +1018,7 @@ fun ComponentScope.SheetContent(
 }
 
 /**
- * Adds the header of a sheet or drawer: its title and description, stacked.
+ * Adds the header of a sheet: its title and description, stacked.
  *
  * @param id the id of the header, or `null` for a generated one
  * @param children the builder of the title and description
@@ -1033,7 +1031,7 @@ fun ComponentScope.SheetHeader(id: String? = null, children: ComponentScope.() -
 }
 
 /**
- * Adds the footer of a sheet or drawer: its buttons, stacked at the end of the content.
+ * Adds the footer of a sheet: its buttons, stacked at the end of the content.
  *
  * @param id the id of the footer, or `null` for a generated one
  * @param children the builder of the buttons
@@ -1046,7 +1044,7 @@ fun ComponentScope.SheetFooter(id: String? = null, children: ComponentScope.() -
 }
 
 /**
- * Adds the bold title of a sheet or drawer.
+ * Adds the bold title of a sheet.
  *
  * @param text the title
  * @param id the id of the title, or `null` for a generated one
@@ -1056,7 +1054,7 @@ fun ComponentScope.SheetFooter(id: String? = null, children: ComponentScope.() -
 fun ComponentScope.SheetTitle(text: Component, id: String? = null): TextElement = styledText(text, TextKind.SHEET_TITLE, id = id)
 
 /**
- * Adds the plain, bold title of a sheet or drawer.
+ * Adds the plain, bold title of a sheet.
  *
  * @param text the title
  * @param id the id of the title, or `null` for a generated one
@@ -1066,7 +1064,7 @@ fun ComponentScope.SheetTitle(text: Component, id: String? = null): TextElement 
 fun ComponentScope.SheetTitle(text: String, id: String? = null): TextElement = SheetTitle(Component.text(text), id)
 
 /**
- * Adds the muted description of a sheet or drawer.
+ * Adds the muted description of a sheet.
  *
  * @param text the description
  * @param id the id of the description, or `null` for a generated one
@@ -1076,7 +1074,7 @@ fun ComponentScope.SheetTitle(text: String, id: String? = null): TextElement = S
 fun ComponentScope.SheetDescription(text: Component, id: String? = null): TextElement = styledText(text, TextKind.SHEET_DESCRIPTION, id = id)
 
 /**
- * Adds the plain, muted description of a sheet or drawer.
+ * Adds the plain, muted description of a sheet.
  *
  * @param text the description
  * @param id the id of the description, or `null` for a generated one
@@ -1086,43 +1084,8 @@ fun ComponentScope.SheetDescription(text: Component, id: String? = null): TextEl
 fun ComponentScope.SheetDescription(text: String, id: String? = null): TextElement = SheetDescription(Component.text(text), id)
 
 /**
- * Adds a drawer: its triggers and one [DrawerContent], a modal content that comes in from an edge
- * of the window, with a handle.
- *
- * @param onChange the handler run whenever the player opens or closes the drawer, or `null` for
- *        none
- * @param id the id of the drawer, or `null` for a generated one
- * @param children the builder of the triggers and the content
- * @return the reference to whether the drawer is open
- * @throws IllegalArgumentException if [id] starts with `_`
- */
-fun ComponentScope.Drawer(onChange: ChangeHandler? = null, id: String? = null, children: ComponentScope.() -> Unit): InputRef<Boolean> {
-    val elementId = nextId(id)
-    add(DrawerElement(elementId, this.children(children), false, bindChange(elementId, onChange)))
-    return InputRef(elementId, InputParsers.checked)
-}
-
-/**
- * Adds the content of a drawer, attached to an edge of the window.
- *
- * @param direction the edge of the window the drawer comes in from
- * @param id the id of the content, or `null` for a generated one
- * @param children the builder of the header, content and footer
- * @return the content
- * @throws IllegalArgumentException if [id] starts with `_`
- */
-fun ComponentScope.DrawerContent(
-    direction: OverlaySide = OverlaySide.BOTTOM,
-    id: String? = null,
-    children: ComponentScope.() -> Unit,
-): DrawerContentElement {
-    val elementId = nextId(id)
-    return add(DrawerContentElement(elementId, this.children(children), direction))
-}
-
-/**
- * Adds a region that confines the dialogs, sheets and drawers opened inside it, such as the frame
- * of a phone.
+ * Adds a region that confines the dialogs and sheets opened inside it, such as the frame of a
+ * phone.
  *
  * @param width how wide the region is laid out
  * @param height how tall the region is laid out

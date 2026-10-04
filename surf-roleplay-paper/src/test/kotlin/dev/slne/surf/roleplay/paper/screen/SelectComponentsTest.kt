@@ -9,7 +9,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.SelectSize
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.MultiCombobox
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.NativeSelect
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
 import dev.slne.surf.roleplay.protocol.Packet
@@ -17,7 +16,6 @@ import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
 import dev.slne.surf.roleplay.protocol.screen.InputValue
-import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
@@ -36,7 +34,7 @@ import kotlin.test.assertNull
 import dev.slne.surf.roleplay.protocol.screen.SelectSize as NodeSelectSize
 
 /**
- * Tests for selects, native selects and comboboxes in the API and on Paper.
+ * Tests for selects and comboboxes in the API and on Paper.
  */
 class SelectComponentsTest {
 
@@ -86,7 +84,6 @@ class SelectComponentsTest {
         Screen(Component.text("Auswahl")) {
             Column(id = "root") {
                 Select(groups = groups, placeholder = Component.text("Wähle"), size = SelectSize.SM, id = "fruit")
-                NativeSelect(groups = groups, selected = "carrot", id = "native")
                 MultiCombobox(groups = groups, selected = listOf("carrot"), showClear = true, onSearch = { search ->
                     searches += search
                     search.screen.patch { setOptions("tags", listOf(SelectChoiceGroup(null, listOf(SelectChoice("kiwi", Component.text("Kiwi")))))) }
@@ -111,8 +108,7 @@ class SelectComponentsTest {
         assertNotNull(select.groups[0].label)
         assertNull(select.groups[1].label)
         assertEquals(false, select.groups[0].options[1].enabled)
-        assertEquals("carrot", assertIs<NativeSelectNode>(children[1]).selected)
-        val combobox = assertIs<ComboboxNode>(children[2])
+        val combobox = assertIs<ComboboxNode>(children[1])
         assertEquals(listOf("carrot"), combobox.selected)
         assertEquals(true, combobox.multiple)
         assertEquals(true, combobox.notifySearch)

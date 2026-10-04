@@ -157,21 +157,3 @@ fun ComponentScope.MenubarSubTrigger(text: String, icon: String? = null, inset: 
 
 /** Adds the content of a sub-menu of a menubar menu, as [MenuContent] does. */
 fun ComponentScope.MenubarSubContent(id: String? = null, children: ComponentScope.() -> Unit): MenuContentElement = MenuContent(id, children)
-
-/** Adds the header of a drawer: its title and description, stacked, as [SheetHeader] does. */
-fun ComponentScope.DrawerHeader(id: String? = null, children: ComponentScope.() -> Unit): SheetHeaderElement = SheetHeader(id, children)
-
-/** Adds the footer of a drawer: its buttons, stacked at the end of the content, as [SheetFooter] does. */
-fun ComponentScope.DrawerFooter(id: String? = null, children: ComponentScope.() -> Unit): SheetFooterElement = SheetFooter(id, children)
-
-/** Adds the bold title of a drawer, as [SheetTitle] does. */
-fun ComponentScope.DrawerTitle(text: Component, id: String? = null): TextElement = SheetTitle(text, id)
-
-/** Adds the plain, bold title of a drawer, as [SheetTitle] does. */
-fun ComponentScope.DrawerTitle(text: String, id: String? = null): TextElement = SheetTitle(text, id)
-
-/** Adds the muted description of a drawer, as [SheetDescription] does. */
-fun ComponentScope.DrawerDescription(text: Component, id: String? = null): TextElement = SheetDescription(text, id)
-
-/** Adds the plain, muted description of a drawer, as [SheetDescription] does. */
-fun ComponentScope.DrawerDescription(text: String, id: String? = null): TextElement = SheetDescription(text, id)

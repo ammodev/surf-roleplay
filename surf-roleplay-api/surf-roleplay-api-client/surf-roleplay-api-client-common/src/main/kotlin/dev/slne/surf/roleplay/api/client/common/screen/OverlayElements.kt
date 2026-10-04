@@ -754,7 +754,7 @@ data class SheetContentElement(
 ) : ContainerElement
 
 /**
- * The header of a sheet or drawer: its title and description, stacked.
+ * The header of a sheet: its title and description, stacked.
  *
  * @property id the id of this element
  * @property children the title and description
@@ -769,7 +769,7 @@ data class SheetHeaderElement(
 ) : ContainerElement
 
 /**
- * The footer of a sheet or drawer: its buttons, stacked at the end of the content.
+ * The footer of a sheet: its buttons, stacked at the end of the content.
  *
  * @property id the id of this element
  * @property children the buttons
@@ -779,44 +779,6 @@ data class SheetHeaderElement(
 data class SheetFooterElement(
     override val id: String,
     override val children: List<ScreenElement>,
-    override val width: ElementSize = ElementSize.FIT,
-    override val height: ElementSize = ElementSize.FIT,
-) : ContainerElement
-
-/**
- * A drawer: its triggers, and a modal content that comes in from an edge of the window, with a
- * handle.
- *
- * @property id the id of this element
- * @property children the triggers and one drawer content
- * @property open whether the overlay is open
- * @property onChange the handler run whenever the player opens or closes the overlay, or `null`
- *           for none
- * @property width how wide this element is laid out
- * @property height how tall this element is laid out
- */
-data class DrawerElement(
-    override val id: String,
-    override val children: List<ScreenElement>,
-    val open: Boolean = false,
-    val onChange: ChangeHandler? = null,
-    override val width: ElementSize = ElementSize.FIT,
-    override val height: ElementSize = ElementSize.FIT,
-) : ContainerElement
-
-/**
- * The content of a drawer, attached to an edge of the window.
- *
- * @property id the id of this element
- * @property children the header, content and footer
- * @property direction the edge of the window the drawer comes in from
- * @property width how wide this element is laid out
- * @property height how tall this element is laid out
- */
-data class DrawerContentElement(
-    override val id: String,
-    override val children: List<ScreenElement>,
-    val direction: OverlaySide = OverlaySide.BOTTOM,
     override val width: ElementSize = ElementSize.FIT,
     override val height: ElementSize = ElementSize.FIT,
 ) : ContainerElement

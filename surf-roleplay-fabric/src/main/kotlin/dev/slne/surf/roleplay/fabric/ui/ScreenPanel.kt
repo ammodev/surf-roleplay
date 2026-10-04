@@ -235,6 +235,12 @@ class ScreenPanel(
     private var wasSliding: Boolean = true
 
     /**
+     * Whether Shift was held when the last mouse click was pressed.
+     */
+    override var shiftClick: Boolean = false
+        private set
+
+    /**
      * The text on the system clipboard.
      */
     override var clipboard: String
@@ -440,7 +446,8 @@ class ScreenPanel(
             ui.text(titleJson, panel.x + UiMetrics.PANEL_PADDING, panel.y + (UiMetrics.TITLE_BAR_HEIGHT - font.lineHeight + 1) / 2, tokens.cardForeground)
         }
 
-        val areas = stack.map { it.area(scopeFor(it), measurer ?: FontTextMeasurer(font)) }
+        val layers = stack.toList()
+        val areas = layers.map { it.area(scopeFor(it), measurer ?: FontTextMeasurer(font)) }
         val hit = mouseOverlay(areas, mouseX, mouseY)
         val mouseInside = active && viewport.contains(mouseX.toDouble(), mouseY.toDouble()) && hit < 0 && stack.none { it.modal }
         ui.clipped(viewport) {
@@ -452,7 +459,7 @@ class ScreenPanel(
         }
         if (scroll.maxOffset > 0) renderScrollBar(ui)
 
-        stack.toList().forEachIndexed { index, open ->
+        layers.forEachIndexed { index, open ->
             ui.nextLayer()
             if (open.modal) ui.fill(scopeFor(open), ThemeColors.withAlpha(BACKDROP, BACKDROP_ALPHA))
             val mouse = active && index == hit
@@ -530,9 +537,11 @@ class ScreenPanel(
      * @param x the mouse x position
      * @param y the mouse y position
      * @param button the mouse button
+     * @param shift whether Shift is held, which the clicked widget reads from [shiftClick]
      * @return whether the click was on the panel or its popover
      */
-    fun mouseClicked(x: Double, y: Double, button: Int): Boolean {
+    fun mouseClicked(x: Double, y: Double, button: Int, shift: Boolean = false): Boolean {
+        shiftClick = shift
         focusVisible = false
         for (index in stack.indices.reversed()) {
             val open = stack[index]
@@ -625,7 +634,8 @@ class ScreenPanel(
         }
         if (!panel.contains(x, y)) return false
         if (viewport.contains(x, y) && root.mouseScrolled(this, x, y, amount)) return true
-        if (scroll.scrollBy((amount * UiMetrics.SCROLL_STEP).roundToInt())) requestLayout()
+        val before = scroll.offset
+        if (scroll.scrollBy((amount * UiMetrics.SCROLL_STEP).roundToInt())) root.offset(0, before - scroll.offset)
         return true
     }
 

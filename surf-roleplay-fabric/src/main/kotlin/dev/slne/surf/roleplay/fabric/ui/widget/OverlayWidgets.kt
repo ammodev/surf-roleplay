@@ -205,7 +205,8 @@ abstract class OverlayHostWidget(id: String, axis: Axis = Axis.HORIZONTAL) : Con
     }
 
     /**
-     * Draws the triggers.
+     * Draws the triggers that reach into the current clip, and lets the others keep their state
+     * through [renderSkipped].
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -213,7 +214,16 @@ abstract class OverlayHostWidget(id: String, axis: Axis = Axis.HORIZONTAL) : Con
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        triggers.forEach { it.render(ui, context, mouseX, mouseY) }
+        renderVisible(triggers, ui, context, mouseX, mouseY)
+    }
+
+    /**
+     * Passes the skipped frame on to the triggers; the content is drawn by the overlay.
+     *
+     * @param context the screen showing the widget
+     */
+    override fun renderSkipped(context: UiContext) {
+        triggers.forEach { it.renderSkipped(context) }
     }
 
     /**

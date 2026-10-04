@@ -17,6 +17,7 @@ import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import org.lwjgl.glfw.GLFW
 import kotlin.math.abs
+import kotlin.math.floor
 
 /**
  * Breaks text into the lines it is drawn in at a width.
@@ -114,10 +115,68 @@ object TextLines {
      * @param line the line
      * @param x the offset from the start of the line
      * @param measure returns the width of a string
-     * @return the cursor position
+     * @return the cursor position; a line reaching past the end of the text is cut to the text
      */
-    fun positionAt(text: String, line: Line, x: Int, measure: (String) -> Int): Int =
-        (line.start..line.end).minBy { abs(measure(text.substring(line.start, it)) - x) }
+    fun positionAt(text: String, line: Line, x: Int, measure: (String) -> Int): Int {
+        val start = line.start.coerceIn(0, text.length)
+        val end = line.end.coerceIn(start, text.length)
+        return (start..end).minBy { abs(measure(text.substring(start, it)) - x) }
+    }
+
+    /**
+     * Finds the character of a line that is drawn under a horizontal offset. Offsets before the
+     * line give its first character, offsets after it its last.
+     *
+     * @param text the whole text
+     * @param line the line
+     * @param x the offset from the start of the line
+     * @param measure returns the width of a string
+     * @return the index of the character, or the line's start for an empty line
+     */
+    fun charIndexAt(text: String, line: Line, x: Int, measure: (String) -> Int): Int {
+        if (line.start == line.end) return line.start
+        return (line.start until line.end).firstOrNull { measure(text.substring(line.start, it + 1)) > x } ?: (line.end - 1)
+    }
+}
+
+/**
+ * Applies a left click to the text and selection of a field: a single click places the cursor,
+ * a double click selects the word under the mouse, and a triple click selects a range chosen by
+ * the field. With Shift, the click extends the selection to the clicked position instead.
+ *
+ * @param edit the state of the field
+ * @param shown the text as drawn, such as a password mask, in which a double click finds the word
+ * @param clicks the click counter of the field
+ * @param context the screen showing the field
+ * @param x the mouse x position
+ * @param y the mouse y position
+ * @param timeMillis the time of the click in milliseconds
+ * @param position the cursor position closest to the click
+ * @param charIndex the index of the character under the click
+ * @param tripleRange the range a triple click selects
+ */
+internal fun applyTextClick(
+    edit: TextEditState,
+    shown: String,
+    clicks: ClickCounter,
+    context: UiContext,
+    x: Double,
+    y: Double,
+    timeMillis: Long,
+    position: Int,
+    charIndex: Int,
+    tripleRange: () -> TextRange,
+) {
+    if (context.shiftClick) {
+        clicks.reset()
+        edit.moveCursorTo(position, extend = true)
+        return
+    }
+    when (clicks.click(x, y, timeMillis)) {
+        1 -> edit.cursor = position
+        2 -> TextBoundaries.wordAt(shown, charIndex).let { edit.select(it.start, it.end) }
+        else -> tripleRange().let { edit.select(it.start, it.end) }
+    }
 }
 
 /**
@@ -149,6 +208,16 @@ class TextareaWidget(
     private var measurer: TextMeasurer? = null
 
     /**
+     * The text the current [lines] were computed from.
+     */
+    private var laidOutText: String = edit.text
+
+    /**
+     * The width the current [lines] were computed for.
+     */
+    private var laidOutWidth: Int = -1
+
+    /**
      * The index of the first visible line.
      */
     private var firstLine: Int = 0
@@ -157,6 +226,11 @@ class TextareaWidget(
      * The cursor position the scrolling last followed.
      */
     private var followedCursor: Int = -1
+
+    /**
+     * Counts consecutive clicks to tell single, double and triple clicks apart.
+     */
+    private val clicks: ClickCounter = ClickCounter()
 
     /**
      * Whether the field can take the keyboard focus, which it can while enabled.
@@ -201,7 +275,21 @@ class TextareaWidget(
      */
     fun layoutLines(measurer: TextMeasurer) {
         this.measurer = measurer
+        laidOutText = edit.text
+        laidOutWidth = innerWidth
         lines = TextLines.wrap(edit.text, innerWidth, measurer::plainWidth)
+    }
+
+    /**
+     * Recomputes the lines when the text or the width changed since they were last computed, so
+     * input handled between two frames sees the lines of the current text.
+     *
+     * @return the measurer, or `null` while the field has not been laid out yet
+     */
+    private fun ensureLines(): TextMeasurer? {
+        val measurer = measurer ?: return null
+        if (edit.text != laidOutText || innerWidth != laidOutWidth) layoutLines(measurer)
+        return measurer
     }
 
     /**
@@ -221,7 +309,8 @@ class TextareaWidget(
     }
 
     /**
-     * Draws the field with its visible lines or placeholder and, while focused, a blinking cursor.
+     * Draws the field with its visible lines or placeholder and, while focused, the highlighted
+     * selection and a blinking cursor.
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -252,7 +341,9 @@ class TextareaWidget(
             if (edit.text.isEmpty() && !focused) ui.text(placeholder, textX, top + 1, tokens.mutedForeground)
             for (index in firstLine until minOf(lines.size, firstLine + visible)) {
                 val line = lines[index]
-                ui.plainText(edit.text.substring(line.start, line.end), textX, top + (index - firstLine) * ui.lineHeight + 1, color)
+                val lineY = top + (index - firstLine) * ui.lineHeight + 1
+                ui.plainText(edit.text.substring(line.start, line.end), textX, lineY, color)
+                if (focused) ui.textSelection(edit.text, line.start, line.end, edit, textX, lineY)
             }
             if (focused && System.currentTimeMillis() / CURSOR_BLINK_MILLIS % 2 == 0L) {
                 val lineIndex = TextLines.lineOf(lines, edit.cursor)
@@ -264,7 +355,9 @@ class TextareaWidget(
     }
 
     /**
-     * Focuses an enabled field when it is clicked and places the cursor at the clicked position.
+     * Focuses an enabled field when it is clicked. A left click places the cursor at the clicked
+     * position, a double click selects the word under the mouse and a triple click the line
+     * between line breaks; with Shift, the click extends the selection.
      *
      * @param context the screen showing the widget
      * @param x the mouse x position
@@ -276,14 +369,40 @@ class TextareaWidget(
         if (!isOver(x, y)) return false
         if (!enabled) return true
         context.focus(this)
-        val measurer = measurer
+        val measurer = ensureLines()
         if (measurer == null) {
             edit.cursor = edit.text.length
-        } else {
-            val index = (firstLine + ((y - bounds.y - PADDING_Y) / measurer.lineHeight).toInt()).coerceIn(0, lines.lastIndex)
-            edit.cursor = TextLines.positionAt(edit.text, lines[index], (x - bounds.x - UiMetrics.WIDGET_PADDING).toInt(), measurer::plainWidth)
+            return true
         }
+        if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT) return true
+        val line = lines[(firstLine + ((y - bounds.y - PADDING_Y) / measurer.lineHeight).toInt()).coerceIn(0, lines.lastIndex)]
+        val offset = (x - bounds.x - UiMetrics.WIDGET_PADDING).toInt()
+        val position = TextLines.positionAt(edit.text, line, offset, measurer::plainWidth)
+        val charIndex = TextLines.charIndexAt(edit.text, line, offset, measurer::plainWidth)
+        applyTextClick(edit, edit.text, clicks, context, x, y, context.timeMillis, position, charIndex) { TextBoundaries.lineAt(edit.text, position) }
         return true
+    }
+
+    /**
+     * Whether a press in the field starts a drag that selects text, which it does while enabled.
+     */
+    override val draggable: Boolean get() = enabled
+
+    /**
+     * Extends the selection to the mouse while the button stays held after a press in the field.
+     * Above or below the visible lines, the selection reaches into the line before or after
+     * them, which scrolls the field.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     */
+    override fun mouseDragged(context: UiContext, x: Double, y: Double) {
+        val measurer = ensureLines() ?: return
+        val row = floor((y - bounds.y - PADDING_Y) / measurer.lineHeight).toInt()
+        val line = lines[(firstLine + row).coerceIn(0, lines.lastIndex)]
+        val offset = (x - bounds.x - UiMetrics.WIDGET_PADDING).toInt()
+        edit.moveCursorTo(TextLines.positionAt(edit.text, line, offset, measurer::plainWidth), extend = true)
     }
 
     /**
@@ -306,36 +425,39 @@ class TextareaWidget(
     }
 
     /**
-     * Inserts pasted text at the cursor, keeping its line breaks.
+     * Inserts pasted text at the cursor in place of the selection, keeping its line breaks and
+     * removing characters that cannot be typed.
      *
      * @param context the screen showing the widget
      * @param text the pasted text
      */
     fun paste(context: UiContext, text: String) {
-        if (edit.insert(text.replace("\r\n", "\n").replace("\r", "\n"))) markChanged(context, immediate = false)
+        if (edit.insert(TextEditKeys.cleanPaste(text, lineBreak = null))) markChanged(context, immediate = false)
     }
 
     /**
      * Moves the cursor to the closest position on the line above or below.
      *
      * @param delta `-1` for the line above, `1` for the line below
+     * @param extend whether to extend the selection; otherwise the selection is cleared
      */
-    private fun moveVertically(delta: Int) {
-        val measurer = measurer ?: return
-        layoutLines(measurer)
+    private fun moveVertically(delta: Int, extend: Boolean) {
+        val measurer = ensureLines() ?: return
         val current = TextLines.lineOf(lines, edit.cursor)
         val target = current + delta
         if (target !in lines.indices) {
-            edit.cursor = if (delta < 0) 0 else edit.text.length
+            edit.moveCursorTo(if (delta < 0) 0 else edit.text.length, extend)
             return
         }
         val line = lines[current]
         val x = measurer.plainWidth(edit.text.substring(line.start, edit.cursor.coerceIn(line.start, line.end)))
-        edit.cursor = TextLines.positionAt(edit.text, lines[target], x, measurer::plainWidth)
+        edit.moveCursorTo(TextLines.positionAt(edit.text, lines[target], x, measurer::plainWidth), extend)
     }
 
     /**
-     * Handles line breaks, cursor movement, deletion and pasting.
+     * Handles line breaks, the clipboard, moves between and within drawn lines, and the editing keys of
+     * [TextEditKeys]. Home and End move to the start and end of the drawn line, or of the whole
+     * text with Control; Shift extends the selection with every move.
      *
      * @param context the screen showing the widget
      * @param event the key event
@@ -343,22 +465,27 @@ class TextareaWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
-        if (event.isPaste) {
-            paste(context, context.clipboard)
-            return true
+        clicks.reset()
+        when (TextEditKeys.handleClipboard(edit, event, context, lineBreak = null)) {
+            TextEditKeys.Result.IGNORED -> Unit
+            TextEditKeys.Result.MOVED -> return true
+            TextEditKeys.Result.CHANGED -> return true.also { markChanged(context, immediate = false) }
         }
+        val extend = event.hasShiftDown()
+        val whole = event.hasControlDownWithQuirk()
+        ensureLines()
         val line = lines.getOrNull(TextLines.lineOf(lines, edit.cursor))
         when (event.key()) {
             GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> if (edit.insert("\n")) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_BACKSPACE -> if (edit.backspace()) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_DELETE -> if (edit.delete()) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_LEFT -> edit.moveCursor(-1)
-            GLFW.GLFW_KEY_RIGHT -> edit.moveCursor(1)
-            GLFW.GLFW_KEY_UP -> moveVertically(-1)
-            GLFW.GLFW_KEY_DOWN -> moveVertically(1)
-            GLFW.GLFW_KEY_HOME -> edit.cursor = line?.start ?: 0
-            GLFW.GLFW_KEY_END -> edit.cursor = line?.end ?: edit.text.length
-            else -> return false
+            GLFW.GLFW_KEY_UP -> moveVertically(-1, extend)
+            GLFW.GLFW_KEY_DOWN -> moveVertically(1, extend)
+            GLFW.GLFW_KEY_HOME -> edit.moveCursorTo(if (whole) 0 else line?.start ?: 0, extend)
+            GLFW.GLFW_KEY_END -> edit.moveCursorTo(if (whole) edit.text.length else line?.end ?: edit.text.length, extend)
+            else -> return when (TextEditKeys.handle(edit, event)) {
+                TextEditKeys.Result.IGNORED -> false
+                TextEditKeys.Result.MOVED -> true
+                TextEditKeys.Result.CHANGED -> true.also { markChanged(context, immediate = false) }
+            }
         }
         return true
     }

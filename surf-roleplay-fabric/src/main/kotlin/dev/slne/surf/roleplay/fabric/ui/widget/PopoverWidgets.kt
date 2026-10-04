@@ -218,8 +218,31 @@ class HoverCardWidget(id: String, val side: OverlaySide, val align: Align, openD
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
         super.render(ui, context, mouseX, mouseY)
-        val now = System.currentTimeMillis()
-        val hovered = isOver(mouseX, mouseY) || (open && now - contentSeen < FRAME_TOLERANCE_MILLIS)
+        pointer(context, mouseX, mouseY, System.currentTimeMillis())
+    }
+
+    /**
+     * Opens or closes the content as the mouse rests on or leaves the triggers and the content,
+     * while the triggers are not drawn, with the mouse away from them.
+     *
+     * @param context the screen showing the widget
+     */
+    override fun renderSkipped(context: UiContext) {
+        super.renderSkipped(context)
+        pointer(context, HIDDEN, HIDDEN, System.currentTimeMillis())
+    }
+
+    /**
+     * Follows the mouse: opens the content once the mouse rested on the triggers long enough and
+     * closes it once the mouse left the triggers and the content long enough.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     * @param now the time in milliseconds
+     */
+    fun pointer(context: UiContext, x: Int, y: Int, now: Long) {
+        val hovered = isOver(x, y) || (open && now - contentSeen < FRAME_TOLERANCE_MILLIS)
         val wanted = timer.update(now, hovered)
         if (wanted && !open) show(context, report = true)
         if (!wanted && open) close(context)
@@ -229,6 +252,11 @@ class HoverCardWidget(id: String, val side: OverlaySide, val align: Align, openD
      * Holds the hover tolerance.
      */
     private companion object {
+        /**
+         * A mouse position that no widget is under.
+         */
+        const val HIDDEN: Int = Int.MIN_VALUE / 2
+
         /**
          * How long the mouse counts as on the content after it was last seen there, which covers
          * the time between two frames.

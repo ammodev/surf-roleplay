@@ -13,8 +13,6 @@ import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
 import dev.slne.surf.roleplay.protocol.screen.DialogFooterNode
 import dev.slne.surf.roleplay.protocol.screen.DialogHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.DialogNode
-import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
-import dev.slne.surf.roleplay.protocol.screen.DrawerNode
 import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
 import dev.slne.surf.roleplay.protocol.screen.OverlaySide
 import dev.slne.surf.roleplay.protocol.screen.RowNode
@@ -37,7 +35,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Tests for dialogs, alert dialogs, sheets and drawers in the mod.
+ * Tests for dialogs, alert dialogs and sheets in the mod.
  */
 class ModalWidgetsTest {
 
@@ -206,11 +204,11 @@ class ModalWidgetsTest {
     }
 
     /**
-     * Verifies that a bottom drawer spans the panel content width at its bottom edge.
+     * Verifies that a bottom sheet spans the panel content width at its bottom edge.
      */
     @Test
-    fun `drawer comes from the bottom`() {
-        val panel = panel(DrawerNode("drawer", children = listOf(ButtonNode("open", text = "Open"), DrawerContentNode("content", children = listOf(ButtonNode("x", text = "X"))))))
+    fun `bottom sheet spans the bottom edge`() {
+        val panel = panel(SheetNode("sheet", children = listOf(ButtonNode("open", text = "Open"), SheetContentNode("content", side = OverlaySide.BOTTOM, children = listOf(ButtonNode("x", text = "X"))))))
         click(panel, "open")
 
         val area = panel.overlayAreas().single()

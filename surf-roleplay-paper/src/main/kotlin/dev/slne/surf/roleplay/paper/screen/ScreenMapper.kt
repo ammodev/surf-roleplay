@@ -51,7 +51,6 @@ import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
-import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
@@ -73,7 +72,6 @@ import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
-import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
 import dev.slne.surf.roleplay.protocol.screen.SelectGroup
 import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.SelectOption
@@ -232,8 +230,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.SheetElement
 import dev.slne.surf.roleplay.api.client.common.screen.SheetContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.SheetHeaderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SheetFooterElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerElement
-import dev.slne.surf.roleplay.api.client.common.screen.DrawerContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogMediaElement
 import dev.slne.surf.roleplay.protocol.screen.DialogNode
 import dev.slne.surf.roleplay.protocol.screen.DialogContentNode
@@ -246,8 +242,6 @@ import dev.slne.surf.roleplay.protocol.screen.SheetNode
 import dev.slne.surf.roleplay.protocol.screen.SheetContentNode
 import dev.slne.surf.roleplay.protocol.screen.SheetHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.SheetFooterNode
-import dev.slne.surf.roleplay.protocol.screen.DrawerNode
-import dev.slne.surf.roleplay.protocol.screen.DrawerContentNode
 import dev.slne.surf.roleplay.protocol.screen.AlertDialogMediaNode
 import dev.slne.surf.roleplay.api.client.common.screen.OverlayContainerElement
 import dev.slne.surf.roleplay.protocol.screen.OverlayContainerNode
@@ -465,11 +459,6 @@ object ScreenMapper {
                 element.enabled, element.onChange != null,
             )
 
-            is NativeSelectElement -> NativeSelectNode(
-                element.id, width, height, groups(element.groups), element.selected, enumOf(element.size), element.required, element.enabled,
-                element.onChange != null,
-            )
-
             is ComboboxElement -> ComboboxNode(
                 element.id, width, height, groups(element.groups), element.selected, element.multiple, text(element.placeholder), text(element.emptyText),
                 element.showClear, element.required, element.enabled, element.onChange != null, element.onSearch != null,
@@ -608,9 +597,7 @@ object ScreenMapper {
             is SheetContentElement -> SheetContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.side), element.showCloseButton)
             is SheetHeaderElement -> SheetHeaderNode(element.id, width, height, element.children.map(::toNode))
             is SheetFooterElement -> SheetFooterNode(element.id, width, height, element.children.map(::toNode))
-            is DrawerElement -> DrawerNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
             is OverlayContainerElement -> OverlayContainerNode(element.id, width, height, element.children.map(::toNode))
-            is DrawerContentElement -> DrawerContentNode(element.id, width, height, element.children.map(::toNode), enumOf(element.direction))
             is CollapsibleElement -> CollapsibleNode(element.id, width, height, element.children.map(::toNode), element.open, element.onChange != null)
             is CollapsibleTriggerElement -> CollapsibleTriggerNode(element.id, width, height, element.children.map(::toNode))
             is CollapsibleContentElement -> CollapsibleContentNode(element.id, width, height, element.children.map(::toNode))
