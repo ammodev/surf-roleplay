@@ -47,6 +47,23 @@ class ScreenPatchTest {
     }
 
     /**
+     * Verifies that replacing an explicit target keeps its id on the root, so that the next patch
+     * can address it again, while the descendants get prefixed generated ids.
+     */
+    @Test
+    fun `replace keeps the id of an explicit target`() {
+        val changes = ScreenPatchBuilder().apply {
+            replace("x") { Button("B") }
+            replace("y") { Row { Label("Neu") } }
+        }.changes
+
+        assertEquals("x", assertIs<ScreenChange.Replace>(changes[0]).element.id)
+        val row = assertIs<RowElement>(assertIs<ScreenChange.Replace>(changes[1]).element)
+        assertEquals("y", row.id)
+        assertEquals("_#y.0", row.children.single().id)
+    }
+
+    /**
      * Verifies that two appends get distinct generated ids, so that appended content never collides.
      */
     @Test

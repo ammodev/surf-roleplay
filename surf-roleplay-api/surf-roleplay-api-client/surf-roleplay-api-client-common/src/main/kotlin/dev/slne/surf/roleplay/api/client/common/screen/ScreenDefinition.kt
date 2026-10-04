@@ -392,10 +392,10 @@ class ScreenPatchBuilder {
     /**
      * Replaces an element with one built by the component DSL.
      *
-     * The element is rendered as the root of a tree that replaces [targetId], so it gets the
-     * generated id [targetId] if that starts with `_`, and `_#` followed by [targetId] otherwise.
-     * Replacing a generated element therefore keeps its id, and an explicit id given to the
-     * element wins over the generated one.
+     * The element is rendered as the root of a tree that replaces [targetId], so it gets the id
+     * [targetId] and a later change can address it again. The generated ids of its descendants are
+     * derived from [targetId] if that starts with `_`, and from `_#` followed by [targetId]
+     * otherwise. An explicit id given to the element wins over [targetId].
      *
      * @param targetId the id of the element to replace
      * @param build the builder that adds exactly one element

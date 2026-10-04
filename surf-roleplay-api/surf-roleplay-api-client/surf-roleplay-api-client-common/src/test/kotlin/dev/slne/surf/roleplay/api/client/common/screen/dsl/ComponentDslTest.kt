@@ -253,18 +253,30 @@ class ComponentDslTest {
     }
 
     /**
-     * Verifies that rendering at an explicit target id prefixes the generated root id with `_#`, so
-     * that it cannot collide with a positional id.
+     * Verifies that rendering at an explicit target id keeps that id for the root and prefixes the
+     * generated ids of its descendants with `_#`, so that they cannot collide with positional ids.
      */
     @Test
-    fun `rendering at an explicit id prefixes the root id`() {
+    fun `rendering at an explicit id keeps the root id and prefixes the descendants`() {
         val root = assertIs<ColumnElement>(renderRoot(at = "list") { Column { Button("A"); Row { Button("B") } } })
-        assertEquals("_#list", root.id)
+        assertEquals("list", root.id)
         assertEquals("_#list.0", root.children[0].id)
         assertEquals("_#list.1.0", (root.children[1] as RowElement).children[0].id)
         val digits = assertIs<ColumnElement>(renderRoot(at = "0.2") { Column { Button("A") } })
-        assertEquals("_#0.2", digits.id)
+        assertEquals("0.2", digits.id)
         assertEquals("_#0.2.0", digits.children[0].id)
+        assertEquals("x", renderRoot(at = "x") { Button("B") }.id)
+    }
+
+    /**
+     * Verifies that an explicit root id wins over an explicit target id and the descendants keep
+     * the prefixed scheme of the target.
+     */
+    @Test
+    fun `an explicit root id wins over an explicit target id`() {
+        val root = assertIs<ColumnElement>(renderRoot(at = "x") { Column(id = "box") { Button("A") } })
+        assertEquals("box", root.id)
+        assertEquals("_#x.0", root.children[0].id)
     }
 
     /**
