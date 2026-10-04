@@ -374,12 +374,12 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
-     * Runs drawing code that is clipped to a rectangle with rounded corners, once for every row
-     * of the rectangle that lies within the clip already in effect.
+     * Runs drawing code that is clipped to a rectangle with rounded corners, once for every run
+     * of rows of the rectangle with the same columns that lies within the clip already in effect.
      *
      * @param rect the rectangle to clip to
      * @param radius the corner radius; half the side of a square clips to a circle
-     * @param block the drawing code, run once for every row
+     * @param block the drawing code, run once for every run of rows
      */
     fun clippedRound(rect: Rect, radius: Int, block: () -> Unit) {
         clips.roundedRows(rect, radius) { row -> scissored(row, block) }
@@ -527,20 +527,20 @@ class ClipStack {
     }
 
     /**
-     * Runs code once for every one-pixel row of a rectangle with rounded corners that lies within
-     * the clips in effect. Throughout, the current clip is the whole rectangle within the outer
-     * clips, so that what is culled does not depend on the row.
+     * Runs code once for every run of rows of a rectangle with rounded corners that lies within
+     * the clips in effect, where a run joins consecutive rows that start and end at the same
+     * columns. Throughout, the current clip is the whole rectangle within the outer clips, so
+     * that what is culled does not depend on the run.
      *
      * @param rect the rectangle
      * @param radius the corner radius
-     * @param row the code, given the row
+     * @param row the code, given the run of rows
      */
     fun roundedRows(rect: Rect, radius: Int, row: (Rect) -> Unit) {
         val outer = current
         push(rect) {
-            RoundedShape.spans(rect, radius).forEach { span ->
-                val line = Rect(span.x0, span.y, span.x1 - span.x0, 1)
-                if (outer == null || line.intersects(outer)) row(line)
+            RoundedShape.merge(RoundedShape.spans(rect, radius)).forEach { run ->
+                if (outer == null || run.intersects(outer)) row(run)
             }
         }
     }
