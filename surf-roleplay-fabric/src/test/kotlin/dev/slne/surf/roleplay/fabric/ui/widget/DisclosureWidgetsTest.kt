@@ -15,8 +15,8 @@ import dev.slne.surf.roleplay.protocol.screen.CollapsibleContentNode
 import dev.slne.surf.roleplay.protocol.screen.CollapsibleNode
 import dev.slne.surf.roleplay.protocol.screen.CollapsibleTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.RowNode
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
+import dev.slne.surf.roleplay.protocol.screen.RowNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
 import net.minecraft.client.input.KeyEvent
@@ -382,5 +382,119 @@ class DisclosureWidgetsTest {
 
         assertFalse(widget(panel, "content").hidden)
         assertEquals("a", widget(panel, "accordion").inputValue)
+    }
+
+    /**
+     * Creates an accordion with one item named after the id, holding the given children.
+     *
+     * @param id the id of the accordion
+     * @param children the children of the item
+     * @return the node
+     */
+    private fun accordionOf(id: String, vararg children: ScreenNode) =
+        AccordionNode(id, type = AccordionType.SINGLE, children = listOf(AccordionItemNode("${id}_item", value = id, children = children.toList())))
+
+    /**
+     * Verifies that a nested accordion beside the content of an outer item keeps its own trigger
+     * and content.
+     */
+    @Test
+    fun `nested accordion is not part of the outer item`() {
+        val inner = accordionOf("inner", AccordionTriggerNode("inner_trigger", text = "\"i\""), AccordionContentNode("inner_content", children = listOf(LabelNode("t1", text = "Text"))))
+        val panel = panel(
+            AccordionNode(
+                "outer",
+                type = AccordionType.SINGLE,
+                children = listOf(
+                    AccordionItemNode(
+                        "outer_item",
+                        value = "o",
+                        children = listOf(AccordionContentNode("outer_content", children = listOf(LabelNode("t2", text = "Text"))), inner),
+                    ),
+                ),
+            ),
+        )
+        assertTrue((widget(panel, "outer_item") as AccordionItemWidget).trigger == null)
+        assertTrue(widget(panel, "inner_item") === (widget(panel, "inner_trigger") as AccordionTriggerWidget).item)
+
+        widget(panel, "outer").applyValue("o")
+
+        assertFalse(widget(panel, "outer_content").hidden)
+        assertTrue(widget(panel, "inner_content").hidden)
+    }
+
+    /**
+     * Verifies that a server value opens a collapsible whose content sits in a column.
+     */
+    @Test
+    fun `server value opens a collapsible with wrapped content`() {
+        val panel = panel(
+            CollapsibleNode(
+                "collapsible",
+                children = listOf(ColumnNode("wrap", children = listOf(CollapsibleContentNode("content", children = listOf(LabelNode("text", text = "Text")))))),
+            ),
+        )
+
+        widget(panel, "collapsible").applyValue("true")
+        assertFalse(widget(panel, "content").hidden)
+        widget(panel, "collapsible").applyValue("false")
+
+        assertTrue(widget(panel, "content").hidden)
+    }
+
+    /**
+     * Verifies that Enter and Space on a trigger inside a row toggle the collapsible.
+     */
+    @Test
+    fun `keyboard toggles a collapsible trigger inside a row`() {
+        val panel = panel(
+            CollapsibleNode(
+                "collapsible",
+                children = listOf(
+                    RowNode("row", children = listOf(CollapsibleTriggerNode("trigger", children = listOf(ButtonNode("toggle", text = "Mehr"))))),
+                    CollapsibleContentNode("content", children = listOf(LabelNode("text", text = "Text"))),
+                ),
+            ),
+        )
+        panel.keyPressed(key(GLFW.GLFW_KEY_TAB))
+        assertEquals("toggle", panel.focusedWidget?.id)
+
+        panel.keyPressed(key(GLFW.GLFW_KEY_ENTER))
+        assertFalse(widget(panel, "content").hidden)
+        panel.keyPressed(key(GLFW.GLFW_KEY_SPACE))
+
+        assertTrue(widget(panel, "content").hidden)
+        assertEquals(emptyList(), actions)
+    }
+
+    /**
+     * Verifies that Enter and Space on an accordion trigger inside a row toggle the item.
+     */
+    @Test
+    fun `keyboard toggles an accordion trigger inside a row`() {
+        val panel = panel(
+            AccordionNode(
+                "accordion",
+                type = AccordionType.MULTIPLE,
+                children = listOf(
+                    AccordionItemNode(
+                        "item",
+                        value = "a",
+                        children = listOf(
+                            RowNode("row", children = listOf(AccordionTriggerNode("trigger", text = "\"a\""))),
+                            AccordionContentNode("content", children = listOf(LabelNode("text", text = "Text"))),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        panel.keyPressed(key(GLFW.GLFW_KEY_TAB))
+        assertEquals("trigger", panel.focusedWidget?.id)
+
+        panel.keyPressed(key(GLFW.GLFW_KEY_ENTER))
+        assertEquals("a", widget(panel, "accordion").inputValue)
+        panel.keyPressed(key(GLFW.GLFW_KEY_SPACE))
+
+        assertEquals("", widget(panel, "accordion").inputValue)
     }
 }

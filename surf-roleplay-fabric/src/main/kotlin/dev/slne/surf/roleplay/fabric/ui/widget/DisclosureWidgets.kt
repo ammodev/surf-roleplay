@@ -52,23 +52,6 @@ class CollapsibleWidget(id: String) : ContainerWidget(id, Axis.VERTICAL), Action
     }
 
     /**
-     * Collects the parts of this collapsible: the widgets of a type below it at any depth, not
-     * looking into a nested collapsible or into a part found.
-     *
-     * @param type the type of the parts
-     * @param widget the widget whose children are searched
-     * @return the parts, in tree order
-     */
-    private fun <T : Widget> ownedParts(type: Class<T>, widget: Widget): List<T> =
-        widget.children.flatMap { child ->
-            when {
-                type.isInstance(child) -> listOf(type.cast(child))
-                child is CollapsibleWidget -> emptyList()
-                else -> ownedParts(type, child)
-            }
-        }
-
-    /**
      * Tells whether a widget lies inside a trigger of this collapsible.
      *
      * @param widget the widget
@@ -254,17 +237,6 @@ class AccordionItemWidget(id: String, val value: String) : ContainerWidget(id, A
     val trigger: AccordionTriggerWidget? get() = ownedParts(AccordionTriggerWidget::class.java, this).firstOrNull()
 
     /**
-     * Collects the parts of this item: the widgets of a type below it at any depth, not looking
-     * into a part found.
-     *
-     * @param type the type of the parts
-     * @param widget the widget whose children are searched
-     * @return the parts, in tree order
-     */
-    private fun <T : Widget> ownedParts(type: Class<T>, widget: Widget): List<T> =
-        widget.children.flatMap { child -> if (type.isInstance(child)) listOf(type.cast(child)) else ownedParts(type, child) }
-
-    /**
      * Shows or hides the content.
      *
      * @param open whether the content is shown
@@ -412,3 +384,21 @@ class AccordionContentWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
         const val PADDING_BOTTOM: Int = 8
     }
 }
+
+/**
+ * Collects the parts of a collapsible or an accordion item: the widgets of a type below a
+ * widget at any depth, not looking into a part found or into a nested collapsible, accordion or
+ * accordion item, which own their parts themselves.
+ *
+ * @param type the type of the parts
+ * @param widget the widget whose children are searched
+ * @return the parts, in tree order
+ */
+private fun <T : Widget> ownedParts(type: Class<T>, widget: Widget): List<T> =
+    widget.children.flatMap { child ->
+        when {
+            type.isInstance(child) -> listOf(type.cast(child))
+            child is CollapsibleWidget || child is AccordionWidget || child is AccordionItemWidget -> emptyList()
+            else -> ownedParts(type, child)
+        }
+    }
