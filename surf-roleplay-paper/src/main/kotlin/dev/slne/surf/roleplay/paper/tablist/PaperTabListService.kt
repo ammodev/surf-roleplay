@@ -14,6 +14,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.weather.ThunderChangeEvent
@@ -297,6 +298,16 @@ class PaperTabListService : TabListService, Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onWeatherChange(event: WeatherChangeEvent) {
         worldChanged(event.world)
+    }
+
+    /**
+     * Marks the state of a player who changed worlds as changed, since the weather may differ.
+     *
+     * @param event the world change event
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    fun onChangedWorld(event: PlayerChangedWorldEvent) {
+        changed(event.player)
     }
 
     /**
