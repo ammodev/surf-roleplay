@@ -48,9 +48,10 @@ import java.util.concurrent.ConcurrentHashMap
  *   new parents, so that no change adds an id the screen still holds elsewhere.
  * - Anything else, including another id or class at the same place, is replaced.
  *
- * The open screen may show values its player reported that the old tree does not hold yet. Such a
- * value counts as the shown value of its input or overlay: a new value equal to it sends nothing,
- * and a new value that differs from it is sent even if the old tree holds the new value.
+ * The value of an input, or the open state of an overlay, is sent only if it changed between the
+ * two trees and differs from the value the player last reported for that element, if any. An
+ * unchanged value sends nothing, so the screen keeps whatever the player typed, and a new value
+ * that equals the reported one is not echoed back.
  *
  * Elements are compared with `equals`, so handler fields compare equal only if their handlers do.
  * Fields are read with Java reflection over the declared non-static fields of the element class.
@@ -110,20 +111,16 @@ object ScreenDiff {
      *
      * @param old the tree the open screen shows
      * @param new the tree the screen should show
-     * @param shownValues the values the open screen shows in place of those in [old], keyed by
-     *        input or overlay id, in the string form of `ScreenValues.all`; `"true"` or `"false"`
-     *        for the open state of an overlay
+     * @param reportedValues the values the player last reported for inputs and overlays of the
+     *        open screen, keyed by element id, in the string form of `ScreenValues.all`; `"true"`
+     *        or `"false"` for the open state of an overlay. A changed value equal to the reported
+     *        one is not sent.
      * @return the changes in the order they must be applied, empty if the trees are equal
      */
-    fun diff(old: ScreenElement, new: ScreenElement, shownValues: Map<String, String> = emptyMap()): List<ScreenChange> {
-        if (old == new && shownValues.isEmpty()) return emptyList()
+    fun diff(old: ScreenElement, new: ScreenElement, reportedValues: Map<String, String> = emptyMap()): List<ScreenChange> {
+        if (old == new) return emptyList()
         val oldParents = parents(old) ?: return listOf(ScreenChange.Replace(old.id, new))
         val newParents = parents(new) ?: return listOf(ScreenChange.Replace(old.id, new))
-        val shownPath = HashSet<String>()
-        for (id in shownValues.keys) {
-            if (id !in oldParents) continue
-            generateSequence(id) { oldParents[it] }.forEach { shownPath += it }
-        }
         val replaced = HashSet<String>()
         for ((id, oldParent) in oldParents) {
             if (id !in newParents) continue
@@ -133,7 +130,7 @@ object ScreenDiff {
             replaced += ancestor
         }
         val changes = mutableListOf<ScreenChange>()
-        diffInto(old, new, Context(replaced, shownValues, shownPath), changes)
+        diffInto(old, new, Context(replaced, reportedValues), changes)
         return changes
     }
 
@@ -146,12 +143,12 @@ object ScreenDiff {
      * @param changes the list the changes are added to
      */
     private fun diffInto(old: ScreenElement, new: ScreenElement, context: Context, changes: MutableList<ScreenChange>) {
-        if (old == new && old.id !in context.shownPath) return
+        if (old == new) return
         if (old.id != new.id || old.javaClass != new.javaClass || old.id in context.replaced) {
             changes += ScreenChange.Replace(old.id, new)
             return
         }
-        val shown = context.shownValues[old.id]
+        val reported = context.reportedValues[old.id]
         val differing = differingFields(old, new)
         if (old is ContainerElement && new is ContainerElement) {
             val openField = if (old.javaClass in openableClasses) fieldNamed(old.javaClass, OPEN_FIELD) else null
@@ -161,8 +158,7 @@ object ScreenDiff {
                 if (diffChildren(old, new, context, childChanges)) {
                     if (openField != null) {
                         val open = openField.get(new) as Boolean
-                        val shownOpen = shown?.let { it == "true" } ?: (openField.get(old) as Boolean)
-                        if (open != shownOpen) changes += ScreenChange.SetOpen(new.id, open)
+                        if (open != openField.get(old) && open.toString() != reported) changes += ScreenChange.SetOpen(new.id, open)
                     }
                     changes += childChanges
                     return
@@ -173,10 +169,9 @@ object ScreenDiff {
             if (valueField != null && differing.all { it.name == valueField.name }) {
                 val field = fieldNamed(old.javaClass, valueField.name)
                 val value = valueField.encode(field.get(new))
-                if (value != (shown ?: valueField.encode(field.get(old)))) changes += ScreenChange.SetValue(new.id, value)
+                if (value != valueField.encode(field.get(old)) && value != reported) changes += ScreenChange.SetValue(new.id, value)
                 return
             }
-            if (differing.isEmpty()) return
         }
         changes += ScreenChange.Replace(old.id, new)
     }
@@ -277,11 +272,9 @@ object ScreenDiff {
      * The state of one comparison.
      *
      * @property replaced the ids of elements that must be replaced as a whole
-     * @property shownValues the values the open screen shows in place of those in the old tree
-     * @property shownPath the ids of the old tree's elements that hold an element of
-     *           [shownValues] or are one
+     * @property reportedValues the values the player last reported, keyed by element id
      */
-    private class Context(val replaced: Set<String>, val shownValues: Map<String, String>, val shownPath: Set<String>)
+    private class Context(val replaced: Set<String>, val reportedValues: Map<String, String>)
 
     /**
      * The field that holds the value of an input.

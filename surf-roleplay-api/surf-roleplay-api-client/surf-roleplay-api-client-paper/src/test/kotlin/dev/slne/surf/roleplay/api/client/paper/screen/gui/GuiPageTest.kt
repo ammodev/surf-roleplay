@@ -155,6 +155,40 @@ class GuiPageTest {
     }
 
     /**
+     * A page with an input whose rendered value follows a state that only its buttons change; its
+     * change handler counts the changes without storing the value.
+     */
+    class PresetInputPage : GuiPage() {
+        /**
+         * The value the input is rendered with.
+         */
+        var preset by state("x")
+
+        /**
+         * The number of handled changes.
+         */
+        var edits by state(0)
+
+        /**
+         * The title of the page.
+         */
+        override val title: Component = Component.text("Vorgabe")
+
+        /**
+         * Renders the input, the counter and the buttons that set the preset.
+         */
+        override fun ComponentScope.render() {
+            Column {
+                Input(value = preset, id = "free") { edits++ }
+                P("Änderungen: $edits", id = "edits")
+                Button("X", id = "set-x") { preset = "x" }
+                Button("Y", id = "set-y") { preset = "y" }
+                Button("ABC", id = "set-abc") { preset = "abc" }
+            }
+        }
+    }
+
+    /**
      * A page that moves the paragraph `x` between the rows `A` and `B`.
      */
     class MovePage : GuiPage() {
@@ -256,6 +290,63 @@ class GuiPageTest {
         fake.click("clear")
         assertEquals("", page.name)
         assertEquals(listOf(ScreenChange.SetValue("name", "")), fake.lastScreen.applied)
+    }
+
+    /**
+     * Verifies that an input whose change handler does not store the value keeps the typed text
+     * when the page renders again for another reason.
+     */
+    @Test
+    fun `an input that does not store its value keeps the typed text`() {
+        val fake = FakeOpener()
+        val page = fake.open(PresetInputPage())
+        fake.change("free", "abc")
+        assertEquals(1, page.edits)
+        assertEquals(listOf("edits"), fake.lastScreen.applied.map { (it as ScreenChange.Replace).targetId })
+    }
+
+    /**
+     * Verifies that a state change back to an earlier rendered value is sent after the player
+     * typed something else.
+     */
+    @Test
+    fun `a change back to an earlier rendered value is sent`() {
+        val fake = FakeOpener()
+        fake.open(PresetInputPage())
+        fake.click("set-y")
+        assertEquals(listOf(ScreenChange.SetValue("free", "y")), fake.lastScreen.applied)
+        fake.change("free", "abc")
+        assertEquals(emptyList(), fake.lastScreen.applied.filterIsInstance<ScreenChange.SetValue>())
+        fake.click("set-x")
+        assertEquals(listOf(ScreenChange.SetValue("free", "x")), fake.lastScreen.applied)
+    }
+
+    /**
+     * Verifies that a reported value stays reported across renders, so that a later state change
+     * to that value is not sent back.
+     */
+    @Test
+    fun `a reported value stays until it is superseded`() {
+        val fake = FakeOpener()
+        fake.open(PresetInputPage())
+        fake.change("free", "abc")
+        fake.click("set-abc")
+        assertTrue(fake.lastScreen.patches.none { patch -> patch.any { it is ScreenChange.SetValue } })
+    }
+
+    /**
+     * Verifies that a value the server sent replaces the reported value, so that a later state
+     * change to the formerly reported value is sent.
+     */
+    @Test
+    fun `a sent value supersedes the reported value`() {
+        val fake = FakeOpener()
+        fake.open(PresetInputPage())
+        fake.change("free", "abc")
+        fake.click("set-y")
+        assertEquals(listOf(ScreenChange.SetValue("free", "y")), fake.lastScreen.applied)
+        fake.click("set-abc")
+        assertEquals(listOf(ScreenChange.SetValue("free", "abc")), fake.lastScreen.applied)
     }
 
     /**

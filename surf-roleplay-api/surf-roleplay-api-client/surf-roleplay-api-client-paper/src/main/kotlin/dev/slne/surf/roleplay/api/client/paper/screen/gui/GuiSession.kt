@@ -2,8 +2,11 @@ package dev.slne.surf.roleplay.api.client.paper.screen.gui
 
 import dev.slne.surf.api.core.util.logger
 import dev.slne.surf.roleplay.api.client.common.screen.CloseHandler
+import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenElement
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.diff.ScreenDiff
@@ -70,8 +73,8 @@ internal class GuiSession(
     private var shown: ScreenDefinition? = null
 
     /**
-     * The values the player's screen shows in place of those in [shown], reported by change
-     * events since the last patch, keyed by element id.
+     * The values the player last reported through change events, keyed by element id, until a
+     * patch sends the element a new value or the element leaves the tree.
      */
     private val reported = HashMap<String, String>()
 
@@ -140,8 +143,8 @@ internal class GuiSession(
      * exception of the handler is logged and does not stop the re-render. Does nothing once the
      * screen is closed, or if the newest render has no such handler.
      *
-     * A reported value counts as shown by the screen from then on: a render that holds the same
-     * value sends no change for it, and a render that holds another value sends that value.
+     * A reported value is remembered: a later render that changes the element's value to the
+     * reported one sends no change for it.
      *
      * @param elementId the id of the element
      * @param kind the kind of handler
@@ -196,7 +199,42 @@ internal class GuiSession(
             }
         }
         shown = definition
-        reported.clear()
+        forgetSuperseded(changes, definition.root)
+    }
+
+    /**
+     * Forgets the reported values that a patch superseded: those of elements the patch set a
+     * value or open state on, replaced or inserted, and those of elements the new tree no longer
+     * holds.
+     *
+     * @param changes the changes of the patch
+     * @param root the root of the new tree
+     */
+    private fun forgetSuperseded(changes: List<ScreenChange>, root: ScreenElement) {
+        if (reported.isEmpty()) return
+        val present = HashSet<String>().also { collectIds(root, it) }
+        val sent = HashSet<String>()
+        for (change in changes) {
+            when (change) {
+                is ScreenChange.SetValue -> sent += change.targetId
+                is ScreenChange.SetOpen -> sent += change.targetId
+                is ScreenChange.Replace -> collectIds(change.element, sent)
+                is ScreenChange.Insert -> collectIds(change.element, sent)
+                else -> Unit
+            }
+        }
+        reported.keys.removeIf { it !in present || it in sent }
+    }
+
+    /**
+     * Adds the id of an element and of its descendants to a set.
+     *
+     * @param element the element
+     * @param into the set
+     */
+    private fun collectIds(element: ScreenElement, into: MutableSet<String>) {
+        into += element.id
+        if (element is ContainerElement) element.children.forEach { collectIds(it, into) }
     }
 
     /**

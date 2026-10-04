@@ -251,25 +251,38 @@ class ScreenDiffTest {
     }
 
     /**
-     * Verifies that an input whose value did not change between the trees gets the new value if
-     * the screen reported another one.
+     * Verifies that an input whose rendered value did not change gets no change, whatever value
+     * the screen reported, so that the text the player typed stays.
      */
     @Test
-    fun `a reported value that differs from the new value is set`() {
+    fun `an unchanged rendered value gives no change despite a reported value`() {
         val old = tree { Column { Input(value = "", id = "q"); P("a", id = "a") } }
-        val new = tree { Column { Input(value = "", id = "q"); P("a", id = "a") } }
-        assertEquals(listOf(ScreenChange.SetValue("q", "")), ScreenDiff.diff(old, new, mapOf("q" to "abc")))
+        val new = tree { Column { Input(value = "", id = "q"); P("b", id = "a") } }
+        assertEquals(listOf("a"), ScreenDiff.diff(old, new, mapOf("q" to "abc")).map { (it as ScreenChange.Replace).targetId })
     }
 
     /**
-     * Verifies that a reported open state counts as the overlay's shown state.
+     * Verifies that a new rendered value that differs from both the old rendered value and the
+     * reported value is set.
+     */
+    @Test
+    fun `a new value that differs from the rendered and reported values is set`() {
+        val old = tree { Column { Input(value = "y", id = "q") } }
+        val new = tree { Column { Input(value = "x", id = "q") } }
+        assertEquals(listOf(ScreenChange.SetValue("q", "x")), ScreenDiff.diff(old, new, mapOf("q" to "abc")))
+    }
+
+    /**
+     * Verifies that a reported open state counts as shown, and that an unchanged rendered open
+     * state gives no change.
      */
     @Test
     fun `a reported open state counts as shown`() {
         val old = tree { Column { Popover(open = false, id = "pop") { P("a", id = "a") } } }
         val new = tree { Column { Popover(open = true, id = "pop") { P("a", id = "a") } } }
         assertEquals(emptyList(), ScreenDiff.diff(old, new, mapOf("pop" to "true")))
-        assertEquals(listOf(ScreenChange.SetOpen("pop", false)), ScreenDiff.diff(old, old, mapOf("pop" to "true")))
+        assertEquals(listOf(ScreenChange.SetOpen("pop", true)), ScreenDiff.diff(old, new, mapOf("pop" to "false")))
+        assertEquals(emptyList(), ScreenDiff.diff(old, old, mapOf("pop" to "true")))
     }
 
     /**
