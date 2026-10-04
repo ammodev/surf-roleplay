@@ -1,5 +1,7 @@
 package dev.slne.surf.roleplay.protocol.tablist
 
+import dev.slne.surf.roleplay.protocol.ConnectionPhase
+import dev.slne.surf.roleplay.protocol.PacketDirection
 import dev.slne.surf.roleplay.protocol.Packets
 import dev.slne.surf.roleplay.protocol.ProtocolCodec
 import kotlin.test.Test
@@ -87,6 +89,11 @@ class TabListProtocolTest {
      */
     @Test
     fun `packet is registered`() {
-        assertTrue(Packets.all.contains(Packets.TAB_LIST_STATE))
+        val type = Packets.TAB_LIST_STATE
+        assertTrue(Packets.all.contains(type))
+        assertEquals(PacketDirection.CLIENTBOUND, type.direction)
+        assertEquals(setOf(ConnectionPhase.PLAY), type.phases)
+        assertEquals("tab_list_state", type.name)
+        assertEquals("roleplay:tab_list_state", type.channel)
     }
 }
