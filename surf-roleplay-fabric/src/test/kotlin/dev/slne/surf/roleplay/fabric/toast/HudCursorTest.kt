@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.fabric.toast
 
+import com.mojang.blaze3d.platform.InputConstants
 import dev.slne.surf.roleplay.fabric.settings.KeyMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -79,8 +80,13 @@ class HudCursorTest {
      */
     @Test
     fun `a mouse button bound to the cursor key is not taken`() {
-        assertFalse(HudCursor.takesButton("key.mouse.4", 3))
-        assertTrue(HudCursor.takesButton("key.mouse.4", 0))
-        assertTrue(HudCursor.takesButton("key.keyboard.left.alt", 3))
+        fun name(button: Int) = InputConstants.Type.MOUSE.getOrCreate(button).name
+        assertFalse(HudCursor.takesButton("key.mouse.4", name(3)))
+        assertTrue(HudCursor.takesButton("key.mouse.4", name(0)))
+        assertTrue(HudCursor.takesButton("key.keyboard.left.alt", name(3)))
+        assertFalse(HudCursor.takesButton("key.mouse.left", name(0)))
+        assertFalse(HudCursor.takesButton("key.mouse.right", name(1)))
+        assertFalse(HudCursor.takesButton("key.mouse.middle", name(2)))
+        assertTrue(HudCursor.takesButton("key.mouse.middle", name(0)))
     }
 }

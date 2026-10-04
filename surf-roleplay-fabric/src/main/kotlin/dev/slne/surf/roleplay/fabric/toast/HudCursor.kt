@@ -114,12 +114,12 @@ object HudCursor {
      * Decides whether the cursor mode takes the events of a mouse button.
      *
      * @param cursorKey the saved name of the key bound to the cursor, such as `key.mouse.4`
-     * @param button the mouse button
+     * @param buttonKey the saved name of the mouse button, such as `key.mouse.left`
      * @return `false` when the cursor key is bound to that very button, so that the key binding
      *         still sees its presses and releases; `true` otherwise
      */
-    fun takesButton(cursorKey: String, button: Int): Boolean =
-        cursorKey != "key.mouse.${button + 1}"
+    fun takesButton(cursorKey: String, buttonKey: String): Boolean =
+        cursorKey != buttonKey
 
     /**
      * Handles a mouse button while the cursor mode is on and no screen is open: a press is passed
@@ -133,7 +133,7 @@ object HudCursor {
     fun handleButton(button: Int, action: Int): Boolean {
         val mc = Minecraft.getInstance()
         if (!active || mc.gui.screen() != null) return false
-        if (!takesButton(key.saveString(), button)) return false
+        if (!takesButton(key.saveString(), InputConstants.Type.MOUSE.getOrCreate(button).name)) return false
         if (action == GLFW.GLFW_PRESS) {
             val (x, y) = position(mc)
             ToastLayer.click(x, y, button)
