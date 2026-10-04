@@ -81,7 +81,11 @@ class FakeOpenScreen(
     /**
      * Whether the screen is on the owner's stack.
      */
-    override val isOpen: Boolean get() = owner.stack.any { it === this }
+    override val isOpen: Boolean
+        get() {
+            check(!owner.strictIsOpen || owner.onOwningThread) { "isOpen used off the viewer's thread" }
+            return owner.stack.any { it === this }
+        }
 
     /**
      * Refuses a change before it is applied when it returns `true`, in addition to the changes the
@@ -263,6 +267,12 @@ class FakeOpener {
      * Whether the pages of this fake are used on their viewer's thread.
      */
     var onOwningThread: Boolean = true
+
+    /**
+     * Whether reading [FakeOpenScreen.isOpen] off the viewer's thread throws, as the server's
+     * screens do.
+     */
+    var strictIsOpen: Boolean = false
 
     /**
      * Whether the next open fails with an [IllegalStateException] before changing the stack.

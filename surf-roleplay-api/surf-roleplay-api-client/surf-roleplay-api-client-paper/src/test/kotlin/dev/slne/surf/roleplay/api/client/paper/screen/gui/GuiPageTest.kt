@@ -457,6 +457,23 @@ class GuiPageTest {
     }
 
     /**
+     * Verifies that a state write or `update` from another thread after the page's screen closed
+     * is a no-op that does not read the screen's open state.
+     */
+    @Test
+    fun `a write after the screen closed is a no-op off the viewer's thread`() {
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
+        fake.lastScreen.close()
+        fake.strictIsOpen = true
+        fake.onOwningThread = false
+        page.count = 9
+        page.update { page.count = 10 }
+        assertFalse(page.isOpen)
+        assertEquals(10, page.count)
+    }
+
+    /**
      * Verifies that search handlers are bound to their combobox and run the newest closure.
      */
     @Test

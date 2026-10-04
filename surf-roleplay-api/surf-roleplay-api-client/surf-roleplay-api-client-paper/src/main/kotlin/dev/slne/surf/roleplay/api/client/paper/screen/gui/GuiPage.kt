@@ -122,7 +122,9 @@ abstract class GuiPage {
 
     /**
      * Runs a block, such as one that changes state from outside a handler, and renders the page
-     * again afterwards if its state changed. Must be called on the player's region thread.
+     * again afterwards if its state changed. Must be called on the player's region thread while
+     * the page is open; before the page was opened and after its screen closed it only runs the
+     * block, on any thread.
      *
      * @param block the block
      * @throws IllegalStateException if the page is open and this is not the player's region
@@ -130,7 +132,7 @@ abstract class GuiPage {
      */
     fun update(block: () -> Unit) {
         val session = session
-        if (session == null) {
+        if (session == null || !session.isOpen) {
             block()
         } else {
             session.checkThread()

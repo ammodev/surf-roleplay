@@ -92,9 +92,15 @@ internal class GuiSession(
     private var reopening: Boolean = false
 
     /**
-     * Whether the page's screen is open.
+     * Whether the page's screen closed and the page is not reopened in place.
      */
-    val isOpen: Boolean get() = screen?.isOpen == true
+    private var closed: Boolean = false
+
+    /**
+     * Whether the page's screen is open. Once the screen closed this is `false` without asking the
+     * screen, so it can be read from any thread afterwards.
+     */
+    val isOpen: Boolean get() = !closed && screen?.isOpen == true
 
     /**
      * The session of the root page of the GUI this page belongs to.
@@ -306,7 +312,10 @@ internal class GuiSession(
         } catch (exception: Exception) {
             dirty = true
             reopening = false
-            if (!old.isOpen) page.onClosed()
+            if (!old.isOpen) {
+                closed = true
+                page.onClosed()
+            }
             throw exception
         } finally {
             reopening = false
@@ -323,6 +332,7 @@ internal class GuiSession(
      */
     private fun screenClosed() {
         if (reopening) return
+        closed = true
         try {
             page.onClosed()
         } finally {
