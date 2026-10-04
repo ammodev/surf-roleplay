@@ -275,7 +275,9 @@ fun ComponentScope.DataTableColumn(
 
 /**
  * Adds a row of a data table: one [DataTableCell] per column, in the order of the columns. The
- * view's selection names the row by its id.
+ * view's selection names the row by its id, so a row needs an explicit id derived from its data,
+ * such as a record key, for the selection to stay on the same record when rows are added,
+ * removed or reordered; a generated id follows the row's position instead.
  *
  * @param selectable whether the row can be selected
  * @param id the id of the row, or `null` for a generated one

@@ -904,35 +904,48 @@ fun ComponentScope.AlertDialogContent(
 fun ComponentScope.AlertDialogMedia(icon: String, id: String? = null): AlertDialogMediaElement = add(AlertDialogMediaElement(nextId(id), icon))
 
 /**
+ * Returns the id of the [DialogClose] that wraps an alert dialog button.
+ *
+ * @param buttonId the explicit id of the button, or `null` for a generated one
+ * @return the button id followed by `_close`, or `null` to generate the wrapper's id
+ * @throws IllegalArgumentException if [buttonId] is blank
+ */
+private fun closeWrapperId(buttonId: String?): String? {
+    require(buttonId == null || buttonId.isNotBlank()) { "An alert dialog button needs a non-blank id or none, got '$buttonId'" }
+    return buttonId?.let { "${it}_close" }
+}
+
+/**
  * Adds the action of an alert dialog: a button that runs its handler and closes the dialog,
  * wrapped in a [DialogClose]. The wrapper's id is the button's explicit id followed by `_close`,
- * or a generated one.
+ * or a generated one; with an explicit id, `<id>_close` is reserved for the wrapper.
  *
  * @param text the caption
  * @param variant the look of the button
  * @param id the id of the button, or `null` for a generated one
  * @param onClick the handler run when the player confirms, or `null` for none
  * @return the part that wraps the button
- * @throws IllegalArgumentException if [id] starts with `_`
+ * @throws IllegalArgumentException if [id] starts with `_` or is blank
  */
 fun ComponentScope.AlertDialogAction(
     text: Component,
     variant: ButtonVariant = ButtonVariant.DEFAULT,
     id: String? = null,
     onClick: ButtonHandler? = null,
-): DialogCloseElement = DialogClose(id?.let { "${it}_close" }) { Button(text, submitsInput = false, variant = variant, id = id, onClick = onClick) }
+): DialogCloseElement = DialogClose(closeWrapperId(id)) { Button(text, submitsInput = false, variant = variant, id = id, onClick = onClick) }
 
 /**
  * Adds the action of an alert dialog with a plain caption: a button that runs its handler and
  * closes the dialog, wrapped in a [DialogClose]. The wrapper's id is the button's explicit id
- * followed by `_close`, or a generated one.
+ * followed by `_close`, or a generated one; with an explicit id, `<id>_close` is reserved for the
+ * wrapper.
  *
  * @param text the caption
  * @param variant the look of the button
  * @param id the id of the button, or `null` for a generated one
  * @param onClick the handler run when the player confirms, or `null` for none
  * @return the part that wraps the button
- * @throws IllegalArgumentException if [id] starts with `_`
+ * @throws IllegalArgumentException if [id] starts with `_` or is blank
  */
 fun ComponentScope.AlertDialogAction(
     text: String,
@@ -944,27 +957,27 @@ fun ComponentScope.AlertDialogAction(
 /**
  * Adds the cancel button of an alert dialog: an outline button that closes the dialog, wrapped in
  * a [DialogClose]. The wrapper's id is the button's explicit id followed by `_close`, or a
- * generated one.
+ * generated one; with an explicit id, `<id>_close` is reserved for the wrapper.
  *
  * @param text the caption
  * @param id the id of the button, or `null` for a generated one
  * @param onClick the handler run when the player cancels, or `null` for none
  * @return the part that wraps the button
- * @throws IllegalArgumentException if [id] starts with `_`
+ * @throws IllegalArgumentException if [id] starts with `_` or is blank
  */
 fun ComponentScope.AlertDialogCancel(text: Component, id: String? = null, onClick: ButtonHandler? = null): DialogCloseElement =
-    DialogClose(id?.let { "${it}_close" }) { Button(text, submitsInput = false, variant = ButtonVariant.OUTLINE, id = id, onClick = onClick) }
+    DialogClose(closeWrapperId(id)) { Button(text, submitsInput = false, variant = ButtonVariant.OUTLINE, id = id, onClick = onClick) }
 
 /**
  * Adds the cancel button of an alert dialog with a plain caption: an outline button that closes
  * the dialog, wrapped in a [DialogClose]. The wrapper's id is the button's explicit id followed by
- * `_close`, or a generated one.
+ * `_close`, or a generated one; with an explicit id, `<id>_close` is reserved for the wrapper.
  *
  * @param text the caption
  * @param id the id of the button, or `null` for a generated one
  * @param onClick the handler run when the player cancels, or `null` for none
  * @return the part that wraps the button
- * @throws IllegalArgumentException if [id] starts with `_`
+ * @throws IllegalArgumentException if [id] starts with `_` or is blank
  */
 fun ComponentScope.AlertDialogCancel(text: String, id: String? = null, onClick: ButtonHandler? = null): DialogCloseElement =
     AlertDialogCancel(Component.text(text), id, onClick)

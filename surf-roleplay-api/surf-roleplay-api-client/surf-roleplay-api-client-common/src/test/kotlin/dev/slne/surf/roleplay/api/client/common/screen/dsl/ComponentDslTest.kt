@@ -736,6 +736,8 @@ class ComponentDslTest {
         assertEquals("_0.1.2", cancel.id)
         assertEquals(ButtonVariant.OUTLINE, assertIs<ButtonElement>(cancel.children[0]).variant)
         assertEquals(listOf("yes", "_0.1.2.0"), seen)
+        assertFailsWith<IllegalArgumentException> { renderRoot { AlertDialogAction("Ja", id = " ") } }
+        assertFailsWith<IllegalArgumentException> { renderRoot { AlertDialogCancel("Nein", id = "") } }
     }
 
     /**

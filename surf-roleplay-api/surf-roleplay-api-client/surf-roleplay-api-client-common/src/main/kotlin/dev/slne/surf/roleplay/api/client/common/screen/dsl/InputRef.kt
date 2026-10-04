@@ -23,7 +23,8 @@ class InputRef<T> internal constructor(val id: String, internal val parse: (Stri
 }
 
 /**
- * The parsers of the input value formats documented on [ScreenValues.all].
+ * The parsers that turn the string form of an input's value, or `null` if the screen has no such
+ * input, into a typed value. Each parser names the format it reads.
  */
 internal object InputParsers {
     /**
