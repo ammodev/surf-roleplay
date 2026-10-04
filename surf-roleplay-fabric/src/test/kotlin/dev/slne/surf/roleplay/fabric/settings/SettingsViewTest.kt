@@ -50,4 +50,13 @@ class SettingsViewTest {
         val ids = SettingsView.build(rows, setOf("hud_cursor"), null, ClientSettings()).all().map { it.id }.toSet()
         assertTrue("conflict_hud_cursor" in ids)
     }
+
+    /**
+     * Verifies that the tree does not repeat the screen title, which the panel's title bar shows.
+     */
+    @Test
+    fun `the tree does not repeat the title`() {
+        val texts = SettingsView.build(rows, emptySet(), null, ClientSettings()).all().map { it.toString() }
+        assertTrue(texts.none { "Roleplay-Einstellungen" in it })
+    }
 }

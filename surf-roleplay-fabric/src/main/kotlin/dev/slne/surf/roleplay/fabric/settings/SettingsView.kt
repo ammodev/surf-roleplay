@@ -8,7 +8,6 @@ import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonSize
 import dev.slne.surf.roleplay.protocol.screen.ButtonVariant
 import dev.slne.surf.roleplay.protocol.screen.CardContentNode
-import dev.slne.surf.roleplay.protocol.screen.CardHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.CardNode
 import dev.slne.surf.roleplay.protocol.screen.RowNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
@@ -23,7 +22,8 @@ import dev.slne.surf.roleplay.protocol.screen.TextNode
 /**
  * Builds the node tree of the roleplay settings screen.
  *
- * The tree is one card with the key bindings of the roleplay category and the cursor key mode.
+ * The tree is one card with the key bindings of the roleplay category and the cursor key mode;
+ * the screen title is shown by the panel, not by the tree.
  * Its interactive nodes have stable ids: `binding_<id>` is the key button of a binding,
  * `reset_<id>` restores its default key, `conflict_<id>` marks a binding whose key is also bound
  * elsewhere, `reset_all` restores every default key, and `cursor_mode` is the select of the
@@ -32,7 +32,7 @@ import dev.slne.surf.roleplay.protocol.screen.TextNode
 object SettingsView {
 
     /**
-     * The title of the settings screen.
+     * The title of the settings screen, shown in the panel's title bar.
      */
     const val TITLE: String = "Roleplay-Einstellungen"
 
@@ -85,7 +85,6 @@ object SettingsView {
             "settings",
             width = Sizing.fixed(CARD_WIDTH),
             children = listOf(
-                CardHeaderNode("settings_header", children = listOf(TextNode("settings_title", kind = TextKind.CARD_TITLE, text = text(TITLE)))),
                 CardContentNode(
                     "settings_content",
                     width = Sizing.grow(),
