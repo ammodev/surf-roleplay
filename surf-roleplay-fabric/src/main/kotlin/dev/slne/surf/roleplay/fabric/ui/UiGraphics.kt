@@ -16,7 +16,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
 import dev.slne.surf.roleplay.fabric.mixin.GuiGraphicsExtractorAccessor
-import dev.slne.surf.roleplay.fabric.mixin.ScissorStackAccessor
 import org.joml.Matrix3x2f
 import kotlin.math.roundToInt
 
@@ -477,7 +476,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     fun fills(data: IntArray, count: Int, dx: Int, dy: Int) {
         if (count <= 0) return
         val access = graphics as GuiGraphicsExtractorAccessor
-        val scissor = (access.`surfRoleplay$scissorStack`() as ScissorStackAccessor).`surfRoleplay$peek`()
+        val scissor = access.`surfRoleplay$scissorStack`().peek()
         access.`surfRoleplay$guiRenderState`().addGuiElement(FillBatchRenderState(data, count, dx, dy, Matrix3x2f(graphics.pose()), scissor))
     }
 

@@ -21,11 +21,10 @@ public interface GuiGraphicsExtractorAccessor {
     GuiRenderState surfRoleplay$guiRenderState();
 
     /**
-     * Returns the stack of scissor areas, typed as an object since its class is not accessible;
-     * it implements {@link ScissorStackAccessor}.
+     * Returns the stack of scissor areas, whose top is the scissor area in effect.
      *
      * @return the scissor stack
      */
     @Accessor("scissorStack")
-    Object surfRoleplay$scissorStack();
+    GuiGraphicsExtractor.ScissorStack surfRoleplay$scissorStack();
 }

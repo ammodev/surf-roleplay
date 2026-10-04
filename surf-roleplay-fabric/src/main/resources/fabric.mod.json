@@ -15,6 +15,7 @@
     ]
   },
   "mixins": ["surf-roleplay.mixins.json"],
+  "accessWidener": "surf-roleplay.accesswidener",
   "depends": {
     "fabricloader": ">=${fabricLoaderVersion}",
     "minecraft": "~${minecraftVersion}",

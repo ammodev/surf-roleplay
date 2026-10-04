@@ -18,6 +18,8 @@ kotlin {
 }
 
 loom {
+    accessWidenerPath = file("src/main/resources/surf-roleplay.accesswidener")
+
     runs {
         register("localClient") {
             inherit(getByName("client"))
