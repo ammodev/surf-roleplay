@@ -1,10 +1,13 @@
 package dev.slne.surf.roleplay.fabric.settings
 
-import dev.slne.surf.roleplay.protocol.screen.CardNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ContainerNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
+import dev.slne.surf.roleplay.protocol.screen.Orientation
 import dev.slne.surf.roleplay.protocol.screen.Sizing
+import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
+import dev.slne.surf.roleplay.protocol.screen.TabsNode
+import dev.slne.surf.roleplay.protocol.screen.TabsTriggerNode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -65,15 +68,54 @@ class SettingsViewTest {
     }
 
     /**
-     * Verifies that the card has a fixed comfortable width and that the binding rows sit in a
+     * Verifies that the tree is vertical tabs of a fixed size and that the binding rows sit in a
      * column with a gap between them.
      */
     @Test
-    fun `the card is wide and the binding rows are spaced`() {
-        val tree = SettingsView.build(rows, emptySet(), null, ClientSettings())
-        assertEquals(Sizing.fixed(380), (tree as CardNode).width)
+    fun `the tabs are vertical and the binding rows are spaced`() {
+        val tree = SettingsView.build(rows, emptySet(), null, ClientSettings()) as TabsNode
+        assertEquals(Orientation.VERTICAL, tree.orientation)
+        assertEquals(Sizing.fixed(390), tree.width)
+        assertEquals(Sizing.fixed(190), tree.height)
         val column = tree.all().first { it.id == "binding_rows" } as ColumnNode
         assertEquals(6, column.gap)
         assertTrue(column.children.any { it.id == "row_hud_cursor" })
+    }
+
+    /**
+     * Verifies that every category is a tab trigger with a content, and that the tabs report
+     * their changes.
+     */
+    @Test
+    fun `both categories are tab triggers`() {
+        val tree = SettingsView.build(rows, emptySet(), null, ClientSettings()) as TabsNode
+        val triggers = tree.all().filterIsInstance<TabsTriggerNode>().toList()
+        assertEquals(listOf("controls", "cursor"), triggers.map { it.value })
+        assertEquals(listOf("keyboard", "mouse-pointer"), triggers.map { it.icon })
+        assertTrue(triggers.all { "Steuerung" in it.text || "Mauszeiger" in it.text })
+        assertEquals(listOf("controls", "cursor"), tree.all().filterIsInstance<TabsContentNode>().map { it.value }.toList())
+        assertTrue(tree.notifyChange)
+    }
+
+    /**
+     * Verifies that each category's content holds its own widgets.
+     */
+    @Test
+    fun `each category holds its own content`() {
+        val tree = SettingsView.build(rows, emptySet(), null, ClientSettings()) as TabsNode
+        val contents = tree.children.filterIsInstance<TabsContentNode>().associateBy { it.value }
+        val controls = contents.getValue("controls").all().map { it.id }.toSet()
+        val cursor = contents.getValue("cursor").all().map { it.id }.toSet()
+        assertTrue("binding_hud_cursor" in controls && "reset_all" in controls && "cursor_mode" !in controls)
+        assertTrue("cursor_mode" in cursor && "binding_hud_cursor" !in cursor)
+    }
+
+    /**
+     * Verifies that the selected category is the one given, and the first one by default.
+     */
+    @Test
+    fun `the selected category is preserved`() {
+        assertEquals("controls", (SettingsView.build(rows, emptySet(), null, ClientSettings()) as TabsNode).value)
+        assertEquals("cursor", (SettingsView.build(rows, emptySet(), null, ClientSettings(), "cursor") as TabsNode).value)
     }
 }

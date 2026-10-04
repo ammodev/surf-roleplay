@@ -63,6 +63,11 @@ object SettingsScreen {
     private var capture = CaptureState()
 
     /**
+     * The id of the selected settings category, kept across re-renders.
+     */
+    private var category: String = SettingsView.categories.first().id
+
+    /**
      * Closes the settings screen whenever the roleplay server becomes inactive.
      *
      * @param state the roleplay server state
@@ -82,6 +87,7 @@ object SettingsScreen {
         val current = minecraft.gui.screen()
         if (current != null && current === screen) return
         capture = CaptureState()
+        category = SettingsView.categories.first().id
         previous = current
         val opened = RoleplayScreen()
         opened.keyInterceptor = ::interceptKey
@@ -144,7 +150,7 @@ object SettingsScreen {
         }
         val others = Minecraft.getInstance().options.keyMappings.filter { it.category != RoleplayKeys.category }.map { it.saveString() }
         val conflicts = KeyBindings.conflicts(mappings.map { idOf(it) to it.saveString() }, others)
-        return SettingsView.build(rows, conflicts, capture.capturing, RoleplayClient.settings.current)
+        return SettingsView.build(rows, conflicts, capture.capturing, RoleplayClient.settings.current, category)
     }
 
     /**
@@ -251,12 +257,17 @@ object SettingsScreen {
         }
 
         /**
-         * Stores a changed cursor key mode in the client settings.
+         * Remembers the selected settings category and stores a changed cursor key mode in the
+         * client settings.
          *
          * @param panel the panel
          * @param widget the input that changed
          */
         override fun valueChanged(panel: ScreenPanel, widget: Widget) {
+            if (widget.id == SettingsView.TABS_ID) {
+                category = widget.inputValue ?: return
+                return
+            }
             if (widget.id != SettingsView.CURSOR_MODE_ID) return
             val mode = KeyMode.entries.firstOrNull { it.name == widget.inputValue } ?: return
             RoleplayClient.settings.update { it.copy(cursorKeyMode = mode) }
