@@ -366,6 +366,16 @@ abstract class Widget(val id: String) {
     abstract fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int)
 
     /**
+     * Keeps the state a widget updates while it is drawn current during a frame in which it is
+     * not drawn because it lies outside the visible area. The mouse counts as away from the
+     * widget, as it is while the widget is drawn with the mouse hidden from it. Widgets without
+     * such state do nothing.
+     *
+     * @param context the screen showing the widget
+     */
+    open fun renderSkipped(context: UiContext) = Unit
+
+    /**
      * Handles a mouse click.
      *
      * @param context the screen showing the widget
@@ -558,7 +568,8 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
     }
 
     /**
-     * Draws every child.
+     * Draws the shown children that reach into the current clip, and lets the others keep their
+     * state through [renderSkipped].
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -566,7 +577,16 @@ open class ContainerWidget(id: String, val axis: Axis) : Widget(id) {
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
-        shownChildren.forEach { it.render(ui, context, mouseX, mouseY) }
+        renderVisible(shownChildren, ui, context, mouseX, mouseY)
+    }
+
+    /**
+     * Passes the skipped frame on to every shown child.
+     *
+     * @param context the screen showing the widget
+     */
+    override fun renderSkipped(context: UiContext) {
+        shownChildren.forEach { it.renderSkipped(context) }
     }
 
     /**
@@ -772,4 +792,44 @@ interface ShortcutWidget {
      * @return whether the key was the shortcut and was handled
      */
     fun shortcut(context: UiContext, event: KeyEvent): Boolean
+}
+
+/**
+ * How far outside its bounds a widget may still draw, such as a shadow or a separator that
+ * reaches past its edges. A widget this close to the clip is still drawn.
+ */
+internal const val CULL_MARGIN: Int = 8
+
+/**
+ * Returns the widgets that may show inside a clip: those whose bounds, enlarged by
+ * [CULL_MARGIN], overlap it.
+ *
+ * @param children the widgets, in drawing order
+ * @param clip the area drawing is clipped to, or `null` if nothing clips it
+ * @return the widgets that may show, in drawing order; all of them without a clip
+ */
+internal fun childrenIntersecting(children: List<Widget>, clip: Rect?): List<Widget> =
+    if (clip == null) children else children.filter { it.bounds.grow(CULL_MARGIN).intersects(clip) }
+
+/**
+ * Draws the widgets that may show inside the current clip and passes the frame to the others
+ * through [Widget.renderSkipped].
+ *
+ * @param children the widgets, in drawing order
+ * @param ui the graphics to draw with
+ * @param context the screen showing the widgets
+ * @param mouseX the mouse x position
+ * @param mouseY the mouse y position
+ */
+internal fun renderVisible(children: List<Widget>, ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
+    val visible = childrenIntersecting(children, ui.clip)
+    var next = 0
+    children.forEach { child ->
+        if (next < visible.size && visible[next] === child) {
+            next++
+            child.render(ui, context, mouseX, mouseY)
+        } else {
+            child.renderSkipped(context)
+        }
+    }
 }

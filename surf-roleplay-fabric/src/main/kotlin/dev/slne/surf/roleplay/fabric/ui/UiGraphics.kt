@@ -346,17 +346,27 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
-     * Runs drawing code that is clipped to a rectangle.
+     * The area drawing is currently clipped to, the overlap of every clip in effect, or `null`
+     * while nothing clips the drawing.
+     */
+    var clip: Rect? = null
+        private set
+
+    /**
+     * Runs drawing code that is clipped to a rectangle, within any clip already in effect.
      *
      * @param rect the rectangle to clip to
      * @param block the drawing code
      */
     fun clipped(rect: Rect, block: () -> Unit) {
+        val outer = clip
+        clip = outer?.intersection(rect) ?: rect
         graphics.enableScissor(rect.x, rect.y, rect.right, rect.bottom)
         try {
             block()
         } finally {
             graphics.disableScissor()
+            clip = outer
         }
     }
 
