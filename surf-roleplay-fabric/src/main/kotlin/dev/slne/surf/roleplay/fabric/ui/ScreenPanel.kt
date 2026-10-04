@@ -440,7 +440,8 @@ class ScreenPanel(
             ui.text(titleJson, panel.x + UiMetrics.PANEL_PADDING, panel.y + (UiMetrics.TITLE_BAR_HEIGHT - font.lineHeight + 1) / 2, tokens.cardForeground)
         }
 
-        val areas = stack.map { it.area(scopeFor(it), measurer ?: FontTextMeasurer(font)) }
+        val layers = stack.toList()
+        val areas = layers.map { it.area(scopeFor(it), measurer ?: FontTextMeasurer(font)) }
         val hit = mouseOverlay(areas, mouseX, mouseY)
         val mouseInside = active && viewport.contains(mouseX.toDouble(), mouseY.toDouble()) && hit < 0 && stack.none { it.modal }
         ui.clipped(viewport) {
@@ -452,7 +453,7 @@ class ScreenPanel(
         }
         if (scroll.maxOffset > 0) renderScrollBar(ui)
 
-        stack.toList().forEachIndexed { index, open ->
+        layers.forEachIndexed { index, open ->
             ui.nextLayer()
             if (open.modal) ui.fill(scopeFor(open), ThemeColors.withAlpha(BACKDROP, BACKDROP_ALPHA))
             val mouse = active && index == hit
