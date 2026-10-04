@@ -145,6 +145,33 @@ open class ComponentScope internal constructor(internal val path: List<Int>, int
     }
 
     /**
+     * Passes a click or press handler through the binder.
+     *
+     * @param elementId the id of the element the handler belongs to
+     * @param handler the handler, or `null` for none
+     * @return the bound handler, or `null` if [handler] is `null`
+     */
+    internal fun bindButton(elementId: String, handler: ButtonHandler?): ButtonHandler? = handler?.let { binder.button(elementId, it) }
+
+    /**
+     * Passes a change handler through the binder.
+     *
+     * @param elementId the id of the input the handler belongs to
+     * @param handler the handler, or `null` for none
+     * @return the bound handler, or `null` if [handler] is `null`
+     */
+    internal fun bindChange(elementId: String, handler: ChangeHandler?): ChangeHandler? = handler?.let { binder.change(elementId, it) }
+
+    /**
+     * Passes a search handler through the binder.
+     *
+     * @param elementId the id of the combobox the handler belongs to
+     * @param handler the handler, or `null` for none
+     * @return the bound handler, or `null` if [handler] is `null`
+     */
+    internal fun bindSearch(elementId: String, handler: SearchHandler?): SearchHandler? = handler?.let { binder.search(elementId, it) }
+
+    /**
      * Returns the only collected element.
      *
      * @return the element
