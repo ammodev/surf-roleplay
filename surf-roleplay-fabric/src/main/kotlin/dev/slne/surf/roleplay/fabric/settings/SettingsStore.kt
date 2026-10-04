@@ -2,7 +2,9 @@ package dev.slne.surf.roleplay.fabric.settings
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
+import java.nio.charset.CharacterCodingException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -28,9 +30,10 @@ class SettingsStore(private val file: Path) {
         private set
 
     /**
-     * Reads the settings file. A missing file gives the defaults and is not created; an unreadable
-     * file is moved to the same name with the suffix `.broken` and the defaults are used. A key that
-     * is missing or of the wrong type gets its default.
+     * Reads the settings file. A missing file gives the defaults and is not created; a file with
+     * invalid content is moved to the same name with the suffix `.broken` and the defaults are
+     * used; a file that cannot be read is left in place and the defaults are used. A key that is
+     * missing or of the wrong type gets its default.
      */
     fun load() {
         json = JsonObject()
@@ -41,15 +44,40 @@ class SettingsStore(private val file: Path) {
             json = parsed
             current = ClientSettings(cursorKeyMode = readKeyMode(parsed, "cursorKeyMode", KeyMode.HOLD))
         } catch (e: Exception) {
-            log.warn("Could not read the settings file {}, using defaults", file, e)
             json = JsonObject()
             current = ClientSettings()
-            try {
-                Files.move(file, file.resolveSibling(file.fileName.toString() + ".broken"), StandardCopyOption.REPLACE_EXISTING)
-            } catch (moveError: Exception) {
-                log.warn("Could not move the broken settings file {}", file, moveError)
+            if (isContentError(e)) {
+                log.warn("Could not parse the settings file {}, using defaults", file, e)
+                moveAside()
+            } else {
+                log.warn("Could not read the settings file {}, using defaults", file, e)
             }
         }
+    }
+
+    /**
+     * Moves the settings file to the same name with the suffix `.broken`, logging a warning on
+     * failure.
+     */
+    private fun moveAside() {
+        try {
+            Files.move(file, file.resolveSibling(file.fileName.toString() + ".broken"), StandardCopyOption.REPLACE_EXISTING)
+        } catch (e: Exception) {
+            log.warn("Could not move the broken settings file {}", file, e)
+        }
+    }
+
+    companion object {
+
+        /**
+         * Tells whether a failure while loading comes from the content of the file (malformed
+         * text, invalid JSON or JSON that is not an object) rather than from reading it.
+         *
+         * @param error the failure
+         * @return `true` for a content error, `false` for any other failure such as a locked file
+         */
+        fun isContentError(error: Exception): Boolean =
+            error is JsonParseException || error is IllegalStateException || error is CharacterCodingException
     }
 
     /**

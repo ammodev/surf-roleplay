@@ -80,4 +80,28 @@ class SettingsStoreTest {
         store.update { it.copy(cursorKeyMode = KeyMode.TOGGLE) }
         assertEquals(KeyMode.TOGGLE, heard?.cursorKeyMode)
     }
+
+    /**
+     * Verifies that a file that cannot be read is kept in place and defaults are used.
+     */
+    @Test
+    fun `unreadable file is kept and defaults are used`() {
+        val file = dir.resolve("surf-roleplay.json").also { Files.createDirectory(it) }
+        val store = SettingsStore(file).apply { load() }
+        assertEquals(ClientSettings(), store.current)
+        assertTrue(Files.isDirectory(file))
+        assertFalse(Files.exists(dir.resolve("surf-roleplay.json.broken")))
+    }
+
+    /**
+     * Verifies which failures count as content errors.
+     */
+    @Test
+    fun `only content failures are classified as content errors`() {
+        assertTrue(SettingsStore.isContentError(com.google.gson.JsonSyntaxException("x")))
+        assertTrue(SettingsStore.isContentError(IllegalStateException("not an object")))
+        assertTrue(SettingsStore.isContentError(java.nio.charset.MalformedInputException(1)))
+        assertFalse(SettingsStore.isContentError(java.io.IOException("locked")))
+        assertFalse(SettingsStore.isContentError(java.nio.file.AccessDeniedException("f")))
+    }
 }
