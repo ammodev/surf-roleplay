@@ -75,25 +75,6 @@ data class TabListConfig(
     }
 
     /**
-     * Writes these settings into the `tab-list` section of a configuration, replacing the
-     * section.
-     *
-     * @param config the plugin configuration
-     */
-    fun writeTo(config: ConfigurationSection) {
-        config.set(SECTION, null)
-        val section = config.createSection(SECTION)
-        section.set(RESTART_TIME, restartTime?.format(TIME_FORMAT) ?: "")
-        section.set(ANNOUNCEMENT, announcement ?: "")
-        val organisationsSection = section.createSection(ORGANISATIONS)
-        organisations.forEach { (key, settings) ->
-            val organisation = organisationsSection.createSection(key)
-            organisation.set(EXACT, settings.exact)
-            organisation.set(THRESHOLDS, settings.thresholds)
-        }
-    }
-
-    /**
      * Reads tab list settings from the plugin configuration.
      */
     companion object {

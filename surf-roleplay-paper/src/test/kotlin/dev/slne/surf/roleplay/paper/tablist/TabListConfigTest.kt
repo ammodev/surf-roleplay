@@ -121,36 +121,6 @@ class TabListConfigTest {
     }
 
     /**
-     * Verifies that written settings are read back unchanged.
-     */
-    @Test
-    fun `write and read back`() {
-        val config = TabListConfig(
-            organisations = mapOf("police" to TabListConfig.Organisation(exact = true, thresholds = listOf(2, 4))),
-            restartTime = LocalTime.of(4, 15),
-            announcement = "Wartung",
-        )
-        val yaml = YamlConfiguration()
-
-        config.writeTo(yaml)
-
-        assertEquals(config, TabListConfig.from(yaml(yaml.saveToString())))
-    }
-
-    /**
-     * Verifies that writing no announcement and no restart time reads back as none.
-     */
-    @Test
-    fun `write none and read back`() {
-        val config = TabListConfig(restartTime = null, announcement = null)
-        val yaml = YamlConfiguration()
-
-        config.writeTo(yaml)
-
-        assertEquals(config, TabListConfig.from(yaml(yaml.saveToString())))
-    }
-
-    /**
      * Verifies that the restart later today is chosen before it has passed.
      */
     @Test
