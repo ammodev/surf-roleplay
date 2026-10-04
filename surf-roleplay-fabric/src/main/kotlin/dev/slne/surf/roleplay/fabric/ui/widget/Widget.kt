@@ -115,6 +115,11 @@ interface UiContext {
     var clipboard: String
 
     /**
+     * Whether Shift was held when the mouse click that is being handled was pressed.
+     */
+    val shiftClick: Boolean get() = false
+
+    /**
      * Reports that the player changed an input's value.
      *
      * @param widget the input

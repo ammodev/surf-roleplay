@@ -118,6 +118,59 @@ object TextLines {
      */
     fun positionAt(text: String, line: Line, x: Int, measure: (String) -> Int): Int =
         (line.start..line.end).minBy { abs(measure(text.substring(line.start, it)) - x) }
+
+    /**
+     * Finds the character of a line that is drawn under a horizontal offset. Offsets before the
+     * line give its first character, offsets after it its last.
+     *
+     * @param text the whole text
+     * @param line the line
+     * @param x the offset from the start of the line
+     * @param measure returns the width of a string
+     * @return the index of the character, or the line's start for an empty line
+     */
+    fun charIndexAt(text: String, line: Line, x: Int, measure: (String) -> Int): Int {
+        if (line.start == line.end) return line.start
+        return (line.start until line.end).firstOrNull { measure(text.substring(line.start, it + 1)) > x } ?: (line.end - 1)
+    }
+}
+
+/**
+ * Applies a left click to the text and selection of a field: a single click places the cursor,
+ * a double click selects the word under the mouse, and a triple click selects a range chosen by
+ * the field. With Shift, the click extends the selection to the clicked position instead.
+ *
+ * @param edit the state of the field
+ * @param shown the text as drawn, such as a password mask, in which a double click finds the word
+ * @param clicks the click counter of the field
+ * @param context the screen showing the field
+ * @param x the mouse x position
+ * @param y the mouse y position
+ * @param position the cursor position closest to the click
+ * @param charIndex the index of the character under the click
+ * @param tripleRange the range a triple click selects
+ */
+internal fun applyTextClick(
+    edit: TextEditState,
+    shown: String,
+    clicks: ClickCounter,
+    context: UiContext,
+    x: Double,
+    y: Double,
+    position: Int,
+    charIndex: Int,
+    tripleRange: () -> TextRange,
+) {
+    if (context.shiftClick) {
+        clicks.reset()
+        edit.moveCursorTo(position, extend = true)
+        return
+    }
+    when (clicks.click(x, y, System.currentTimeMillis())) {
+        1 -> edit.cursor = position
+        2 -> TextBoundaries.wordAt(shown, charIndex).let { edit.select(it.start, it.end) }
+        else -> tripleRange().let { edit.select(it.start, it.end) }
+    }
 }
 
 /**
@@ -157,6 +210,11 @@ class TextareaWidget(
      * The cursor position the scrolling last followed.
      */
     private var followedCursor: Int = -1
+
+    /**
+     * Counts consecutive clicks to tell single, double and triple clicks apart.
+     */
+    private val clicks: ClickCounter = ClickCounter()
 
     /**
      * Whether the field can take the keyboard focus, which it can while enabled.
@@ -267,7 +325,9 @@ class TextareaWidget(
     }
 
     /**
-     * Focuses an enabled field when it is clicked and places the cursor at the clicked position.
+     * Focuses an enabled field when it is clicked. A left click places the cursor at the clicked
+     * position, a double click selects the word under the mouse and a triple click the line
+     * between line breaks; with Shift, the click extends the selection.
      *
      * @param context the screen showing the widget
      * @param x the mouse x position
@@ -282,10 +342,14 @@ class TextareaWidget(
         val measurer = measurer
         if (measurer == null) {
             edit.cursor = edit.text.length
-        } else {
-            val index = (firstLine + ((y - bounds.y - PADDING_Y) / measurer.lineHeight).toInt()).coerceIn(0, lines.lastIndex)
-            edit.cursor = TextLines.positionAt(edit.text, lines[index], (x - bounds.x - UiMetrics.WIDGET_PADDING).toInt(), measurer::plainWidth)
+            return true
         }
+        if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT) return true
+        val line = lines[(firstLine + ((y - bounds.y - PADDING_Y) / measurer.lineHeight).toInt()).coerceIn(0, lines.lastIndex)]
+        val offset = (x - bounds.x - UiMetrics.WIDGET_PADDING).toInt()
+        val position = TextLines.positionAt(edit.text, line, offset, measurer::plainWidth)
+        val charIndex = TextLines.charIndexAt(edit.text, line, offset, measurer::plainWidth)
+        applyTextClick(edit, edit.text, clicks, context, x, y, position, charIndex) { TextBoundaries.lineAt(edit.text, position) }
         return true
     }
 

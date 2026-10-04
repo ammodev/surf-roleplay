@@ -235,6 +235,12 @@ class ScreenPanel(
     private var wasSliding: Boolean = true
 
     /**
+     * Whether Shift was held when the last mouse click was pressed.
+     */
+    override var shiftClick: Boolean = false
+        private set
+
+    /**
      * The text on the system clipboard.
      */
     override var clipboard: String
@@ -531,9 +537,11 @@ class ScreenPanel(
      * @param x the mouse x position
      * @param y the mouse y position
      * @param button the mouse button
+     * @param shift whether Shift is held, which the clicked widget reads from [shiftClick]
      * @return whether the click was on the panel or its popover
      */
-    fun mouseClicked(x: Double, y: Double, button: Int): Boolean {
+    fun mouseClicked(x: Double, y: Double, button: Int, shift: Boolean = false): Boolean {
+        shiftClick = shift
         focusVisible = false
         for (index in stack.indices.reversed()) {
             val open = stack[index]

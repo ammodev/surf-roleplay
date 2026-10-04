@@ -220,6 +220,22 @@ open class TextInputWidget(
     private var scrollStart: Int = 0
 
     /**
+     * The measurer of the last layout or frame, used to find the clicked position.
+     */
+    private var measurer: TextMeasurer? = null
+
+    /**
+     * Counts consecutive clicks to tell single, double and triple clicks apart.
+     */
+    private val clicks: ClickCounter = ClickCounter()
+
+    /**
+     * The x position the field's text starts at, after the padding and the icon.
+     */
+    private val textLeft: Int
+        get() = bounds.x + UiMetrics.WIDGET_PADDING + if (icon != null) UiMetrics.INLINE_ICON + UiMetrics.ICON_GAP else 0
+
+    /**
      * Whether the field can be focused, which it can while enabled.
      */
     override val focusable: Boolean get() = enabled
@@ -250,7 +266,10 @@ open class TextInputWidget(
      * @param measurer the text measurer
      * @return the input size
      */
-    override fun contentSize(measurer: TextMeasurer): Size = Size(UiMetrics.INPUT_WIDTH, UiMetrics.WIDGET_HEIGHT)
+    override fun contentSize(measurer: TextMeasurer): Size {
+        this.measurer = measurer
+        return Size(UiMetrics.INPUT_WIDTH, UiMetrics.WIDGET_HEIGHT)
+    }
 
     /**
      * Draws the field with its text or placeholder and, while focused, the highlighted selection
@@ -262,6 +281,7 @@ open class TextInputWidget(
      * @param mouseY the mouse y position
      */
     override fun render(ui: UiGraphics, context: UiContext, mouseX: Int, mouseY: Int) {
+        measurer = ui
         val focused = context.focusedWidget === this
         val tokens = ui.tokens
         if (!embedded) {
@@ -283,7 +303,7 @@ open class TextInputWidget(
             ui.icon(name, Rect(bounds.x + UiMetrics.WIDGET_PADDING, bounds.y + (bounds.height - size) / 2, size, size), tokens.mutedForeground)
         }
         val innerWidth = bounds.width - 2 * UiMetrics.WIDGET_PADDING - iconWidth
-        val textX = bounds.x + UiMetrics.WIDGET_PADDING + iconWidth
+        val textX = textLeft
         val textY = bounds.y + (bounds.height - ui.lineHeight + 1) / 2
         ui.clipped(Rect(textX, bounds.y, innerWidth.coerceAtLeast(0), bounds.height)) {
             if (edit.text.isEmpty()) {
@@ -316,7 +336,10 @@ open class TextInputWidget(
     }
 
     /**
-     * Focuses an enabled field when it is clicked, and places the cursor at the end of the text.
+     * Focuses an enabled field when it is clicked. A left click places the cursor at the clicked
+     * position, a double click selects the word under the mouse and a triple click the whole
+     * text; with Shift, the click extends the selection. Before the field was measured, a click
+     * places the cursor at the end of the text.
      *
      * @param context the screen showing the widget
      * @param x the mouse x position
@@ -326,10 +349,20 @@ open class TextInputWidget(
      */
     override fun mouseClicked(context: UiContext, x: Double, y: Double, button: Int): Boolean {
         if (!isOver(x, y)) return false
-        if (enabled) {
-            context.focus(this)
+        if (!enabled) return true
+        context.focus(this)
+        val measurer = measurer
+        if (measurer == null) {
             edit.cursor = edit.text.length
+            return true
         }
+        if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT) return true
+        val shown = shownText
+        val line = TextLines.Line(scrollStart.coerceIn(0, shown.length), shown.length)
+        val offset = (x - textLeft).toInt()
+        val position = TextLines.positionAt(shown, line, offset, measurer::plainWidth)
+        val charIndex = TextLines.charIndexAt(shown, line, offset, measurer::plainWidth)
+        applyTextClick(edit, shown, clicks, context, x, y, position, charIndex) { TextRange(0, edit.text.length) }
         return true
     }
 

@@ -935,6 +935,17 @@ class ComboboxWidget(
     private var measurer: TextMeasurer? = null
 
     /**
+     * The x position the typed query started at in the last frame, or `null` before the first
+     * frame.
+     */
+    private var queryLeft: Int? = null
+
+    /**
+     * Counts consecutive clicks on the query to tell single, double and triple clicks apart.
+     */
+    private val clicks: ClickCounter = ClickCounter()
+
+    /**
      * Whether the combobox can take the keyboard focus, which it can while enabled.
      */
     override val focusable: Boolean get() = enabled
@@ -1054,6 +1065,7 @@ class ComboboxWidget(
         } else {
             chipRemoves = emptyList()
         }
+        queryLeft = textX
         ui.clipped(Rect(textX, bounds.y, (textRight - textX).coerceAtLeast(0), bounds.height)) {
             when {
                 edit.text.isNotEmpty() -> {
@@ -1170,7 +1182,9 @@ class ComboboxWidget(
 
     /**
      * Handles a click: a chip's remove button or the clear button act on the selection, anywhere
-     * else the combobox takes the focus and opens its list.
+     * else the combobox takes the focus and opens its list. Such a click places the cursor in the
+     * typed query, a double click selects the word under the mouse and a triple click the whole
+     * query; with Shift, the click extends the selection.
      *
      * @param context the screen showing the widget
      * @param x the mouse x position
@@ -1190,7 +1204,17 @@ class ComboboxWidget(
             clear(context)
             return true
         }
-        edit.cursor = edit.text.length
+        val measurer = measurer
+        val left = queryLeft
+        if (measurer == null || left == null) {
+            edit.cursor = edit.text.length
+        } else {
+            val line = TextLines.Line(0, edit.text.length)
+            val offset = (x - left).toInt()
+            val position = TextLines.positionAt(edit.text, line, offset, measurer::plainWidth)
+            val charIndex = TextLines.charIndexAt(edit.text, line, offset, measurer::plainWidth)
+            applyTextClick(edit, edit.text, clicks, context, x, y, position, charIndex) { TextRange(0, edit.text.length) }
+        }
         open(context)
         return true
     }
