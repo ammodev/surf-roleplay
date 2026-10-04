@@ -1,6 +1,5 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
-import net.minecraft.client.input.KeyEvent
 import org.lwjgl.glfw.GLFW
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,15 +11,14 @@ import kotlin.test.assertFalse
 class TextEditKeysTest {
 
     /**
-     * Returns a key event.
+     * Returns a key event with the platform's editing shortcut modifier for [ctrl].
      *
      * @param key the GLFW key code
-     * @param ctrl whether Control is held
+     * @param ctrl whether the editing shortcut modifier is held
      * @param shift whether Shift is held
      * @return the event
      */
-    private fun key(key: Int, ctrl: Boolean = false, shift: Boolean = false) =
-        KeyEvent(key, 0, (if (ctrl) GLFW.GLFW_MOD_CONTROL else 0) or (if (shift) GLFW.GLFW_MOD_SHIFT else 0))
+    private fun key(key: Int, ctrl: Boolean = false, shift: Boolean = false) = TestKeys.key(key, ctrl, shift)
 
     /**
      * Verifies that Control+A selects the whole text.
