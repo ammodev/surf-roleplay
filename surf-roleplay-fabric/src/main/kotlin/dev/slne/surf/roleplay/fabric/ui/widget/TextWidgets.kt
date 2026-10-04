@@ -221,7 +221,8 @@ class TextareaWidget(
     }
 
     /**
-     * Draws the field with its visible lines or placeholder and, while focused, a blinking cursor.
+     * Draws the field with its visible lines or placeholder and, while focused, the highlighted
+     * selection and a blinking cursor.
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -252,7 +253,9 @@ class TextareaWidget(
             if (edit.text.isEmpty() && !focused) ui.text(placeholder, textX, top + 1, tokens.mutedForeground)
             for (index in firstLine until minOf(lines.size, firstLine + visible)) {
                 val line = lines[index]
-                ui.plainText(edit.text.substring(line.start, line.end), textX, top + (index - firstLine) * ui.lineHeight + 1, color)
+                val lineY = top + (index - firstLine) * ui.lineHeight + 1
+                ui.plainText(edit.text.substring(line.start, line.end), textX, lineY, color)
+                if (focused) ui.textSelection(edit.text, line.start, line.end, edit, textX, lineY)
             }
             if (focused && System.currentTimeMillis() / CURSOR_BLINK_MILLIS % 2 == 0L) {
                 val lineIndex = TextLines.lineOf(lines, edit.cursor)
@@ -319,23 +322,26 @@ class TextareaWidget(
      * Moves the cursor to the closest position on the line above or below.
      *
      * @param delta `-1` for the line above, `1` for the line below
+     * @param extend whether to extend the selection; otherwise the selection is cleared
      */
-    private fun moveVertically(delta: Int) {
+    private fun moveVertically(delta: Int, extend: Boolean) {
         val measurer = measurer ?: return
         layoutLines(measurer)
         val current = TextLines.lineOf(lines, edit.cursor)
         val target = current + delta
         if (target !in lines.indices) {
-            edit.cursor = if (delta < 0) 0 else edit.text.length
+            edit.moveCursorTo(if (delta < 0) 0 else edit.text.length, extend)
             return
         }
         val line = lines[current]
         val x = measurer.plainWidth(edit.text.substring(line.start, edit.cursor.coerceIn(line.start, line.end)))
-        edit.cursor = TextLines.positionAt(edit.text, lines[target], x, measurer::plainWidth)
+        edit.moveCursorTo(TextLines.positionAt(edit.text, lines[target], x, measurer::plainWidth), extend)
     }
 
     /**
-     * Handles line breaks, cursor movement, deletion and pasting.
+     * Handles line breaks, pasting, moves between and within drawn lines, and the editing keys of
+     * [TextEditKeys]. Home and End move to the start and end of the drawn line, or of the whole
+     * text with Control; Shift extends the selection with every move.
      *
      * @param context the screen showing the widget
      * @param event the key event
@@ -347,18 +353,20 @@ class TextareaWidget(
             paste(context, context.clipboard)
             return true
         }
+        val extend = event.hasShiftDown()
+        val whole = event.hasControlDownWithQuirk()
         val line = lines.getOrNull(TextLines.lineOf(lines, edit.cursor))
         when (event.key()) {
             GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> if (edit.insert("\n")) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_BACKSPACE -> if (edit.backspace()) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_DELETE -> if (edit.delete()) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_LEFT -> edit.moveCursor(-1)
-            GLFW.GLFW_KEY_RIGHT -> edit.moveCursor(1)
-            GLFW.GLFW_KEY_UP -> moveVertically(-1)
-            GLFW.GLFW_KEY_DOWN -> moveVertically(1)
-            GLFW.GLFW_KEY_HOME -> edit.cursor = line?.start ?: 0
-            GLFW.GLFW_KEY_END -> edit.cursor = line?.end ?: edit.text.length
-            else -> return false
+            GLFW.GLFW_KEY_UP -> moveVertically(-1, extend)
+            GLFW.GLFW_KEY_DOWN -> moveVertically(1, extend)
+            GLFW.GLFW_KEY_HOME -> edit.moveCursorTo(if (whole) 0 else line?.start ?: 0, extend)
+            GLFW.GLFW_KEY_END -> edit.moveCursorTo(if (whole) edit.text.length else line?.end ?: edit.text.length, extend)
+            else -> return when (TextEditKeys.handle(edit, event)) {
+                TextEditKeys.Result.IGNORED -> false
+                TextEditKeys.Result.MOVED -> true
+                TextEditKeys.Result.CHANGED -> true.also { markChanged(context, immediate = false) }
+            }
         }
         return true
     }

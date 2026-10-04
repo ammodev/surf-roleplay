@@ -253,8 +253,8 @@ open class TextInputWidget(
     override fun contentSize(measurer: TextMeasurer): Size = Size(UiMetrics.INPUT_WIDTH, UiMetrics.WIDGET_HEIGHT)
 
     /**
-     * Draws the field with its text or placeholder and, while focused, a blinking cursor. The
-     * border shows focus and invalid values.
+     * Draws the field with its text or placeholder and, while focused, the highlighted selection
+     * and a blinking cursor. The border shows focus and invalid values.
      *
      * @param ui the graphics to draw with
      * @param context the screen showing the widget
@@ -292,6 +292,7 @@ open class TextInputWidget(
                 keepCursorVisible(ui, innerWidth)
                 val visible = ui.font.plainSubstrByWidth(shown.substring(scrollStart), innerWidth)
                 ui.plainText(visible, textX, textY, if (enabled) tokens.foreground else ui.disabled(tokens.foreground))
+                if (focused) ui.textSelection(shown, scrollStart, scrollStart + visible.length, edit, textX, textY)
             }
             if (focused && System.currentTimeMillis() / CURSOR_BLINK_MILLIS % 2 == 0L) {
                 keepCursorVisible(ui, innerWidth)
@@ -333,7 +334,8 @@ open class TextInputWidget(
     }
 
     /**
-     * Handles cursor movement, deletion and pasting.
+     * Handles pasting and the editing keys of [TextEditKeys]: cursor and word movement,
+     * selection and deletion.
      *
      * @param context the screen showing the widget
      * @param event the key event
@@ -345,16 +347,11 @@ open class TextInputWidget(
             if (edit.insert(context.clipboard.replace("\n", "").replace("\r", ""))) markChanged(context, immediate = false)
             return true
         }
-        when (event.key()) {
-            GLFW.GLFW_KEY_BACKSPACE -> if (edit.backspace()) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_DELETE -> if (edit.delete()) markChanged(context, immediate = false)
-            GLFW.GLFW_KEY_LEFT -> edit.moveCursor(-1)
-            GLFW.GLFW_KEY_RIGHT -> edit.moveCursor(1)
-            GLFW.GLFW_KEY_HOME -> edit.cursor = 0
-            GLFW.GLFW_KEY_END -> edit.cursor = edit.text.length
-            else -> return false
+        return when (TextEditKeys.handle(edit, event)) {
+            TextEditKeys.Result.IGNORED -> false
+            TextEditKeys.Result.MOVED -> true
+            TextEditKeys.Result.CHANGED -> true.also { markChanged(context, immediate = false) }
         }
-        return true
     }
 
     /**

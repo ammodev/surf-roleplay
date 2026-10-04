@@ -1056,7 +1056,10 @@ class ComboboxWidget(
         }
         ui.clipped(Rect(textX, bounds.y, (textRight - textX).coerceAtLeast(0), bounds.height)) {
             when {
-                edit.text.isNotEmpty() -> ui.plainText(edit.text, textX, textY, fade(tokens.foreground))
+                edit.text.isNotEmpty() -> {
+                    ui.plainText(edit.text, textX, textY, fade(tokens.foreground))
+                    if (focused) ui.textSelection(edit.text, 0, edit.text.length, edit, textX, textY)
+                }
                 !multiple && chosen.isNotEmpty() -> ui.text(chosenLabels[chosen.first()] ?: "", textX, textY, fade(if (focused) tokens.mutedForeground else tokens.foreground))
                 chosen.isEmpty() -> ui.text(placeholder, textX, textY, fade(tokens.mutedForeground))
             }
@@ -1193,8 +1196,8 @@ class ComboboxWidget(
     }
 
     /**
-     * Moves the list highlight, chooses the highlighted option, edits the query and removes the
-     * last chip with Backspace in an empty field.
+     * Moves the list highlight, chooses the highlighted option, edits the query with the editing
+     * keys of [TextEditKeys], and removes the last chip with Backspace at the start of the field.
      *
      * @param context the screen showing the widget
      * @param event the key event
@@ -1220,21 +1223,16 @@ class ComboboxWidget(
                 list.highlightedOption?.let { choose(it.value, context) }
             }
 
-            GLFW.GLFW_KEY_BACKSPACE -> when {
-                edit.backspace() -> {
+            else -> if (event.key() == GLFW.GLFW_KEY_BACKSPACE && multiple && chosen.isNotEmpty() && edit.cursor == 0 && !edit.hasSelection) {
+                remove(chosen.last(), context)
+            } else when (TextEditKeys.handle(edit, event)) {
+                TextEditKeys.Result.IGNORED -> return false
+                TextEditKeys.Result.MOVED -> Unit
+                TextEditKeys.Result.CHANGED -> {
                     queryChanged(context)
-                    open(context)
+                    if (event.key() == GLFW.GLFW_KEY_BACKSPACE) open(context)
                 }
-
-                multiple && chosen.isNotEmpty() -> remove(chosen.last(), context)
             }
-
-            GLFW.GLFW_KEY_DELETE -> if (edit.delete()) queryChanged(context)
-            GLFW.GLFW_KEY_LEFT -> edit.moveCursor(-1)
-            GLFW.GLFW_KEY_RIGHT -> edit.moveCursor(1)
-            GLFW.GLFW_KEY_HOME -> edit.cursor = 0
-            GLFW.GLFW_KEY_END -> edit.cursor = edit.text.length
-            else -> return false
         }
         return true
     }
