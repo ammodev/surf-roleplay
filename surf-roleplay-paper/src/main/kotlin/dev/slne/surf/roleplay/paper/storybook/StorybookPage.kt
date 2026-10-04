@@ -15,6 +15,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.EmptyHeader
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.EmptyMedia
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.EmptyTitle
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.H2
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Icon
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Large
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Muted
@@ -114,6 +115,11 @@ class StorybookPage(
     internal var dark: Boolean by state(true)
 
     /**
+     * Whether the storybook's sidebar is expanded, as the player last set it.
+     */
+    internal var sidebarOpen: Boolean by state(true)
+
+    /**
      * The title of the storybook's screen.
      */
     override val title: Component = Component.text("Storybook")
@@ -131,14 +137,15 @@ class StorybookPage(
     /**
      * Renders the sidebar and the content area with the shown story. The page fills the window
      * height; the story list and the story content scroll on their own, so the sidebar header and
-     * the story header stay in place.
+     * the story header stay in place. The sidebar header shows the title while the sidebar is
+     * expanded and an icon while it is collapsed to icons.
      */
     override fun ComponentScope.render() {
         val shown = stories.firstOrNull { it.key == storyKey }
-        SidebarProvider(ElementSize.grow(), ElementSize.grow(), id = "storybook") {
+        SidebarProvider(ElementSize.grow(), ElementSize.grow(), open = sidebarOpen, onChange = { sidebarOpen = it.value == "true" }, id = "storybook") {
             Sidebar(collapsible = SidebarCollapsible.ICON, id = "storybook_sidebar") {
                 SidebarHeader {
-                    Large("Storybook")
+                    if (sidebarOpen) Large("Storybook", maxLines = 1, id = "storybook_title") else Icon("book-open", id = "storybook_logo")
                 }
                 ScrollArea(ElementSize.grow(), ElementSize.grow(), id = "storybook_stories") {
                     SidebarContent {

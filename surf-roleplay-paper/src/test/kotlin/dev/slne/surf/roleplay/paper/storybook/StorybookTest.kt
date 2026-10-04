@@ -447,6 +447,25 @@ class StorybookTest {
     }
 
     /**
+     * The sidebar header shows the title while the sidebar is expanded and only an icon while it
+     * is collapsed to icons.
+     */
+    @Test
+    fun `the collapsed sidebar header shows an icon instead of the title`() {
+        val page = StorybookPage(UUID.randomUUID(), reports::add) { testStories }
+        fun header() = elements(definition(page).root).filterIsInstance<SidebarHeaderElement>().single()
+
+        assertEquals(listOf("Storybook"), header().children.filterIsInstance<TextElement>().map { PlainTextComponentSerializer.plainText().serialize(it.text) })
+        val session = open(page)
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChangePacket(session, "storybook", "false")))
+
+        assertEquals(false, page.sidebarOpen)
+        assertEquals(emptyList(), header().children.filterIsInstance<TextElement>())
+        assertEquals(1, header().children.filterIsInstance<IconElement>().size)
+        assertEquals(false, (definition(page).root as SidebarProviderElement).open)
+    }
+
+    /**
      * The sidebar highlights the shown story, and a click on another story shows it.
      */
     @Test
