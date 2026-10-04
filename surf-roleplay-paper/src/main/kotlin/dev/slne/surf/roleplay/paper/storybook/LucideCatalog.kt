@@ -1,6 +1,12 @@
 package dev.slne.surf.roleplay.paper.storybook
 
 import com.google.gson.JsonParser
+import dev.slne.surf.api.core.util.logger
+
+/**
+ * The logger of a missing icon index.
+ */
+private val log = logger()
 
 /**
  * One Lucide icon as the gallery lists it.
@@ -75,10 +81,14 @@ class LucideCatalog(val icons: List<IconInfo>) {
         /**
          * Loads the index bundled in the plugin jar.
          *
-         * @return the catalog, or an empty one if the index is missing
+         * @return the catalog, or an empty one, with a logged warning, if the index is missing
          */
         fun load(): LucideCatalog {
-            val stream = LucideCatalog::class.java.getResourceAsStream(RESOURCE) ?: return LucideCatalog(emptyList())
+            val stream = LucideCatalog::class.java.getResourceAsStream(RESOURCE)
+            if (stream == null) {
+                log.atWarning().log("The Lucide icon index %s is missing from the plugin jar; the icon gallery is empty", RESOURCE)
+                return LucideCatalog(emptyList())
+            }
             return stream.use { parse(it.readBytes().toString(Charsets.UTF_8)) }
         }
     }
