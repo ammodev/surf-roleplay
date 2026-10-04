@@ -4,6 +4,7 @@ import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
 import dev.slne.surf.roleplay.api.common.user.UserManager
 import dev.slne.surf.roleplay.core.client.common.ClientInstance
 import dev.slne.surf.roleplay.core.client.common.user.CoreClientUserManager
+import dev.slne.surf.roleplay.paper.crafting.CraftingBlocker
 import dev.slne.surf.roleplay.paper.handshake.HandshakeConfig
 import dev.slne.surf.roleplay.paper.handshake.HandshakeEvaluator
 import dev.slne.surf.roleplay.paper.handshake.HandshakeListener
@@ -36,8 +37,8 @@ class PaperMain : SuspendingJavaPlugin() {
 
     /**
      * Enables the client instance, registers the roleplay payload channels, the mod handshake, the
-     * welcome sender, the screen service and the screen debug command, and registers the listener
-     * that acquires a hold on the roleplay user of every player logging in and releases it when the
+     * welcome sender, the screen service, the screen debug command and the vanilla crafting block,
+     * and registers the listener that acquires a hold on the roleplay user of every player logging in and releases it when the
      * player's connection closes.
      *
      * @throws IllegalStateException if the registered user manager is not the client user manager
@@ -57,6 +58,7 @@ class PaperMain : SuspendingJavaPlugin() {
         PaperScreenService.INSTANCE.start(this, packetRegistry, config.getInt("screens.max-actions-per-second", 20))
         PaperToastService.INSTANCE.start(this, packetRegistry, PaperScreenService.INSTANCE.actionLimiter)
         ScreenDebugCommand.register(this)
+        server.pluginManager.registerEvents(CraftingBlocker(), this)
 
         val userManager = UserManager.INSTANCE as? CoreClientUserManager
             ?: error(
