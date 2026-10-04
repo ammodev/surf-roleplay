@@ -78,4 +78,35 @@ class ShapeFills(private val target: FillTarget) {
     fun roundedBorder(rect: Rect, color: Int, radius: Int, corners: Corners = Corners.ALL) {
         rects(RoundedShape.merge(RoundedShape.borderSpans(rect, radius, corners)), color)
     }
+
+    /**
+     * Draws a dashed one-pixel border along the inside of a rectangle as one GUI element: the
+     * dashes along the top and bottom edges from left to right, then those along the left and
+     * right edges from top to bottom.
+     *
+     * @param rect the rectangle
+     * @param color the ARGB colour
+     * @param dash the length of a dash
+     * @param space the length of the space between two dashes
+     */
+    fun dashedBorder(rect: Rect, color: Int, dash: Int, space: Int) {
+        if (rect.width <= 0 || rect.height <= 0) return
+        val step = (dash + space).coerceAtLeast(1)
+        val dashes = mutableListOf<Rect>()
+        var x = rect.x
+        while (x < rect.right) {
+            val length = minOf(dash, rect.right - x)
+            dashes += Rect(x, rect.y, length, 1)
+            dashes += Rect(x, rect.bottom - 1, length, 1)
+            x += step
+        }
+        var y = rect.y
+        while (y < rect.bottom) {
+            val length = minOf(dash, rect.bottom - y)
+            dashes += Rect(rect.x, y, 1, length)
+            dashes += Rect(rect.right - 1, y, 1, length)
+            y += step
+        }
+        rects(dashes, color)
+    }
 }

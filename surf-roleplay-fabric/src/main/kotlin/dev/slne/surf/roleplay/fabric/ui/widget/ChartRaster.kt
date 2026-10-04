@@ -71,8 +71,8 @@ class FillList {
         add(rect.x * scale - originX, rect.y * scale - originY, rect.right * scale - originX, rect.bottom * scale - originY, color)
 
     /**
-     * Adds a rectangle with rounded corners given in GUI pixels at a scale, one row of GUI pixels
-     * at a time, as [UiGraphics.fillRounded] fills it.
+     * Adds a rectangle with rounded corners given in GUI pixels at a scale, covering the same GUI
+     * pixels as [UiGraphics.fillRounded], with one rectangle per run of rows with the same columns.
      *
      * @param rect the rectangle in GUI pixels
      * @param radius the corner radius
@@ -83,9 +83,7 @@ class FillList {
      * @param color the ARGB colour
      */
     fun addRounded(rect: Rect, radius: Int, corners: Corners, scale: Int, originX: Int, originY: Int, color: Int) {
-        RoundedShape.spans(rect, radius, corners).forEach { span ->
-            add(span.x0 * scale - originX, span.y * scale - originY, span.x1 * scale - originX, (span.y + 1) * scale - originY, color)
-        }
+        RoundedShape.merge(RoundedShape.spans(rect, radius, corners)).forEach { run -> addScaled(run, scale, originX, originY, color) }
     }
 
     /**

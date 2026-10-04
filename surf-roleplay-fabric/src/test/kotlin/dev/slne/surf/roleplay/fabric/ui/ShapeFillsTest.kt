@@ -120,4 +120,25 @@ class ShapeFillsTest {
         assertEquals(listOf(listOf(listOf(0, 0, 2, 2, 3), listOf(5, 5, 6, 8, 3))), target.batches)
         assertEquals(1, shapes.elements)
     }
+
+    /**
+     * Verifies that a dashed border is one element with the dashes along the top and bottom
+     * edges first and then along the left and right edges.
+     */
+    @Test
+    fun `a dashed border is one element`() {
+        val target = CountingTarget()
+        val shapes = ShapeFills(target)
+
+        shapes.dashedBorder(Rect(0, 0, 8, 4), 5, 3, 2)
+
+        assertEquals(1, shapes.elements)
+        assertEquals(
+            listOf(
+                listOf(0, 0, 3, 1, 5), listOf(0, 3, 3, 4, 5), listOf(5, 0, 8, 1, 5), listOf(5, 3, 8, 4, 5),
+                listOf(0, 0, 1, 3, 5), listOf(7, 0, 8, 3, 5),
+            ),
+            target.batches.single(),
+        )
+    }
 }

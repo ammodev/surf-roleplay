@@ -821,7 +821,7 @@ class ChartWidget(
             when (options.indicator) {
                 ChartIndicator.DOT -> ui.fillRounded(Rect(left, rowY + (ui.lineHeight - INDICATOR) / 2, INDICATOR, INDICATOR), colour, 1)
                 ChartIndicator.LINE -> ui.fill(Rect(left + 1, rowY - 1, 2, ui.lineHeight + 1), colour)
-                ChartIndicator.DASHED -> for (dash in 0 until ui.lineHeight + 1 step 3) ui.fill(Rect(left + 1, rowY - 1 + dash, 2, 2), colour)
+                ChartIndicator.DASHED -> ui.fillRects((0 until ui.lineHeight + 1 step 3).map { dash -> Rect(left + 1, rowY - 1 + dash, 2, 2) }, colour)
             }
             ui.text(label, left + INDICATOR_SPACE, rowY, tokens.mutedForeground)
             val text = ChartMath.format(value)

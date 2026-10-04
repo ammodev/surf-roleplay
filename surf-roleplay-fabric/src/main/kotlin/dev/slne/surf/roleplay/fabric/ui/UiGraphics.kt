@@ -322,7 +322,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
         val cell = index.find(name)
         if (cell == null) {
             border(rect, color)
-            for (step in 0 until minOf(rect.width, rect.height)) graphics.fill(rect.x + step, rect.y + step, rect.x + step + 1, rect.y + step + 1, color)
+            fillRects(List(minOf(rect.width, rect.height)) { step -> Rect(rect.x + step, rect.y + step, 1, 1) }, color)
             return
         }
         graphics.blit(
@@ -410,22 +410,18 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param space the length of the space between two dashes
      */
     fun dashedBorder(rect: Rect, color: Int, dash: Int = 3, space: Int = 2) {
-        if (rect.width <= 0 || rect.height <= 0) return
-        val step = dash + space
-        var x = rect.x
-        while (x < rect.right) {
-            val length = minOf(dash, rect.right - x)
-            fill(Rect(x, rect.y, length, 1), color)
-            fill(Rect(x, rect.bottom - 1, length, 1), color)
-            x += step
-        }
-        var y = rect.y
-        while (y < rect.bottom) {
-            val length = minOf(dash, rect.bottom - y)
-            fill(Rect(rect.x, y, 1, length), color)
-            fill(Rect(rect.right - 1, y, 1, length), color)
-            y += step
-        }
+        shapes.dashedBorder(rect, color, dash, space)
+    }
+
+    /**
+     * Fills rectangles in one colour as one GUI element, in order, which looks the same as
+     * filling them one by one.
+     *
+     * @param rects the rectangles
+     * @param color the ARGB colour
+     */
+    fun fillRects(rects: List<Rect>, color: Int) {
+        shapes.rects(rects, color)
     }
 
     /**
