@@ -66,7 +66,7 @@ object TypedScreens {
     /**
      * The factories keyed by screen type key.
      */
-    private val factories: Map<String, TypedScreenFactory> = emptyMap()
+    private val factories: MutableMap<String, TypedScreenFactory> = mutableMapOf()
 
     /**
      * Looks up the factory of a screen type.
@@ -75,4 +75,23 @@ object TypedScreens {
      * @return the factory, or `null` if the mod does not implement the type
      */
     fun factory(key: String): TypedScreenFactory? = factories[key]
+
+    /**
+     * Registers the factory of a screen type, replacing any factory registered for the same key.
+     *
+     * @param key the screen type key
+     * @param factory the factory that creates the views of the type
+     */
+    internal fun register(key: String, factory: TypedScreenFactory) {
+        factories[key] = factory
+    }
+
+    /**
+     * Removes the factory of a screen type.
+     *
+     * @param key the screen type key
+     */
+    internal fun unregister(key: String) {
+        factories.remove(key)
+    }
 }
