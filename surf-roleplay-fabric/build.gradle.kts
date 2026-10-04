@@ -78,3 +78,8 @@ apply(from = "lucide.gradle.kts")
 tasks.withType<JavaCompile>().configureEach {
     options.release = 25
 }
+
+tasks.jar {
+    // The Kotlin module file can appear in both the Kotlin and the Java class output.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
