@@ -328,6 +328,28 @@ class GuiNavigationTest {
     }
 
     /**
+     * Verifies that a reopen whose open fails keeps the page open on its old screen without
+     * running `onClosed`, and that the next flush reopens it.
+     */
+    @Test
+    fun `a failed reopen keeps the page open and retries`() {
+        val fake = FakeOpener()
+        val page = fake.open(NavPage())
+        val screen = fake.lastScreen
+        fake.failNextOpen = true
+        assertFailsWith<IllegalStateException> { page.update { page.dark = true } }
+        assertTrue(page.isOpen)
+        assertTrue(screen.isOpen)
+        assertEquals(0, page.closedCount)
+        assertEquals(1, fake.opened.size)
+        page.update {}
+        assertEquals(2, fake.opened.size)
+        assertEquals(ScreenVariant.DARK, fake.lastScreen.definition.variant)
+        assertTrue(page.isOpen)
+        assertEquals(0, page.closedCount)
+    }
+
+    /**
      * Verifies that navigation calls fail while the page is not open.
      */
     @Test

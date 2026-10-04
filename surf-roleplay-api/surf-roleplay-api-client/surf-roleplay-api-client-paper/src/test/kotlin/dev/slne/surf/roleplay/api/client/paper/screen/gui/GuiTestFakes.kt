@@ -234,6 +234,11 @@ class FakeOpener {
     val viewer = Any()
 
     /**
+     * Whether the next open fails with an [IllegalStateException] before changing the stack.
+     */
+    var failNextOpen: Boolean = false
+
+    /**
      * The last opened screen.
      */
     val lastScreen: FakeOpenScreen get() = opened.last()
@@ -259,8 +264,13 @@ class FakeOpener {
      * @param presentation how the screen is shown
      * @param sheetSide the edge of a sheet
      * @return the screen
+     * @throws IllegalStateException if [failNextOpen] was set
      */
     fun openScreen(definition: ScreenDefinition, parent: OpenScreen?, presentation: ScreenPresentation, sheetSide: SheetSide): FakeOpenScreen {
+        if (failNextOpen) {
+            failNextOpen = false
+            throw IllegalStateException("open refused")
+        }
         val index = if (parent == null) -1 else stack.indexOfFirst { it === parent }
         require(parent == null || index >= 0) { "The parent screen is not open" }
         val removed = removeAbove(index)
