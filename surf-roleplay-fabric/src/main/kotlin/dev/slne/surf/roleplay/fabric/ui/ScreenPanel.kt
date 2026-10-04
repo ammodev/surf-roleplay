@@ -276,7 +276,9 @@ class ScreenPanel(
 
     /**
      * Lays the tree out at its full height and places the panel and the viewport for the
-     * presentation, capping the panel at the window and scrolling the rest.
+     * presentation, capping the panel at the window and scrolling the rest. A root that grows in
+     * height and holds growing scroll areas is laid out at the window height instead, so that the
+     * areas scroll.
      *
      * @param measurer the text measurer
      */
@@ -299,7 +301,9 @@ class ScreenPanel(
             horizontalSheet || root.width.mode == SizeMode.GROW -> maxWidth
             else -> FlexLayout.measure(box, maxWidth).width.coerceAtMost(maxWidth)
         }
-        val contentHeight = PanelSizing.contentHeight(root.height.mode, FlexLayout.measureAt(box, contentWidth).height, maxHeight)
+        val preferredHeight = FlexLayout.measureAt(box, contentWidth).height
+        val shortestHeight = if (root.height.mode == SizeMode.GROW) FlexLayout.shortestAt(box, contentWidth) else preferredHeight
+        val contentHeight = PanelSizing.contentHeight(root.height.mode, preferredHeight, shortestHeight, maxHeight)
         val viewportHeight = if (verticalSheet) maxHeight else contentHeight.coerceAtMost(maxHeight)
         scroll.update(contentHeight, viewportHeight)
 

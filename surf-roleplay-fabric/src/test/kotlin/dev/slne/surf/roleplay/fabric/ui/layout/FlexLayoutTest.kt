@@ -30,6 +30,39 @@ class FlexLayoutTest {
     private fun content(width: Int, height: Int) = LayoutBox(content = Size(width, height))
 
     /**
+     * Verifies that the shortest height of a tree without shrinkable boxes is its measured height,
+     * for columns, rows with growing children and wrapping leaves.
+     */
+    @Test
+    fun `shortest height equals the measured height without shrinkable boxes`() {
+        val wrapping = LayoutBox(width = Sizing.grow(), measureContent = { limit -> Size(limit.coerceAtMost(100), if (limit >= 100) 10 else 30) }, minWidth = 20)
+        val row = LayoutBox(axis = Axis.HORIZONTAL, gap = 4, padding = Insets(1, 2, 3, 4), children = listOf(fixed(30, 12), wrapping, content(20, 7)))
+        val column = LayoutBox(axis = Axis.VERTICAL, height = Sizing.grow(), gap = 2, padding = Insets(5, 5, 5, 5), children = listOf(row, LayoutBox(height = Sizing.grow(), content = Size(10, 40)), fixed(10, 8)))
+
+        for (width in listOf(60, 120, 400)) {
+            assertEquals(FlexLayout.measureAt(column, width).height, FlexLayout.shortestAt(column, width), "width $width")
+        }
+    }
+
+    /**
+     * Verifies that a growing box with a shortest height counts with that height, that boxes
+     * that do not grow keep their measured height, and that rows take their tallest child.
+     */
+    @Test
+    fun `shortest height shrinks growing boxes with a minimum height`() {
+        val scroll = LayoutBox(height = Sizing.grow(), content = Size(50, 500), minHeight = 0)
+        val column = LayoutBox(axis = Axis.VERTICAL, gap = 2, padding = Insets(4, 0, 4, 0), children = listOf(fixed(10, 20), scroll))
+        assertEquals(4 + 20 + 2 + 0 + 4, FlexLayout.shortestAt(column, 100))
+
+        val notGrowing = LayoutBox(content = Size(50, 500), minHeight = 0)
+        assertEquals(500, FlexLayout.shortestAt(LayoutBox(axis = Axis.VERTICAL, children = listOf(notGrowing)), 100))
+
+        val side = LayoutBox(axis = Axis.VERTICAL, width = Sizing.fixed(30), children = listOf(fixed(30, 40), LayoutBox(height = Sizing.grow(), content = Size(30, 900), minHeight = 0)))
+        val row = LayoutBox(axis = Axis.HORIZONTAL, children = listOf(side, column))
+        assertEquals(40, FlexLayout.shortestAt(row, 200))
+    }
+
+    /**
      * Verifies that a row places fixed children after its padding, separated by its gap.
      */
     @Test

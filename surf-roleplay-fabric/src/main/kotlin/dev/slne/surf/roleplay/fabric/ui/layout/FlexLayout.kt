@@ -114,6 +114,9 @@ enum class Axis {
  *           nothing
  * @property mirrored whether a container places its children mirrored from right to left, or
  *           `null` to follow the container it is laid out in
+ * @property minHeight the shortest height a leaf that grows in height can be given without
+ *           hiding content it cannot scroll to, such as `0` for a scroll area, or `null` for the
+ *           height its content needs; see [FlexLayout.shortestAt]
  */
 class LayoutBox(
     val width: Sizing = Sizing.FIT,
@@ -130,6 +133,7 @@ class LayoutBox(
     val aspectRatio: Float = 0f,
     val minWidth: Int? = null,
     var mirrored: Boolean? = null,
+    val minHeight: Int? = null,
 ) {
     /**
      * The sizes measured for this box, keyed by the width that was available.
@@ -329,6 +333,63 @@ object FlexLayout {
     }
 
     /**
+     * Computes the shortest height a box can be laid out at, at exactly a width, without its
+     * content overflowing: the height it needs, except that every leaf with a
+     * [LayoutBox.minHeight] that shares the remaining height of a column counts with that height.
+     * A row is as short as the tallest shortest height of its children. Without such leaves the
+     * result equals the height [measureAt] returns.
+     *
+     * @param box the box
+     * @param width the width the box is laid out at
+     * @return the shortest height
+     */
+    fun shortestAt(box: LayoutBox, width: Int): Int = when {
+        box.height.mode == SizeMode.FIXED -> box.height.value
+        box.aspectRatio > 0f -> (width / box.aspectRatio).roundToInt()
+        else -> shortestNatural(box, width.coerceIn(0, UNBOUNDED))
+    }
+
+    /**
+     * Computes the shortest height of a box that may be at most a given width wide, as
+     * [shortestAt] does for the width [measure] lays it out at.
+     *
+     * @param box the box
+     * @param maxWidth the width available to the box
+     * @return the shortest height
+     */
+    private fun shortest(box: LayoutBox, maxWidth: Int): Int {
+        if (box.height.mode == SizeMode.FIXED || box.aspectRatio > 0f) return measure(box, maxWidth).height
+        val limit = if (box.width.mode == SizeMode.FIXED) box.width.value else maxWidth.coerceIn(0, UNBOUNDED)
+        return shortestNatural(box, limit)
+    }
+
+    /**
+     * Computes the shortest height of a box's content or children at a width, ignoring its own
+     * height sizing.
+     *
+     * @param box the box
+     * @param limit the width available to the box
+     * @return the [LayoutBox.minHeight] or content height of a leaf; for a column the shortest
+     *         heights of its growing children and the heights of the others, with gaps and
+     *         padding; for a row the largest shortest height of its children, with padding
+     */
+    private fun shortestNatural(box: LayoutBox, limit: Int): Int {
+        val axis = box.axis ?: return box.minHeight ?: naturalSize(box, limit).height
+        if (box.aspectRatio > 0f) return naturalSize(box, limit).height
+        val padding = box.padding
+        val inner = if (limit >= UNBOUNDED) UNBOUNDED else (limit - padding.left - padding.right).coerceAtLeast(0)
+        val paddingY = padding.top + padding.bottom
+        val children = box.children
+        return if (axis == Axis.HORIZONTAL) {
+            val widths = naturalRowWidths(box, inner)
+            (children.indices.maxOfOrNull { shortest(children[it], widths[it]) } ?: 0) + paddingY
+        } else {
+            val gaps = box.gap * (children.size - 1).coerceAtLeast(0)
+            children.sumOf { child -> if (growsAlong(box, child, Axis.VERTICAL)) shortest(child, inner) else measure(child, inner).height } + gaps + paddingY
+        }
+    }
+
+    /**
      * Computes the narrowest width a box can take without breaking words: its fixed width, the
      * narrowest width of a wrapping leaf, the width of any other leaf, or the narrowest widths of
      * a container's children with its gaps and padding.
@@ -364,22 +425,40 @@ object FlexLayout {
         val inner = if (limit >= UNBOUNDED) UNBOUNDED else (limit - paddingX).coerceAtLeast(0)
         val gaps = box.gap * (box.children.size - 1).coerceAtLeast(0)
         return if (axis == Axis.HORIZONTAL) {
-            val widths = rowWidths(box, inner)
             val growing = box.children.indices.filter { growsAlong(box, box.children[it], Axis.HORIZONTAL) }
             val preferred = growing.sumOf { measure(box.children[it], inner).width }
-            val fixed = widths.sum() + gaps
-            if (inner >= UNBOUNDED) {
-                growing.forEach { widths[it] = measure(box.children[it], inner).width }
-            } else if (growing.isNotEmpty()) {
-                val space = ((fixed + preferred).coerceAtMost(inner) - fixed).coerceAtLeast(0)
-                distributeGrowth(box, Axis.HORIZONTAL, space, growing.sumOf { box.children[it].width.value.coerceAtLeast(1) }, widths)
-            }
+            val fixed = rowWidths(box, inner).sum() + gaps
+            val widths = naturalRowWidths(box, inner)
             val height = box.children.indices.maxOfOrNull { measure(box.children[it], widths[it]).height } ?: 0
             Size(fixed + preferred + paddingX, height + paddingY)
         } else {
             val sizes = box.children.map { measure(it, inner) }
             Size((sizes.maxOfOrNull { it.width } ?: 0) + paddingX, sizes.sumOf { it.height } + gaps + paddingY)
         }
+    }
+
+    /**
+     * Computes the widths the children of a row get when the row takes the width it prefers
+     * within a limit: fixed and fitting children as [rowWidths] gives them, and growing children
+     * the width they prefer, shared by weight when the limit leaves less.
+     *
+     * @param box the row
+     * @param inner the width inside the row's padding
+     * @return the widths of the children
+     */
+    private fun naturalRowWidths(box: LayoutBox, inner: Int): IntArray {
+        val widths = rowWidths(box, inner)
+        val growing = box.children.indices.filter { growsAlong(box, box.children[it], Axis.HORIZONTAL) }
+        if (inner >= UNBOUNDED) {
+            growing.forEach { widths[it] = measure(box.children[it], inner).width }
+        } else if (growing.isNotEmpty()) {
+            val gaps = box.gap * (box.children.size - 1).coerceAtLeast(0)
+            val fixed = widths.sum() + gaps
+            val preferred = growing.sumOf { measure(box.children[it], inner).width }
+            val space = ((fixed + preferred).coerceAtMost(inner) - fixed).coerceAtLeast(0)
+            distributeGrowth(box, Axis.HORIZONTAL, space, growing.sumOf { box.children[it].width.value.coerceAtLeast(1) }, widths)
+        }
+        return widths
     }
 
     /**

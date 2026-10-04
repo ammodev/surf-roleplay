@@ -5,6 +5,7 @@ import dev.slne.surf.roleplay.fabric.ui.ScreenPanel
 import dev.slne.surf.roleplay.fabric.ui.ScreenPanelListener
 import dev.slne.surf.roleplay.fabric.ui.TextMeasurer
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
+import dev.slne.surf.roleplay.fabric.ui.theme.UiMetrics
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
@@ -68,6 +69,48 @@ class ScrollAreaWidgetTest {
      * @return the widget
      */
     private fun widget(panel: ScreenPanel, id: String): Widget = WidgetTree.find(panel.root, id)!!
+
+    /**
+     * Verifies that a root that grows in height and holds a growing scroll area fills the window
+     * height exactly: the elements outside the area keep their place and only the area scrolls.
+     */
+    @Test
+    fun `a growing area in a growing root scrolls instead of the panel`() {
+        val root = ColumnNode(
+            "root",
+            width = Sizing.grow(),
+            height = Sizing.grow(),
+            children = listOf(
+                LabelNode("header", text = "Kopf"),
+                ScrollAreaNode("area", width = Sizing.grow(), height = Sizing.grow(), children = List(40) { ButtonNode("b$it", text = "B$it", height = Sizing.fixed(20)) }),
+            ),
+        )
+        val panel = ScreenPanel("T", WidgetFactory.create(root), true, listener, PanelStyle(Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)))
+        panel.layoutIfNeeded(measurer, 400, 300)
+        val area = assertIs<ScrollAreaWidget>(widget(panel, "area"))
+
+        assertTrue(panel.panel.height <= 300)
+        assertEquals(panel.panel.bottom, area.bounds.bottom + UiMetrics.PANEL_PADDING)
+        assertTrue(area.maxScrollY > 0)
+        val header = widget(panel, "header").bounds
+        panel.mouseScrolled(area.bounds.x + 5.0, area.bounds.y + 5.0, -1.0)
+        panel.layoutIfNeeded(measurer, 400, 300)
+        assertEquals(header, widget(panel, "header").bounds)
+        assertTrue(area.scrollY > 0)
+    }
+
+    /**
+     * Verifies that a growing root whose content cannot become shorter than the window keeps its
+     * content height, so that the panel scrolls.
+     */
+    @Test
+    fun `a growing root without a growing area keeps its content height`() {
+        val root = ColumnNode("root", height = Sizing.grow(), children = List(40) { ButtonNode("b$it", text = "B$it", height = Sizing.fixed(20)) })
+        val panel = ScreenPanel("T", WidgetFactory.create(root), true, listener, PanelStyle(Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)))
+        panel.layoutIfNeeded(measurer, 400, 300)
+
+        assertEquals(800, widget(panel, "root").bounds.height)
+    }
 
     /**
      * Creates a vertical area 100 wide and 50 tall holding twenty buttons of 20 pixels.

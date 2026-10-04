@@ -51,9 +51,21 @@ class ReviewFixesTest {
      */
     @Test
     fun `growing roots keep their content height`() {
-        assertEquals(300, PanelSizing.contentHeight(SizeMode.GROW, preferred = 300, available = 200))
-        assertEquals(200, PanelSizing.contentHeight(SizeMode.GROW, preferred = 100, available = 200))
-        assertEquals(100, PanelSizing.contentHeight(SizeMode.FIT, preferred = 100, available = 200))
+        assertEquals(300, PanelSizing.contentHeight(SizeMode.GROW, preferred = 300, shortest = 300, available = 200))
+        assertEquals(300, PanelSizing.contentHeight(SizeMode.GROW, preferred = 300, shortest = 250, available = 200))
+        assertEquals(200, PanelSizing.contentHeight(SizeMode.GROW, preferred = 100, shortest = 100, available = 200))
+        assertEquals(100, PanelSizing.contentHeight(SizeMode.FIT, preferred = 100, shortest = 100, available = 200))
+    }
+
+    /**
+     * Verifies that a growing root whose content can become as short as the window fills exactly
+     * the window height, and that other roots are not affected.
+     */
+    @Test
+    fun `growing roots that can shrink fill the window height`() {
+        assertEquals(200, PanelSizing.contentHeight(SizeMode.GROW, preferred = 900, shortest = 50, available = 200))
+        assertEquals(200, PanelSizing.contentHeight(SizeMode.GROW, preferred = 900, shortest = 200, available = 200))
+        assertEquals(900, PanelSizing.contentHeight(SizeMode.FIT, preferred = 900, shortest = 50, available = 200))
     }
 
     /**
