@@ -9,6 +9,7 @@ import dev.slne.surf.roleplay.protocol.tablist.OrganisationCount
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import java.time.LocalTime
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -268,6 +269,18 @@ class TabListStateBuilderTest {
         assertNull(state.job)
         assertEquals("Notarzt", state.rank)
         assertEquals(1, logged.size)
+    }
+
+    /**
+     * Verifies that players who are leaving are excluded from the counted players.
+     */
+    @Test
+    fun `leaving players are not counted`() {
+        val staying = UUID.randomUUID()
+        val leaving = UUID.randomUUID()
+
+        assertEquals(listOf(staying), TabListStateBuilder.present(listOf(staying, leaving), { it }, setOf(leaving)))
+        assertEquals(listOf(staying, leaving), TabListStateBuilder.present(listOf(staying, leaving), { it }, emptySet()))
     }
 
     /**

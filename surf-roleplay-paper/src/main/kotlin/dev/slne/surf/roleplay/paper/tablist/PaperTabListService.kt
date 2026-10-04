@@ -60,6 +60,11 @@ class PaperTabListService : TabListService, Listener {
     private val sessionStarts = ConcurrentHashMap<UUID, Long>()
 
     /**
+     * The players whose quit event fired but who may still be listed as online.
+     */
+    private val leaving: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
+
+    /**
      * Builds the players' states and reports failing providers as warnings.
      */
     private val builder = TabListStateBuilder { provider, error ->
@@ -162,7 +167,8 @@ class PaperTabListService : TabListService, Listener {
     fun pushNow(player: Player) {
         player.scheduler.run(plugin, {
             coalescer.pushed(player.uniqueId)
-            push(player, countOrganisations(), plugin.server.onlinePlayers.size)
+            val players = presentPlayers()
+            push(player, countOrganisations(players), players.size)
         }, null)
     }
 
@@ -173,8 +179,9 @@ class PaperTabListService : TabListService, Listener {
     private fun flush() {
         val due = coalescer.due()
         if (due.isEmpty()) return
-        val counts = countOrganisations()
-        val onlineTotal = plugin.server.onlinePlayers.size
+        val players = presentPlayers()
+        val counts = countOrganisations(players)
+        val onlineTotal = players.size
         due.forEach { id ->
             val player = plugin.server.getPlayer(id) ?: return@forEach
             player.scheduler.run(plugin, { push(player, counts, onlineTotal) }, null)
@@ -205,22 +212,28 @@ class PaperTabListService : TabListService, Listener {
     }
 
     /**
-     * Counts the members of every registered organisation among the online players.
+     * Counts the members of every registered organisation among the given players.
      *
+     * @param players the online players who are not leaving
      * @return the organisation counts
      */
-    private fun countOrganisations(): List<OrganisationCount> {
-        val players = plugin.server.onlinePlayers.toList()
-        return builder.organisations(organisations, { provider -> players.count(provider::counts) }, config)
-    }
+    private fun countOrganisations(players: List<Player>): List<OrganisationCount> =
+        builder.organisations(organisations, { provider -> players.count(provider::counts) }, config)
 
     /**
-     * Returns the unique ids of the online players.
+     * Returns the online players who are not leaving.
+     *
+     * @return the players
+     */
+    private fun presentPlayers(): List<Player> = TabListStateBuilder.present(plugin.server.onlinePlayers, Player::getUniqueId, leaving)
+
+    /**
+     * Returns the unique ids of the online players who are not leaving.
      *
      * @return the unique ids, empty before the service is started
      */
     private fun onlinePlayerIds(): List<UUID> =
-        if (::plugin.isInitialized) plugin.server.onlinePlayers.map { it.uniqueId } else emptyList()
+        if (::plugin.isInitialized) presentPlayers().map { it.uniqueId } else emptyList()
 
     /**
      * Marks the players of a world as changed.
@@ -239,22 +252,30 @@ class PaperTabListService : TabListService, Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     fun onJoin(event: PlayerJoinEvent) {
+        leaving -= event.player.uniqueId
         sessionStarts[event.player.uniqueId] = System.currentTimeMillis()
         changed()
     }
 
     /**
      * Forgets a player who left and marks the other players' states as changed, since the online
-     * total and organisation counts changed.
+     * total and organisation counts changed. The player is excluded from counts while still
+     * listed as online, and the other players are marked again one tick later, once the player is
+     * no longer listed.
      *
      * @param event the quit event
      */
     @EventHandler(priority = EventPriority.MONITOR)
     fun onQuit(event: PlayerQuitEvent) {
         val id = event.player.uniqueId
+        leaving += id
         sessionStarts -= id
         coalescer.remove(id)
-        coalescer.markDirty(onlinePlayerIds().filter { it != id })
+        changed()
+        plugin.server.globalRegionScheduler.runDelayed(plugin, {
+            leaving -= id
+            changed()
+        }, 1)
     }
 
     /**

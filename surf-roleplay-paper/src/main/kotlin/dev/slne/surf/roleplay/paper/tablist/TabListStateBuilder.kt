@@ -8,6 +8,7 @@ import dev.slne.surf.roleplay.protocol.tablist.OrganisationCount
 import dev.slne.surf.roleplay.protocol.tablist.TabListState
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -161,6 +162,18 @@ class TabListStateBuilder(
          * The shortest time between two reports of the same failing provider.
          */
         const val LOG_INTERVAL_MILLIS: Long = 60_000
+
+        /**
+         * Returns the players who are not leaving.
+         *
+         * @param P the player type
+         * @param players the players the server lists as online
+         * @param id returns the unique id of a player
+         * @param leaving the unique ids of players who are leaving
+         * @return the players whose unique id is not in [leaving], in their original order
+         */
+        fun <P> present(players: Collection<P>, id: (P) -> UUID, leaving: Set<UUID>): List<P> =
+            if (leaving.isEmpty()) players.toList() else players.filter { id(it) !in leaving }
 
         /**
          * Rounds an online total to the nearest multiple of five.
