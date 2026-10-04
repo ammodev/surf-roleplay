@@ -10,6 +10,7 @@ import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.plugin.Plugin
+import java.io.IOException
 
 private val log = logger()
 
@@ -96,6 +97,24 @@ object TabListCommand {
     }
 
     /**
+     * Takes a snapshot of the plugin configuration on the calling thread and writes it to the
+     * configuration file on the async scheduler. A failure is logged as a warning.
+     *
+     * @param plugin the plugin that owns the configuration
+     */
+    private fun save(plugin: Plugin) {
+        val snapshot = plugin.config.saveToString()
+        val file = plugin.dataFolder.toPath().resolve("config.yml")
+        plugin.server.asyncScheduler.runNow(plugin) {
+            try {
+                ConfigSnapshotWriter.write(file, snapshot)
+            } catch (exception: IOException) {
+                log.atWarning().withCause(exception).log("Could not save the tab list announcement to %s", file)
+            }
+        }
+    }
+
+    /**
      * Applies an announcement change: updates the in-memory settings, marks every player's state
      * as changed, saves the plugin configuration asynchronously, logs the staff member and
      * answers the sender.
@@ -117,7 +136,7 @@ object TabListCommand {
                 val announcement = result.config.announcement
                 service.updateConfig(result.config)
                 plugin.config.set(ANNOUNCEMENT_PATH, announcement ?: "")
-                plugin.server.asyncScheduler.runNow(plugin) { plugin.saveConfig() }
+                save(plugin)
                 if (announcement == null) {
                     log.atInfo().log("%s cleared the tab list announcement", sender.name)
                     sender.sendMessage(Component.text("Ankündigung entfernt.", NamedTextColor.GREEN))
