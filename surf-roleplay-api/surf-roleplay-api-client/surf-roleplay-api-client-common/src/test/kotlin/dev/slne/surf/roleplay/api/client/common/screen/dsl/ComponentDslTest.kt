@@ -1,5 +1,17 @@
 package dev.slne.surf.roleplay.api.client.common.screen.dsl
 
+import dev.slne.surf.roleplay.api.client.common.screen.ALERT_DIALOG_SMALL_WIDTH
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogElement
+import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogSize
+import dev.slne.surf.roleplay.api.client.common.screen.CommandElement
+import dev.slne.surf.roleplay.api.client.common.screen.DialogCloseElement
+import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.POPOVER_WIDTH
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
 import dev.slne.surf.roleplay.api.client.common.screen.AlertElement
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.AvatarElement
@@ -626,6 +638,79 @@ class ComponentDslTest {
         assertEquals(listOf("item"), seen)
         assertEquals(ElementSize.grow(), item.width)
         assertEquals(TextKind.ALERT_TITLE, assertIs<TextElement>(alert.children[0]).kind)
+    }
+
+    /**
+     * Verifies that overlays report their open state and bind every handler with its element id.
+     */
+    @Test
+    fun `overlay and menu components bind their handlers`() {
+        val seen = mutableListOf<String>()
+        lateinit var open: InputRef<Boolean>
+        lateinit var checked: InputRef<Boolean>
+        lateinit var radio: InputRef<String?>
+        val root = assertIs<ColumnElement>(
+            renderRoot(recordingBinder(seen)) {
+                Column {
+                    open = Popover(open = true, onChange = { }, id = "pop") {
+                        Button("Öffnen")
+                        PopoverContent { PopoverHeader { PopoverTitle("Titel"); PopoverDescription("Text") } }
+                    }
+                    DropdownMenu(onChange = { }) {
+                        Button("Menü")
+                        MenuContent {
+                            MenuItem("Löschen", destructive = true, id = "delete") { }
+                            checked = MenuCheckboxItem("Fett", id = "bold") { }
+                            radio = MenuRadioGroup(value = "a", onSelect = { }, id = "pick") { MenuRadioItem("A", "a") }
+                        }
+                    }
+                    Command(onSearch = { }, id = "cmd") { CommandInput(); CommandList { CommandItem("Eins", id = "one") { } } }
+                }
+            },
+        )
+        assertEquals(listOf("pop", "delete", "bold", "pick", "_0.1", "one", "cmd"), seen)
+        val popover = assertIs<PopoverElement>(root.children[0])
+        assertTrue(popover.open)
+        assertEquals(ElementSize.fixed(POPOVER_WIDTH), assertIs<PopoverContentElement>(popover.children[1]).width)
+        val menu = assertIs<MenuContentElement>(assertIs<DropdownMenuElement>(root.children[1]).children[1])
+        assertEquals("_0.1.1.2.0", assertIs<MenuRadioGroupElement>(menu.children[2]).children[0].id)
+        assertEquals(ElementSize.grow(), assertIs<CommandElement>(root.children[2]).width)
+        val values = ScreenValues(mapOf("pop" to "true", "bold" to "false", "pick" to "a"))
+        assertTrue(values[open])
+        assertEquals(false, values[checked])
+        assertEquals("a", values[radio])
+        assertFailsWith<IllegalArgumentException> { renderRoot { HoverCard(openDelay = -1) { Button("x") } } }
+    }
+
+    /**
+     * Verifies that the action and cancel of an alert dialog wrap their buttons in a close part.
+     */
+    @Test
+    fun `alert dialog buttons close the dialog`() {
+        val seen = mutableListOf<String>()
+        val dialog = assertIs<AlertDialogElement>(
+            renderRoot(recordingBinder(seen)) {
+                AlertDialog {
+                    Button("Löschen")
+                    AlertDialogContent(size = AlertDialogSize.SM) {
+                        AlertDialogMedia("trash")
+                        AlertDialogAction("Ja", id = "yes") { }
+                        AlertDialogCancel("Nein") { }
+                    }
+                }
+            },
+        )
+        val content = assertIs<AlertDialogContentElement>(dialog.children[1])
+        assertEquals(ElementSize.fixed(ALERT_DIALOG_SMALL_WIDTH), content.width)
+        val action = assertIs<DialogCloseElement>(content.children[1])
+        assertEquals("yes_close", action.id)
+        val yes = assertIs<ButtonElement>(action.children[0])
+        assertEquals("yes", yes.id)
+        assertEquals(false, yes.submitsInput)
+        val cancel = assertIs<DialogCloseElement>(content.children[2])
+        assertEquals("_0.1.2", cancel.id)
+        assertEquals(ButtonVariant.OUTLINE, assertIs<ButtonElement>(cancel.children[0]).variant)
+        assertEquals(listOf("yes", "_0.1.2.0"), seen)
     }
 
     /**
