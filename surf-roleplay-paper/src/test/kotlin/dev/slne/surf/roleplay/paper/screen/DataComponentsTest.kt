@@ -14,6 +14,9 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTable
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableCell
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableColumn
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableRow
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
@@ -41,6 +44,9 @@ import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
+import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
+import dev.slne.surf.roleplay.protocol.screen.SetValue
+import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.TableCaptionNode
 import dev.slne.surf.roleplay.protocol.screen.TableCellNode
 import dev.slne.surf.roleplay.protocol.screen.TableNode
@@ -257,5 +263,44 @@ class DataComponentsTest {
         assertEquals("chat", insert.parentId)
         assertTrue(insert.index >= 2)
         assertEquals("m3", insert.node.id)
+    }
+
+    /**
+     * Verifies that a send button handler which appends a message and clears the composer in one
+     * patch reaches the client as a single patch holding the insert and the empty value, and that
+     * the handler sees the text the player typed.
+     */
+    @Test
+    fun `a composer is cleared in the patch that appends the message`() {
+        var typed: String? = null
+        val session = state.open(
+            Screen(Component.text("Chat")) {
+                Column(id = "root") {
+                    ChatView(ElementSize.fixed(100), id = "chat_view") {
+                        ChatMessage(id = "m1") { P(Component.text("Hallo"), id = "m1_text") }
+                    }
+                    Input(id = "chat_input")
+                    Button("Senden", id = "chat_send") { click ->
+                        typed = click.values.text("chat_input")
+                        click.screen.patch {
+                            append("chat_view") { ChatMessage(own = true, id = "m2") { P(Component.text(typed ?: ""), id = "m2_text") } }
+                            setValue("chat_input", "")
+                        }
+                    }
+                }
+            },
+            null,
+        ).sessionId
+        val before = sent.size
+
+        val action = ScreenWidgetAction(session, "chat_send", listOf(InputValue("chat_input", "Bin unterwegs")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(action))
+
+        assertEquals("Bin unterwegs", typed)
+        val patches = sent.drop(before).filterIsInstance<ScreenPatch>()
+        assertEquals(1, patches.size)
+        val operations = patches.single().operations
+        assertEquals("chat_view", operations.filterIsInstance<InsertNode>().single().parentId)
+        assertEquals("", operations.filterIsInstance<SetValue>().single { it.targetId == "chat_input" }.value)
     }
 }
