@@ -121,4 +121,54 @@ class ScreenDiffTest {
         assertEquals("_0.0.1", assertIs<ScreenChange.Replace>(change).targetId)
         assertEquals("_0.0.1", change.element.id)
     }
+
+    /**
+     * Verifies that an element with an explicit id that moves into a later sibling's subtree
+     * replaces the lowest common ancestor of its old and new parents instead of being inserted
+     * while it still exists.
+     */
+    @Test
+    fun `an element moved into a later container replaces the common ancestor`() {
+        val old = tree { Column { Row(id = "A") {}; Row(id = "B") { P("x", id = "x") } } }
+        val new = tree { Column { Row(id = "A") { P("x", id = "x") }; Row(id = "B") {} } }
+        val change = assertIs<ScreenChange.Replace>(ScreenDiff.diff(old, new).single())
+        assertEquals("_0", change.targetId)
+        assertEquals(new, change.element)
+    }
+
+    /**
+     * Verifies that an element with an explicit id that moves into an earlier sibling's subtree
+     * replaces the lowest common ancestor of its old and new parents.
+     */
+    @Test
+    fun `an element moved into an earlier container replaces the common ancestor`() {
+        val old = tree { Column { Row(id = "A") { P("x", id = "x") }; Row(id = "B") {} } }
+        val new = tree { Column { Row(id = "A") {}; Row(id = "B") { P("x", id = "x") } } }
+        val change = assertIs<ScreenChange.Replace>(ScreenDiff.diff(old, new).single())
+        assertEquals("_0", change.targetId)
+    }
+
+    /**
+     * Verifies that a move deep in the tree replaces only the lowest common ancestor, and that
+     * unrelated parts of the tree are diffed as usual.
+     */
+    @Test
+    fun `a move replaces only the lowest common ancestor`() {
+        val old = tree { Column { P("a", id = "a"); Column(id = "C") { Row(id = "A") { P("x", id = "x") }; Row(id = "B") {} } } }
+        val new = tree { Column { P("a2", id = "a"); Column(id = "C") { Row(id = "A") {}; Row(id = "B") { P("x", id = "x") } } } }
+        val changes = ScreenDiff.diff(old, new)
+        assertEquals(listOf("a", "C"), changes.map { assertIs<ScreenChange.Replace>(it).targetId })
+    }
+
+    /**
+     * Verifies that a container wrapped around an existing element replaces the common ancestor
+     * instead of inserting a subtree that holds an id the old tree still has.
+     */
+    @Test
+    fun `an element wrapped in a new container replaces the common ancestor`() {
+        val old = tree { Column { P("x", id = "x"); Row(id = "B") {} } }
+        val new = tree { Column { Row(id = "B") { Row(id = "W") { P("x", id = "x") } } } }
+        val change = assertIs<ScreenChange.Replace>(ScreenDiff.diff(old, new).single())
+        assertEquals("_0", change.targetId)
+    }
 }
