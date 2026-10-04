@@ -76,14 +76,12 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.Tooltip
 import dev.slne.surf.roleplay.api.client.common.toast.Toast
 import dev.slne.surf.roleplay.api.client.common.toast.ToastButton
 import dev.slne.surf.roleplay.api.client.common.toast.ToastType
-import dev.slne.surf.roleplay.api.client.paper.toast.ToastService
 import dev.slne.surf.roleplay.paper.storybook.Story
 import dev.slne.surf.roleplay.paper.storybook.StoryCategory
 import dev.slne.surf.roleplay.paper.storybook.StoryContext
 import dev.slne.surf.roleplay.paper.storybook.slug
 import dev.slne.surf.roleplay.paper.storybook.storySection
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
 
 /**
  * The stories of the overlay and menu components, in sidebar order.
@@ -443,14 +441,13 @@ private fun ComponentScope.commandStory(context: StoryContext) {
 }
 
 /**
- * Shows a toast to the viewing player if they are online.
+ * Shows a toast to the viewing player through the story context.
  *
  * @param context the story context
  * @param toast the toast
  */
 private fun showToast(context: StoryContext, toast: Toast) {
-    val player = Bukkit.getPlayer(context.playerId) ?: return
-    ToastService.show(player, toast)
+    context.showToast(toast)
 }
 
 /**

@@ -1,5 +1,8 @@
 package dev.slne.surf.roleplay.paper.storybook
 
+import dev.slne.surf.roleplay.api.client.common.toast.Toast
+import dev.slne.surf.roleplay.api.client.paper.toast.ToastService
+import org.bukkit.Bukkit
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
@@ -73,8 +76,15 @@ enum class StoryCategory(val title: String, val icon: String) {
  * @property report reports a click on the element with the given id
  * @property reportChange reports a change of the input with the given id, which may be dropped
  *           when the same input reported shortly before
+ * @property showToast shows a toast to the viewing player; by default it shows the toast if the
+ *           player is online
  */
-class StoryContext(val playerId: UUID, val report: (String) -> Unit, val reportChange: (String) -> Unit = report) {
+class StoryContext(
+    val playerId: UUID,
+    val report: (String) -> Unit,
+    val reportChange: (String) -> Unit = report,
+    val showToast: (Toast) -> Unit = { toast -> Bukkit.getPlayer(playerId)?.let { ToastService.show(it, toast) } },
+) {
     /**
      * A click handler that reports the id of the clicked element.
      */
