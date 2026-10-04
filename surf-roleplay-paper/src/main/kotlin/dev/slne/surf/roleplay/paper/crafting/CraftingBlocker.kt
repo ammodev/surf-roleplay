@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.paper.crafting
 
 import com.destroystokyo.paper.event.player.PlayerRecipeBookClickEvent
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.CrafterCraftEvent
 import org.bukkit.event.inventory.CraftItemEvent
@@ -25,7 +26,7 @@ class CraftingBlocker : Listener {
      *
      * @param event the event fired when a crafting grid changes
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onPrepareItemCraft(event: PrepareItemCraftEvent) {
         event.inventory.result = null
     }
@@ -35,7 +36,7 @@ class CraftingBlocker : Listener {
      *
      * @param event the event fired when a player takes a crafting result
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onCraftItem(event: CraftItemEvent) {
         event.isCancelled = true
     }
@@ -45,7 +46,7 @@ class CraftingBlocker : Listener {
      *
      * @param event the event fired when an inventory is about to open
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onInventoryOpen(event: InventoryOpenEvent) {
         if (CraftingRules.blocksOpening(event.inventory.type)) {
             event.isCancelled = true
@@ -57,7 +58,7 @@ class CraftingBlocker : Listener {
      *
      * @param event the event fired when a crafter is about to craft
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onCrafterCraft(event: CrafterCraftEvent) {
         event.isCancelled = true
     }
@@ -67,7 +68,7 @@ class CraftingBlocker : Listener {
      *
      * @param event the event fired when a player clicks a recipe in the recipe book
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onRecipeBookClick(event: PlayerRecipeBookClickEvent) {
         event.isCancelled = true
     }
@@ -77,7 +78,7 @@ class CraftingBlocker : Listener {
      *
      * @param event the event fired when a player is about to discover a recipe
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onRecipeDiscover(event: PlayerRecipeDiscoverEvent) {
         event.isCancelled = true
     }

@@ -1,9 +1,12 @@
 package dev.slne.surf.roleplay.fabric.toast
 
+import com.mojang.blaze3d.platform.InputConstants
 import dev.slne.surf.roleplay.fabric.settings.KeyMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Tests for the key modes of the HUD cursor.
@@ -70,5 +73,20 @@ class HudCursorTest {
         assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = false, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.TOGGLE, ready = false))
         assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = true, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.HOLD, ready = false))
         assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.TOGGLE, ready = false))
+    }
+
+    /**
+     * Verifies that a cursor key bound to a mouse button keeps that button's events.
+     */
+    @Test
+    fun `a mouse button bound to the cursor key is not taken`() {
+        fun name(button: Int) = InputConstants.Type.MOUSE.getOrCreate(button).name
+        assertFalse(HudCursor.takesButton("key.mouse.4", name(3)))
+        assertTrue(HudCursor.takesButton("key.mouse.4", name(0)))
+        assertTrue(HudCursor.takesButton("key.keyboard.left.alt", name(3)))
+        assertFalse(HudCursor.takesButton("key.mouse.left", name(0)))
+        assertFalse(HudCursor.takesButton("key.mouse.right", name(1)))
+        assertFalse(HudCursor.takesButton("key.mouse.middle", name(2)))
+        assertTrue(HudCursor.takesButton("key.mouse.middle", name(0)))
     }
 }

@@ -1,8 +1,12 @@
 package dev.slne.surf.roleplay.fabric.settings
 
+import dev.slne.surf.roleplay.protocol.screen.CardNode
+import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ContainerNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
+import dev.slne.surf.roleplay.protocol.screen.Sizing
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
@@ -58,5 +62,18 @@ class SettingsViewTest {
     fun `the tree does not repeat the title`() {
         val texts = SettingsView.build(rows, emptySet(), null, ClientSettings()).all().map { it.toString() }
         assertTrue(texts.none { "Roleplay-Einstellungen" in it })
+    }
+
+    /**
+     * Verifies that the card has a fixed comfortable width and that the binding rows sit in a
+     * column with a gap between them.
+     */
+    @Test
+    fun `the card is wide and the binding rows are spaced`() {
+        val tree = SettingsView.build(rows, emptySet(), null, ClientSettings())
+        assertEquals(Sizing.fixed(380), (tree as CardNode).width)
+        val column = tree.all().first { it.id == "binding_rows" } as ColumnNode
+        assertEquals(6, column.gap)
+        assertTrue(column.children.any { it.id == "row_hud_cursor" })
     }
 }
