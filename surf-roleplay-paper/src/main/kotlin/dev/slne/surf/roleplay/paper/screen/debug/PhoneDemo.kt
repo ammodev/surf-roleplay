@@ -1,9 +1,16 @@
 package dev.slne.surf.roleplay.paper.screen.debug
 
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Card
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Icon
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Item
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Separator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Small
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.ElementsBuilder
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.IconTint
 import dev.slne.surf.roleplay.api.client.common.screen.ItemSize
 import dev.slne.surf.roleplay.api.client.common.screen.ItemVariant
@@ -12,11 +19,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.Spacing
 import dev.slne.surf.roleplay.api.client.common.screen.TextKind
-import dev.slne.surf.roleplay.api.client.common.screen.card
-import dev.slne.surf.roleplay.api.client.common.screen.item
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.separator
-import dev.slne.surf.roleplay.api.client.common.screen.text
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -92,27 +95,25 @@ object PhoneDemo {
             val app = (GRID + DOCK).first { it.id == click.buttonId.removePrefix("app_") }
             report(Component.text("${app.name} geöffnet", NamedTextColor.GREEN))
         }
-        return screen(Component.text("Handy")) {
-            theme = ScreenThemes.DEFAULT
-            variant = ScreenVariant.DARK
-            card("phone", width = ElementSize.fixed(PHONE_WIDTH)) {
-                column("phone_screen", width = ElementSize.grow(), height = ElementSize.fixed(PHONE_HEIGHT), gap = 10, padding = Spacing(4, 10, 4, 10), crossAlign = Alignment.STRETCH) {
+        return Screen(Component.text("Handy"), theme = ScreenThemes.DEFAULT, variant = ScreenVariant.DARK) {
+            Card(width = ElementSize.fixed(PHONE_WIDTH), id = "phone") {
+                Column(width = ElementSize.grow(), height = ElementSize.fixed(PHONE_HEIGHT), gap = 10, padding = Spacing(4, 10, 4, 10), crossAlign = Alignment.STRETCH, id = "phone_screen") {
                     statusBar(time)
-                    row("grid", width = ElementSize.grow(), gap = 6, mainAlign = Alignment.START) {
+                    Row(width = ElementSize.grow(), gap = 6, mainAlign = Alignment.START, id = "grid") {
                         GRID.forEach { app(it, opened) }
                     }
-                    column("spacer", height = ElementSize.grow()) {}
-                    row("page_dots", width = ElementSize.grow(), gap = 4, mainAlign = Alignment.CENTER) {
-                        icon("page_dot_1", "circle", size = 6, tint = IconTint.FOREGROUND)
-                        icon("page_dot_2", "circle", size = 6, tint = IconTint.MUTED)
+                    Column(height = ElementSize.grow(), id = "spacer") {}
+                    Row(width = ElementSize.grow(), gap = 4, mainAlign = Alignment.CENTER, id = "page_dots") {
+                        Icon("circle", size = 6, tint = IconTint.FOREGROUND, id = "page_dot_1")
+                        Icon("circle", size = 6, tint = IconTint.MUTED, id = "page_dot_2")
                     }
-                    item("dock", variant = ItemVariant.MUTED, size = ItemSize.SM) {
-                        row("dock_apps", width = ElementSize.grow(), gap = 6, mainAlign = Alignment.CENTER) {
+                    Item(variant = ItemVariant.MUTED, size = ItemSize.SM, id = "dock") {
+                        Row(width = ElementSize.grow(), gap = 6, mainAlign = Alignment.CENTER, id = "dock_apps") {
                             DOCK.forEach { app(it, opened) }
                         }
                     }
-                    row("home_indicator", width = ElementSize.grow(), mainAlign = Alignment.CENTER) {
-                        column("home_indicator_bar", width = ElementSize.fixed(70)) { separator("home_indicator_line") }
+                    Row(width = ElementSize.grow(), mainAlign = Alignment.CENTER, id = "home_indicator") {
+                        Column(width = ElementSize.fixed(70), id = "home_indicator_bar") { Separator(id = "home_indicator_line") }
                     }
                 }
             }
@@ -125,17 +126,17 @@ object PhoneDemo {
      *
      * @param time the time shown
      */
-    private fun ElementsBuilder.statusBar(time: LocalTime) {
-        row("status_bar", width = ElementSize.grow(), gap = 4, crossAlign = Alignment.CENTER) {
-            text("status_time", Component.text(time.format(DateTimeFormatter.ofPattern("HH:mm"))), TextKind.SMALL)
-            row("status_left_space", width = ElementSize.grow()) {}
-            item("status_island", variant = ItemVariant.MUTED, size = ItemSize.SM) {
-                column("status_island_body", width = ElementSize.fixed(40)) {}
+    private fun ComponentScope.statusBar(time: LocalTime) {
+        Row(width = ElementSize.grow(), gap = 4, crossAlign = Alignment.CENTER, id = "status_bar") {
+            Small(Component.text(time.format(DateTimeFormatter.ofPattern("HH:mm"))), id = "status_time")
+            Row(width = ElementSize.grow(), id = "status_left_space") {}
+            Item(variant = ItemVariant.MUTED, size = ItemSize.SM, id = "status_island") {
+                Column(width = ElementSize.fixed(40), id = "status_island_body") {}
             }
-            row("status_right_space", width = ElementSize.grow()) {}
-            icon("status_signal", "signal", size = 10)
-            icon("status_wifi", "wifi", size = 10)
-            icon("status_battery", "battery-full", size = 12)
+            Row(width = ElementSize.grow(), id = "status_right_space") {}
+            Icon("signal", size = 10, id = "status_signal")
+            Icon("wifi", size = 10, id = "status_wifi")
+            Icon("battery-full", size = 12, id = "status_battery")
         }
     }
 
@@ -145,14 +146,14 @@ object PhoneDemo {
      * @param app the app
      * @param opened the handler run when the app is clicked
      */
-    private fun ElementsBuilder.app(app: App, opened: ButtonHandler) {
-        column("app_${app.id}_cell", width = ElementSize.fixed(APP_WIDTH), gap = 3, crossAlign = Alignment.CENTER) {
-            item("app_${app.id}", variant = ItemVariant.OUTLINE, size = ItemSize.SM, onClick = opened) {
-                row("app_${app.id}_icon_row", width = ElementSize.grow(), mainAlign = Alignment.CENTER) {
-                    icon("app_${app.id}_icon", app.icon, size = 20)
+    private fun ComponentScope.app(app: App, opened: ButtonHandler) {
+        Column(width = ElementSize.fixed(APP_WIDTH), gap = 3, crossAlign = Alignment.CENTER, id = "app_${app.id}_cell") {
+            Item(variant = ItemVariant.OUTLINE, size = ItemSize.SM, onClick = opened, id = "app_${app.id}") {
+                Row(width = ElementSize.grow(), mainAlign = Alignment.CENTER, id = "app_${app.id}_icon_row") {
+                    Icon(app.icon, size = 20, id = "app_${app.id}_icon")
                 }
             }
-            text("app_${app.id}_name", Component.text(app.name), TextKind.SMALL)
+            Small(Component.text(app.name), id = "app_${app.id}_name")
         }
     }
 }
