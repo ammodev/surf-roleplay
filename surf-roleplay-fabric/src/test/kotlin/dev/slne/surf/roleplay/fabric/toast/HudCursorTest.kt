@@ -3,7 +3,9 @@ package dev.slne.surf.roleplay.fabric.toast
 import dev.slne.surf.roleplay.fabric.settings.KeyMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Tests for the key modes of the HUD cursor.
@@ -70,5 +72,15 @@ class HudCursorTest {
         assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = false, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.TOGGLE, ready = false))
         assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = true, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.HOLD, ready = false))
         assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.TOGGLE, ready = false))
+    }
+
+    /**
+     * Verifies that a cursor key bound to a mouse button keeps that button's events.
+     */
+    @Test
+    fun `a mouse button bound to the cursor key is not taken`() {
+        assertFalse(HudCursor.takesButton("key.mouse.4", 3))
+        assertTrue(HudCursor.takesButton("key.mouse.4", 0))
+        assertTrue(HudCursor.takesButton("key.keyboard.left.alt", 3))
     }
 }
