@@ -54,20 +54,29 @@ private val STORYBOOK_THEMES = listOf(
  * shows the selected story below a header with its name, a theme select and a light/dark switch.
  *
  * Every click on or change of an element of a story is reported as `<story name>: <element id>`.
+ * Changes of one element are reported at most once per [CHANGE_REPORT_INTERVAL_MILLIS]; clicks
+ * are always reported.
  * The ids of the page's own elements start with `storybook_`.
  *
  * The page also holds the search, category filter and page of the icon gallery.
  *
  * @property playerId the UUID of the viewing player, passed on to the stories
  * @property report shows a report of a click or change to the player
+ * @property clock returns the current time in milliseconds, used to throttle change reports
  * @param stories creates the stories, in sidebar order within their category, from the gallery
  *        state the page holds
  */
 class StorybookPage(
     private val playerId: UUID,
     private val report: (String) -> Unit,
+    private val clock: () -> Long = System::currentTimeMillis,
     stories: (IconGalleryState) -> List<Story>,
 ) : GuiPage(), IconGalleryState {
+
+    /**
+     * The time of the last change report per story key and element id.
+     */
+    private val lastChangeReports = HashMap<String, Long>()
 
     /**
      * The text the icon gallery searches for.
@@ -139,12 +148,43 @@ class StorybookPage(
                     Separator()
                     ScrollArea(ElementSize.grow(), ElementSize.grow(), id = "storybook_content") {
                         Column(width = ElementSize.grow(), gap = 12, padding = Spacing(0, 8, 8, 0), crossAlign = Alignment.STRETCH) {
-                            if (shown == null) noStories() else shown.render(this, StoryContext(playerId) { elementId -> report("${shown.name}: $elementId") })
+                            if (shown == null) noStories() else shown.render(this, storyContext(shown))
                         }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Creates the context a story renders with: clicks are reported at once, changes of one
+     * element at most once per [CHANGE_REPORT_INTERVAL_MILLIS].
+     *
+     * @param story the story
+     * @return the context
+     */
+    private fun storyContext(story: Story): StoryContext = StoryContext(
+        playerId,
+        report = { elementId -> report("${story.name}: $elementId") },
+        reportChange = { elementId ->
+            val key = "${story.key}/$elementId"
+            val now = clock()
+            val last = lastChangeReports[key]
+            if (last == null || now - last >= CHANGE_REPORT_INTERVAL_MILLIS) {
+                lastChangeReports[key] = now
+                report("${story.name}: $elementId")
+            }
+        },
+    )
+
+    /**
+     * Holds the throttle interval of change reports.
+     */
+    companion object {
+        /**
+         * The shortest time between two change reports of the same element, in milliseconds.
+         */
+        const val CHANGE_REPORT_INTERVAL_MILLIS: Long = 2_000
     }
 
     /**

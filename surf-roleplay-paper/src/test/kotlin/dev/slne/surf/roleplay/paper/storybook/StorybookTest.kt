@@ -11,6 +11,8 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.paper.screen.ActionRateLimiter
 import dev.slne.surf.roleplay.paper.screen.PlayerScreenState
@@ -392,6 +394,45 @@ class StorybookTest {
         assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "go")))
 
         assertEquals(listOf("Schaltfläche: go"), reports)
+    }
+
+    /**
+     * Change reports of one element are throttled to one per two seconds, per element; click
+     * reports are not throttled.
+     */
+    @Test
+    fun `change reports are throttled per element and clicks are not`() {
+        var now = 0L
+        val stories = listOf(
+            Story("input", "Eingabefeld", StoryCategory.INPUTS) { context ->
+                Column {
+                    Input(id = "name", onChange = context.changed)
+                    Input(id = "city", onChange = context.changed)
+                    Button("Los", id = "go", onClick = context.clicked)
+                }
+            },
+        )
+        val page = StorybookPage(UUID.randomUUID(), reports::add, clock = { now }) { stories }
+        val session = open(page)
+
+        fun change(id: String) = assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChangePacket(session, id, "x$now")))
+        fun click() = assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "go")))
+
+        change("name")
+        now = 1_000
+        change("name")
+        change("city")
+        click()
+        click()
+        now = 1_999
+        change("name")
+        now = 2_000
+        change("name")
+
+        assertEquals(
+            listOf("Eingabefeld: name", "Eingabefeld: city", "Eingabefeld: go", "Eingabefeld: go", "Eingabefeld: name"),
+            reports,
+        )
     }
 
     /**

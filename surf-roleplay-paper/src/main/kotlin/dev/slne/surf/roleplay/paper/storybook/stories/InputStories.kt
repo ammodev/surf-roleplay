@@ -541,7 +541,7 @@ private fun ComponentScope.comboboxStory(context: StoryContext) {
             placeholder = Component.text("Einheit alarmieren …"),
             emptyText = Component.text("Keine Einheit gefunden."),
             id = "combobox_alarm",
-            onSearch = { search -> context.report(search.inputId) },
+            onSearch = { search -> context.reportChange(search.inputId) },
             onChange = context.changed,
         )
     }

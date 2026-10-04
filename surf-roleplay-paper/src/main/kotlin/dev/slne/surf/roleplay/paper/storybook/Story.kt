@@ -68,9 +68,11 @@ enum class StoryCategory(val title: String, val icon: String) {
  * What a story needs from the storybook while it renders.
  *
  * @property playerId the UUID of the viewing player, whose face avatars can show
- * @property report reports a click on or a change of the element with the given id
+ * @property report reports a click on the element with the given id
+ * @property reportChange reports a change of the input with the given id, which may be dropped
+ *           when the same input reported shortly before
  */
-class StoryContext(val playerId: UUID, val report: (String) -> Unit) {
+class StoryContext(val playerId: UUID, val report: (String) -> Unit, val reportChange: (String) -> Unit = report) {
     /**
      * A click handler that reports the id of the clicked element.
      */
@@ -79,7 +81,7 @@ class StoryContext(val playerId: UUID, val report: (String) -> Unit) {
     /**
      * A change handler that reports the id of the changed input.
      */
-    val changed: ChangeHandler = ChangeHandler { change -> report(change.inputId) }
+    val changed: ChangeHandler = ChangeHandler { change -> reportChange(change.inputId) }
 }
 
 /**
