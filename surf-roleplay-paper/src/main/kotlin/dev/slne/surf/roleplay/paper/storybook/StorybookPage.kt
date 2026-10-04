@@ -167,7 +167,7 @@ class StorybookPage(
                 Column(ElementSize.grow(), ElementSize.grow(), gap = 8, padding = Spacing(8, 8, 8, 8), crossAlign = Alignment.STRETCH) {
                     header(shown)
                     Separator()
-                    ScrollArea(ElementSize.grow(), ElementSize.grow(), id = "storybook_content") {
+                    ScrollArea(ElementSize.grow(), ElementSize.grow(), id = "storybook_content_${shown?.key.orEmpty()}") {
                         Column(width = ElementSize.grow(), gap = 12, padding = Spacing(0, 8, 8, 0), crossAlign = Alignment.STRETCH) {
                             if (shown == null) noStories() else shown.render(this, storyContext(shown))
                         }

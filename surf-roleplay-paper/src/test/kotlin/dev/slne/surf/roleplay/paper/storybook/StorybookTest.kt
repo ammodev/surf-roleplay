@@ -48,6 +48,7 @@ import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange as ScreenInputChangePacket
 
@@ -595,8 +596,20 @@ class StorybookTest {
         assertEquals(ElementSize.grow(), list.height)
         assertIs<SidebarContentElement>(list.children.single())
 
-        val content = elements(root).filterIsInstance<ScrollAreaElement>().single { it.id == "storybook_content" }
+        val content = elements(root).filterIsInstance<ScrollAreaElement>().single { it.id == "storybook_content_button" }
         assertEquals(ElementSize.grow(), content.height)
+    }
+
+    /**
+     * Each story has its own content scroll area, so that switching stories starts at the top.
+     */
+    @Test
+    fun `each story has its own content scroll area`() {
+        val page = StorybookPage(UUID.randomUUID(), reports::add) { testStories }
+        val first = elements(definition(page).root).filterIsInstance<ScrollAreaElement>().map { it.id }.single { it.startsWith("storybook_content") }
+        page.storyKey = testStories.last().key
+        val second = elements(definition(page).root).filterIsInstance<ScrollAreaElement>().map { it.id }.single { it.startsWith("storybook_content") }
+        assertNotEquals(first, second)
     }
 
     /**
