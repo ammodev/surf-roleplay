@@ -55,7 +55,7 @@ data class TabListView(
          * @param state the last state the server sent
          * @param nowMillis the current server time in epoch milliseconds
          * @param zone the time zone to show the clock in
-         * @param ping the round-trip time to the server in milliseconds, or `null` if unknown
+         * @param ping the round-trip time to the server in milliseconds; `null` or `0` shows a dash for an unknown time
          * @return the panel content
          */
         fun of(state: TabListState, nowMillis: Long, zone: ZoneId, ping: Int?): TabListView = TabListView(
@@ -72,7 +72,7 @@ data class TabListView(
                 Cell(Text("Beruf"), Text(state.job ?: MISSING)),
                 Cell(Text("Rang"), Text(state.rank ?: MISSING)),
                 Cell(Text("Spielzeit"), Text(TabListClock.playtime(state.sessionStartMillis, nowMillis))),
-                Cell(Text("Ping"), Text(ping?.let { "$it ms" } ?: MISSING)),
+                Cell(Text("Ping"), Text(ping?.takeIf { it > 0 }?.let { "$it ms" } ?: MISSING)),
             ),
         )
 

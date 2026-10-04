@@ -146,4 +146,12 @@ class TabListViewTest {
         val view = TabListView.of(state.copy(characterName = null, job = null, rank = null), serverTime, berlin, ping = null)
         assertEquals(listOf("–", "–", "–", "1:05", "–"), view.footer.map { plain(it.value) })
     }
+
+    /**
+     * Verifies that a latency of zero, which means no measurement yet, is shown as a dash.
+     */
+    @Test
+    fun `zero ping is a dash`() {
+        assertEquals(TabListView.Text("–"), TabListView.of(state, serverTime, berlin, ping = 0).footer[4].value)
+    }
 }

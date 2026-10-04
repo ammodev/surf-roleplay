@@ -1,6 +1,5 @@
 package dev.slne.surf.roleplay.fabric.tablist
 
-import com.google.gson.JsonPrimitive
 import dev.slne.surf.roleplay.fabric.RoleplayClient
 import dev.slne.surf.roleplay.fabric.protocol.FabricPacketDispatcher
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerState
@@ -10,13 +9,10 @@ import dev.slne.surf.roleplay.fabric.ui.text.TextBlock
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
 import dev.slne.surf.roleplay.protocol.Packets
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
-import dev.slne.surf.roleplay.protocol.tablist.TabListState
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
-import java.time.DateTimeException
-import java.time.ZoneId
 
 /**
  * Draws the roleplay tab list: a card at the top centre of the HUD that is shown while the
@@ -26,24 +22,9 @@ import java.time.ZoneId
 object TabListLayer {
 
     /**
-     * The time zone used when the server sends an unknown one.
+     * The last state the server sent on the current connection.
      */
-    private val DEFAULT_ZONE: ZoneId = ZoneId.of("Europe/Berlin")
-
-    /**
-     * The last state the server sent, or `null` if none was received on the current connection.
-     */
-    private var state: TabListState? = null
-
-    /**
-     * The monotonic time in nanoseconds at which [state] was received.
-     */
-    private var receivedAtNanos: Long = 0L
-
-    /**
-     * The time zone of [state].
-     */
-    private var zone: ZoneId = DEFAULT_ZONE
+    private val store: TabListStore = TabListStore { RoleplayClient.log.warn(it) }
 
     /**
      * The state that tells whether the current server is the roleplay server.
@@ -58,35 +39,10 @@ object TabListLayer {
     fun register(state: RoleplayServerState) {
         serverState = state
         FabricPacketDispatcher.on(Packets.TAB_LIST_STATE) { packet ->
-            Minecraft.getInstance().execute { if (serverState.isActive) receive(packet, System.nanoTime()) }
+            Minecraft.getInstance().execute { store.receive(packet, serverState.isActive, System.nanoTime()) }
         }
-        state.onChange { active -> if (!active) Minecraft.getInstance().execute { clear() } }
+        state.onChange { active -> if (!active) Minecraft.getInstance().execute { store.clear() } }
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(RoleplayClient.MOD_ID, "tab_list")) { graphics, _ -> render(graphics) }
-    }
-
-    /**
-     * Stores a state the server sent, together with the time it was received.
-     *
-     * @param packet the state
-     * @param nowNanos the monotonic time in nanoseconds
-     */
-    private fun receive(packet: TabListState, nowNanos: Long) {
-        state = packet
-        receivedAtNanos = nowNanos
-        zone = try {
-            ZoneId.of(packet.zoneId)
-        } catch (_: DateTimeException) {
-            RoleplayClient.log.warn("Unknown tab list time zone {}", packet.zoneId)
-            DEFAULT_ZONE
-        }
-    }
-
-    /**
-     * Forgets the stored state, so that nothing of a previous server is shown.
-     */
-    private fun clear() {
-        state = null
-        zone = DEFAULT_ZONE
     }
 
     /**
@@ -97,12 +53,12 @@ object TabListLayer {
      */
     private fun render(graphics: GuiGraphicsExtractor) {
         val mc = Minecraft.getInstance()
-        val current = state ?: return
+        val current = store.state ?: return
         if (!serverState.isActive || mc.gui.screen() != null || !mc.options.keyPlayerList.isDown) return
-        val elapsedMillis = (System.nanoTime() - receivedAtNanos) / 1_000_000L
+        val elapsedMillis = (System.nanoTime() - store.receivedAtNanos) / 1_000_000L
         val now = TabListClock.serverNow(current.serverTimeMillis, elapsedMillis)
         val ping = mc.player?.let { mc.connection?.getPlayerInfo(it.uuid)?.latency }
-        val view = TabListView.of(current, now, zone, ping)
+        val view = TabListView.of(current, now, store.zone, ping)
         val ui = UiGraphics(graphics, mc.font, Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK))
         val x = (mc.window.guiScaledWidth - WIDTH) / 2
         val height = layout(ui, view, x, TOP, draw = false)
@@ -220,17 +176,38 @@ object TabListLayer {
             ui.icon(cell.icon, Rect(x, y, ICON - 1, ICON - 1), tokens.mutedForeground)
             labelX += ICON + 2
         }
-        ui.wrappedText(json(cell.label), labelX, y, width - (labelX - x), tokens.mutedForeground, maxLines = 1)
-        ui.wrappedText(json(cell.value), x, y + ui.font.lineHeight + 1, width, tokens.cardForeground, maxLines = 1)
+        text(ui, cell.label, labelX, y, width - (labelX - x), tokens.mutedForeground)
+        text(ui, cell.value, x, y + ui.font.lineHeight + 1, width, tokens.cardForeground)
     }
 
     /**
-     * Returns a text as component JSON.
+     * Draws a text on one line within a width. Component JSON ends with an ellipsis if it is
+     * longer; plain text is drawn directly and is shortened with an ellipsis if it is longer.
      *
+     * @param ui the graphics to draw with
      * @param text the text
-     * @return the component JSON
+     * @param x the left edge
+     * @param y the top edge
+     * @param width the largest width
+     * @param color the ARGB colour
      */
-    private fun json(text: TabListView.Text): String = if (text.json) text.value else JsonPrimitive(text.value).toString()
+    private fun text(ui: UiGraphics, text: TabListView.Text, x: Int, y: Int, width: Int, color: Int) {
+        if (text.json) {
+            ui.wrappedText(text.value, x, y, width, color, maxLines = 1)
+            return
+        }
+        val shown = if (ui.plainWidth(text.value) <= width) {
+            text.value
+        } else {
+            ui.font.plainSubstrByWidth(text.value, (width - ui.plainWidth(ELLIPSIS)).coerceAtLeast(0)) + ELLIPSIS
+        }
+        ui.plainText(shown, x, y, color)
+    }
+
+    /**
+     * The ellipsis that ends a shortened plain text.
+     */
+    private const val ELLIPSIS: String = "…"
 
     /**
      * The width of the card in GUI pixels.

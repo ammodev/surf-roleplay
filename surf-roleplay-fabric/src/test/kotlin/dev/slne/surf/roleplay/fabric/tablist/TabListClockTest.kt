@@ -116,4 +116,17 @@ class TabListClockTest {
         assertEquals("Neustart in 1 min", TabListClock.restart(at(10, 0), at(10, 0)))
         assertEquals("Neustart in 1 min", TabListClock.restart(at(10, 0), at(10, 2)))
     }
+
+    /**
+     * Verifies that the clock follows the zone the server sent, across a daylight saving
+     * transition: in New York 01:59 plus two minutes on 8 March 2026 is 03:01.
+     */
+    @Test
+    fun `clock follows another zone across a daylight saving transition`() {
+        val newYork = ZoneId.of("America/New_York")
+        val before = ZonedDateTime.of(2026, 3, 8, 1, 59, 0, 0, newYork).toInstant().toEpochMilli()
+        assertEquals("01:59", TabListClock.clock(before, newYork))
+        assertEquals("03:01", TabListClock.clock(TabListClock.serverNow(before, 2 * 60_000L), newYork))
+        assertEquals("06:59", TabListClock.clock(before, ZoneId.of("UTC")))
+    }
 }
