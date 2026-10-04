@@ -1,6 +1,8 @@
 package dev.slne.surf.roleplay.paper.storybook
 
+import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ContainerElement
+import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.IconElement
 import dev.slne.surf.roleplay.api.client.common.screen.PaginationNextElement
 import dev.slne.surf.roleplay.api.client.common.screen.RowElement
@@ -276,6 +278,27 @@ class StorybookTest {
         assertEquals((96 until 100).map { "icon-%03d".format(it) }, shownIcons(page))
         val next = elements(definition(page).root).filterIsInstance<PaginationNextElement>().single()
         assertEquals(false, next.enabled)
+    }
+
+    /**
+     * The gallery grid takes the width of the content area: the grid, every row and every cell
+     * grow, every row has the same number of cells so the columns line up, and the last row is
+     * filled up with empty cells.
+     */
+    @Test
+    fun `the gallery grid fits the content width`() {
+        val page = storybook()
+        page.storyKey = "icons"
+        page.iconPage = 1
+        val root = definition(page).root
+        val rows = elements(root).filterIsInstance<RowElement>().filter { row -> row.children.any { cell -> elements(cell).any { it is IconElement } } }
+        val grid = elements(root).filterIsInstance<ContainerElement>().single { it.children.isNotEmpty() && it.children.all { child -> child in rows } }
+
+        assertEquals(ElementSize.grow(), (grid as ColumnElement).width)
+        assertTrue(rows.all { it.width == ElementSize.grow() })
+        assertEquals(listOf(8), rows.map { it.children.size }.distinct())
+        assertTrue(rows.flatMap { it.children }.all { (it as ColumnElement).width == ElementSize.grow() })
+        assertEquals((96 until 100).map { "icon-%03d".format(it) }, shownIcons(page))
     }
 
     /**

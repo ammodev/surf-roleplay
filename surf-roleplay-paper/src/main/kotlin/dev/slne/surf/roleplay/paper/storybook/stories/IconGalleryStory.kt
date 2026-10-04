@@ -52,7 +52,8 @@ interface IconGalleryState {
 }
 
 /**
- * The number of icons in one row of the gallery grid.
+ * The number of icons in one row of the gallery grid. The cells share the row's width, and a page
+ * of [IconPaging.PAGE_SIZE] icons fills whole rows.
  */
 private const val ICONS_PER_ROW = 8
 
@@ -63,7 +64,8 @@ private const val ALL_CATEGORIES = "alle"
 
 /**
  * Creates the story of the icon gallery: a search input, a category select, a grid of the
- * matching icons with their names, one page at a time, and a pagination; an empty state when
+ * matching icons with their names whose columns share the content width, one page at a time, and
+ * a pagination; an empty state when
  * nothing matches. The category select and the pagination report their element ids, the search
  * input does not.
  *
@@ -111,15 +113,16 @@ private fun ComponentScope.iconGallery(catalog: LucideCatalog, state: IconGaller
         return
     }
     Muted("${matches.size} Symbole, Seite ${page + 1} von $pageCount")
-    Column(gap = 6) {
+    Column(width = ElementSize.grow(), gap = 6) {
         IconPaging.page(matches, page).chunked(ICONS_PER_ROW).forEach { row ->
-            Row(gap = 4) {
+            Row(width = ElementSize.grow(), gap = 4) {
                 row.forEach { icon ->
-                    Column(width = ElementSize.fixed(64), gap = 2, crossAlign = Alignment.CENTER) {
+                    Column(width = ElementSize.grow(), gap = 2, crossAlign = Alignment.CENTER) {
                         Icon(icon.name)
                         Muted(icon.name, maxLines = 1, align = Alignment.CENTER, width = ElementSize.grow())
                     }
                 }
+                repeat(ICONS_PER_ROW - row.size) { Column(width = ElementSize.grow()) {} }
             }
         }
     }
