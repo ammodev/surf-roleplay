@@ -15,9 +15,9 @@ class HudCursorTest {
      */
     @Test
     fun `toggle mode releases on press and captures on the next press`() {
-        assertEquals(HudCursor.Change.RELEASE, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.TOGGLE))
-        assertNull(HudCursor.change(keyDown = false, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.TOGGLE))
-        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = true, mode = KeyMode.TOGGLE))
+        assertEquals(HudCursor.Change.RELEASE, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.TOGGLE, ready = true))
+        assertNull(HudCursor.change(keyDown = false, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.TOGGLE, ready = true))
+        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = true, mode = KeyMode.TOGGLE, ready = true))
     }
 
     /**
@@ -25,7 +25,7 @@ class HudCursorTest {
      */
     @Test
     fun `a screen ends toggle mode`() {
-        assertEquals(HudCursor.Change.END, HudCursor.change(keyDown = false, keyPressed = false, screenOpen = true, active = true, mode = KeyMode.TOGGLE))
+        assertEquals(HudCursor.Change.END, HudCursor.change(keyDown = false, keyPressed = false, screenOpen = true, active = true, mode = KeyMode.TOGGLE, ready = true))
     }
 
     /**
@@ -33,7 +33,42 @@ class HudCursorTest {
      */
     @Test
     fun `hold mode is unchanged`() {
-        assertEquals(HudCursor.Change.RELEASE, HudCursor.change(true, true, false, false, KeyMode.HOLD))
-        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(false, false, false, true, KeyMode.HOLD))
+        assertEquals(HudCursor.Change.RELEASE, HudCursor.change(true, true, false, false, KeyMode.HOLD, true))
+        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(false, false, false, true, KeyMode.HOLD, true))
+    }
+
+    /**
+     * Verifies that a press while a screen is open does not release the mouse.
+     */
+    @Test
+    fun `a press under a screen does nothing in toggle mode`() {
+        assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = true, active = false, mode = KeyMode.TOGGLE, ready = true))
+    }
+
+    /**
+     * Verifies that a held key without a fresh press does not end an active toggle.
+     */
+    @Test
+    fun `a held key without a press keeps toggle mode`() {
+        assertNull(HudCursor.change(keyDown = true, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.TOGGLE, ready = true))
+    }
+
+    /**
+     * Verifies that hold mode does not release without the key being down.
+     */
+    @Test
+    fun `hold mode ignores a press without the key down`() {
+        assertNull(HudCursor.change(keyDown = false, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.HOLD, ready = true))
+    }
+
+    /**
+     * Verifies that an active cursor ends when it may no longer be shown, and that a press does
+     * not release it while not ready.
+     */
+    @Test
+    fun `an active cursor is captured when not ready`() {
+        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = false, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.TOGGLE, ready = false))
+        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = true, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.HOLD, ready = false))
+        assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.TOGGLE, ready = false))
     }
 }

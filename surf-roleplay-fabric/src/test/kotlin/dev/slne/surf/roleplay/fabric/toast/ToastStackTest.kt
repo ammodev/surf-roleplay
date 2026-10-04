@@ -116,10 +116,10 @@ class ToastStackTest {
      */
     @Test
     fun `hud cursor follows the key`() {
-        assertEquals(HudCursor.Change.RELEASE, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.HOLD))
-        assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = true, mode = KeyMode.HOLD))
-        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = false, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.HOLD))
-        assertEquals(HudCursor.Change.END, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = true, active = true, mode = KeyMode.HOLD))
-        assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = true, active = false, mode = KeyMode.HOLD))
+        assertEquals(HudCursor.Change.RELEASE, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = false, mode = KeyMode.HOLD, ready = true))
+        assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = false, active = true, mode = KeyMode.HOLD, ready = true))
+        assertEquals(HudCursor.Change.CAPTURE, HudCursor.change(keyDown = false, keyPressed = false, screenOpen = false, active = true, mode = KeyMode.HOLD, ready = true))
+        assertEquals(HudCursor.Change.END, HudCursor.change(keyDown = true, keyPressed = true, screenOpen = true, active = true, mode = KeyMode.HOLD, ready = true))
+        assertNull(HudCursor.change(keyDown = true, keyPressed = true, screenOpen = true, active = false, mode = KeyMode.HOLD, ready = true))
     }
 }

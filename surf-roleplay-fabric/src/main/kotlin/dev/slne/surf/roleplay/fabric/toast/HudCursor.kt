@@ -64,14 +64,16 @@ object HudCursor {
      * @param screenOpen whether a screen is open
      * @param active whether the cursor mode is on
      * @param mode whether the key is held or toggled
+     * @param ready whether the cursor may be shown at all; an active cursor is ended when it is not
      * @return the change, or `null` for none
      */
-    fun change(keyDown: Boolean, keyPressed: Boolean, screenOpen: Boolean, active: Boolean, mode: KeyMode): Change? = when {
+    fun change(keyDown: Boolean, keyPressed: Boolean, screenOpen: Boolean, active: Boolean, mode: KeyMode, ready: Boolean): Change? = when {
         active && screenOpen -> Change.END
+        active && !ready -> Change.CAPTURE
         mode == KeyMode.HOLD && active && !keyDown -> Change.CAPTURE
-        mode == KeyMode.HOLD && !active && keyDown && !screenOpen -> Change.RELEASE
+        mode == KeyMode.HOLD && !active && keyDown && !screenOpen && ready -> Change.RELEASE
         mode == KeyMode.TOGGLE && keyPressed && active -> Change.CAPTURE
-        mode == KeyMode.TOGGLE && keyPressed && !active && !screenOpen -> Change.RELEASE
+        mode == KeyMode.TOGGLE && keyPressed && !active && !screenOpen && ready -> Change.RELEASE
         else -> null
     }
 
@@ -85,7 +87,7 @@ object HudCursor {
         val ready = enabled && mc.player != null
         val keyPressed = key.consumeClick() && ready
         val keyDown = ready && key.isDown
-        when (change(keyDown, keyPressed, mc.gui.screen() != null, active, RoleplayClient.settings.current.cursorKeyMode)) {
+        when (change(keyDown, keyPressed, mc.gui.screen() != null, active, RoleplayClient.settings.current.cursorKeyMode, ready)) {
             Change.RELEASE -> {
                 active = true
                 mc.mouseHandler.releaseMouse()
