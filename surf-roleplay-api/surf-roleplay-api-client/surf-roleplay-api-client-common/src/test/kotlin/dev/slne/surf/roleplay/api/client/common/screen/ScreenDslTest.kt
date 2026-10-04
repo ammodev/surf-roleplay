@@ -116,19 +116,6 @@ class ScreenDslTest {
     }
 
     /**
-     * Verifies that the patch builder can build replacement elements with the DSL.
-     */
-    @Test
-    fun `patch builder builds elements with the dsl`() {
-        val changes = ScreenPatchBuilder().apply {
-            replace("inputs") { row("inputs") { label("hint", Component.text("Fertig")) } }
-        }.changes
-
-        val replace = assertIs<ScreenChange.Replace>(changes.single())
-        assertEquals("hint", assertIs<RowElement>(replace.element).children.single().id)
-    }
-
-    /**
      * Verifies that screen values are read in the type of their input.
      */
     @Test

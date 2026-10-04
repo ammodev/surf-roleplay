@@ -1,9 +1,13 @@
 package dev.slne.surf.roleplay.api.client.common.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.HandlerBinder
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputRef
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.renderRoot
 import net.kyori.adventure.text.Component
 import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * A generic server-driven screen, ready to be opened for a player.
@@ -387,14 +391,19 @@ class ScreenPatchBuilder {
     }
 
     /**
-     * Replaces an element with one built by the element DSL.
+     * Replaces an element with one built by the component DSL.
+     *
+     * The element is rendered as the root of a tree that replaces [targetId], so it gets the
+     * generated id [targetId] if that starts with `_`, and `_#` followed by [targetId] otherwise.
+     * Replacing a generated element therefore keeps its id, and an explicit id given to the
+     * element wins over the generated one.
      *
      * @param targetId the id of the element to replace
      * @param build the builder that adds exactly one element
      * @throws IllegalStateException if [build] does not add exactly one element
      */
-    fun replace(targetId: String, build: ElementsBuilder.() -> Unit) {
-        replace(targetId, ElementsBuilder().apply(build).single())
+    fun replace(targetId: String, build: ComponentScope.() -> Unit) {
+        replace(targetId, renderRoot(at = targetId, content = build))
     }
 
     /**
@@ -409,14 +418,22 @@ class ScreenPatchBuilder {
     }
 
     /**
-     * Appends the elements built by the element DSL to a container, after its other children,
+     * Appends the elements built by the component DSL to a container, after its other children,
      * such as a new message of a chat view.
+     *
+     * Every call renders its elements under a generated id `_+n` that is unique in the JVM: `n`
+     * comes from one process-wide counter. The first element gets `_+n`, a further element gets
+     * `_+n+1`, `_+n+2` and so on, and the descendants of an element get ids below it, such as
+     * `_+n.0`. Appended content therefore never collides with the generated ids of the screen's
+     * own tree or with other appended content. An explicit id given to an element wins over the
+     * generated one.
      *
      * @param parentId the id of the container
      * @param build the builder of the elements, appended in order
      */
-    fun append(parentId: String, build: ElementsBuilder.() -> Unit) {
-        ElementsBuilder().apply(build).elements.forEach { insert(parentId, Int.MAX_VALUE, it) }
+    fun append(parentId: String, build: ComponentScope.() -> Unit) {
+        val scope = ComponentScope.root(APPEND_PREFIX + APPEND_COUNTER.incrementAndGet(), HandlerBinder.IDENTITY)
+        scope.build(build).elements.toList().forEach { insert(parentId, Int.MAX_VALUE, it) }
     }
 
     /**
@@ -496,5 +513,20 @@ class ScreenPatchBuilder {
      */
     fun setInvalid(targetId: String, invalid: Boolean) {
         recorded += ScreenChange.SetInvalid(targetId, invalid)
+    }
+
+    /**
+     * Holds the counter of appended content.
+     */
+    private companion object {
+        /**
+         * The prefix of the root id of appended content.
+         */
+        const val APPEND_PREFIX: String = "_+"
+
+        /**
+         * The process-wide counter that makes the ids of appended content unique.
+         */
+        val APPEND_COUNTER: AtomicLong = AtomicLong()
     }
 }
