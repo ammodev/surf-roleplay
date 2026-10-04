@@ -39,6 +39,20 @@ import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonVariant
 import dev.slne.surf.roleplay.api.client.common.screen.CalendarMode
 import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
+import dev.slne.surf.roleplay.api.client.common.screen.ChartElement
+import dev.slne.surf.roleplay.api.client.common.screen.ChartKind
+import dev.slne.surf.roleplay.api.client.common.screen.ChartSeries
+import dev.slne.surf.roleplay.api.client.common.screen.ChatMessageElement
+import dev.slne.surf.roleplay.api.client.common.screen.ChatViewElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableCellElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableRowElement
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableView
+import dev.slne.surf.roleplay.api.client.common.screen.TableCellElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableRowElement
+import dev.slne.surf.roleplay.api.client.common.screen.TableSection
+import dev.slne.surf.roleplay.api.client.common.screen.TableSectionElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
@@ -795,6 +809,70 @@ class ComponentDslTest {
         assertEquals(false, assertIs<SidebarProviderElement>(root.children[3]).open)
         assertEquals("q", search.id)
         assertEquals("Ada", ScreenValues(mapOf("q" to "Ada"))[search])
+    }
+
+    /**
+     * Verifies that a table builds its sections, and that text cells hold a label below the cell.
+     */
+    @Test
+    fun `table components build sections and text cells`() {
+        val table = assertIs<TableElement>(
+            renderRoot {
+                Table {
+                    TableHeader { TableRow { TableHead("Name", align = Alignment.END) } }
+                    TableBody { TableRow(selected = true) { TableCell("Ada", id = "ada"); TableCell { Button("x") } } }
+                    TableFooter { }
+                    TableCaption("Einheiten")
+                }
+            },
+        )
+        val sections = table.children.take(3).map { assertIs<TableSectionElement>(it).section }
+        assertEquals(listOf(TableSection.HEADER, TableSection.BODY, TableSection.FOOTER), sections)
+        val head = assertIs<TableCellElement>(assertIs<TableRowElement>(assertIs<TableSectionElement>(table.children[0]).children[0]).children[0])
+        assertTrue(head.head)
+        assertEquals(Alignment.END, head.align)
+        assertEquals("_0.0.0.0.0", assertIs<LabelElement>(head.children[0]).id)
+        val row = assertIs<TableRowElement>(assertIs<TableSectionElement>(table.children[1]).children[0])
+        assertTrue(row.selected)
+        val cell = assertIs<TableCellElement>(row.children[0])
+        assertEquals("ada", cell.id)
+        assertEquals(Component.text("Ada"), assertIs<LabelElement>(cell.children[0]).text)
+        assertEquals("_0.1.0.0.0", cell.children[0].id)
+    }
+
+    /**
+     * Verifies that a data table reports its view through a typed reference and binds its change
+     * handler, and that charts and chat views keep their settings.
+     */
+    @Test
+    fun `data, chart and chat components build their elements`() {
+        val seen = mutableListOf<String>()
+        lateinit var view: InputRef<DataTableView>
+        val root = assertIs<ColumnElement>(
+            renderRoot(recordingBinder(seen)) {
+                Column {
+                    view = DataTable(pageSize = 5, onChange = { }, id = "units") {
+                        DataTableColumn("name", "Name", sortable = true)
+                        DataTableRow(id = "r1") { DataTableCell("Ada", "ada") }
+                    }
+                    Chart(ChartKind.BAR, listOf(Component.text("Jan")), listOf(ChartSeries("a", Component.text("A"), 1, listOf(2.0))), stacked = true)
+                    ChatView(ElementSize.fixed(80)) { ChatMessage(own = true, fallback = "AB") { P("Hallo") } }
+                }
+            },
+        )
+        assertEquals(listOf("units"), seen)
+        val table = assertIs<DataTableElement>(root.children[0])
+        assertEquals(5, table.pageSize)
+        assertEquals(Component.text("Filtern..."), table.filterPlaceholder)
+        val cell = assertIs<DataTableCellElement>(assertIs<DataTableRowElement>(table.children[1]).children[0])
+        assertEquals("ada", cell.sortKey)
+        assertIs<LabelElement>(cell.children[0])
+        assertEquals(DataTableView(sort = "name", page = 1), ScreenValues(mapOf("units" to DataTableView(sort = "name", page = 1).toJson()))[view])
+        assertEquals(DataTableView(), ScreenValues(emptyMap())[view])
+        assertTrue(assertIs<ChartElement>(root.children[1]).stacked)
+        val chat = assertIs<ChatViewElement>(root.children[2])
+        assertEquals(ElementSize.fixed(80), chat.height)
+        assertTrue(assertIs<ChatMessageElement>(chat.children[0]).own)
     }
 
     /**

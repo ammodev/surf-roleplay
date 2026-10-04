@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.api.client.common.screen.dsl
 
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableView
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenValues
 import java.time.LocalDate
 
@@ -75,4 +76,10 @@ internal object InputParsers {
     val dates: (String?) -> List<LocalDate> = { value ->
         value?.split(',', '/')?.mapNotNull { runCatching { LocalDate.parse(it.trim()) }.getOrNull() }.orEmpty()
     }
+
+    /**
+     * Parses the view of a data table from its JSON form; the default view if missing or not a
+     * valid view.
+     */
+    val dataTableView: (String?) -> DataTableView = { value -> value?.let(DataTableView::parse) ?: DataTableView() }
 }
