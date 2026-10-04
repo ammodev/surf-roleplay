@@ -55,6 +55,34 @@ class TextBoundariesTest {
     }
 
     /**
+     * Verifies that an apostrophe between letters belongs to the word, while one at the edge of
+     * a word is punctuation.
+     */
+    @Test
+    fun `apostrophes between letters stay inside the word`() {
+        val text = "Er geht's heim"
+
+        assertEquals(3, TextBoundaries.previousWord(text, 9))
+        assertEquals(10, TextBoundaries.nextWord(text, 3))
+        assertEquals(TextRange(3, 9), TextBoundaries.wordAt(text, 7))
+        assertEquals(TextRange(3, 9), TextBoundaries.wordAt("Er geht’s heim", 7))
+        assertEquals(TextRange(0, 1), TextBoundaries.wordAt("'hallo'", 0))
+        assertEquals(TextRange(1, 6), TextBoundaries.wordAt("'hallo'", 3))
+    }
+
+    /**
+     * Verifies that combining marks belong to the word they follow.
+     */
+    @Test
+    fun `combining marks stay inside the word`() {
+        val text = "éte x"
+
+        assertEquals(TextRange(0, 4), TextBoundaries.wordAt(text, 1))
+        assertEquals(5, TextBoundaries.nextWord(text, 0))
+        assertEquals(0, TextBoundaries.previousWord(text, 4))
+    }
+
+    /**
      * Verifies that line breaks count as whitespace.
      */
     @Test

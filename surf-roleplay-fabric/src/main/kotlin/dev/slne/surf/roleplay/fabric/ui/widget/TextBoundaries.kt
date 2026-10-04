@@ -11,9 +11,10 @@ data class TextRange(val start: Int, val end: Int)
 /**
  * Finds word and line boundaries in a text the way a browser text field on Windows does.
  *
- * Characters fall into three classes: whitespace, word characters (letters, digits and the
- * underscore) and punctuation, which is everything else. A word is a run of characters of one
- * class other than whitespace.
+ * Characters fall into three classes: whitespace, word characters and punctuation, which is
+ * everything else. Word characters are letters, digits, the underscore, combining marks, and
+ * apostrophes between two letters, as in "geht's". A word is a run of characters of one class
+ * other than whitespace.
  */
 object TextBoundaries {
 
@@ -27,7 +28,7 @@ object TextBoundaries {
         SPACE,
 
         /**
-         * Letters, digits and the underscore.
+         * Letters, digits, the underscore, combining marks and apostrophes between letters.
          */
         WORD,
 
@@ -38,15 +39,36 @@ object TextBoundaries {
     }
 
     /**
-     * Returns the class of a character.
+     * The apostrophes that join the letters around them into one word.
+     */
+    private const val APOSTROPHES: String = "'’"
+
+    /**
+     * Returns the class of a character in a text.
      *
-     * @param char the character
+     * @param text the text
+     * @param index the index of the character
      * @return the class
      */
-    private fun classOf(char: Char): CharClass = when {
-        char.isWhitespace() -> CharClass.SPACE
-        char.isLetterOrDigit() || char == '_' -> CharClass.WORD
-        else -> CharClass.PUNCTUATION
+    private fun classOf(text: String, index: Int): CharClass {
+        val char = text[index]
+        return when {
+            char.isWhitespace() -> CharClass.SPACE
+            char.isLetterOrDigit() || char == '_' || isCombiningMark(char) -> CharClass.WORD
+            char in APOSTROPHES && text.getOrNull(index - 1)?.isLetter() == true && text.getOrNull(index + 1)?.isLetter() == true -> CharClass.WORD
+            else -> CharClass.PUNCTUATION
+        }
+    }
+
+    /**
+     * Checks whether a character is a combining mark, which belongs to the character before it.
+     *
+     * @param char the character
+     * @return whether it is a non-spacing, spacing or enclosing combining mark
+     */
+    private fun isCombiningMark(char: Char): Boolean = when (Character.getType(char).toByte()) {
+        Character.NON_SPACING_MARK, Character.COMBINING_SPACING_MARK, Character.ENCLOSING_MARK -> true
+        else -> false
     }
 
     /**
@@ -59,10 +81,10 @@ object TextBoundaries {
      */
     fun previousWord(text: String, from: Int): Int {
         var position = from.coerceIn(0, text.length)
-        while (position > 0 && classOf(text[position - 1]) == CharClass.SPACE) position--
+        while (position > 0 && classOf(text, position - 1) == CharClass.SPACE) position--
         if (position == 0) return 0
-        val run = classOf(text[position - 1])
-        while (position > 0 && classOf(text[position - 1]) == run) position--
+        val run = classOf(text, position - 1)
+        while (position > 0 && classOf(text, position - 1) == run) position--
         return position
     }
 
@@ -78,12 +100,12 @@ object TextBoundaries {
     fun nextWord(text: String, from: Int): Int {
         var position = from.coerceIn(0, text.length)
         if (position < text.length) {
-            val run = classOf(text[position])
+            val run = classOf(text, position)
             if (run != CharClass.SPACE) {
-                while (position < text.length && classOf(text[position]) == run) position++
+                while (position < text.length && classOf(text, position) == run) position++
             }
         }
-        while (position < text.length && classOf(text[position]) == CharClass.SPACE) position++
+        while (position < text.length && classOf(text, position) == CharClass.SPACE) position++
         return position
     }
 
@@ -98,11 +120,11 @@ object TextBoundaries {
     fun wordAt(text: String, index: Int): TextRange {
         if (text.isEmpty()) return TextRange(0, 0)
         val at = index.coerceIn(0, text.length - 1)
-        val run = classOf(text[at])
+        val run = classOf(text, at)
         var start = at
-        while (start > 0 && classOf(text[start - 1]) == run) start--
+        while (start > 0 && classOf(text, start - 1) == run) start--
         var end = at + 1
-        while (end < text.length && classOf(text[end]) == run) end++
+        while (end < text.length && classOf(text, end) == run) end++
         return TextRange(start, end)
     }
 
