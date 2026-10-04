@@ -106,6 +106,43 @@ class StorybookTest {
         elements(definition.root).filterIsInstance<TextElement>().map { PlainTextComponentSerializer.plainText().serialize(it.text) }
 
     /**
+     * Checks that the storybook's stories of a category have exactly the given keys, and that each
+     * of them renders and maps in every theme and variant.
+     *
+     * @param category the category
+     * @param keys the expected story keys
+     */
+    private fun assertCategory(category: StoryCategory, keys: Set<String>) {
+        val stories = storybookStories()
+        val inCategory = stories.filter { it.category == category }
+        assertEquals(keys, inCategory.map { it.key }.toSet())
+        val page = StorybookPage(UUID.randomUUID(), reports::add, stories)
+        for (story in inCategory) {
+            for (theme in listOf(ScreenThemes.DEFAULT, ScreenThemes.SAR, ScreenThemes.POLICE)) {
+                for (dark in listOf(true, false)) {
+                    page.storyKey = story.key
+                    page.themeName = theme
+                    page.dark = dark
+                    open(page)
+                    assertIs<ScreenOpen>(sent.last(), "${story.key} in $theme")
+                }
+            }
+        }
+    }
+
+    /**
+     * The input stories cover the input components and render.
+     */
+    @Test
+    fun `the input stories cover their components and render`() = assertCategory(
+        StoryCategory.INPUTS,
+        setOf(
+            "button", "button-group", "calendar", "checkbox", "combobox", "field", "form", "input", "input-group", "input-otp",
+            "label", "native-select", "radio-group", "select", "slider", "switch", "textarea", "toggle", "toggle-group",
+        ),
+    )
+
+    /**
      * Every test story renders and maps in every theme and variant.
      */
     @Test
