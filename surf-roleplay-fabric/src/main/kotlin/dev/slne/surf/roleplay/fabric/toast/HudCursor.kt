@@ -1,6 +1,8 @@
 package dev.slne.surf.roleplay.fabric.toast
 
 import com.mojang.blaze3d.platform.InputConstants
+import dev.slne.surf.roleplay.fabric.RoleplayClient
+import dev.slne.surf.roleplay.fabric.settings.KeyMode
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
@@ -9,7 +11,7 @@ import net.minecraft.resources.Identifier
 import org.lwjgl.glfw.GLFW
 
 /**
- * The HUD cursor: while its key is held and no screen is open, the mouse is released so that its
+ * The HUD cursor: while its key is held (or toggled on, depending on the key mode) and no screen is open, the mouse is released so that its
  * cursor can click toasts, and the player keeps walking with the movement keys.
  */
 object HudCursor {
@@ -58,14 +60,18 @@ object HudCursor {
      * Decides how the mouse capture changes.
      *
      * @param keyDown whether the key is held
+     * @param keyPressed whether the key went down on this tick
      * @param screenOpen whether a screen is open
      * @param active whether the cursor mode is on
+     * @param mode whether the key is held or toggled
      * @return the change, or `null` for none
      */
-    fun change(keyDown: Boolean, screenOpen: Boolean, active: Boolean): Change? = when {
+    fun change(keyDown: Boolean, keyPressed: Boolean, screenOpen: Boolean, active: Boolean, mode: KeyMode): Change? = when {
         active && screenOpen -> Change.END
-        active && !keyDown -> Change.CAPTURE
-        !active && keyDown && !screenOpen -> Change.RELEASE
+        mode == KeyMode.HOLD && active && !keyDown -> Change.CAPTURE
+        mode == KeyMode.HOLD && !active && keyDown && !screenOpen -> Change.RELEASE
+        mode == KeyMode.TOGGLE && keyPressed && active -> Change.CAPTURE
+        mode == KeyMode.TOGGLE && keyPressed && !active && !screenOpen -> Change.RELEASE
         else -> null
     }
 
@@ -76,8 +82,10 @@ object HudCursor {
      * @param enabled whether the cursor may be shown, as while the roleplay server is active
      */
     fun tick(mc: Minecraft, enabled: Boolean) {
-        val keyDown = enabled && mc.player != null && key.isDown
-        when (change(keyDown, mc.gui.screen() != null, active)) {
+        val ready = enabled && mc.player != null
+        val keyPressed = key.consumeClick() && ready
+        val keyDown = ready && key.isDown
+        when (change(keyDown, keyPressed, mc.gui.screen() != null, active, RoleplayClient.settings.current.cursorKeyMode)) {
             Change.RELEASE -> {
                 active = true
                 mc.mouseHandler.releaseMouse()
