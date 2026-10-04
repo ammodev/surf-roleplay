@@ -259,6 +259,13 @@ interface OpenScreen {
     fun patch(changes: ScreenPatchBuilder.() -> Unit)
 
     /**
+     * Applies changes that were computed before, in order, as one patch, as [patch] does.
+     *
+     * @param changes the changes
+     */
+    fun apply(changes: List<ScreenChange>) = patch { changes.forEach(::add) }
+
+    /**
      * Shows the errors of inputs found by a check the server made. Every field that holds an
      * input with an error shows the error in its error text and is drawn as invalid, and the input
      * is drawn as invalid until the player changes it. Every other field and input loses its error.
@@ -378,6 +385,15 @@ class ScreenPatchBuilder {
      * The recorded changes, in order.
      */
     val changes: List<ScreenChange> get() = recorded.toList()
+
+    /**
+     * Records a change.
+     *
+     * @param change the change
+     */
+    fun add(change: ScreenChange) {
+        recorded += change
+    }
 
     /**
      * Replaces an element.
