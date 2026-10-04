@@ -36,6 +36,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarTrigger
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Switch
 import dev.slne.surf.roleplay.api.client.paper.screen.gui.GuiPage
 import dev.slne.surf.roleplay.paper.screen.debug.InputsDemo
+import dev.slne.surf.roleplay.paper.storybook.stories.IconGalleryState
 import net.kyori.adventure.text.Component
 import java.util.UUID
 
@@ -46,20 +47,43 @@ import java.util.UUID
  * Every click on or change of an element of a story is reported as `<story name>: <element id>`.
  * The ids of the page's own elements start with `storybook_`.
  *
+ * The page also holds the search, category filter and page of the icon gallery.
+ *
  * @property playerId the UUID of the viewing player, passed on to the stories
  * @property report shows a report of a click or change to the player
- * @property stories the stories, in sidebar order within their category
+ * @param stories creates the stories, in sidebar order within their category, from the gallery
+ *        state the page holds
  */
 class StorybookPage(
     private val playerId: UUID,
     private val report: (String) -> Unit,
-    private val stories: List<Story>,
-) : GuiPage() {
+    stories: (IconGalleryState) -> List<Story>,
+) : GuiPage(), IconGalleryState {
+
+    /**
+     * The text the icon gallery searches for.
+     */
+    override var iconQuery: String by state("")
+
+    /**
+     * The category the icon gallery is filtered by, or `null` for any.
+     */
+    override var iconCategory: String? by state(null)
+
+    /**
+     * The shown page of the icon gallery.
+     */
+    override var iconPage: Int by state(0)
+
+    /**
+     * The stories, in sidebar order within their category.
+     */
+    internal val stories: List<Story> = stories(this)
 
     /**
      * The key of the shown story, or `null` if there are no stories.
      */
-    internal var storyKey: String? by state(stories.firstOrNull()?.key)
+    internal var storyKey: String? by state(this.stories.firstOrNull()?.key)
 
     /**
      * The name of the theme the storybook is drawn with.

@@ -38,12 +38,17 @@ object StorybookCommand {
     }
 
     /**
+     * The bundled Lucide icons, loaded on first use.
+     */
+    private val catalog: LucideCatalog by lazy { LucideCatalog.load() }
+
+    /**
      * Opens a new storybook for a player.
      *
      * @param player the player
      */
     private fun open(player: Player) {
         val report: (String) -> Unit = { text -> ToastService.show(player, Toast(Component.text(text))) }
-        StorybookPage(player.uniqueId, report, storybookStories()).open(player)
+        StorybookPage(player.uniqueId, report) { gallery -> storybookStories(catalog, gallery) }.open(player)
     }
 }

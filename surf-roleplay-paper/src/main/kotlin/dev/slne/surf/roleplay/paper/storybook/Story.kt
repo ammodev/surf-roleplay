@@ -9,9 +9,11 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.H4
 import dev.slne.surf.roleplay.paper.storybook.stories.DATA_STORIES
 import dev.slne.surf.roleplay.paper.storybook.stories.DISPLAY_STORIES
+import dev.slne.surf.roleplay.paper.storybook.stories.IconGalleryState
 import dev.slne.surf.roleplay.paper.storybook.stories.INPUT_STORIES
 import dev.slne.surf.roleplay.paper.storybook.stories.NAVIGATION_STORIES
 import dev.slne.surf.roleplay.paper.storybook.stories.OVERLAY_STORIES
+import dev.slne.surf.roleplay.paper.storybook.stories.iconGalleryStory
 import java.util.UUID
 
 /**
@@ -83,9 +85,12 @@ class StoryContext(val playerId: UUID, val report: (String) -> Unit) {
 /**
  * Returns every story of the storybook, grouped by category in sidebar order.
  *
+ * @param catalog the icons the icon gallery lists
+ * @param gallery the search, filter and page of the icon gallery
  * @return the stories
  */
-internal fun storybookStories(): List<Story> = INPUT_STORIES + DISPLAY_STORIES + OVERLAY_STORIES + NAVIGATION_STORIES + DATA_STORIES
+internal fun storybookStories(catalog: LucideCatalog, gallery: IconGalleryState): List<Story> =
+    INPUT_STORIES + DISPLAY_STORIES + OVERLAY_STORIES + NAVIGATION_STORIES + DATA_STORIES + iconGalleryStory(catalog, gallery)
 
 /**
  * Adds a titled block of a story, such as all variants of a component.
