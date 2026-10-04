@@ -11,6 +11,7 @@ import org.bukkit.entity.Player
 import java.time.LocalTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -200,6 +201,41 @@ class TabListStateBuilderTest {
         assertEquals(organisations, state.organisations)
         assertEquals(config.nextRestartMillis(now), state.restartAtMillis)
         assertEquals(ScreenMapper.text(Component.text("Event")), state.announcement)
+    }
+
+    /**
+     * Verifies that the online total is rounded to the nearest five and flagged approximate while
+     * any organisation is coarse.
+     */
+    @Test
+    fun `online total is approximate while any organisation is coarse`() {
+        val organisations = listOf(OrganisationCount("police", "{}"), OrganisationCount("sar", "{}"))
+        val config = TabListConfig(organisations = mapOf("police" to TabListConfig.Organisation(exact = true)))
+
+        val state = builder.build(organisations, 42, Component.text("Klar"), 0, emptyList(), read, config)
+
+        assertEquals(40, state.onlineTotal)
+        assertTrue(state.onlineTotalApproximate)
+        assertEquals(listOf(0, 0, 0, 5, 5, 5, 5, 5, 10), (0..8).map(TabListStateBuilder::approximateTotal))
+    }
+
+    /**
+     * Verifies that the online total is exact when every organisation is exact.
+     */
+    @Test
+    fun `online total is exact when every organisation is exact`() {
+        val organisations = listOf(OrganisationCount("police", "{}"), OrganisationCount("sar", "{}"))
+        val config = TabListConfig(
+            organisations = mapOf(
+                "police" to TabListConfig.Organisation(exact = true),
+                "sar" to TabListConfig.Organisation(exact = true),
+            ),
+        )
+
+        val state = builder.build(organisations, 42, Component.text("Klar"), 0, emptyList(), read, config)
+
+        assertEquals(42, state.onlineTotal)
+        assertFalse(state.onlineTotalApproximate)
     }
 
     /**

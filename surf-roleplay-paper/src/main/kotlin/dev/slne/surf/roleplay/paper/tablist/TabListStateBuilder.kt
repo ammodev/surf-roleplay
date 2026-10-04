@@ -63,7 +63,9 @@ class TabListStateBuilder(
     }
 
     /**
-     * Builds the tab list state of one player.
+     * Builds the tab list state of one player. While any of the organisations is shown coarse,
+     * the online total is rounded with [approximateTotal] and flagged approximate, so the exact
+     * total is never sent.
      *
      * @param organisations the organisation counts, shared by every player
      * @param onlineTotal the number of players online
@@ -84,9 +86,11 @@ class TabListStateBuilder(
         config: TabListConfig,
     ): TabListState {
         val now = clock()
+        val approximate = organisations.any { !config.organisation(it.key).exact }
         return TabListState(
             organisations = organisations,
-            onlineTotal = onlineTotal,
+            onlineTotal = if (approximate) approximateTotal(onlineTotal) else onlineTotal,
+            onlineTotalApproximate = approximate,
             serverTimeMillis = now,
             zoneId = TabListConfig.ZONE.id,
             restartAtMillis = config.nextRestartMillis(now),
@@ -157,6 +161,14 @@ class TabListStateBuilder(
          * The shortest time between two reports of the same failing provider.
          */
         const val LOG_INTERVAL_MILLIS: Long = 60_000
+
+        /**
+         * Rounds an online total to the nearest multiple of five.
+         *
+         * @param total the exact total
+         * @return the rounded total
+         */
+        fun approximateTotal(total: Int): Int = (total + 2) / 5 * 5
 
         /**
          * Returns a reader of a player's self values from a provider.

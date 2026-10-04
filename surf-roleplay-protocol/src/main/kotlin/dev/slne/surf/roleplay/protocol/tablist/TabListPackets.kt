@@ -56,7 +56,8 @@ data class OrganisationCount(
  * The complete state shown in the tab list of one player.
  *
  * @property organisations the organisation counts in display order
- * @property onlineTotal the number of players online
+ * @property onlineTotal the number of players online, rounded to the nearest five when
+ *           [onlineTotalApproximate] is set
  * @property serverTimeMillis the server time in epoch milliseconds when the state was built
  * @property zoneId the time zone id used to show the clock
  * @property restartAtMillis the next restart in epoch milliseconds, or `null` if none is scheduled
@@ -66,6 +67,7 @@ data class OrganisationCount(
  * @property job the player's job, or `null` if none
  * @property rank the player's rank, or `null` if none
  * @property sessionStartMillis the start of the player's session in epoch milliseconds
+ * @property onlineTotalApproximate whether [onlineTotal] is rounded and shown as approximate
  */
 @Serializable
 data class TabListState(
@@ -80,4 +82,5 @@ data class TabListState(
     @ProtoNumber(9) val job: String? = null,
     @ProtoNumber(10) val rank: String? = null,
     @ProtoNumber(11) val sessionStartMillis: Long = 0,
+    @ProtoNumber(12) val onlineTotalApproximate: Boolean = false,
 ) : Packet

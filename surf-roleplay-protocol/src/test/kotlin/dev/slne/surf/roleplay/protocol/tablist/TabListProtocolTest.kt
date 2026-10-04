@@ -38,6 +38,7 @@ class TabListProtocolTest {
             job = "Bäcker",
             rank = "Wachtmeister",
             sessionStartMillis = 1_699_999_000_000,
+            onlineTotalApproximate = true,
         )
 
         assertEquals(state, roundTrip(state))

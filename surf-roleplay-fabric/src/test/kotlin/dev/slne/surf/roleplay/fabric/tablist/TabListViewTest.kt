@@ -95,6 +95,15 @@ class TabListViewTest {
     }
 
     /**
+     * Verifies that an approximate online total is shown with "ca.".
+     */
+    @Test
+    fun `approximate online total`() {
+        val view = TabListView.of(state.copy(onlineTotal = 40, onlineTotalApproximate = true), serverTime, berlin, ping = 20)
+        assertEquals(TabListView.Text("ca. 40"), view.info[0].value)
+    }
+
+    /**
      * Verifies the info cells: online total, clock and weather.
      */
     @Test

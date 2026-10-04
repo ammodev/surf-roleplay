@@ -9,7 +9,8 @@ import java.time.ZoneId
  * The content of the tab list panel for one frame, with every text already in German.
  *
  * @property organisations one cell per organisation, in the order the server sent them
- * @property info the cells for the online total, the clock and the weather
+ * @property info the cells for the online total (prefixed with "ca." when approximate), the clock
+ *           and the weather
  * @property restart the restart countdown, or `null` to hide the row
  * @property announcement the announcement as component JSON, or `null` to hide the row
  * @property footer the cells for the character name, job, rank, playtime and ping
@@ -61,7 +62,7 @@ data class TabListView(
         fun of(state: TabListState, nowMillis: Long, zone: ZoneId, ping: Int?): TabListView = TabListView(
             organisations = state.organisations.map(::organisation),
             info = listOf(
-                Cell(Text("Online"), Text(state.onlineTotal.toString())),
+                Cell(Text("Online"), Text(if (state.onlineTotalApproximate) "ca. ${state.onlineTotal}" else state.onlineTotal.toString())),
                 Cell(Text("Uhrzeit"), Text(TabListClock.clock(nowMillis, zone))),
                 Cell(Text("Wetter"), if (state.weather.isBlank()) Text(MISSING) else Text(state.weather, json = true)),
             ),
