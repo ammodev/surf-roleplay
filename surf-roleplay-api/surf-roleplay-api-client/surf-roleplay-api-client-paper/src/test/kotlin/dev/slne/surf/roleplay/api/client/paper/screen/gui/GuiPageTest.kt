@@ -438,6 +438,25 @@ class GuiPageTest {
     }
 
     /**
+     * Verifies that `update` and state writes of an open page fail off the viewer's thread and
+     * leave the state unchanged, and that state writes before the page is opened are not checked.
+     */
+    @Test
+    fun `an open page must be used on its viewer's thread`() {
+        val fake = FakeOpener()
+        fake.onOwningThread = false
+        val page = CounterPage()
+        page.count = 5
+        fake.open(page)
+        assertFailsWith<IllegalStateException> { page.update {} }
+        assertFailsWith<IllegalStateException> { page.count = 6 }
+        assertEquals(5, page.count)
+        fake.onOwningThread = true
+        page.update { page.count = 7 }
+        assertEquals(Component.text("Wert: 7"), (fake.lastScreen.find("value") as TextElement).text)
+    }
+
+    /**
      * Verifies that search handlers are bound to their combobox and run the newest closure.
      */
     @Test

@@ -6,6 +6,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -98,7 +99,9 @@ abstract class GuiPage {
 
     /**
      * Declares a state of the page. Writing a value that differs from the current one marks the
-     * page as changed, so that it is rendered again after the running handler or [update].
+     * page as changed, so that it is rendered again after the running handler or [update]. While
+     * the page is open, a write must happen on the player's region thread and otherwise throws an
+     * [IllegalStateException].
      *
      * @param initial the initial value
      * @return the delegate of the state property
@@ -122,10 +125,17 @@ abstract class GuiPage {
      * again afterwards if its state changed. Must be called on the player's region thread.
      *
      * @param block the block
+     * @throws IllegalStateException if the page is open and this is not the player's region
+     *         thread
      */
     fun update(block: () -> Unit) {
         val session = session
-        if (session == null) block() else session.update(block)
+        if (session == null) {
+            block()
+        } else {
+            session.checkThread()
+            session.update(block)
+        }
     }
 
     /**
@@ -146,7 +156,9 @@ abstract class GuiPage {
      *         share an id
      */
     fun open(player: Player, service: ScreenService = ScreenService.INSTANCE) {
-        openFor(player) { definition, parent, presentation, sheetSide -> service.open(player, definition, parent, presentation, sheetSide) }
+        openFor(player, { definition, parent, presentation, sheetSide -> service.open(player, definition, parent, presentation, sheetSide) }) {
+            Bukkit.isOwnedByCurrentRegion(player)
+        }
     }
 
     /**
@@ -155,12 +167,13 @@ abstract class GuiPage {
      *
      * @param viewer the viewer the page is opened for, which [player] returns
      * @param opener opens a definition as a screen and returns the open screen
+     * @param isOwningThread returns whether the current thread may use the GUI's pages
      * @throws IllegalStateException if the page is already open
      * @throws IllegalArgumentException if an explicit element id starts with `_` or two elements
      *         share an id
      */
-    internal fun openFor(viewer: Any, opener: ScreenOpener) {
-        start(viewer, opener, null, presentation, sheetSide)
+    internal fun openFor(viewer: Any, opener: ScreenOpener, isOwningThread: () -> Boolean) {
+        start(viewer, opener, isOwningThread, null, presentation, sheetSide)
     }
 
     /**
@@ -246,7 +259,7 @@ abstract class GuiPage {
      */
     private fun openChild(page: GuiPage, presentation: ScreenPresentation, sheetSide: SheetSide) {
         val parent = openSession()
-        page.start(parent.viewer, parent.opener, parent, presentation, sheetSide)
+        page.start(parent.viewer, parent.opener, parent.isOwningThread, parent, presentation, sheetSide)
     }
 
     /**
@@ -254,16 +267,36 @@ abstract class GuiPage {
      *
      * @param viewer the viewer the page is opened for
      * @param opener opens a definition as a screen
+     * @param isOwningThread returns whether the current thread may use the page
      * @param parent the runtime of the page to open on top of, or `null` for the root of a GUI
      * @param presentation how the screen is shown
      * @param sheetSide the window edge the screen is attached to as a sheet
      * @throws IllegalStateException if the page is already open
      */
-    private fun start(viewer: Any, opener: ScreenOpener, parent: GuiSession?, presentation: ScreenPresentation, sheetSide: SheetSide) {
+    private fun start(
+        viewer: Any,
+        opener: ScreenOpener,
+        isOwningThread: () -> Boolean,
+        parent: GuiSession?,
+        presentation: ScreenPresentation,
+        sheetSide: SheetSide,
+    ) {
         check(!isOpen) { "The page ${javaClass.name} is already open" }
-        val session = GuiSession(this, viewer, opener, parent, presentation, sheetSide)
+        val session = GuiSession(this, viewer, opener, isOwningThread, parent, presentation, sheetSide)
         this.session = session
         session.open()
+    }
+
+    /**
+     * Checks that a state of the page may be written now: always before the page was opened and
+     * after its screen closed, and only on the player's region thread while it is open.
+     *
+     * @throws IllegalStateException if the page is open and this is not the player's region
+     *         thread
+     */
+    private fun checkStateWrite() {
+        val session = session
+        if (session != null && session.isOpen) session.checkThread()
     }
 
     /**
@@ -295,8 +328,11 @@ abstract class GuiPage {
          * @param thisRef the page
          * @param property the property
          * @param value the new value
+         * @throws IllegalStateException if the page is open and this is not the player's region
+         *         thread
          */
         override fun setValue(thisRef: GuiPage, property: KProperty<*>, value: T) {
+            thisRef.checkStateWrite()
             if (this.value == value) return
             this.value = value
             thisRef.markDirty()

@@ -260,6 +260,11 @@ class FakeOpener {
     val viewer = Any()
 
     /**
+     * Whether the pages of this fake are used on their viewer's thread.
+     */
+    var onOwningThread: Boolean = true
+
+    /**
      * Whether the next open fails with an [IllegalStateException] before changing the stack.
      */
     var failNextOpen: Boolean = false
@@ -280,7 +285,7 @@ class FakeOpener {
      * @param page the page
      * @return [page]
      */
-    fun <P : GuiPage> open(page: P): P = page.apply { openFor(viewer, opener) }
+    fun <P : GuiPage> open(page: P): P = page.apply { openFor(viewer, opener) { onOwningThread } }
 
     /**
      * Opens a screen on the stack.

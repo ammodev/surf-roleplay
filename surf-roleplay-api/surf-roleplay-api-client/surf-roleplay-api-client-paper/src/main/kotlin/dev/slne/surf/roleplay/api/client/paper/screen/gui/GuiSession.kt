@@ -44,6 +44,7 @@ internal fun interface ScreenOpener {
  * @property page the page
  * @property viewer the viewer the page is open for, a player outside of tests
  * @property opener opens a definition as a screen for the viewer
+ * @property isOwningThread returns whether the current thread may use the GUI's pages
  * @property parent the session of the page this page was opened on top of, or `null` for the
  *           root page of a GUI
  * @property presentation how the page's screen is shown relative to the screens below it
@@ -53,6 +54,7 @@ internal class GuiSession(
     private val page: GuiPage,
     val viewer: Any,
     val opener: ScreenOpener,
+    val isOwningThread: () -> Boolean,
     val parent: GuiSession?,
     private val presentation: ScreenPresentation,
     private val sheetSide: SheetSide,
@@ -109,6 +111,15 @@ internal class GuiSession(
         val definition = renderDefinition()
         shown = definition
         screen = opener.open(definition, parent?.screen, presentation, sheetSide)
+    }
+
+    /**
+     * Checks that the current thread may use the page.
+     *
+     * @throws IllegalStateException if it may not
+     */
+    fun checkThread() {
+        check(isOwningThread()) { "The page ${page.javaClass.name} must be used on the region thread of its player" }
     }
 
     /**
