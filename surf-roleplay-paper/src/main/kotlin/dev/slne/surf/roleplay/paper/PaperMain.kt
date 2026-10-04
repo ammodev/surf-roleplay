@@ -11,6 +11,7 @@ import dev.slne.surf.roleplay.paper.handshake.HandshakeListener
 import dev.slne.surf.roleplay.paper.listener.UserConnectionListener
 import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
 import dev.slne.surf.roleplay.paper.screen.PaperScreenService
+import dev.slne.surf.roleplay.paper.tablist.IdentityProviders
 import dev.slne.surf.roleplay.paper.tablist.PaperTabListService
 import dev.slne.surf.roleplay.paper.tablist.TabListConfig
 import dev.slne.surf.roleplay.paper.toast.PaperToastService
@@ -31,6 +32,12 @@ class PaperMain : SuspendingJavaPlugin() {
         private set
 
     /**
+     * Unregisters the user state listener of the built-in tab list providers when closed, set
+     * when the plugin is enabled.
+     */
+    private var identityProviders: AutoCloseable? = null
+
+    /**
      * Loads the client instance.
      */
     override suspend fun onLoadAsync() {
@@ -40,8 +47,8 @@ class PaperMain : SuspendingJavaPlugin() {
     /**
      * Enables the client instance, registers the roleplay payload channels, the mod handshake, the
      * welcome sender, the screen, toast and tab list services, the storybook command and the vanilla crafting block,
-     * and registers the listener that acquires a hold on the roleplay user of every player logging in and releases it when the
-     * player's connection closes.
+     * registers the listener that acquires a hold on the roleplay user of every player logging in and releases it when the
+     * player's connection closes, and registers the built-in tab list providers based on the active identity.
      *
      * @throws IllegalStateException if the registered user manager is not the client user manager
      */
@@ -69,12 +76,15 @@ class PaperMain : SuspendingJavaPlugin() {
                         "expected ${CoreClientUserManager::class.java.name}"
             )
         server.pluginManager.registerEvents(UserConnectionListener(userManager), this)
+        identityProviders = IdentityProviders(userManager::cached).register(PaperTabListService.INSTANCE)
     }
 
     /**
-     * Unregisters the roleplay payload channels and disables the client instance.
+     * Unregisters the user state listener of the built-in tab list providers and the roleplay
+     * payload channels, and disables the client instance.
      */
     override suspend fun onDisableAsync() {
+        identityProviders?.close()
         if (::packetRegistry.isInitialized) packetRegistry.unregister()
         ClientInstance.INSTANCE.onDisable()
     }

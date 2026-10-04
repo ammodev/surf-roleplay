@@ -18,6 +18,8 @@ dependencies {
     api(projects.surfRoleplayCore.surfRoleplayCoreClient.surfRoleplayCoreClientPaper)
     implementation(projects.surfRoleplayProtocol)
 
+    testImplementation("dev.slne.surf.transaction:surf-transaction-api:4.1.7")
+    testImplementation("it.unimi.dsi:fastutil:8.5.19")
     testRuntimeOnly("com.google.flogger:flogger:0.9")
     testRuntimeOnly("com.google.flogger:flogger-system-backend:0.9")
 }
