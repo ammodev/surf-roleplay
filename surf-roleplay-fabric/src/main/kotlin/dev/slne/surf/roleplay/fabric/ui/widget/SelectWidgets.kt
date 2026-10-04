@@ -1220,6 +1220,27 @@ class ComboboxWidget(
     }
 
     /**
+     * Whether a press in the combobox starts a drag that selects text in the typed query, which
+     * it does while enabled.
+     */
+    override val draggable: Boolean get() = enabled
+
+    /**
+     * Extends the selection in the typed query to the mouse while the button stays held after a
+     * press in the combobox.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     */
+    override fun mouseDragged(context: UiContext, x: Double, y: Double) {
+        val measurer = measurer ?: return
+        val left = queryLeft ?: return
+        val position = TextLines.positionAt(edit.text, TextLines.Line(0, edit.text.length), (x - left).toInt(), measurer::plainWidth)
+        edit.moveCursorTo(position, extend = true)
+    }
+
+    /**
      * Moves the list highlight, chooses the highlighted option, edits the query with the editing
      * keys of [TextEditKeys], and removes the last chip with Backspace at the start of the field.
      *

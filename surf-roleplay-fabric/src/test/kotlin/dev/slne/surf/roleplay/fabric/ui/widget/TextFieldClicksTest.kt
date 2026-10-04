@@ -8,6 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 /**
  * Tests for placing the cursor and selecting with single, double, triple and Shift clicks in text
@@ -117,6 +118,43 @@ class TextFieldClicksTest {
         clickAt(field, 5)
 
         assertEquals("Hallo", field.edit.selectedText)
+    }
+
+    /**
+     * Verifies that pressing in a field and dragging selects from the pressed position to the
+     * mouse, and that dragging before the text extends the selection to its start.
+     */
+    @Test
+    fun `dragging selects text in a field`() {
+        val field = field("Hallo schöne Welt")
+        assertTrue(field.draggable)
+
+        clickAt(field, 2)
+        field.mouseDragged(context, UiMetrics.WIDGET_PADDING + 8 * 5 + 2.0, 10.0)
+        assertEquals("llo sc", field.edit.selectedText)
+
+        field.mouseDragged(context, -20.0, 10.0)
+        assertEquals("Ha", field.edit.selectedText)
+        assertEquals(0, field.edit.cursor)
+    }
+
+    /**
+     * Verifies that dragging in a textarea selects across lines, and that dragging above the
+     * first line reaches it.
+     */
+    @Test
+    fun `dragging selects across textarea lines`() {
+        val area = TextareaWidget("a", TextEditState("eins zwei\ndrei vier"))
+        area.bounds = Rect(0, 0, 200, 40)
+        area.layoutLines(measurer)
+        assertTrue(area.draggable)
+
+        area.mouseClicked(context, UiMetrics.WIDGET_PADDING + 5 * 5 + 1.0, 4 + 2.0, GLFW.GLFW_MOUSE_BUTTON_LEFT)
+        area.mouseDragged(context, UiMetrics.WIDGET_PADDING + 4 * 5 + 1.0, 4 + 9 + 2.0)
+        assertEquals("zwei\ndrei", area.edit.selectedText)
+
+        area.mouseDragged(context, UiMetrics.WIDGET_PADDING + 1.0, -5.0)
+        assertEquals("eins ", area.edit.selectedText)
     }
 
     /**

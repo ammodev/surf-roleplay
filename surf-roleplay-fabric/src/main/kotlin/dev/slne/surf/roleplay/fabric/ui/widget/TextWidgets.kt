@@ -17,6 +17,7 @@ import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import org.lwjgl.glfw.GLFW
 import kotlin.math.abs
+import kotlin.math.floor
 
 /**
  * Breaks text into the lines it is drawn in at a width.
@@ -351,6 +352,28 @@ class TextareaWidget(
         val charIndex = TextLines.charIndexAt(edit.text, line, offset, measurer::plainWidth)
         applyTextClick(edit, edit.text, clicks, context, x, y, position, charIndex) { TextBoundaries.lineAt(edit.text, position) }
         return true
+    }
+
+    /**
+     * Whether a press in the field starts a drag that selects text, which it does while enabled.
+     */
+    override val draggable: Boolean get() = enabled
+
+    /**
+     * Extends the selection to the mouse while the button stays held after a press in the field.
+     * Above or below the visible lines, the selection reaches into the line before or after
+     * them, which scrolls the field.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     */
+    override fun mouseDragged(context: UiContext, x: Double, y: Double) {
+        val measurer = measurer ?: return
+        val row = floor((y - bounds.y - PADDING_Y) / measurer.lineHeight).toInt()
+        val line = lines[(firstLine + row).coerceIn(0, lines.lastIndex)]
+        val offset = (x - bounds.x - UiMetrics.WIDGET_PADDING).toInt()
+        edit.moveCursorTo(TextLines.positionAt(edit.text, line, offset, measurer::plainWidth), extend = true)
     }
 
     /**

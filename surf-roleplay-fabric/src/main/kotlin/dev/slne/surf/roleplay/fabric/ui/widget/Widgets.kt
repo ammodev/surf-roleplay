@@ -367,6 +367,29 @@ open class TextInputWidget(
     }
 
     /**
+     * Whether a press in the field starts a drag that selects text, which it does while enabled.
+     */
+    override val draggable: Boolean get() = enabled
+
+    /**
+     * Extends the selection to the mouse while the button stays held after a press in the field.
+     * Before the start of the visible text, the selection grows by one character per movement,
+     * which scrolls the field; past its end, the field scrolls to follow the cursor.
+     *
+     * @param context the screen showing the widget
+     * @param x the mouse x position
+     * @param y the mouse y position
+     */
+    override fun mouseDragged(context: UiContext, x: Double, y: Double) {
+        val measurer = measurer ?: return
+        val shown = shownText
+        val start = scrollStart.coerceIn(0, shown.length)
+        val offset = (x - textLeft).toInt()
+        val position = if (offset < 0) (start - 1).coerceAtLeast(0) else TextLines.positionAt(shown, TextLines.Line(start, shown.length), offset, measurer::plainWidth)
+        edit.moveCursorTo(position, extend = true)
+    }
+
+    /**
      * Handles the clipboard and editing keys of [TextEditKeys]: copying, cutting and pasting
      * without line breaks, cursor and word movement, selection and deletion. Password fields are
      * neither copied nor cut, and their text counts as one word.
