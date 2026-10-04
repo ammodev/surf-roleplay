@@ -128,6 +128,42 @@ class TextWidgetsTest {
     }
 
     /**
+     * Verifies that a drag after a cut, with no layout in between, neither throws nor leaves the
+     * cursor outside the text.
+     */
+    @Test
+    fun `textareas drag safely after an edit without a layout`() {
+        val area = WidgetFactory.create(TextareaNode("a", value = "aaaa bbbb cccc dddd eeee ffff")) as TextareaWidget
+        area.bounds = Rect(0, 0, 60, 40)
+        area.layoutLines(measurer)
+        area.mouseClicked(context, 10.0, 12.0, GLFW.GLFW_MOUSE_BUTTON_LEFT)
+        area.mouseDragged(context, 50.0, 30.0)
+        area.keyPressed(context, TestKeys.key(GLFW.GLFW_KEY_X, shortcut = true))
+
+        area.mouseDragged(context, 50.0, 30.0)
+
+        assertTrue(area.edit.cursor in 0..area.inputValue.length)
+    }
+
+    /**
+     * Verifies that End after an edit in the same frame moves to the end of the line the edited
+     * text has.
+     */
+    @Test
+    fun `textareas find the drawn line after an edit without a layout`() {
+        val area = WidgetFactory.create(TextareaNode("a", value = "abc")) as TextareaWidget
+        area.bounds = Rect(0, 0, 100, 40)
+        area.layoutLines(measurer)
+        area.keyPressed(context, key(GLFW.GLFW_KEY_ENTER))
+        area.charTyped(context, CharacterEvent('d'.code))
+        area.edit.moveCursorTo(4, extend = false)
+
+        area.keyPressed(context, key(GLFW.GLFW_KEY_END))
+
+        assertEquals(5, area.edit.cursor)
+    }
+
+    /**
      * Verifies that a textarea keeps to its maximum length.
      */
     @Test

@@ -115,10 +115,13 @@ object TextLines {
      * @param line the line
      * @param x the offset from the start of the line
      * @param measure returns the width of a string
-     * @return the cursor position
+     * @return the cursor position; a line reaching past the end of the text is cut to the text
      */
-    fun positionAt(text: String, line: Line, x: Int, measure: (String) -> Int): Int =
-        (line.start..line.end).minBy { abs(measure(text.substring(line.start, it)) - x) }
+    fun positionAt(text: String, line: Line, x: Int, measure: (String) -> Int): Int {
+        val start = line.start.coerceIn(0, text.length)
+        val end = line.end.coerceIn(start, text.length)
+        return (start..end).minBy { abs(measure(text.substring(start, it)) - x) }
+    }
 
     /**
      * Finds the character of a line that is drawn under a horizontal offset. Offsets before the
@@ -205,6 +208,16 @@ class TextareaWidget(
     private var measurer: TextMeasurer? = null
 
     /**
+     * The text the current [lines] were computed from.
+     */
+    private var laidOutText: String = edit.text
+
+    /**
+     * The width the current [lines] were computed for.
+     */
+    private var laidOutWidth: Int = -1
+
+    /**
      * The index of the first visible line.
      */
     private var firstLine: Int = 0
@@ -262,7 +275,21 @@ class TextareaWidget(
      */
     fun layoutLines(measurer: TextMeasurer) {
         this.measurer = measurer
+        laidOutText = edit.text
+        laidOutWidth = innerWidth
         lines = TextLines.wrap(edit.text, innerWidth, measurer::plainWidth)
+    }
+
+    /**
+     * Recomputes the lines when the text or the width changed since they were last computed, so
+     * input handled between two frames sees the lines of the current text.
+     *
+     * @return the measurer, or `null` while the field has not been laid out yet
+     */
+    private fun ensureLines(): TextMeasurer? {
+        val measurer = measurer ?: return null
+        if (edit.text != laidOutText || innerWidth != laidOutWidth) layoutLines(measurer)
+        return measurer
     }
 
     /**
@@ -342,7 +369,7 @@ class TextareaWidget(
         if (!isOver(x, y)) return false
         if (!enabled) return true
         context.focus(this)
-        val measurer = measurer
+        val measurer = ensureLines()
         if (measurer == null) {
             edit.cursor = edit.text.length
             return true
@@ -371,7 +398,7 @@ class TextareaWidget(
      * @param y the mouse y position
      */
     override fun mouseDragged(context: UiContext, x: Double, y: Double) {
-        val measurer = measurer ?: return
+        val measurer = ensureLines() ?: return
         val row = floor((y - bounds.y - PADDING_Y) / measurer.lineHeight).toInt()
         val line = lines[(firstLine + row).coerceIn(0, lines.lastIndex)]
         val offset = (x - bounds.x - UiMetrics.WIDGET_PADDING).toInt()
@@ -415,8 +442,7 @@ class TextareaWidget(
      * @param extend whether to extend the selection; otherwise the selection is cleared
      */
     private fun moveVertically(delta: Int, extend: Boolean) {
-        val measurer = measurer ?: return
-        layoutLines(measurer)
+        val measurer = ensureLines() ?: return
         val current = TextLines.lineOf(lines, edit.cursor)
         val target = current + delta
         if (target !in lines.indices) {
@@ -447,6 +473,7 @@ class TextareaWidget(
         }
         val extend = event.hasShiftDown()
         val whole = event.hasControlDownWithQuirk()
+        ensureLines()
         val line = lines.getOrNull(TextLines.lineOf(lines, edit.cursor))
         when (event.key()) {
             GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> if (edit.insert("\n")) markChanged(context, immediate = false)
