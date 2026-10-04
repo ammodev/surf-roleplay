@@ -9,7 +9,6 @@ import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
 import dev.slne.surf.roleplay.paper.screen.PaperScreenService
 import dev.slne.surf.roleplay.protocol.Packets
 import dev.slne.surf.roleplay.protocol.tablist.OrganisationCount
-import org.bukkit.World
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -61,6 +60,11 @@ class PaperTabListService : TabListService, Listener {
      * The time each online player joined, in epoch milliseconds.
      */
     private val sessionStarts = ConcurrentHashMap<UUID, Long>()
+
+    /**
+     * The last state sent to each player.
+     */
+    private val sentStates = TabListSentStates()
 
     /**
      * The players whose quit event fired but who may still be listed as online.
@@ -170,6 +174,7 @@ class PaperTabListService : TabListService, Listener {
     fun pushNow(player: Player) {
         player.scheduler.run(plugin, {
             coalescer.pushed(player.uniqueId)
+            sentStates.forget(player.uniqueId)
             val players = presentPlayers()
             push(player, countOrganisations(players), players.size)
         }, null)
@@ -193,6 +198,7 @@ class PaperTabListService : TabListService, Listener {
                     coalescer.remove(id)
                     return@forEach
                 }
+                if (!PaperScreenService.INSTANCE.isReady(player)) return@forEach
                 player.scheduler.run(plugin, { push(player, counts, onlineTotal) }, null)
             }
         } catch (exception: Exception) {
@@ -202,8 +208,9 @@ class PaperTabListService : TabListService, Listener {
     }
 
     /**
-     * Builds and sends a player's state if the player's client is ready. Runs on the player's
-     * scheduler.
+     * Builds and sends a player's state if the player's client is ready and the state differs
+     * from the one last sent. If building or sending fails, the player is marked as changed again
+     * and the failure is logged at most once a minute. Runs on the player's scheduler.
      *
      * @param player the player
      * @param counts the organisation counts
@@ -211,17 +218,25 @@ class PaperTabListService : TabListService, Listener {
      */
     private fun push(player: Player, counts: List<OrganisationCount>, onlineTotal: Int) {
         if (!PaperScreenService.INSTANCE.isReady(player)) return
-        val world = player.world
-        val state = builder.build(
-            organisations = counts,
-            onlineTotal = onlineTotal,
-            weather = TabListStateBuilder.weather(world.hasStorm(), world.isThundering, player.location.block.temperature),
-            sessionStartMillis = sessionStarts[player.uniqueId] ?: System.currentTimeMillis(),
-            selfInfo = selfInfo,
-            read = TabListStateBuilder.reader(player),
-            config = config,
-        )
-        registry.send(player, Packets.TAB_LIST_STATE, state)
+        val id = player.uniqueId
+        try {
+            val world = player.world
+            val state = builder.build(
+                organisations = counts,
+                onlineTotal = onlineTotal,
+                weather = TabListStateBuilder.weather(world.hasStorm(), world.isThundering, player.location.block.temperature),
+                sessionStartMillis = sessionStarts[id] ?: System.currentTimeMillis(),
+                selfInfo = selfInfo,
+                read = TabListStateBuilder.reader(player),
+                config = config,
+            )
+            if (sentStates.isUnchanged(id, state)) return
+            registry.send(player, Packets.TAB_LIST_STATE, state)
+            if (id !in leaving) sentStates.record(id, state)
+        } catch (exception: Exception) {
+            coalescer.markDirty(id)
+            log.atWarning().withCause(exception).atMostEvery(1, TimeUnit.MINUTES).log("Could not send the tab list state to %s", player.name)
+        }
     }
 
     /**
@@ -249,12 +264,12 @@ class PaperTabListService : TabListService, Listener {
         if (::plugin.isInitialized) presentPlayers().map { it.uniqueId } else emptyList()
 
     /**
-     * Marks the players of a world as changed.
-     *
-     * @param world the world
+     * Marks every online player as changed after a weather change. Players are not filtered by
+     * world, since a player's world may only be read on the player's own thread; the push reads it
+     * there and an unchanged state is not sent.
      */
-    private fun worldChanged(world: World) {
-        coalescer.markDirty(plugin.server.onlinePlayers.filter { it.world.uid == world.uid }.map { it.uniqueId })
+    private fun worldChanged() {
+        changed()
     }
 
     /**
@@ -283,6 +298,7 @@ class PaperTabListService : TabListService, Listener {
         val id = event.player.uniqueId
         leaving += id
         sessionStarts -= id
+        sentStates.forget(id)
         coalescer.remove(id)
         changed()
         plugin.server.globalRegionScheduler.runDelayed(plugin, {
@@ -292,13 +308,13 @@ class PaperTabListService : TabListService, Listener {
     }
 
     /**
-     * Marks the players of a world whose weather changes as changed.
+     * Marks every online player as changed when the weather of a world changes.
      *
      * @param event the weather change event
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onWeatherChange(event: WeatherChangeEvent) {
-        worldChanged(event.world)
+        worldChanged()
     }
 
     /**
@@ -312,13 +328,13 @@ class PaperTabListService : TabListService, Listener {
     }
 
     /**
-     * Marks the players of a world whose thunder state changes as changed.
+     * Marks every online player as changed when the thunder state of a world changes.
      *
      * @param event the thunder change event
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onThunderChange(event: ThunderChangeEvent) {
-        worldChanged(event.world)
+        worldChanged()
     }
 
     /**
