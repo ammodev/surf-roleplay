@@ -10,6 +10,13 @@ import dev.slne.surf.roleplay.api.client.common.screen.DropdownMenuElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.MenuRadioGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.POPOVER_WIDTH
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationContentElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationItemElement
+import dev.slne.surf.roleplay.api.client.common.screen.PaginationPreviousElement
+import dev.slne.surf.roleplay.api.client.common.screen.ResizablePanelGroupElement
+import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
+import dev.slne.surf.roleplay.api.client.common.screen.TabsElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverContentElement
 import dev.slne.surf.roleplay.api.client.common.screen.PopoverElement
 import dev.slne.surf.roleplay.api.client.common.screen.AlertElement
@@ -711,6 +718,83 @@ class ComponentDslTest {
         assertEquals("_0.1.2", cancel.id)
         assertEquals(ButtonVariant.OUTLINE, assertIs<ButtonElement>(cancel.children[0]).variant)
         assertEquals(listOf("yes", "_0.1.2.0"), seen)
+    }
+
+    /**
+     * Verifies that navigation components report their state through typed references and bind
+     * their change handlers.
+     */
+    @Test
+    fun `navigation components report their state`() {
+        val seen = mutableListOf<String>()
+        lateinit var tab: InputRef<String?>
+        lateinit var open: InputRef<List<String>>
+        lateinit var shown: InputRef<Boolean>
+        lateinit var slide: InputRef<Int?>
+        lateinit var sizes: InputRef<List<Double>>
+        val root = assertIs<ColumnElement>(
+            renderRoot(recordingBinder(seen)) {
+                Column {
+                    tab = Tabs(value = "a", onChange = { }, id = "tabs") {
+                        TabsList { TabsTrigger("a", "A"); TabsTrigger("b", "B") }
+                        TabsContent("a") { Label("A") }
+                    }
+                    open = Accordion(id = "acc") { AccordionItem("x") { AccordionTrigger("X"); AccordionContent { } } }
+                    shown = Collapsible(open = true, id = "col") { CollapsibleTrigger { Button("Auf") }; CollapsibleContent { } }
+                    slide = Carousel(ElementSize.fixed(100), id = "car") { CarouselContent { CarouselItem { } }; CarouselPrevious(); CarouselNext() }
+                    sizes = ResizablePanelGroup(onChange = { }) { ResizablePanel(50.0) { }; ResizableHandle(); ResizablePanel { } }
+                }
+            },
+        )
+        assertEquals(listOf("tabs", "_0.4"), seen)
+        assertEquals("a", assertIs<TabsElement>(root.children[0]).value)
+        assertEquals(ElementSize.grow(), assertIs<ResizablePanelGroupElement>(root.children[4]).width)
+        val values = ScreenValues(mapOf("tabs" to "b", "acc" to "x", "col" to "false", "car" to "0", sizes.id to "40.0,60.0"))
+        assertEquals("b", values[tab])
+        assertEquals(listOf("x"), values[open])
+        assertEquals(false, values[shown])
+        assertEquals(0, values[slide])
+        assertEquals(listOf(40.0, 60.0), values[sizes])
+        assertFailsWith<IllegalArgumentException> { renderRoot { Accordion { AccordionItem("a,b") { } } } }
+    }
+
+    /**
+     * Verifies that links, pagination and sidebar buttons bind their click handlers with their ids.
+     */
+    @Test
+    fun `navigation links bind their handlers`() {
+        val seen = mutableListOf<String>()
+        lateinit var search: InputRef<String>
+        val root = assertIs<ColumnElement>(
+            renderRoot(recordingBinder(seen)) {
+                Column {
+                    Breadcrumb { BreadcrumbList { BreadcrumbItem { BreadcrumbLink("Start", id = "home") { } }; BreadcrumbSeparator(); BreadcrumbPage("Akte") } }
+                    Pagination {
+                        PaginationContent {
+                            PaginationItem { PaginationPrevious(id = "prev") { } }
+                            PaginationItem { PaginationLink("1", active = true, id = "one") { } }
+                            PaginationItem { PaginationNext(id = "next") { } }
+                        }
+                    }
+                    NavigationMenu { NavigationMenuList { NavigationMenuItem { NavigationMenuLink(onClick = { }, id = "nav") { Label("Link") } } } }
+                    SidebarProvider(open = false, onChange = { }, id = "side") {
+                        Sidebar {
+                            SidebarHeader { search = SidebarInput(id = "q") }
+                            SidebarContent { SidebarGroup { SidebarGroupAction(id = "add") { } } }
+                        }
+                        SidebarInset { SidebarMenuButton("Start", id = "menu") { } }
+                    }
+                }
+            },
+        )
+        assertEquals(listOf("home", "prev", "one", "next", "nav", "add", "menu", "side"), seen)
+        val pagination = assertIs<PaginationElement>(root.children[1])
+        assertEquals(ElementSize.grow(), pagination.width)
+        val previous = assertIs<PaginationItemElement>(assertIs<PaginationContentElement>(pagination.children[0]).children[0])
+        assertEquals(Component.text("Zurück"), assertIs<PaginationPreviousElement>(previous.children[0]).text)
+        assertEquals(false, assertIs<SidebarProviderElement>(root.children[3]).open)
+        assertEquals("q", search.id)
+        assertEquals("Ada", ScreenValues(mapOf("q" to "Ada"))[search])
     }
 
     /**

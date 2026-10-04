@@ -36,25 +36,33 @@ internal object InputParsers {
     val number: (String?) -> Long? = { it?.toLongOrNull() }
 
     /**
-     * Parses the state of a checkbox, switch or toggle; `false` if missing.
+     * Parses the index of the shown slide of a carousel; `null` if not a number or missing.
+     */
+    val index: (String?) -> Int? = { it?.toIntOrNull() }
+
+    /**
+     * Parses the state of a checkbox, switch, toggle, menu checkbox item or overlay; `false` if
+     * missing.
      */
     val checked: (String?) -> Boolean = { it == "true" }
 
     /**
-     * Parses the selected option of a select, native select, radio group or single combobox;
-     * `null` if nothing is selected or the input is missing.
+     * Parses the selected option of a select, native select, radio group, single combobox, menu
+     * radio group or tabs; `null` if nothing is selected or the input is missing.
      */
     val selected: (String?) -> String? = { it?.takeIf { value -> value.isNotEmpty() } }
 
     /**
-     * Parses the comma-separated values of a toggle group or multiple combobox; empty if missing.
+     * Parses the comma-separated values of a toggle group, multiple combobox or accordion; empty if
+     * missing.
      */
     val list: (String?) -> List<String> = { value ->
         value?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
     }
 
     /**
-     * Parses the comma-separated thumb values of a slider; empty if missing.
+     * Parses the comma-separated thumb values of a slider or panel shares of a resizable panel
+     * group; empty if missing.
      */
     val numbers: (String?) -> List<Double> = { value ->
         value?.split(',')?.mapNotNull { it.trim().toDoubleOrNull() }.orEmpty()
