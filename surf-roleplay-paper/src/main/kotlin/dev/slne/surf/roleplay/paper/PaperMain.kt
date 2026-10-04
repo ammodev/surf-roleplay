@@ -14,6 +14,7 @@ import dev.slne.surf.roleplay.paper.screen.PaperScreenService
 import dev.slne.surf.roleplay.paper.tablist.IdentityProviders
 import dev.slne.surf.roleplay.paper.tablist.PaperTabListService
 import dev.slne.surf.roleplay.paper.tablist.TabListConfig
+import dev.slne.surf.roleplay.paper.tablist.TabListCommand
 import dev.slne.surf.roleplay.paper.toast.PaperToastService
 import dev.slne.surf.roleplay.paper.storybook.StorybookCommand
 import dev.slne.surf.roleplay.paper.welcome.WelcomeListener
@@ -68,6 +69,7 @@ class PaperMain : SuspendingJavaPlugin() {
         PaperToastService.INSTANCE.start(this, packetRegistry, PaperScreenService.INSTANCE.actionLimiter)
         PaperTabListService.INSTANCE.start(this, packetRegistry, TabListConfig.from(config) { logger.warning(it) })
         StorybookCommand.register(this)
+        TabListCommand.register(this)
         server.pluginManager.registerEvents(CraftingBlocker(), this)
 
         val userManager = UserManager.INSTANCE as? CoreClientUserManager
