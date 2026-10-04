@@ -541,7 +541,7 @@ private fun ComponentScope.sonnerStory(context: StoryContext) {
     }
     storySection("Bleibt stehen") {
         Button("Wartungshinweis", submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sonner_sticky") {
-            showToast(context, Toast(Component.text("Wartungsarbeiten um 22:00 Uhr"), durationMillis = 0, closeButton = true))
+            showToast(context, Toast(Component.text("Wartungsarbeiten um 22:00 Uhr"), durationMillis = 0, closeButton = true, id = SONNER_STICKY))
         }
     }
 }
@@ -550,3 +550,9 @@ private fun ComponentScope.sonnerStory(context: StoryContext) {
  * The id of the sonner story's upload toast, which the done button replaces.
  */
 private const val SONNER_UPLOAD: String = "storybook-upload"
+
+/**
+ * The id of the sonner story's toast that stays until it is closed, so that a repeated click
+ * replaces it instead of stacking another one.
+ */
+private const val SONNER_STICKY: String = "storybook-sticky"
