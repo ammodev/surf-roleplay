@@ -141,7 +141,8 @@ object SettingsScreen {
         val rows = mappings.map {
             BindingRow(idOf(it), Component.translatable(it.name).string, it.translatedKeyMessage.string, it.isDefault, it.isUnbound)
         }
-        val conflicts = KeyBindings.conflicts(mappings.map { idOf(it) to it.saveString() })
+        val others = Minecraft.getInstance().options.keyMappings.filter { it.category != RoleplayKeys.category }.map { it.saveString() }
+        val conflicts = KeyBindings.conflicts(mappings.map { idOf(it) to it.saveString() }, others)
         return SettingsView.build(rows, conflicts, capturing, RoleplayClient.settings.current)
     }
 

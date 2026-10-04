@@ -31,19 +31,17 @@ object KeyBindings {
     const val UNBOUND_KEY: String = "key.keyboard.unknown"
 
     /**
-     * Finds the bindings that share their key with another binding. Unbound bindings never
-     * conflict.
+     * Finds the roleplay bindings that share their key with another roleplay binding or with any
+     * other key binding of the game. Unbound bindings never conflict.
      *
-     * @param rows pairs of a binding id and the saved name of its key, such as `key.keyboard.r`
-     * @return the ids of the conflicting bindings
+     * @param rows pairs of a roleplay binding id and the saved name of its key, such as `key.keyboard.r`
+     * @param others the saved key names of every key binding outside the roleplay category
+     * @return the ids of the conflicting roleplay bindings
      */
-    fun conflicts(rows: List<Pair<String, String>>): Set<String> =
-        rows.filter { it.second != UNBOUND_KEY }
-            .groupBy({ it.second }, { it.first })
-            .values
-            .filter { it.size > 1 }
-            .flatten()
-            .toSet()
+    fun conflicts(rows: List<Pair<String, String>>, others: List<String>): Set<String> {
+        val uses = (rows.map { it.second } + others).groupingBy { it }.eachCount()
+        return rows.filter { (_, key) -> key != UNBOUND_KEY && (uses[key] ?: 0) > 1 }.map { it.first }.toSet()
+    }
 }
 
 /**
