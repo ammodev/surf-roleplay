@@ -145,6 +145,11 @@ class FontTextMeasurer(private val font: Font) : TextMeasurer {
 class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens: ThemeTokens) : TextMeasurer by FontTextMeasurer(font) {
 
     /**
+     * Fills shapes as single GUI elements with the current pose and scissor, and counts them.
+     */
+    internal val shapes: ShapeFills = ShapeFills { data, count -> fills(data, count, 0, 0) }
+
+    /**
      * Fills a rectangle with rounded corners.
      *
      * @param rect the rectangle
@@ -153,7 +158,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param corners the corners that are rounded
      */
     fun fillRounded(rect: Rect, color: Int, radius: Int = tokens.radius, corners: Corners = Corners.ALL) {
-        RoundedShape.spans(rect, radius, corners).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
+        shapes.rounded(rect, color, radius, corners)
     }
 
     /**
@@ -165,7 +170,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param corners the corners that are rounded
      */
     fun borderRounded(rect: Rect, color: Int, radius: Int = tokens.radius, corners: Corners = Corners.ALL) {
-        RoundedShape.borderSpans(rect, radius, corners).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
+        shapes.roundedBorder(rect, color, radius, corners)
     }
 
     /**

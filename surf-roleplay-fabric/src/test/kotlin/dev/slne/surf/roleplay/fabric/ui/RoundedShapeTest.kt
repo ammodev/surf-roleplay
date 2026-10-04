@@ -66,4 +66,18 @@ class RoundedShapeTest {
         val topRow = border.filter { it.y == 0 }
         assertEquals(1, topRow.size)
     }
+
+    /**
+     * Verifies that spans of consecutive rows with the same columns join into one rectangle and
+     * that other spans stay rectangles of their own.
+     */
+    @Test
+    fun `merge joins equal spans of consecutive rows`() {
+        val spans = listOf(Span(0, 2, 8), Span(1, 0, 10), Span(2, 0, 10), Span(3, 0, 10), Span(4, 2, 8), Span(5, 0, 1), Span(5, 9, 10), Span(6, 0, 1), Span(6, 9, 10))
+
+        assertEquals(
+            listOf(Rect(2, 0, 6, 1), Rect(0, 1, 10, 3), Rect(2, 4, 6, 1), Rect(0, 5, 1, 2), Rect(9, 5, 1, 2)),
+            RoundedShape.merge(spans),
+        )
+    }
 }
