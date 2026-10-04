@@ -31,7 +31,7 @@ private val log = logger()
  * It sends every ready player the full tab list state right after the player's client is
  * welcomed, and afterwards whenever the state changed, at most once per
  * [TabListCoalescer.DEFAULT_WINDOW_MILLIS] per player. Changes are collected by a
- * [TabListCoalescer]; a repeating global task releases the due players once per second and builds
+ * [TabListCoalescer]; a repeating global task releases the due players every 250 ms and builds
  * and sends each player's state on the player's own scheduler. Organisation counts are computed
  * once per release and shared by every player released with it. It must be [started][start] by
  * the plugin before use.
@@ -52,7 +52,7 @@ class PaperTabListService : TabListService, Listener {
     /**
      * The pending changes of every player.
      */
-    private val coalescer = TabListCoalescer()
+    private val coalescer = TabListCoalescer(toleranceMillis = FLUSH_PERIOD_TICKS * MILLIS_PER_TICK / 2)
 
     /**
      * The time each online player joined, in epoch milliseconds.
@@ -289,6 +289,11 @@ class PaperTabListService : TabListService, Listener {
         /**
          * The period of the task that sends due states, in ticks.
          */
-        private const val FLUSH_PERIOD_TICKS: Long = 20
+        private const val FLUSH_PERIOD_TICKS: Long = 5
+
+        /**
+         * The nominal length of a server tick in milliseconds.
+         */
+        private const val MILLIS_PER_TICK: Long = 50
     }
 }

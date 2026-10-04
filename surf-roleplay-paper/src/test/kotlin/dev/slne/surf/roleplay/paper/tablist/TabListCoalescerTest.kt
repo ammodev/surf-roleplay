@@ -98,6 +98,44 @@ class TabListCoalescerTest {
     }
 
     /**
+     * Verifies that with flushes every 250 ms on a jittered clock and a change before every flush,
+     * pushes come every 2 s within the jitter, never a flush period late.
+     */
+    @Test
+    fun `jittered flushes push every window`() {
+        val jittered = TabListCoalescer(windowMillis = 2000, toleranceMillis = 125) { now }
+        val jitter = longArrayOf(0, 60, -60, 35, -45, 10, -20, 55, -55, 25)
+        val pushes = mutableListOf<Long>()
+
+        for (flush in 0 until 400) {
+            now = flush * 250L + jitter[flush % jitter.size]
+            jittered.markDirty(player)
+            if (player in jittered.due()) pushes += now
+        }
+
+        val intervals = pushes.zipWithNext { a, b -> b - a }
+        assertTrue(intervals.size > 40)
+        assertTrue(intervals.all { it in 1875..2125 }, "intervals: $intervals")
+    }
+
+    /**
+     * Verifies that the tolerance does not allow a push earlier than the window minus the
+     * tolerance.
+     */
+    @Test
+    fun `tolerance bounds the earliest push`() {
+        val tolerant = TabListCoalescer(windowMillis = 2000, toleranceMillis = 125) { now }
+        tolerant.markDirty(player)
+        tolerant.due()
+
+        now = 1874
+        tolerant.markDirty(player)
+        assertTrue(tolerant.due().isEmpty())
+        now = 1875
+        assertEquals(setOf(player), tolerant.due())
+    }
+
+    /**
      * Verifies that players are coalesced independently.
      */
     @Test

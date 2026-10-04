@@ -6,16 +6,20 @@ import java.util.UUID
  * Collects tab list changes per player and releases each player for a push at most once per
  * window.
  *
- * A change marks the player dirty. A dirty player becomes due once the window since the player's
- * last push has passed; [due] then returns the player once and starts a new window. Changes made
+ * A change marks the player dirty. A dirty player becomes due once the window, less the tolerance,
+ * has passed since the player's last push; [due] then returns the player once and starts a new
+ * window. The tolerance lets a periodic caller of [due] whose calls jitter around the end of the
+ * window push on time instead of one period late. Changes made
  * within the window are kept and released when the window ends, so none is lost. Every method is
  * thread-safe.
  *
- * @property windowMillis the shortest time between two pushes to the same player
+ * @property windowMillis the nominal time between two pushes to the same player
+ * @property toleranceMillis how much earlier than the window a player may become due
  * @property clock returns the current time in milliseconds
  */
 class TabListCoalescer(
     private val windowMillis: Long = DEFAULT_WINDOW_MILLIS,
+    private val toleranceMillis: Long = 0,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     /**
@@ -58,7 +62,7 @@ class TabListCoalescer(
     fun due(): Set<UUID> {
         if (dirty.isEmpty()) return emptySet()
         val now = clock()
-        val due = dirty.filterTo(HashSet()) { player -> lastPush[player]?.let { now - it >= windowMillis } ?: true }
+        val due = dirty.filterTo(HashSet()) { player -> lastPush[player]?.let { now - it >= windowMillis - toleranceMillis } ?: true }
         dirty -= due
         due.forEach { lastPush[it] = now }
         return due
