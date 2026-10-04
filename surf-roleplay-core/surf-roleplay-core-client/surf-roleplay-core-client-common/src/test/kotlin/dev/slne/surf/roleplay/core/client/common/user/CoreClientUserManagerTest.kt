@@ -186,4 +186,21 @@ class CoreClientUserManagerTest {
         assertNotSame(cached, manager.findByUuid(uuid))
         coVerify(exactly = 1) { service.findByUuid(uuid) }
     }
+
+    /**
+     * Verifies that cached returns the held user without loading or acquiring a hold, and nothing
+     * for a user that is not held.
+     */
+    @Test
+    fun `cached returns only held users without acquiring a hold`() = runBlocking {
+        assertNull(manager.cached(uuid))
+
+        val loaded = manager.loadAndCache(uuid)
+        assertSame(loaded, manager.cached(uuid))
+
+        manager.release(uuid)
+        assertNull(manager.cached(uuid))
+        coVerify(exactly = 0) { service.findByUuid(any()) }
+        coVerify(exactly = 1) { service.findOrCreateByUuid(uuid) }
+    }
 }
