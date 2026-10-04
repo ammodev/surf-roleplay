@@ -1,5 +1,34 @@
 package dev.slne.surf.roleplay.paper.screen.debug
 
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Badge
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Card
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Chart
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ChatMessage
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ChatView
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTable
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableCell
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableColumn
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableRow
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupAddon
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupButton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Table
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableBody
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableCaption
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableCell
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableHead
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableRow
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.BadgeVariant
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonSize
@@ -10,40 +39,15 @@ import dev.slne.surf.roleplay.api.client.common.screen.ChartKind
 import dev.slne.surf.roleplay.api.client.common.screen.ChartSeries
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableView
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.ElementsBuilder
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAlign
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.TextKind
-import dev.slne.surf.roleplay.api.client.common.screen.badge
-import dev.slne.surf.roleplay.api.client.common.screen.card
-import dev.slne.surf.roleplay.api.client.common.screen.cardContent
-import dev.slne.surf.roleplay.api.client.common.screen.cardDescription
-import dev.slne.surf.roleplay.api.client.common.screen.cardHeader
-import dev.slne.surf.roleplay.api.client.common.screen.cardTitle
-import dev.slne.surf.roleplay.api.client.common.screen.chart
-import dev.slne.surf.roleplay.api.client.common.screen.chatMessage
-import dev.slne.surf.roleplay.api.client.common.screen.chatView
-import dev.slne.surf.roleplay.api.client.common.screen.dataTable
-import dev.slne.surf.roleplay.api.client.common.screen.dataTableCell
-import dev.slne.surf.roleplay.api.client.common.screen.dataTableColumn
-import dev.slne.surf.roleplay.api.client.common.screen.dataTableRow
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroup
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroupAddon
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroupButton
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.select
-import dev.slne.surf.roleplay.api.client.common.screen.table
-import dev.slne.surf.roleplay.api.client.common.screen.tableBody
-import dev.slne.surf.roleplay.api.client.common.screen.tableCaption
-import dev.slne.surf.roleplay.api.client.common.screen.tableCell
-import dev.slne.surf.roleplay.api.client.common.screen.tableFooter
-import dev.slne.surf.roleplay.api.client.common.screen.tableHead
-import dev.slne.surf.roleplay.api.client.common.screen.tableHeader
-import dev.slne.surf.roleplay.api.client.common.screen.tableRow
-import dev.slne.surf.roleplay.api.client.common.screen.text
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.H3
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -97,15 +101,13 @@ object DataDemo {
      * @param variant the variant of the theme
      * @return the page
      */
-    fun definition(hooks: Hooks, theme: String, variant: ScreenVariant): ScreenDefinition = screen(Component.text("Daten")) {
-        this.theme = theme
-        this.variant = variant
-        column("root", width = ElementSize.fixed(620), gap = 12, crossAlign = Alignment.STRETCH) {
-            row("theme_row", gap = 4, crossAlign = Alignment.CENTER) {
-                select("theme", InputsDemo.THEMES, selected = theme, width = ElementSize.grow(), onChange = { change -> hooks.reopen(change.value, variant) })
-                select("variant", InputsDemo.VARIANTS, selected = variant.name, width = ElementSize.fixed(90), onChange = { change ->
+    fun definition(hooks: Hooks, theme: String, variant: ScreenVariant): ScreenDefinition = Screen(Component.text("Daten"), theme = theme, variant = variant) {
+        Column(width = ElementSize.fixed(620), gap = 12, crossAlign = Alignment.STRETCH, id = "root") {
+            Row(gap = 4, crossAlign = Alignment.CENTER, id = "theme_row") {
+                Select(InputsDemo.THEMES, selected = theme, width = ElementSize.grow(), onChange = { change -> hooks.reopen(change.value, variant) }, id = "theme")
+                Select(InputsDemo.VARIANTS, selected = variant.name, width = ElementSize.fixed(90), onChange = { change ->
                     hooks.reopen(theme, ScreenVariant.valueOf(change.value))
-                })
+                }, id = "variant")
             }
             tables()
             dataTables(hooks)
@@ -121,9 +123,9 @@ object DataDemo {
      * @param title the heading
      * @param content the builder of the section's content
      */
-    private fun ElementsBuilder.section(id: String, title: String, content: ElementsBuilder.() -> Unit) {
-        column(id, gap = 6, crossAlign = Alignment.STRETCH) {
-            text("${id}_title", Component.text(title), TextKind.H3)
+    private fun ComponentScope.section(id: String, title: String, content: ComponentScope.() -> Unit) {
+        Column(gap = 6, crossAlign = Alignment.STRETCH, id = id) {
+            H3(Component.text(title), id = "${id}_title")
             content()
         }
     }
@@ -141,37 +143,37 @@ object DataDemo {
     /**
      * Adds a table of missions with a status badge per row, a total in the footer and a caption.
      */
-    private fun ElementsBuilder.tables() = section("tables", "Tabelle") {
-        table("missions") {
-            tableHeader("missions_header") {
-                tableRow("missions_head") {
-                    tableHead("missions_head_number", Component.text("Einsatz"))
-                    tableHead("missions_head_unit", Component.text("Einheit"))
-                    tableHead("missions_head_status", Component.text("Status"))
-                    tableHead("missions_head_amount", Component.text("Betrag"), Alignment.END)
+    private fun ComponentScope.tables() = section("tables", "Tabelle") {
+        Table(id = "missions") {
+            TableHeader(id = "missions_header") {
+                TableRow(id = "missions_head") {
+                    TableHead(Component.text("Einsatz"), id = "missions_head_number")
+                    TableHead(Component.text("Einheit"), id = "missions_head_unit")
+                    TableHead(Component.text("Status"), id = "missions_head_status")
+                    TableHead(Component.text("Betrag"), Alignment.END, id = "missions_head_amount")
                 }
             }
-            tableBody("missions_body") {
+            TableBody(id = "missions_body") {
                 MISSIONS.forEachIndexed { index, (number, unit, status, amount) ->
-                    tableRow("mission_$index") {
-                        tableCell("mission_${index}_number", Component.text(number))
-                        tableCell("mission_${index}_unit", Component.text(unit))
-                        tableCell("mission_${index}_status") {
-                            badge("mission_${index}_badge", Component.text(status), variant = if (status == "Offen") BadgeVariant.DESTRUCTIVE else BadgeVariant.OUTLINE)
+                    TableRow(id = "mission_$index") {
+                        TableCell(Component.text(number), id = "mission_${index}_number")
+                        TableCell(Component.text(unit), id = "mission_${index}_unit")
+                        TableCell(id = "mission_${index}_status") {
+                            Badge(Component.text(status), variant = if (status == "Offen") BadgeVariant.DESTRUCTIVE else BadgeVariant.OUTLINE, id = "mission_${index}_badge")
                         }
-                        tableCell("mission_${index}_amount", Component.text("$amount €"), Alignment.END)
+                        TableCell(Component.text("$amount €"), Alignment.END, id = "mission_${index}_amount")
                     }
                 }
             }
-            tableFooter("missions_footer") {
-                tableRow("missions_total") {
-                    tableCell("missions_total_label", Component.text("Summe"))
-                    tableCell("missions_total_unit", Component.empty())
-                    tableCell("missions_total_status", Component.empty())
-                    tableCell("missions_total_amount", Component.text("1.200,00 €"), Alignment.END)
+            TableFooter(id = "missions_footer") {
+                TableRow(id = "missions_total") {
+                    TableCell(Component.text("Summe"), id = "missions_total_label")
+                    TableCell(Component.empty(), id = "missions_total_unit")
+                    TableCell(Component.empty(), id = "missions_total_status")
+                    TableCell(Component.text("1.200,00 €"), Alignment.END, id = "missions_total_amount")
                 }
             }
-            tableCaption("missions_caption", Component.text("Die letzten Einsätze der Leitstelle."))
+            TableCaption(Component.text("Die letzten Einsätze der Leitstelle."), id = "missions_caption")
         }
     }
 
@@ -194,29 +196,22 @@ object DataDemo {
      *
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.dataTables(hooks: Hooks) = section("data_tables", "Datentabelle") {
-        dataTable(
-            "units",
-            pageSize = 5,
-            selectable = true,
-            filterColumn = "name",
-            filterPlaceholder = Component.text("Einheiten filtern..."),
-            onChange = { change ->
-                val view = DataTableView.parse(change.value) ?: return@dataTable
+    private fun ComponentScope.dataTables(hooks: Hooks) = section("data_tables", "Datentabelle") {
+        DataTable(pageSize = 5, selectable = true, filterColumn = "name", filterPlaceholder = Component.text("Einheiten filtern..."), onChange = { change ->
+                val view = DataTableView.parse(change.value) ?: return@DataTable
                 val sort = view.sort?.let { "${it} ${if (view.desc) "absteigend" else "aufsteigend"}" } ?: "unsortiert"
                 hooks.report(Component.text("Tabelle: $sort, Filter \"${view.filter}\", Seite ${view.page + 1}, ${view.selected.size} ausgewählt", NamedTextColor.AQUA))
-            },
-        ) {
-            dataTableColumn("units_column_status", "status", Component.text("Status"))
-            dataTableColumn("units_column_name", "name", Component.text("Name"), sortable = true)
-            dataTableColumn("units_column_calls", "calls", Component.text("Einsätze"), sortable = true, align = Alignment.END)
+            }, id = "units") {
+            DataTableColumn("status", Component.text("Status"), id = "units_column_status")
+            DataTableColumn("name", Component.text("Name"), sortable = true, id = "units_column_name")
+            DataTableColumn("calls", Component.text("Einsätze"), sortable = true, align = Alignment.END, id = "units_column_calls")
             UNITS.forEach { (id, name, status, calls) ->
-                dataTableRow(id, selectable = status != "Außer Dienst") {
-                    dataTableCell("${id}_status", status) {
-                        badge("${id}_badge", Component.text(status), variant = if (status == "Frei") BadgeVariant.SECONDARY else BadgeVariant.OUTLINE)
+                DataTableRow(selectable = status != "Außer Dienst", id = id) {
+                    DataTableCell(status, id = "${id}_status") {
+                        Badge(Component.text(status), variant = if (status == "Frei") BadgeVariant.SECONDARY else BadgeVariant.OUTLINE, id = "${id}_badge")
                     }
-                    dataTableCell("${id}_name", Component.text(name), name)
-                    dataTableCell("${id}_calls", Component.text(calls), calls)
+                    DataTableCell(Component.text(name), name, id = "${id}_name")
+                    DataTableCell(Component.text(calls), calls, id = "${id}_calls")
                 }
             }
         }
@@ -240,47 +235,47 @@ object DataDemo {
     /**
      * Adds charts of every family, two per row, each in a card.
      */
-    private fun ElementsBuilder.charts() = section("charts", "Diagramme") {
+    private fun ComponentScope.charts() = section("charts", "Diagramme") {
         chartRow("charts_1") {
             chartCard("area_card", "Fläche – gestapelt", "Einsätze pro Monat") {
-                chart("area", ChartKind.AREA, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), stacked = true, legend = true)
+                Chart(ChartKind.AREA, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), stacked = true, legend = true, id = "area")
             }
             chartCard("bar_card", "Balken – mehrere", "Mit Werteachse") {
-                chart("bar", ChartKind.BAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), valueAxis = true, indicator = ChartIndicator.DASHED)
+                Chart(ChartKind.BAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), valueAxis = true, indicator = ChartIndicator.DASHED, id = "bar")
             }
         }
         chartRow("charts_2") {
             chartCard("bar_horizontal_card", "Balken – horizontal", "Mit Werten") {
-                chart("bar_horizontal", ChartKind.BAR, MONTHS, listOf(RESCUE), width = ElementSize.grow(), horizontal = true, labels = true, grid = false)
+                Chart(ChartKind.BAR, MONTHS, listOf(RESCUE), width = ElementSize.grow(), horizontal = true, labels = true, grid = false, id = "bar_horizontal")
             }
             chartCard("bar_stacked_card", "Balken – gestapelt", "Mit Legende") {
-                chart("bar_stacked", ChartKind.BAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), stacked = true, legend = true, indicator = ChartIndicator.LINE)
+                Chart(ChartKind.BAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), stacked = true, legend = true, indicator = ChartIndicator.LINE, id = "bar_stacked")
             }
         }
         chartRow("charts_3") {
             chartCard("line_card", "Linie – weich", "Mit Punkten") {
-                chart("line", ChartKind.LINE, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), dots = true)
+                Chart(ChartKind.LINE, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), dots = true, id = "line")
             }
             chartCard("line_step_card", "Linie – Stufen", "Linear und Stufen") {
-                chart("line_step", ChartKind.LINE, MONTHS, listOf(RESCUE.copy(color = 3)), width = ElementSize.grow(), curve = ChartCurve.STEP)
+                Chart(ChartKind.LINE, MONTHS, listOf(RESCUE.copy(color = 3)), width = ElementSize.grow(), curve = ChartCurve.STEP, id = "line_step")
             }
         }
         val browsers = listOf("Rettung", "Feuer", "Polizei", "THW", "Sonstige").map { Component.text(it) }
         val shares = ChartSeries("calls", Component.text("Einsätze"), 1, listOf(275.0, 200.0, 187.0, 173.0, 90.0))
         chartRow("charts_4") {
             chartCard("pie_card", "Kreis – Werte", "Einsätze nach Art") {
-                chart("pie", ChartKind.PIE, browsers, listOf(shares), width = ElementSize.grow(), labels = true, legend = true)
+                Chart(ChartKind.PIE, browsers, listOf(shares), width = ElementSize.grow(), labels = true, legend = true, id = "pie")
             }
             chartCard("donut_card", "Kreis – Ring", "Mit Summe") {
-                chart("donut", ChartKind.PIE, browsers, listOf(shares), width = ElementSize.grow(), donut = true)
+                Chart(ChartKind.PIE, browsers, listOf(shares), width = ElementSize.grow(), donut = true, id = "donut")
             }
         }
         chartRow("charts_5") {
             chartCard("radar_card", "Netz", "Zwei Serien") {
-                chart("radar", ChartKind.RADAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), dots = true, legend = true)
+                Chart(ChartKind.RADAR, MONTHS, listOf(RESCUE, FIRE), width = ElementSize.grow(), dots = true, legend = true, id = "radar")
             }
             chartCard("radial_card", "Radial", "Einsätze nach Art") {
-                chart("radial", ChartKind.RADIAL, browsers, listOf(shares), width = ElementSize.grow(), legend = true)
+                Chart(ChartKind.RADIAL, browsers, listOf(shares), width = ElementSize.grow(), legend = true, id = "radial")
             }
         }
     }
@@ -291,8 +286,8 @@ object DataDemo {
      * @param id the id of the row
      * @param content the builder of the cards
      */
-    private fun ElementsBuilder.chartRow(id: String, content: ElementsBuilder.() -> Unit) {
-        row(id, width = ElementSize.grow(), gap = 12, children = content)
+    private fun ComponentScope.chartRow(id: String, content: ComponentScope.() -> Unit) {
+        Row(width = ElementSize.grow(), gap = 12, id = id, children = content)
     }
 
     /**
@@ -303,13 +298,13 @@ object DataDemo {
      * @param description the description
      * @param content the builder of the chart
      */
-    private fun ElementsBuilder.chartCard(id: String, title: String, description: String, content: ElementsBuilder.() -> Unit) {
-        card(id, width = ElementSize.grow()) {
-            cardHeader("${id}_header") {
-                cardTitle("${id}_title", Component.text(title))
-                cardDescription("${id}_description", Component.text(description))
+    private fun ComponentScope.chartCard(id: String, title: String, description: String, content: ComponentScope.() -> Unit) {
+        Card(width = ElementSize.grow(), id = id) {
+            CardHeader(id = "${id}_header") {
+                CardTitle(Component.text(title), id = "${id}_title")
+                CardDescription(Component.text(description), id = "${id}_description")
             }
-            cardContent("${id}_content", content)
+            CardContent(id = "${id}_content", children = content)
         }
     }
 
@@ -319,28 +314,28 @@ object DataDemo {
      *
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.chat(hooks: Hooks) = section("chat", "Chat") {
+    private fun ComponentScope.chat(hooks: Hooks) = section("chat", "Chat") {
         var count = 0
-        chatView("chat_view", ElementSize.fixed(150), width = ElementSize.grow()) {
-            chatMessage("chat_m1", name = Component.text("Leitstelle"), time = Component.text("12:30"), fallback = "LS") {
-                text("chat_m1_text", Component.text("RTW 1, bitte melden."))
+        ChatView(ElementSize.fixed(150), width = ElementSize.grow(), id = "chat_view") {
+            ChatMessage(name = Component.text("Leitstelle"), time = Component.text("12:30"), fallback = "LS", id = "chat_m1") {
+                P(Component.text("RTW 1, bitte melden."), id = "chat_m1_text")
             }
-            chatMessage("chat_m2", own = true, name = Component.text("RTW 1"), time = Component.text("12:31"), playerId = hooks.playerId, fallback = "R1") {
-                text("chat_m2_text", Component.text("RTW 1 hört, Standort Wache Nord."))
+            ChatMessage(own = true, name = Component.text("RTW 1"), time = Component.text("12:31"), playerId = hooks.playerId, fallback = "R1", id = "chat_m2") {
+                P(Component.text("RTW 1 hört, Standort Wache Nord."), id = "chat_m2_text")
             }
-            chatMessage("chat_m3", name = Component.text("Leitstelle"), time = Component.text("12:31"), fallback = "LS") {
-                text("chat_m3_text", Component.text("Einsatz: Verkehrsunfall B7, zwei Verletzte."))
+            ChatMessage(name = Component.text("Leitstelle"), time = Component.text("12:31"), fallback = "LS", id = "chat_m3") {
+                P(Component.text("Einsatz: Verkehrsunfall B7, zwei Verletzte."), id = "chat_m3_text")
             }
         }
-        inputGroup("chat_composer", width = ElementSize.grow()) {
-            textInput("chat_input", placeholder = Component.text("Nachricht schreiben..."), maxLength = 200, width = ElementSize.grow())
-            inputGroupAddon("chat_actions", InputGroupAlign.INLINE_END) {
-                inputGroupButton("chat_send", Component.text("Senden"), icon = "send", variant = ButtonVariant.DEFAULT, size = ButtonSize.XS, onClick = { click ->
+        InputGroup(width = ElementSize.grow(), id = "chat_composer") {
+            Input(placeholder = Component.text("Nachricht schreiben..."), maxLength = 200, width = ElementSize.grow(), id = "chat_input")
+            InputGroupAddon(InputGroupAlign.INLINE_END, id = "chat_actions") {
+                InputGroupButton(Component.text("Senden"), icon = "send", variant = ButtonVariant.DEFAULT, size = ButtonSize.XS, onClick = { click ->
                     val message = click.values.text("chat_input").orEmpty().trim()
-                    if (message.isEmpty()) return@inputGroupButton
+                    if (message.isEmpty()) return@InputGroupButton
                     count++
                     send(click.screen, hooks, count, message)
-                })
+                }, id = "chat_send")
             }
         }
     }
@@ -358,11 +353,11 @@ object DataDemo {
         val time = hooks.now()
         screen.patch {
             append("chat_view") {
-                chatMessage("chat_sent_$count", own = true, name = Component.text("RTW 1"), time = Component.text(time), playerId = hooks.playerId, fallback = "R1") {
-                    text("chat_sent_${count}_text", Component.text(message))
+                ChatMessage(own = true, name = Component.text("RTW 1"), time = Component.text(time), playerId = hooks.playerId, fallback = "R1", id = "chat_sent_$count") {
+                    P(Component.text(message), id = "chat_sent_${count}_text")
                 }
-                chatMessage("chat_reply_$count", name = Component.text("Leitstelle"), time = Component.text(time), fallback = "LS") {
-                    text("chat_reply_${count}_text", Component.text("Verstanden."))
+                ChatMessage(name = Component.text("Leitstelle"), time = Component.text(time), fallback = "LS", id = "chat_reply_$count") {
+                    P(Component.text("Verstanden."), id = "chat_reply_${count}_text")
                 }
             }
             setValue("chat_input", "")
