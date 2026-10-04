@@ -17,6 +17,10 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
+import kotlin.test.assertNotSame
+import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 /**
@@ -296,5 +300,90 @@ class ChartWidgetsTest {
 
         assertEquals(counted, calls)
         assertEquals(first.map { it.toList() }, second.map { it.toList() })
+    }
+
+    /**
+     * Creates a chart over three categories with two series, with dots.
+     *
+     * @param kind the family of the chart
+     * @return the chart, placed at 10, 20 and 200 by 120 pixels large
+     */
+    private fun chart(kind: ChartKind): ChartWidget = ChartWidget(
+        "chart",
+        kind,
+        listOf("\"A\"", "\"B\"", "\"C\""),
+        listOf(ChartSeries("s", "\"S\"", 1, listOf(1.0, 4.0, 2.0)), ChartSeries("t", "\"T\"", 2, listOf(3.0, 1.0, 5.0))),
+        emptyList(),
+        ChartOptions(dots = true),
+    ).also { it.bounds = Rect(10, 20, 200, 120) }
+
+    /**
+     * The dark theme's tokens.
+     */
+    private val dark = Themes.resolve(Themes.DEFAULT, ThemeVariant.DARK)
+
+    /**
+     * Verifies that the drawn image of line, area, bar and radar charts is kept while the chart
+     * only moves, such as when its screen scrolls.
+     */
+    @Test
+    fun `chart images survive moving`() {
+        listOf(ChartKind.LINE, ChartKind.AREA, ChartKind.BAR, ChartKind.RADAR).forEach { kind ->
+            val chart = chart(kind)
+            val first = assertNotNull(chart.layers(measurer, dark, 2))
+            assertTrue(first.under.count + first.over.count > 0, "$kind draws nothing")
+
+            chart.offset(0, -15)
+
+            assertSame(first, chart.layers(measurer, dark, 2), "$kind was drawn again")
+        }
+    }
+
+    /**
+     * Verifies that the drawn image of a chart is drawn again when the chart's size, the pixel
+     * scale or the theme changes.
+     */
+    @Test
+    fun `chart images follow size, scale and theme`() {
+        listOf(ChartKind.LINE, ChartKind.AREA, ChartKind.BAR, ChartKind.RADAR).forEach { kind ->
+            val chart = chart(kind)
+            val first = assertNotNull(chart.layers(measurer, dark, 2))
+            chart.bounds = Rect(10, 20, 240, 120)
+            val resized = assertNotNull(chart.layers(measurer, dark, 2))
+            val rescaled = assertNotNull(chart.layers(measurer, dark, 3))
+            val light = assertNotNull(chart.layers(measurer, Themes.resolve(Themes.DEFAULT, ThemeVariant.LIGHT), 3))
+
+            assertNotSame(first, resized, "$kind kept its image after resizing")
+            assertNotSame(resized, rescaled, "$kind kept its image after rescaling")
+            assertNotSame(rescaled, light, "$kind kept its image after a theme change")
+        }
+    }
+
+    /**
+     * Verifies that pie and radial charts have no such image, since they keep their own shapes.
+     */
+    @Test
+    fun `round charts keep their own shapes`() {
+        assertNull(chart(ChartKind.PIE).layers(measurer, dark, 2))
+        assertNull(chart(ChartKind.RADIAL).layers(measurer, dark, 2))
+    }
+
+    /**
+     * Verifies that fills of one colour that continue each other are drawn as one, and that
+     * fills of another colour or apart are not.
+     */
+    @Test
+    fun `adjacent fills of one colour merge`() {
+        val fills = FillList()
+        fills.add(0, 0, 1, 5, 7)
+        fills.add(1, 0, 2, 5, 7)
+        fills.add(2, 0, 3, 5, 8)
+        fills.add(2, 5, 3, 9, 8)
+        fills.add(4, 9, 5, 10, 8)
+
+        assertEquals(3, fills.count)
+        assertEquals(listOf(0, 0, 2, 5, 7), fills.fill(0))
+        assertEquals(listOf(2, 0, 3, 9, 8), fills.fill(1))
+        assertEquals(listOf(4, 9, 5, 10, 8), fills.fill(2))
     }
 }

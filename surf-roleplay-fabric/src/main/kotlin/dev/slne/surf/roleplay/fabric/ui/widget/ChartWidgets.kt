@@ -7,6 +7,7 @@ import dev.slne.surf.roleplay.fabric.ui.layout.LayoutBox
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
+import dev.slne.surf.roleplay.fabric.ui.theme.ThemeTokens
 import dev.slne.surf.roleplay.protocol.screen.ChartCurve
 import dev.slne.surf.roleplay.protocol.screen.ChartIndicator
 import dev.slne.surf.roleplay.protocol.screen.ChartKind
@@ -174,7 +175,8 @@ class ChartWidget(
 
     /**
      * Draws an area, bar or line chart: the grid, the axis labels, the hover cursor and the
-     * series.
+     * series. The grid and the series come from [layers], drawn once while nothing they depend on
+     * changes; the cursor is drawn between them every frame.
      *
      * @param ui the graphics to draw with
      * @param mouseX the mouse x position
@@ -185,14 +187,14 @@ class ChartWidget(
         val plot = geometry.plot
         if (plot.width <= 0 || plot.height <= 0) return
         val tokens = ui.tokens
-        val ticks = ChartMath.ticks(geometry.min, geometry.max)
-        ticks.forEach { tick ->
-            val position = geometry.valuePosition(tick).roundToInt()
-            if (options.grid) {
-                if (geometry.horizontal) ui.fill(Rect(position.coerceAtMost(plot.right - 1), plot.y, 1, plot.height), tokens.border)
-                else ui.fill(Rect(plot.x, position.coerceAtMost(plot.bottom - 1), plot.width, 1), tokens.border)
-            }
-            if (options.valueAxis) {
+        var layers: ChartLayers? = null
+        ui.fine { scale ->
+            layers = layers(ui, tokens, scale)
+            layers?.under?.draw(ui, bounds.x * scale, bounds.y * scale)
+        }
+        if (options.valueAxis) {
+            ChartMath.ticks(geometry.min, geometry.max).forEach { tick ->
+                val position = geometry.valuePosition(tick).roundToInt()
                 val label = ChartMath.format(tick)
                 val width = ui.plainWidth(label)
                 if (geometry.horizontal) ui.plainText(label, position - width / 2, plot.bottom + AXIS_GAP, tokens.mutedForeground)
@@ -211,11 +213,77 @@ class ChartWidget(
                 ui.fill(Rect(geometry.categoryPosition(category).roundToInt(), plot.y, 1, plot.height), tokens.border)
             }
         }
+        ui.fine { scale -> layers?.over?.draw(ui, bounds.x * scale, bounds.y * scale) }
+        if (kind == ChartKind.BAR && options.labels) renderBarLabels(ui, geometry)
+    }
+
+    /**
+     * The drawn shapes of the last frames and what they were drawn for, or `null` before the
+     * first frame.
+     */
+    private var layerCache: Pair<ChartRasterKey, ChartLayers>? = null
+
+    /**
+     * Returns the shapes of an area, bar, line or radar chart that do not change while the mouse
+     * moves, relative to the chart's top-left corner. They are kept while the chart's size, the
+     * pixel scale, the theme and the placement of the plot stay the same, so that moving the
+     * chart keeps them, and drawn again otherwise.
+     *
+     * @param measurer the text measurer
+     * @param tokens the design tokens
+     * @param scale the number of screen pixels per GUI pixel
+     * @return the shapes, or `null` for pie and radial charts and charts too small to draw
+     */
+    internal fun layers(measurer: TextMeasurer, tokens: ThemeTokens, scale: Int): ChartLayers? {
+        val key: ChartRasterKey
+        val draw: () -> ChartLayers
         when (kind) {
-            ChartKind.BAR -> renderBars(ui, geometry)
-            ChartKind.AREA -> renderLines(ui, geometry, fill = true)
-            else -> renderLines(ui, geometry, fill = false)
+            ChartKind.AREA, ChartKind.BAR, ChartKind.LINE -> {
+                val geometry = geometry(measurer)
+                val plot = geometry.plot
+                if (plot.width <= 0 || plot.height <= 0) return null
+                key = ChartRasterKey(bounds.width, bounds.height, scale, tokens, listOf(plot.x - bounds.x, plot.y - bounds.y, plot.width, plot.height, geometry.min, geometry.max))
+                draw = { cartesianLayers(geometry, tokens, scale) }
+            }
+            ChartKind.RADAR -> {
+                val geometry = polar(measurer)
+                if (geometry.radius <= 0f || categories.size < 3) return null
+                key = ChartRasterKey(bounds.width, bounds.height, scale, tokens, listOf(geometry.centerX - bounds.x, geometry.centerY - bounds.y, geometry.radius))
+                draw = { radarLayers(geometry, tokens, scale) }
+            }
+            else -> return null
         }
+        layerCache?.let { (cached, layers) -> if (cached == key) return layers }
+        return draw().also { layerCache = key to it }
+    }
+
+    /**
+     * Draws the grid of an area, bar or line chart below and its series above.
+     *
+     * @param geometry the chart geometry
+     * @param tokens the design tokens
+     * @param scale the number of screen pixels per GUI pixel
+     * @return the shapes
+     */
+    private fun cartesianLayers(geometry: CartesianGeometry, tokens: ThemeTokens, scale: Int): ChartLayers {
+        val originX = bounds.x * scale
+        val originY = bounds.y * scale
+        val plot = geometry.plot
+        val under = FillList()
+        if (options.grid) {
+            ChartMath.ticks(geometry.min, geometry.max).forEach { tick ->
+                val position = geometry.valuePosition(tick).roundToInt()
+                val line = if (geometry.horizontal) Rect(position.coerceAtMost(plot.right - 1), plot.y, 1, plot.height) else Rect(plot.x, position.coerceAtMost(plot.bottom - 1), plot.width, 1)
+                under.addScaled(line, scale, originX, originY, tokens.border)
+            }
+        }
+        val over = FillList()
+        when (kind) {
+            ChartKind.BAR -> addBars(over, geometry, tokens, scale)
+            ChartKind.AREA -> addLines(over, geometry, tokens, scale, fill = true)
+            else -> addLines(over, geometry, tokens, scale, fill = false)
+        }
+        return ChartLayers(under, over)
     }
 
     /**
@@ -239,12 +307,14 @@ class ChartWidget(
     }
 
     /**
-     * Draws the bars with the outer end of each stack rounded, and their values when asked.
+     * Adds the bars with the outer end of each stack rounded.
      *
-     * @param ui the graphics to draw with
+     * @param fills the list to add to
      * @param geometry the chart geometry
+     * @param tokens the design tokens
+     * @param scale the number of screen pixels per GUI pixel
      */
-    private fun renderBars(ui: UiGraphics, geometry: CartesianGeometry) {
+    private fun addBars(fills: FillList, geometry: CartesianGeometry, tokens: ThemeTokens, scale: Int) {
         ChartMath.bars(geometry, values, options.stacked).forEach { bar ->
             val rect = pixels(bar.rect)
             if (rect.width <= 0 || rect.height <= 0) return@forEach
@@ -253,67 +323,80 @@ class ChartWidget(
                 geometry.horizontal -> Corners(false, true, false, true)
                 else -> Corners.TOP
             }
-            ui.fillRounded(rect, ui.tokens.chart(series[bar.series].color), BAR_RADIUS, corners)
-            if (options.labels && bar.top) {
-                val value = if (options.stacked) values.sumOf { it.getOrElse(bar.category) { 0.0 } } else values[bar.series].getOrElse(bar.category) { 0.0 }
-                val text = ChartMath.format(value)
-                val width = ui.plainWidth(text)
-                if (geometry.horizontal) ui.plainText(text, rect.right + LABEL_GAP, rect.y + (rect.height - ui.lineHeight) / 2 + 1, ui.tokens.foreground)
-                else ui.plainText(text, rect.x + (rect.width - width) / 2, rect.y - ui.lineHeight - 1, ui.tokens.foreground)
-            }
+            fills.addRounded(rect, BAR_RADIUS, corners, scale, bounds.x * scale, bounds.y * scale, tokens.chart(series[bar.series].color))
         }
     }
 
     /**
-     * Draws the series as lines, and for area charts the area below each line, at screen-pixel
-     * resolution, then the dots.
+     * Draws the value at the outer end of each bar stack.
      *
      * @param ui the graphics to draw with
      * @param geometry the chart geometry
+     */
+    private fun renderBarLabels(ui: UiGraphics, geometry: CartesianGeometry) {
+        ChartMath.bars(geometry, values, options.stacked).forEach { bar ->
+            val rect = pixels(bar.rect)
+            if (rect.width <= 0 || rect.height <= 0 || !bar.top) return@forEach
+            val value = if (options.stacked) values.sumOf { it.getOrElse(bar.category) { 0.0 } } else values[bar.series].getOrElse(bar.category) { 0.0 }
+            val text = ChartMath.format(value)
+            val width = ui.plainWidth(text)
+            if (geometry.horizontal) ui.plainText(text, rect.right + LABEL_GAP, rect.y + (rect.height - ui.lineHeight) / 2 + 1, ui.tokens.foreground)
+            else ui.plainText(text, rect.x + (rect.width - width) / 2, rect.y - ui.lineHeight - 1, ui.tokens.foreground)
+        }
+    }
+
+    /**
+     * Adds the series as lines, and for area charts the area below each line, at screen-pixel
+     * resolution, then the dots.
+     *
+     * @param fills the list to add to
+     * @param geometry the chart geometry
+     * @param tokens the design tokens
+     * @param scale the number of screen pixels per GUI pixel
      * @param fill whether the areas are filled
      */
-    private fun renderLines(ui: UiGraphics, geometry: CartesianGeometry, fill: Boolean) {
+    private fun addLines(fills: FillList, geometry: CartesianGeometry, tokens: ThemeTokens, scale: Int, fill: Boolean) {
         val stacked = options.stacked && fill
         val tops = if (stacked) ChartMath.stacked(values) else values
         val lines = tops.map { ChartMath.points(geometry, it) }
         val baseline = geometry.valuePosition(0.0.coerceIn(geometry.min, geometry.max))
         val plot = geometry.plot
-        ui.fine { scale ->
-            val start = plot.x * scale
-            val end = plot.right * scale
-            lines.indices.forEach { index ->
-                val color = ui.tokens.chart(series[index].color)
-                val line = lines[index]
-                if (line.isEmpty()) return@forEach
-                val slopes = ChartMath.slopes(line)
-                val from = maxOf(start, (line.first().x * scale).roundToInt())
-                val to = minOf(end, (line.last().x * scale).roundToInt())
-                if (fill) {
-                    val below = if (stacked && index > 0) lines[index - 1] else null
-                    val belowSlopes = below?.let { ChartMath.slopes(it) }
-                    val shade = ThemeColors.withAlpha(color, AREA_ALPHA)
-                    for (px in from until to) {
-                        val x = (px + 0.5f) / scale
-                        val top = ChartMath.lineAt(line, options.curve, x, slopes)
-                        val bottom = below?.let { ChartMath.lineAt(it, options.curve, x, belowSlopes) } ?: baseline
-                        ui.fineFill(px, (top * scale).roundToInt(), px + 1, (bottom * scale).roundToInt(), shade)
-                    }
-                }
-                var previous = ChartMath.lineAt(line, options.curve, (from + 0.5f) / scale, slopes) * scale
+        val originX = bounds.x * scale
+        val originY = bounds.y * scale
+        val start = plot.x * scale
+        val end = plot.right * scale
+        lines.indices.forEach { index ->
+            val color = tokens.chart(series[index].color)
+            val line = lines[index]
+            if (line.isEmpty()) return@forEach
+            val slopes = ChartMath.slopes(line)
+            val from = maxOf(start, (line.first().x * scale).roundToInt())
+            val to = minOf(end, (line.last().x * scale).roundToInt())
+            if (fill) {
+                val below = if (stacked && index > 0) lines[index - 1] else null
+                val belowSlopes = below?.let { ChartMath.slopes(it) }
+                val shade = ThemeColors.withAlpha(color, AREA_ALPHA)
                 for (px in from until to) {
-                    val y = ChartMath.lineAt(line, options.curve, (px + 0.5f) / scale, slopes) * scale
-                    val low = floor(minOf(previous, y) - scale / 2f).toInt()
-                    val high = floor(maxOf(previous, y) + scale / 2f).toInt().coerceAtLeast(low + 1)
-                    ui.fineFill(px, low, px + 1, high, color)
-                    previous = y
+                    val x = (px + 0.5f) / scale
+                    val top = ChartMath.lineAt(line, options.curve, x, slopes)
+                    val bottom = below?.let { ChartMath.lineAt(it, options.curve, x, belowSlopes) } ?: baseline
+                    fills.add(px - originX, (top * scale).roundToInt() - originY, px + 1 - originX, (bottom * scale).roundToInt() - originY, shade)
                 }
+            }
+            var previous = ChartMath.lineAt(line, options.curve, (from + 0.5f) / scale, slopes) * scale
+            for (px in from until to) {
+                val y = ChartMath.lineAt(line, options.curve, (px + 0.5f) / scale, slopes) * scale
+                val low = floor(minOf(previous, y) - scale / 2f).toInt()
+                val high = floor(maxOf(previous, y) + scale / 2f).toInt().coerceAtLeast(low + 1)
+                fills.add(px - originX, low - originY, px + 1 - originX, high - originY, color)
+                previous = y
             }
         }
         if (options.dots && !fill) {
             lines.forEachIndexed { index, line ->
                 line.forEach { point ->
                     val dot = Rect((point.x - DOT / 2f).roundToInt(), (point.y - DOT / 2f).roundToInt(), DOT, DOT)
-                    ui.fillRounded(dot, ui.tokens.chart(series[index].color), DOT / 2)
+                    fills.addRounded(dot, DOT / 2, Corners.ALL, scale, originX, originY, tokens.chart(series[index].color))
                 }
             }
         }
@@ -520,7 +603,8 @@ class ChartWidget(
 
     /**
      * Draws a radar chart: the grid of rings and spokes, a filled polygon per series with its
-     * outline and dots, and the category labels around it.
+     * outline and dots from [layers], and the category labels around it, the hovered one
+     * highlighted.
      *
      * @param ui the graphics to draw with
      * @param geometry the geometry
@@ -529,29 +613,7 @@ class ChartWidget(
         val count = categories.size
         if (count < 3) return
         val step = 2 * Math.PI / count
-        val max = polarMax()
-        val polygons = series.map { item -> (0 until count).map { geometry.pointAt(it * step, (item.values.getOrElse(it) { 0.0 } / max).toFloat().coerceIn(0f, 1f) * geometry.radius) } }
-        ui.fine { scale ->
-            if (options.grid) {
-                for (level in 1..GRID_LEVELS) {
-                    val ring = (0 until count).map { geometry.pointAt(it * step, geometry.radius * level / GRID_LEVELS) }
-                    ring.indices.forEach { segment(ui, scale, ring[it], ring[(it + 1) % count], ui.tokens.border) }
-                }
-                (0 until count).forEach { segment(ui, scale, PointF(geometry.centerX, geometry.centerY), geometry.pointAt(it * step, geometry.radius), ui.tokens.border) }
-            }
-            polygons.forEachIndexed { index, polygon ->
-                val color = ui.tokens.chart(series[index].color)
-                raster(geometry, scale, "radar$index") { x, y -> if (contains(polygon, x, y)) 0 else -1 }.forEach { run ->
-                    ui.fineFill(run[1] + bounds.x * scale, run[0] + bounds.y * scale, run[2] + bounds.x * scale, run[0] + 1 + bounds.y * scale, ThemeColors.withAlpha(color, RADAR_ALPHA))
-                }
-                polygon.indices.forEach { segment(ui, scale, polygon[it], polygon[(it + 1) % count], color) }
-            }
-        }
-        if (options.dots) {
-            polygons.forEachIndexed { index, polygon ->
-                polygon.forEach { point -> ui.fillRounded(Rect((point.x - DOT / 2f).roundToInt(), (point.y - DOT / 2f).roundToInt(), DOT, DOT), ui.tokens.chart(series[index].color), DOT / 2) }
-            }
-        }
+        ui.fine { scale -> layers(ui, ui.tokens, scale)?.under?.draw(ui, bounds.x * scale, bounds.y * scale) }
         if (options.categoryAxis) {
             categories.forEachIndexed { index, label ->
                 val angle = index * step
@@ -575,22 +637,65 @@ class ChartWidget(
     }
 
     /**
-     * Draws a straight line one GUI pixel thick at screen-pixel resolution, inside
-     * [UiGraphics.fine].
+     * Draws the shapes of a radar chart: the grid of rings and spokes, then a filled polygon per
+     * series with its outline, then the dots.
      *
-     * @param ui the graphics to draw with
+     * @param geometry the geometry
+     * @param tokens the design tokens
+     * @param scale the number of screen pixels per GUI pixel
+     * @return the shapes, all below the hover marks
+     */
+    private fun radarLayers(geometry: PolarGeometry, tokens: ThemeTokens, scale: Int): ChartLayers {
+        val count = categories.size
+        val step = 2 * Math.PI / count
+        val max = polarMax()
+        val polygons = series.map { item -> (0 until count).map { geometry.pointAt(it * step, (item.values.getOrElse(it) { 0.0 } / max).toFloat().coerceIn(0f, 1f) * geometry.radius) } }
+        val fills = FillList()
+        if (options.grid) {
+            for (level in 1..GRID_LEVELS) {
+                val ring = (0 until count).map { geometry.pointAt(it * step, geometry.radius * level / GRID_LEVELS) }
+                ring.indices.forEach { segment(fills, scale, ring[it], ring[(it + 1) % count], tokens.border) }
+            }
+            (0 until count).forEach { segment(fills, scale, PointF(geometry.centerX, geometry.centerY), geometry.pointAt(it * step, geometry.radius), tokens.border) }
+        }
+        polygons.forEachIndexed { index, polygon ->
+            val color = tokens.chart(series[index].color)
+            val shade = ThemeColors.withAlpha(color, RADAR_ALPHA)
+            raster(geometry, scale, "radar$index") { x, y -> if (contains(polygon, x, y)) 0 else -1 }.forEach { run ->
+                fills.add(run[1], run[0], run[2], run[0] + 1, shade)
+            }
+            polygon.indices.forEach { segment(fills, scale, polygon[it], polygon[(it + 1) % count], color) }
+        }
+        if (options.dots) {
+            polygons.forEachIndexed { index, polygon ->
+                polygon.forEach { point ->
+                    val dot = Rect((point.x - DOT / 2f).roundToInt(), (point.y - DOT / 2f).roundToInt(), DOT, DOT)
+                    fills.addRounded(dot, DOT / 2, Corners.ALL, scale, bounds.x * scale, bounds.y * scale, tokens.chart(series[index].color))
+                }
+            }
+        }
+        return ChartLayers(fills, FillList())
+    }
+
+    /**
+     * Adds a straight line one GUI pixel thick at screen-pixel resolution, relative to the chart's
+     * top-left corner.
+     *
+     * @param fills the list to add to
      * @param scale the number of screen pixels per GUI pixel
      * @param from the start point in GUI pixels
      * @param to the end point in GUI pixels
      * @param color the ARGB colour
      */
-    private fun segment(ui: UiGraphics, scale: Int, from: PointF, to: PointF, color: Int) {
+    private fun segment(fills: FillList, scale: Int, from: PointF, to: PointF, color: Int) {
         val steps = (maxOf(kotlin.math.abs(to.x - from.x), kotlin.math.abs(to.y - from.y)) * scale).roundToInt().coerceAtLeast(1)
         val half = scale / 2
+        val originX = bounds.x * scale
+        val originY = bounds.y * scale
         for (i in 0..steps) {
-            val x = ((from.x + (to.x - from.x) * i / steps) * scale).roundToInt()
-            val y = ((from.y + (to.y - from.y) * i / steps) * scale).roundToInt()
-            ui.fineFill(x - half, y - half, x - half + scale, y - half + scale, color)
+            val x = ((from.x + (to.x - from.x) * i / steps) * scale).roundToInt() - originX
+            val y = ((from.y + (to.y - from.y) * i / steps) * scale).roundToInt() - originY
+            fills.add(x - half, y - half, x - half + scale, y - half + scale, color)
         }
     }
 
