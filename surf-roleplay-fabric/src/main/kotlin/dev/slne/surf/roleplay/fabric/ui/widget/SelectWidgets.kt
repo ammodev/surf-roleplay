@@ -728,43 +728,7 @@ open class SelectWidget(
 }
 
 /**
- * A plain choice of one option. Up and Down change the selection without opening the list;
- * Enter and Space open it.
- *
- * @param id the id of the widget
- * @param groups the option groups
- * @param selected the value of the selected option, or `null` if none is selected
- * @param size the size of the trigger
- * @param required whether having no selection is invalid
- */
-class NativeSelectWidget(id: String, groups: List<SelectGroup>, selected: String?, size: SelectSize, required: Boolean) :
-    SelectWidget(id, groups, selected, "", size, required) {
-
-    /**
-     * Selects the next or previous enabled option on Down or Up, and opens the list on Enter or
-     * Space.
-     *
-     * @param context the screen showing the widget
-     * @param event the key event
-     * @return whether the key was handled
-     */
-    override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
-        if (!enabled) return false
-        val delta = when (event.key()) {
-            GLFW.GLFW_KEY_DOWN -> 1
-            GLFW.GLFW_KEY_UP -> -1
-            else -> return super.keyPressed(context, event)
-        }
-        list.query = ""
-        list.highlightValue(selected)
-        if (selected != null) list.moveHighlight(delta)
-        list.highlightedOption?.let { choose(it.value, context) }
-        return true
-    }
-}
-
-/**
- * The option list of a select or native select. It takes every key while open: Up and Down move
+ * The option list of a select. It takes every key while open: Up and Down move
  * the highlight, Home and End jump to the ends, and Enter or Space choose the highlighted option.
  *
  * @property owner the select that opened the list

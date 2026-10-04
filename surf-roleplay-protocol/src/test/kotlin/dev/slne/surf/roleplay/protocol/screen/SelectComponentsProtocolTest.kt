@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
- * Tests for selects, native selects, comboboxes, option patches and search events on the wire.
+ * Tests for selects, comboboxes, option patches and search events on the wire.
  */
 class SelectComponentsProtocolTest {
 
@@ -40,7 +40,6 @@ class SelectComponentsProtocolTest {
             "root",
             children = listOf(
                 SelectNode("s", groups = groups, selected = "apple", placeholder = "\"Wähle\"", size = SelectSize.SM, required = true, notifyChange = true),
-                NativeSelectNode("n", groups = groups, selected = "carrot", size = SelectSize.SM, enabled = false),
                 ComboboxNode(
                     "c",
                     groups = groups,

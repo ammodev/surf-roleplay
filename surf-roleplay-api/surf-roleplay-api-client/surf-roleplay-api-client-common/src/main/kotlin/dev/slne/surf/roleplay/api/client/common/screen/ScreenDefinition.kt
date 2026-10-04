@@ -139,7 +139,7 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
  *
  * @property all the values in their string form: text for text inputs, a decimal number or an
  *           empty string for number inputs, `true` or `false` for checkboxes, switches and
- *           toggles, the option value or an empty string for selects, native selects and radio
+ *           toggles, the option value or an empty string for selects and radio
  *           groups, comma-separated values for comboboxes, toggle groups and sliders, and
  *           ISO dates for calendars, comma-separated or as `first/last` for a range. Elements
  *           with a state report it as well: `true` or `false` for the open state of popovers,
@@ -204,7 +204,7 @@ class ScreenValues(val all: Map<String, String>) {
     fun dates(id: String): List<LocalDate>? = all[id]?.split(',', '/')?.mapNotNull { runCatching { LocalDate.parse(it.trim()) }.getOrNull() }
 
     /**
-     * Returns the selected option of a select, native select, radio group or single combobox.
+     * Returns the selected option of a select, radio group or single combobox.
      *
      * @param id the input id
      * @return the value of the selected option, or `null` if nothing is selected or the screen

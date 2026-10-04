@@ -174,7 +174,6 @@ import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
 import dev.slne.surf.roleplay.protocol.screen.IconNode
-import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
 import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.RadioGroupNode
 import dev.slne.surf.roleplay.protocol.screen.SliderNode
@@ -238,7 +237,6 @@ object WidgetFactory {
 
             is CheckboxNode -> CheckboxWidget(node.id, node.label, node.checked).apply { enabled = node.enabled }
             is SelectNode -> SelectWidget(node.id, node.groups, node.selected, node.placeholder, node.size, node.required).apply { enabled = node.enabled }
-            is NativeSelectNode -> NativeSelectWidget(node.id, node.groups, node.selected, node.size, node.required).apply { enabled = node.enabled }
             is ComboboxNode -> ComboboxWidget(
                 node.id, node.groups, node.selected, node.multiple, node.placeholder, node.emptyText, node.showClear, node.required,
                 notifySearch = node.notifySearch,
@@ -503,7 +501,6 @@ object WidgetFactory {
             is NumberInputNode -> node.notifyChange
             is CheckboxNode -> node.notifyChange
             is SelectNode -> node.notifyChange
-            is NativeSelectNode -> node.notifyChange
             is ComboboxNode -> node.notifyChange
             is ToggleGroupNode -> node.notifyChange
             is TextareaNode -> node.notifyChange

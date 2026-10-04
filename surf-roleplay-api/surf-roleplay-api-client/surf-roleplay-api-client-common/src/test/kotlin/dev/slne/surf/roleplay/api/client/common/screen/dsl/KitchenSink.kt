@@ -68,7 +68,6 @@ object KitchenSink {
         RadioGroup(listOf(RadioChoice("a", Component.text("A"))))
         Slider(listOf(1.0))
         Select(options)
-        NativeSelect(options)
         Combobox(options)
         Calendar()
     }

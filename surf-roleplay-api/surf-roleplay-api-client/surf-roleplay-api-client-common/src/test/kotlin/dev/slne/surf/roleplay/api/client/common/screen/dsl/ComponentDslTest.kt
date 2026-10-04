@@ -521,7 +521,6 @@ class ComponentDslTest {
         lateinit var radio: InputRef<String?>
         lateinit var slider: InputRef<List<Double>>
         lateinit var select: InputRef<String?>
-        lateinit var nativeSelect: InputRef<String?>
         lateinit var combobox: InputRef<String?>
         lateinit var multiCombobox: InputRef<List<String>>
         lateinit var calendar: InputRef<List<LocalDate>>
@@ -538,13 +537,12 @@ class ComponentDslTest {
                 radio = RadioGroup(listOf(RadioChoice("a", Component.text("A"))))
                 slider = Slider(listOf(10.0, 20.0))
                 select = Select(options)
-                nativeSelect = NativeSelect(options)
                 combobox = Combobox(options)
                 multiCombobox = MultiCombobox(options)
                 calendar = Calendar(mode = CalendarMode.RANGE)
             }
         }
-        val refs = listOf(input, number, textarea, otp, checkbox, switch, toggle, toggleGroup, radio, slider, select, nativeSelect, combobox, multiCombobox, calendar)
+        val refs = listOf(input, number, textarea, otp, checkbox, switch, toggle, toggleGroup, radio, slider, select, combobox, multiCombobox, calendar)
         assertEquals(refs.indices.map { "_0.$it" }, refs.map { it.id })
         val values = ScreenValues(
             mapOf(
@@ -559,7 +557,6 @@ class ComponentDslTest {
                 radio.id to "",
                 slider.id to "10.0,20.0",
                 select.id to "a",
-                nativeSelect.id to "",
                 combobox.id to "b",
                 multiCombobox.id to "b,a",
                 calendar.id to "2026-01-02/2026-01-05",
@@ -576,7 +573,6 @@ class ComponentDslTest {
         assertNull(values[radio])
         assertEquals(listOf(10.0, 20.0), values[slider])
         assertEquals("a", values[select])
-        assertNull(values[nativeSelect])
         assertEquals("b", values[combobox])
         assertEquals(listOf("b", "a"), values[multiCombobox])
         assertEquals(listOf(LocalDate.of(2026, 1, 2), LocalDate.of(2026, 1, 5)), values[calendar])

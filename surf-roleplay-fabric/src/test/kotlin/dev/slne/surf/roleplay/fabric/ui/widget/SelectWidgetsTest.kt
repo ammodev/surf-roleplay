@@ -1,7 +1,6 @@
 package dev.slne.surf.roleplay.fabric.ui.widget
 
 import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
-import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
 import dev.slne.surf.roleplay.protocol.screen.SelectGroup
 import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.SelectOption
@@ -15,7 +14,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertSame
 
 /**
- * Tests for option lists, selects, native selects and comboboxes in the mod.
+ * Tests for option lists, selects and comboboxes in the mod.
  */
 class SelectWidgetsTest {
 
@@ -144,21 +143,6 @@ class SelectWidgetsTest {
         assertEquals("plum", select.inputValue)
         assertNull(context.popover)
         assertEquals(listOf("change:plum"), reports)
-    }
-
-    /**
-     * Verifies that a native select changes its selection with the arrow keys without opening
-     * its list.
-     */
-    @Test
-    fun `native selects step through options`() {
-        val native = WidgetFactory.create(NativeSelectNode("n", groups = groups, selected = "apple")) as NativeSelectWidget
-
-        native.keyPressed(context, key(GLFW.GLFW_KEY_DOWN))
-        assertEquals("plum", native.inputValue)
-        native.keyPressed(context, key(GLFW.GLFW_KEY_UP))
-        assertEquals("apple", native.inputValue)
-        assertNull(context.popover)
     }
 
     /**

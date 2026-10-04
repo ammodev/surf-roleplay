@@ -27,7 +27,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupButton
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupText
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputOtp
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.NativeSelect
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.RadioGroup
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
@@ -256,7 +255,7 @@ object InputsDemo {
     }
 
     /**
-     * Adds the selects, native selects and comboboxes.
+     * Adds the selects and comboboxes.
      *
      * @param report sends a report of a search to the player
      * @param changed the handler that reports changes
@@ -265,7 +264,6 @@ object InputsDemo {
         Row(gap = 4, id = "select_row") {
             Select(groups = FOOD, placeholder = Component.text("Essen wählen"), onChange = changed, id = "select_grouped")
             Select(CITIES, selected = "north", size = SelectSize.SM, onChange = changed, id = "select_small")
-            NativeSelect(CITIES, selected = "south", onChange = changed, id = "native")
         }
         Row(gap = 4, id = "combobox_row") {
             Combobox(groups = FOOD, placeholder = Component.text("Suchen …"), showClear = true, onChange = changed, id = "combobox_single")

@@ -8,7 +8,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
-import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
@@ -870,19 +869,6 @@ object ElementRules {
             SelectElement::class,
             ElementRule(
                 withText = { e, t -> e.copy(placeholder = t) },
-                enabled = { it.enabled },
-                withEnabled = { e, on -> e.copy(enabled = on) },
-                input = InputRule(
-                    current = { it.selected ?: "" },
-                    violation = { e, v -> choiceViolation(e.groups, listOfNotNull(e.selected), listOfNotNull(v.takeIf { it.isNotEmpty() }), e.required) },
-                    withValue = { e, v -> if (v.isEmpty()) e.copy(selected = null) else e.copy(selected = v.takeIf { isOption(e.groups, it) }) },
-                    onChange = { it.onChange },
-                ),
-            ),
-        )
-        register(
-            NativeSelectElement::class,
-            ElementRule(
                 enabled = { it.enabled },
                 withEnabled = { e, on -> e.copy(enabled = on) },
                 input = InputRule(

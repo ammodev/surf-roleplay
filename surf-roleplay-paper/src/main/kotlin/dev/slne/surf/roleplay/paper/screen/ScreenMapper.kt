@@ -51,7 +51,6 @@ import dev.slne.surf.roleplay.protocol.screen.ToggleGroupNode
 import dev.slne.surf.roleplay.api.client.common.screen.CheckboxElement
 import dev.slne.surf.roleplay.api.client.common.screen.ColumnElement
 import dev.slne.surf.roleplay.api.client.common.screen.ComboboxElement
-import dev.slne.surf.roleplay.api.client.common.screen.NativeSelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
@@ -73,7 +72,6 @@ import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CheckboxNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
-import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
 import dev.slne.surf.roleplay.protocol.screen.SelectGroup
 import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.SelectOption
@@ -463,11 +461,6 @@ object ScreenMapper {
             is SelectElement -> SelectNode(
                 element.id, width, height, groups(element.groups), element.selected, text(element.placeholder), enumOf(element.size), element.required,
                 element.enabled, element.onChange != null,
-            )
-
-            is NativeSelectElement -> NativeSelectNode(
-                element.id, width, height, groups(element.groups), element.selected, enumOf(element.size), element.required, element.enabled,
-                element.onChange != null,
             )
 
             is ComboboxElement -> ComboboxNode(

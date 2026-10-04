@@ -30,7 +30,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputOtp
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSub
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenubarMenu
-import dev.slne.surf.roleplay.api.client.common.screen.dsl.NativeSelect
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuItem
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.NumberInput
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
@@ -79,7 +78,6 @@ class ScreenDiffServerTreeTest {
             Switch(checked = second, id = "switch")
             Toggle(pressed = second, id = "toggle")
             Select(options = choices, selected = if (second) null else "a", id = "select")
-            NativeSelect(options = choices, selected = if (second) "b" else null, id = "native")
             RadioGroup(radios, selected = if (second) "b" else "a", id = "radio")
         }
     }
@@ -149,7 +147,7 @@ class ScreenDiffServerTreeTest {
     @Test
     fun `value changes are accepted by the server tree`() {
         val forward = applyDiff(inputs(false), inputs(true))
-        assertEquals(10, forward.size)
+        assertEquals(9, forward.size)
         assertTrue(forward.all { it is ScreenChange.SetValue })
         assertTrue(applyDiff(inputs(true), inputs(false)).all { it is ScreenChange.SetValue })
     }

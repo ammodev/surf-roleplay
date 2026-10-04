@@ -49,7 +49,7 @@ internal object InputParsers {
     val checked: (String?) -> Boolean = { it == "true" }
 
     /**
-     * Parses the selected option of a select, native select, radio group, single combobox, menu
+     * Parses the selected option of a select, radio group, single combobox, menu
      * radio group or tabs; `null` if nothing is selected or the input is missing.
      */
     val selected: (String?) -> String? = { it?.takeIf { value -> value.isNotEmpty() } }

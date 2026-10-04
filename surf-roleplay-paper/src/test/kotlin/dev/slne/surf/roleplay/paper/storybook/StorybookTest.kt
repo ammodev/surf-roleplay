@@ -60,7 +60,7 @@ private val SHADCN_COMPONENTS = setOf(
     "accordion", "alert", "alert-dialog", "aspect-ratio", "avatar", "badge", "breadcrumb", "button", "button-group", "calendar",
     "card", "carousel", "chart", "checkbox", "collapsible", "combobox", "command", "context-menu", "data-table", "dialog",
     "direction", "drawer", "dropdown-menu", "empty", "field", "form", "hover-card", "input", "input-group", "input-otp",
-    "item", "kbd", "label", "menubar", "native-select", "navigation-menu", "pagination", "popover", "progress", "radio-group",
+    "item", "kbd", "label", "menubar", "navigation-menu", "pagination", "popover", "progress", "radio-group",
     "resizable", "scroll-area", "select", "separator", "sheet", "sidebar", "skeleton", "slider", "sonner", "spinner",
     "switch", "table", "tabs", "textarea", "toast", "toggle", "toggle-group", "tooltip", "typography", "chat",
 )
@@ -203,7 +203,7 @@ class StorybookTest {
         StoryCategory.INPUTS,
         setOf(
             "button", "button-group", "calendar", "checkbox", "combobox", "field", "form", "input", "input-group", "input-otp",
-            "label", "native-select", "radio-group", "select", "slider", "switch", "textarea", "toggle", "toggle-group",
+            "label", "radio-group", "select", "slider", "switch", "textarea", "toggle", "toggle-group",
             "state",
         ),
     )

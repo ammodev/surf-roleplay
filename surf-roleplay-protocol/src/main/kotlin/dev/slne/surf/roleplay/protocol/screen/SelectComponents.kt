@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 
 /**
- * The size of a select or native select trigger.
+ * The size of a select trigger.
  */
 @Serializable
 enum class SelectSize {
@@ -23,7 +23,7 @@ enum class SelectSize {
 }
 
 /**
- * One option of a select, native select or combobox.
+ * One option of a select or combobox.
  *
  * @property value the value submitted while this option is selected
  * @property label the label shown for this option, as component JSON
@@ -76,34 +76,6 @@ data class SelectNode(
     @ProtoNumber(8) val required: Boolean = false,
     @ProtoNumber(9) val enabled: Boolean = true,
     @ProtoNumber(10) val notifyChange: Boolean = false,
-) : ScreenNode
-
-/**
- * A plain choice of one option. The arrow keys change the selection without opening the list.
- * Its value is the value of the selected option, or empty.
- *
- * @property id the id of this node
- * @property width how wide this node is laid out
- * @property height how tall this node is laid out
- * @property groups the option groups, in display order
- * @property selected the value of the selected option, or `null` if none is selected
- * @property size the size of the trigger
- * @property required whether having no selection is invalid
- * @property enabled whether the player can change the selection
- * @property notifyChange whether the mod reports every change of the value at once
- */
-@Serializable
-@SerialName("native_select")
-data class NativeSelectNode(
-    @ProtoNumber(1) override val id: String,
-    @ProtoNumber(2) override val width: Sizing = Sizing.FIT,
-    @ProtoNumber(3) override val height: Sizing = Sizing.FIT,
-    @ProtoNumber(4) val groups: List<SelectGroup> = emptyList(),
-    @ProtoNumber(5) val selected: String? = null,
-    @ProtoNumber(6) val size: SelectSize = SelectSize.DEFAULT,
-    @ProtoNumber(7) val required: Boolean = false,
-    @ProtoNumber(8) val enabled: Boolean = true,
-    @ProtoNumber(9) val notifyChange: Boolean = false,
 ) : ScreenNode
 
 /**
