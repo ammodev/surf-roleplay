@@ -33,7 +33,8 @@ import kotlin.reflect.KProperty
  * again and only the difference to the tree the player sees is sent: inputs whose elements did not
  * change keep the text the player typed, and an input whose only change is its value gets just the
  * new value. Handlers always run the closure of the newest render. A handler that throws is
- * logged; the page is still rendered again and stays usable.
+ * logged; the page is still rendered again and stays usable. A render that throws is logged and
+ * leaves the screen unchanged until a later render succeeds.
  *
  * Every member must be used on the player's region thread, where the page's handlers run.
  */

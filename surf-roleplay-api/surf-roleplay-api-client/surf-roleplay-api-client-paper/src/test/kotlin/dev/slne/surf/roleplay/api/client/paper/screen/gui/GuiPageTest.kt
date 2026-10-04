@@ -95,6 +95,81 @@ class GuiPageTest {
     }
 
     /**
+     * A page whose input and combobox handlers capture the state of their render.
+     */
+    class FormPage : GuiPage() {
+        /**
+         * The text of the name input, written by its change handler.
+         */
+        var name by state("")
+
+        /**
+         * The number of handled changes.
+         */
+        var edits by state(0)
+
+        /**
+         * The last query of the combobox.
+         */
+        var query by state("")
+
+        /**
+         * The number of handled searches.
+         */
+        var searches by state(0)
+
+        /**
+         * The title of the page.
+         */
+        override val title: Component = Component.text("Formular")
+
+        /**
+         * Renders the name input, the combobox and the counters.
+         */
+        override fun ComponentScope.render() {
+            val currentEdits = edits
+            val currentSearches = searches
+            Column {
+                Input(value = name, id = "name") { change ->
+                    name = change.value
+                    edits = currentEdits + 1
+                }
+                Combobox(id = "combo", onSearch = { search ->
+                    query = search.query
+                    searches = currentSearches + 1
+                })
+                P("Änderungen: $edits, Suchen: $searches", id = "counts")
+            }
+        }
+    }
+
+    /**
+     * A page that moves the paragraph `x` between the rows `A` and `B`.
+     */
+    class MovePage : GuiPage() {
+        /**
+         * Whether `x` is in row `A`.
+         */
+        var inA by state(true)
+
+        /**
+         * The title of the page.
+         */
+        override val title: Component = Component.text("Verschieben")
+
+        /**
+         * Renders both rows and the move button.
+         */
+        override fun ComponentScope.render() {
+            Column {
+                Row(id = "A") { if (inA) P("x", id = "x") }
+                Row(id = "B") { if (!inA) P("x", id = "x") }
+                Button("Verschieben", id = "move") { inA = !inA }
+            }
+        }
+    }
+
+    /**
      * An open screen that keeps a copy of the element tree and applies patches to it the way the
      * server's tree does: a change whose target is missing, that would remove the root, or that
      * would give two elements the same id is refused and recorded.
@@ -361,6 +436,68 @@ class GuiPageTest {
     }
 
     /**
+     * Verifies that change handlers are bound to their input and run the newest closure, and that
+     * an input whose value follows the state gets a value change instead of a replacement.
+     */
+    @Test
+    fun `change handlers run the newest closure`() {
+        val fake = FakeOpener()
+        val page = fake.open(FormPage())
+        fake.change("name", "a")
+        fake.change("name", "ab")
+        assertEquals(2, page.edits)
+        assertEquals("ab", page.name)
+        assertEquals(listOf(ScreenChange.SetValue("name", "ab")), fake.lastScreen.applied.filterIsInstance<ScreenChange.SetValue>())
+        assertEquals(emptyList(), fake.lastScreen.refused)
+    }
+
+    /**
+     * Verifies that search handlers are bound to their combobox and run the newest closure.
+     */
+    @Test
+    fun `search handlers run the newest closure`() {
+        val fake = FakeOpener()
+        val page = fake.open(FormPage())
+        fake.search("combo", "a")
+        fake.search("combo", "ab")
+        assertEquals(2, page.searches)
+        assertEquals("ab", page.query)
+        assertEquals(listOf("counts"), fake.lastScreen.applied.map { (it as ScreenChange.Replace).targetId })
+    }
+
+    /**
+     * Verifies that conditionally rendered elements are inserted and removed.
+     */
+    @Test
+    fun `conditional elements are inserted and removed`() {
+        val fake = FakeOpener()
+        fake.open(CounterPage())
+        fake.click("show")
+        val inserts = fake.lastScreen.applied.map { assertIs<ScreenChange.Insert>(it) }
+        assertEquals(listOf(2 to "extra", 3 to "hide"), inserts.map { it.index to it.element.id })
+        fake.click("hide")
+        assertEquals(listOf(ScreenChange.Remove("extra"), ScreenChange.Remove("hide")), fake.lastScreen.applied)
+        assertEquals(emptyList(), fake.lastScreen.refused)
+    }
+
+    /**
+     * Verifies that a click on a button whose element is no longer rendered does nothing.
+     */
+    @Test
+    fun `a click on a vanished element does nothing`() {
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
+        fake.click("show")
+        val hide = fake.element<ButtonElement>("hide")
+        fake.click(hide)
+        val patches = fake.lastScreen.patches.size
+        page.update { page.count = 7 }
+        fake.click(hide)
+        assertFalse(page.show)
+        assertEquals(patches + 1, fake.lastScreen.patches.size)
+    }
+
+    /**
      * Verifies that a state change inside [GuiPage.update] re-renders the page.
      */
     @Test
@@ -388,6 +525,22 @@ class GuiPageTest {
     }
 
     /**
+     * Verifies that a render that throws leaves the screen unchanged and the page dirty, so that
+     * the next successful render sends the change.
+     */
+    @Test
+    fun `a throwing render keeps the page dirty and the screen unchanged`() {
+        val fake = FakeOpener()
+        val page = fake.open(CounterPage())
+        fake.click("boom")
+        assertEquals(1, page.count)
+        assertTrue(fake.lastScreen.patches.isEmpty())
+        page.update { page.explode = false }
+        assertEquals(listOf("value"), fake.lastScreen.applied.map { (it as ScreenChange.Replace).targetId })
+        assertEquals(emptyList(), fake.lastScreen.refused)
+    }
+
+    /**
      * Verifies that a re-render whose tree did not change sends no patch.
      */
     @Test
@@ -397,6 +550,21 @@ class GuiPageTest {
         fake.click("hidden")
         assertEquals(1, page.hidden)
         assertTrue(fake.lastScreen.patches.isEmpty())
+    }
+
+    /**
+     * Verifies that an element moving between containers back and forth is never refused and
+     * that the screen's tree follows the page.
+     */
+    @Test
+    fun `a moving element keeps the screen consistent`() {
+        val fake = FakeOpener()
+        fake.open(MovePage())
+        fake.click("move")
+        assertEquals("B", fake.lastScreen.parentOf("x"))
+        fake.click("move")
+        assertEquals("A", fake.lastScreen.parentOf("x"))
+        assertEquals(emptyList(), fake.lastScreen.refused)
     }
 
     /**

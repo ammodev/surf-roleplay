@@ -8,7 +8,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.diff.ScreenDiff
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.renderRoot
 
 /**
- * The logger of failed page handlers.
+ * The logger of failed page handlers and renders.
  */
 private val log = logger()
 
@@ -28,7 +28,7 @@ internal class GuiSession(
     private val opener: (ScreenDefinition) -> OpenScreen,
 ) : HandlerDispatcher {
     /**
-     * The handlers of the newest render.
+     * The handlers of the newest successful render.
      */
     private val handlers = HandlerRegistry(this)
 
@@ -43,7 +43,7 @@ internal class GuiSession(
     private var shown: ScreenDefinition? = null
 
     /**
-     * Whether a state of the page changed since the last render.
+     * Whether a state of the page changed since the tree the screen shows was rendered.
      */
     private var dirty: Boolean = false
 
@@ -105,22 +105,40 @@ internal class GuiSession(
     /**
      * Re-renders the page if it changed and the screen is open, and patches the open screen with
      * the difference to the tree it shows. Sends nothing if the trees are equal.
+     *
+     * A render that throws is logged; the page stays changed and the screen keeps its tree, so a
+     * later flush sends the change. If applying the patch throws, the page also stays changed and
+     * the exception is rethrown.
      */
     fun flush() {
         if (!dirty) return
         val screen = screen ?: return
+        val old = shown ?: return
         if (!screen.isOpen) return
         dirty = false
-        val old = shown ?: return
-        val definition = renderDefinition()
+        val definition = try {
+            renderDefinition()
+        } catch (exception: Exception) {
+            dirty = true
+            log.atWarning().withCause(exception).log("Rendering page %s failed", page.javaClass.name)
+            return
+        }
         val changes = ScreenDiff.diff(old.root, definition.root)
+        if (changes.isNotEmpty()) {
+            try {
+                screen.apply(changes)
+            } catch (exception: Exception) {
+                dirty = true
+                throw exception
+            }
+        }
         shown = definition
-        if (changes.isNotEmpty()) screen.apply(changes)
     }
 
     /**
      * Renders the page into a definition and makes the handlers of the render the newest ones.
-     * The definition checks that the element ids are unique.
+     * The definition checks that the element ids are unique. A render that throws leaves the
+     * handlers unchanged.
      *
      * @return the definition
      */
