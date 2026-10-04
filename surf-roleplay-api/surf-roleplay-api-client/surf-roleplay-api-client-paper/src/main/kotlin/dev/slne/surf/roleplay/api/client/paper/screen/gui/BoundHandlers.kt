@@ -37,11 +37,11 @@ internal fun interface HandlerDispatcher {
      *
      * @param elementId the id of the element
      * @param kind the kind of handler
-     * @param reportedValue the value the player's screen now shows for the element, in the string
-     *        form of `ScreenValues.all`, or `null` if the event reports none
+     * @param reportedValues the values the player's screen now shows for inputs, keyed by input
+     *        id, in the string form of `ScreenValues.all`; empty if the event reports none
      * @param invoke the function that runs the handler, which is of the type [kind] names
      */
-    fun dispatch(elementId: String, kind: HandlerKind, reportedValue: String?, invoke: (Any) -> Unit)
+    fun dispatch(elementId: String, kind: HandlerKind, reportedValues: Map<String, String>, invoke: (Any) -> Unit)
 }
 
 /**
@@ -88,11 +88,12 @@ internal sealed class BoundHandler(val elementId: String, val kind: HandlerKind,
 internal class BoundButtonHandler(elementId: String, dispatcher: HandlerDispatcher) :
     BoundHandler(elementId, HandlerKind.BUTTON, dispatcher), ButtonHandler {
     /**
-     * Runs the newest click handler of the element.
+     * Runs the newest click handler of the element, reporting the input values submitted with the
+     * click as shown.
      *
      * @param click the click
      */
-    override fun onClick(click: ScreenClick) = dispatcher.dispatch(elementId, kind, null) { (it as ButtonHandler).onClick(click) }
+    override fun onClick(click: ScreenClick) = dispatcher.dispatch(elementId, kind, click.values.all) { (it as ButtonHandler).onClick(click) }
 }
 
 /**
@@ -108,7 +109,7 @@ internal class BoundChangeHandler(elementId: String, dispatcher: HandlerDispatch
      *
      * @param change the change
      */
-    override fun onChange(change: ScreenInputChange) = dispatcher.dispatch(elementId, kind, change.value) { (it as ChangeHandler).onChange(change) }
+    override fun onChange(change: ScreenInputChange) = dispatcher.dispatch(elementId, kind, mapOf(elementId to change.value)) { (it as ChangeHandler).onChange(change) }
 }
 
 /**
@@ -124,7 +125,7 @@ internal class BoundSearchHandler(elementId: String, dispatcher: HandlerDispatch
      *
      * @param search the changed query
      */
-    override fun onSearch(search: ScreenSearch) = dispatcher.dispatch(elementId, kind, null) { (it as SearchHandler).onSearch(search) }
+    override fun onSearch(search: ScreenSearch) = dispatcher.dispatch(elementId, kind, emptyMap()) { (it as SearchHandler).onSearch(search) }
 }
 
 /**

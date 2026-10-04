@@ -17,6 +17,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenValues
 import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
+import dev.slne.surf.roleplay.api.client.common.screen.ToggleElement
 import net.kyori.adventure.text.Component
 import java.util.UUID
 import kotlin.test.assertIs
@@ -330,6 +331,24 @@ class FakeOpener {
      */
     fun click(button: ButtonElement, screen: FakeOpenScreen = lastScreen) =
         button.onClick!!.onClick(ScreenClick(screen, button.id, ScreenValues(emptyMap())))
+
+    /**
+     * Clicks a button on the last screen, submitting input values with the click.
+     *
+     * @param id the button id
+     * @param values the submitted values keyed by input id, in their string form
+     */
+    fun click(id: String, values: Map<String, String>) =
+        element<ButtonElement>(id).onClick!!.onClick(ScreenClick(lastScreen, id, ScreenValues(values)))
+
+    /**
+     * Presses a toggle on the last screen, submitting its new state with the press.
+     *
+     * @param id the toggle id
+     * @param pressed the state the toggle shows after the press
+     */
+    fun toggle(id: String, pressed: Boolean) =
+        element<ToggleElement>(id).onToggle!!.onClick(ScreenClick(lastScreen, id, ScreenValues(mapOf(id to pressed.toString()))))
 
     /**
      * Changes the value of a text input on the last screen.

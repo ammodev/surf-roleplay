@@ -73,8 +73,8 @@ internal class GuiSession(
     private var shown: ScreenDefinition? = null
 
     /**
-     * The values the player last reported through change events, keyed by element id, until a
-     * patch sends the element a new value or the element leaves the tree.
+     * The values the player last reported through change events or submitted with clicks, keyed
+     * by element id, until a patch sends the element a new value or the element leaves the tree.
      */
     private val reported = HashMap<String, String>()
 
@@ -144,17 +144,18 @@ internal class GuiSession(
      * is logged and does not stop the re-render. Does nothing once the screen is closed, or if the
      * newest render has no such handler.
      *
-     * A reported value is remembered: a later render that changes the element's value to the
-     * reported one sends no change for it.
+     * Reported values, such as the value of a changed input or the input values submitted with a
+     * click, are remembered before the handler runs: a later render that changes an input's value
+     * to the reported one sends no change for it.
      *
      * @param elementId the id of the element
      * @param kind the kind of handler
-     * @param reportedValue the value the screen now shows for the element, or `null`
+     * @param reportedValues the values the screen now shows for inputs, keyed by input id
      * @param invoke the function that runs the handler
      */
-    override fun dispatch(elementId: String, kind: HandlerKind, reportedValue: String?, invoke: (Any) -> Unit) {
+    override fun dispatch(elementId: String, kind: HandlerKind, reportedValues: Map<String, String>, invoke: (Any) -> Unit) {
         if (!isOpen) return
-        if (reportedValue != null) reported[elementId] = reportedValue
+        reported.putAll(reportedValues)
         val handler = handlers[elementId, kind] ?: return
         try {
             invoke(handler)

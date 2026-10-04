@@ -9,6 +9,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Toggle
 import net.kyori.adventure.text.Component
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -189,6 +190,39 @@ class GuiPageTest {
     }
 
     /**
+     * A page whose input has no change handler: a button stores the submitted text into the
+     * input's state, and a toggle flips a state it is rendered with.
+     */
+    class SubmitPage : GuiPage() {
+        /**
+         * The text the input is rendered with.
+         */
+        var name by state("")
+
+        /**
+         * Whether the toggle is on.
+         */
+        var on by state(false)
+
+        /**
+         * The title of the page.
+         */
+        override val title: Component = Component.text("Absenden")
+
+        /**
+         * Renders the input, the button that stores its text, and the toggle.
+         */
+        override fun ComponentScope.render() {
+            Column {
+                Input(value = name, id = "name")
+                Button("Übernehmen", id = "take") { click -> name = click.values.text("name").orEmpty() }
+                Button("Leeren", id = "clear") { name = "" }
+                Toggle("An", pressed = on, id = "toggle") { on = !on }
+            }
+        }
+    }
+
+    /**
      * A page that moves the paragraph `x` between the rows `A` and `B`.
      */
     class MovePage : GuiPage() {
@@ -347,6 +381,37 @@ class GuiPageTest {
         assertEquals(listOf(ScreenChange.SetValue("free", "y")), fake.lastScreen.applied)
         fake.click("set-abc")
         assertEquals(listOf(ScreenChange.SetValue("free", "abc")), fake.lastScreen.applied)
+    }
+
+    /**
+     * Verifies that a value submitted with a click counts as shown, so that storing it into the
+     * input's state sends nothing, and that a later state change is still sent.
+     */
+    @Test
+    fun `a value submitted with a click is not echoed back`() {
+        val fake = FakeOpener()
+        val page = fake.open(SubmitPage())
+        fake.click("take", mapOf("name" to "abc"))
+        assertEquals("abc", page.name)
+        assertTrue(fake.lastScreen.patches.isEmpty())
+        fake.click("clear")
+        assertEquals(listOf(ScreenChange.SetValue("name", "")), fake.lastScreen.applied)
+    }
+
+    /**
+     * Verifies that the new state a toggle press submits counts as shown, so that the state the
+     * handler stores is not sent back.
+     */
+    @Test
+    fun `a toggle press is not echoed back`() {
+        val fake = FakeOpener()
+        val page = fake.open(SubmitPage())
+        fake.toggle("toggle", pressed = true)
+        assertTrue(page.on)
+        assertTrue(fake.lastScreen.patches.isEmpty())
+        fake.toggle("toggle", pressed = false)
+        assertFalse(page.on)
+        assertTrue(fake.lastScreen.patches.isEmpty())
     }
 
     /**
