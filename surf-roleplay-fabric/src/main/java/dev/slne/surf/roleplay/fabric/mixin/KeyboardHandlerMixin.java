@@ -32,6 +32,22 @@ public abstract class KeyboardHandlerMixin {
     }
 
     /**
+     * Skips the chat message that confirms the F3+C copy while the roleplay server is active, so
+     * a blocked copy is not reported as done. Other debug messages are not affected.
+     *
+     * @param handler the keyboard handler
+     * @param key the translation key of the debug message
+     * @return true if the message may be shown
+     */
+    @WrapWithCondition(
+        method = "handleDebugKeys",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyboardHandler;debugFeedbackTranslated(Ljava/lang/String;)V")
+    )
+    private boolean surfRoleplay$blockCopyLocationMessage(KeyboardHandler handler, String key) {
+        return !(RoleplayUi.isActive() && "debug.copy_location.message".equals(key));
+    }
+
+    /**
      * Cancels the F3+I action, which copies the command that recreates the looked-at block or
      * entity including its position, while the roleplay server is active.
      *
