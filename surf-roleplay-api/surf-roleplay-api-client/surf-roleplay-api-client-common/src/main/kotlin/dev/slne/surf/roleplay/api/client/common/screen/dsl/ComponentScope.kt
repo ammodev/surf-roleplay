@@ -91,20 +91,20 @@ interface HandlerBinder {
  * Collects the elements built by a block of the component DSL, either the root of a tree or the
  * children of one container.
  *
- * Elements without an explicit id get a generated one from their position: `_` followed by the
- * child indices from the root, joined by dots. The root element is `_0`, and the children of the
- * element at path `[0, 2]` are `_0.2.0`, `_0.2.1` and so on. Every element added to a scope counts
- * for the position, whatever its id.
+ * Elements without an explicit id get a generated one from their position: the generated id of
+ * the position of their parent, a dot and their index among its children. The root of a screen
+ * is `_0`, and the children of the element at `_0.2` are `_0.2.0`, `_0.2.1` and so on, whether or
+ * not that element has an explicit id. Every element added to a scope counts for the position,
+ * whatever its id.
  *
  * A scope is closed once its block has run; components called later, such as from a handler,
  * fail instead of changing a tree that is already built.
  *
- * @property path the child indices from the root to the element whose children this scope holds;
- *           empty for the root scope
+ * @property generatedId the function that returns the generated id of the child at an index
  * @property binder the binder every handler of the tree passes through
  */
 @ComponentDsl
-open class ComponentScope internal constructor(internal val path: List<Int>, internal val binder: HandlerBinder) {
+open class ComponentScope internal constructor(internal val generatedId: (Int) -> String, internal val binder: HandlerBinder) {
     /**
      * The collected elements, in order.
      */
@@ -155,7 +155,7 @@ open class ComponentScope internal constructor(internal val path: List<Int>, int
             require(!explicit.startsWith(GENERATED_PREFIX)) { "Explicit element ids may not start with '$GENERATED_PREFIX': $explicit" }
             return explicit
         }
-        return GENERATED_PREFIX + (path + elements.size).joinToString(".")
+        return generatedId(elements.size)
     }
 
     /**
@@ -164,8 +164,10 @@ open class ComponentScope internal constructor(internal val path: List<Int>, int
      * @param block the builder of the children
      * @return the built children, in order
      */
-    internal fun children(block: ComponentScope.() -> Unit): List<ScreenElement> =
-        ComponentScope(path + elements.size, binder).build(block).elements.toList()
+    internal fun children(block: ComponentScope.() -> Unit): List<ScreenElement> {
+        val parentId = generatedId(elements.size)
+        return ComponentScope({ index -> "$parentId.$index" }, binder).build(block).elements.toList()
+    }
 
     /**
      * Adds an element as the next child.
@@ -219,13 +221,31 @@ open class ComponentScope internal constructor(internal val path: List<Int>, int
     }
 
     /**
-     * Holds the prefix of generated ids.
+     * Holds the prefix of generated ids and the root scope factory.
      */
-    private companion object {
+    internal companion object {
         /**
          * The prefix of every generated id, which explicit ids may not use.
          */
         const val GENERATED_PREFIX: String = "_"
+
+        /**
+         * Creates the scope that holds the root of a tree.
+         *
+         * Without a target the root's generated id is `_0`. With a generated target id, one that
+         * starts with `_`, the root's generated id is the target id itself; with an explicit target
+         * id it is `_` followed by the target id. Further root elements, which a render rejects,
+         * get the root's generated id followed by `+` and their index.
+         *
+         * @param at the id of the element the tree replaces, or `null` for the root of a screen
+         * @param binder the binder every handler of the tree passes through
+         * @return the root scope
+         */
+        fun root(at: String?, binder: HandlerBinder): ComponentScope {
+            if (at == null) return ComponentScope({ index -> "$GENERATED_PREFIX$index" }, binder)
+            val rootId = if (at.startsWith(GENERATED_PREFIX)) at else GENERATED_PREFIX + at
+            return ComponentScope({ index -> if (index == 0) rootId else "$rootId+$index" }, binder)
+        }
     }
 }
 
@@ -260,17 +280,27 @@ fun Screen(
     onClose: CloseHandler? = null,
     binder: HandlerBinder = HandlerBinder.IDENTITY,
     content: ComponentScope.() -> Unit,
-): ScreenDefinition = ScreenDefinition(title, renderRoot(binder, content), closable, onClose, theme, variant)
+): ScreenDefinition = ScreenDefinition(title, renderRoot(binder, content = content), closable, onClose, theme, variant)
 
 /**
  * Renders exactly one root element with the component DSL, for a whole screen or for an element
  * that replaces part of an open screen.
  *
+ * The root's generated id is `_0` without [at], [at] itself if it is a generated id (it starts
+ * with `_`), and `_` followed by [at] if it is an explicit id; the root's descendants get ids
+ * below it, such as `_0.3.0` for the first child of a root at `_0.3`. An explicit id given to the
+ * root component wins over the generated one.
+ *
  * @param binder the binder every handler of the tree passes through
+ * @param at the id of the element the rendered element replaces, or `null` for the root of a
+ *        screen
  * @param content the builder that adds exactly one element
- * @return the element, whose generated ids start at `_0`
+ * @return the element
  * @throws IllegalStateException if [content] does not add exactly one element
  * @throws IllegalArgumentException if an explicit id starts with `_`
  */
-fun renderRoot(binder: HandlerBinder = HandlerBinder.IDENTITY, content: ComponentScope.() -> Unit): ScreenElement =
-    ComponentScope(emptyList(), binder).build(content).single()
+fun renderRoot(
+    binder: HandlerBinder = HandlerBinder.IDENTITY,
+    at: String? = null,
+    content: ComponentScope.() -> Unit,
+): ScreenElement = ComponentScope.root(at, binder).build(content).single()

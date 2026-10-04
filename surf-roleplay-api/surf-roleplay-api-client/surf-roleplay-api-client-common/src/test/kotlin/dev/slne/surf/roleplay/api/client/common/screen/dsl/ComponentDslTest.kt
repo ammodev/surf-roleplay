@@ -198,6 +198,37 @@ class ComponentDslTest {
     }
 
     /**
+     * Verifies that rendering at a generated target id keeps that id for the root.
+     */
+    @Test
+    fun `rendering at a generated id keeps the target id`() {
+        val root = assertIs<ColumnElement>(renderRoot(at = "_0.3") { Column { Button("A") } })
+        assertEquals("_0.3", root.id)
+        assertEquals("_0.3.0", root.children[0].id)
+    }
+
+    /**
+     * Verifies that rendering at an explicit target id prefixes the generated root id.
+     */
+    @Test
+    fun `rendering at an explicit id prefixes the root id`() {
+        val root = assertIs<ColumnElement>(renderRoot(at = "list") { Column { Button("A"); Row { Button("B") } } })
+        assertEquals("_list", root.id)
+        assertEquals("_list.0", root.children[0].id)
+        assertEquals("_list.1.0", (root.children[1] as RowElement).children[0].id)
+    }
+
+    /**
+     * Verifies that an explicit id on the root component wins over the target id.
+     */
+    @Test
+    fun `an explicit root id wins over the target id`() {
+        val root = assertIs<ColumnElement>(renderRoot(at = "_0.3") { Column(id = "box") { Button("A") } })
+        assertEquals("box", root.id)
+        assertEquals("_0.3.0", root.children[0].id)
+    }
+
+    /**
      * Verifies that a handler cannot add components to the scope its element was built in.
      */
     @Test
