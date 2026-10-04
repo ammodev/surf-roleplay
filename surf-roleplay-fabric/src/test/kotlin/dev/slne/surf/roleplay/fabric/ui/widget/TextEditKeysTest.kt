@@ -159,6 +159,84 @@ class TextEditKeysTest {
     }
 
     /**
+     * Verifies that Control+C copies the selection and Control+X cuts it.
+     */
+    @Test
+    fun `copy and cut put the selection on the clipboard`() {
+        val edit = TextEditState("Hallo Welt")
+        edit.select(6, 10)
+
+        assertEquals(TextEditKeys.Result.MOVED, TextEditKeys.handleClipboard(edit, key(GLFW.GLFW_KEY_C, ctrl = true), context))
+        assertEquals("Welt", context.clipboard)
+        assertEquals("Hallo Welt", edit.text)
+
+        edit.select(0, 5)
+        assertEquals(TextEditKeys.Result.CHANGED, TextEditKeys.handleClipboard(edit, key(GLFW.GLFW_KEY_X, ctrl = true), context))
+        assertEquals("Hallo", context.clipboard)
+        assertEquals(" Welt", edit.text)
+    }
+
+    /**
+     * Verifies that a secret text, as in password fields, is neither copied nor cut.
+     */
+    @Test
+    fun `secret texts are not copied or cut`() {
+        val edit = TextEditState("geheim")
+        edit.selectAll()
+        context.clipboard = "vorher"
+
+        TextEditKeys.handleClipboard(edit, key(GLFW.GLFW_KEY_C, ctrl = true), context, secret = true)
+        TextEditKeys.handleClipboard(edit, key(GLFW.GLFW_KEY_X, ctrl = true), context, secret = true)
+
+        assertEquals("vorher", context.clipboard)
+        assertEquals("geheim", edit.text)
+    }
+
+    /**
+     * Verifies that Control+V replaces the selection with the cleaned clipboard text, within the
+     * maximum length.
+     */
+    @Test
+    fun `paste replaces the selection with the cleaned clipboard text`() {
+        val edit = TextEditState("ab-cd", TextFilter.maxLength(8))
+        edit.select(2, 3)
+        context.clipboard = "x§y\r\nzzzzz"
+
+        assertEquals(TextEditKeys.Result.CHANGED, TextEditKeys.handleClipboard(edit, key(GLFW.GLFW_KEY_V, ctrl = true), context))
+
+        assertEquals("abxyzzcd", edit.text)
+        assertEquals(6, edit.cursor)
+    }
+
+    /**
+     * Verifies that pasted text loses disallowed characters and, in single-line fields, its line
+     * breaks, while multi-line fields keep them.
+     */
+    @Test
+    fun `pasted text is cleaned for the field`() {
+        assertEquals("ab", TextEditKeys.cleanPaste("a\tb", lineBreak = ""))
+        assertEquals("a b c", TextEditKeys.cleanPaste("a\r\nb\rc", lineBreak = " "))
+        assertEquals("a\nb\nc", TextEditKeys.cleanPaste("a\r\nb\r§c", lineBreak = null))
+    }
+
+    /**
+     * Verifies that a single-line field pastes the clipboard without line breaks, and a number
+     * field refuses a paste its filter does not accept.
+     */
+    @Test
+    fun `fields paste through their filters`() {
+        val field = WidgetFactory.create(TextInputNode("t", value = "")) as TextInputWidget
+        context.clipboard = "eins\nzwei"
+        field.keyPressed(context, key(GLFW.GLFW_KEY_V, ctrl = true))
+        assertEquals("einszwei", field.edit.text)
+
+        val number = NumberInputWidget("n", NumberFilter(min = 0, max = 100), initial = 5)
+        context.clipboard = "1a"
+        number.keyPressed(context, key(GLFW.GLFW_KEY_V, ctrl = true))
+        assertEquals("5", number.edit.text)
+    }
+
+    /**
      * Verifies that keys without an editing meaning are left to the widget.
      */
     @Test

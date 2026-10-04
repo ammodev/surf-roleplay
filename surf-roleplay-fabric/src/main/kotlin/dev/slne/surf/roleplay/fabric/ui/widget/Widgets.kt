@@ -367,8 +367,9 @@ open class TextInputWidget(
     }
 
     /**
-     * Handles pasting and the editing keys of [TextEditKeys]: cursor and word movement,
-     * selection and deletion.
+     * Handles the clipboard and editing keys of [TextEditKeys]: copying, cutting and pasting
+     * without line breaks, cursor and word movement, selection and deletion. Password fields are
+     * neither copied nor cut, and their text counts as one word.
      *
      * @param context the screen showing the widget
      * @param event the key event
@@ -376,11 +377,10 @@ open class TextInputWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
-        if (event.isPaste) {
-            if (edit.insert(context.clipboard.replace("\n", "").replace("\r", ""))) markChanged(context, immediate = false)
-            return true
-        }
-        return when (TextEditKeys.handle(edit, event, oneWord = type == TextInputType.PASSWORD)) {
+        val secret = type == TextInputType.PASSWORD
+        val clipboard = TextEditKeys.handleClipboard(edit, event, context, secret)
+        val result = if (clipboard != TextEditKeys.Result.IGNORED) clipboard else TextEditKeys.handle(edit, event, oneWord = secret)
+        return when (result) {
             TextEditKeys.Result.IGNORED -> false
             TextEditKeys.Result.MOVED -> true
             TextEditKeys.Result.CHANGED -> true.also { markChanged(context, immediate = false) }

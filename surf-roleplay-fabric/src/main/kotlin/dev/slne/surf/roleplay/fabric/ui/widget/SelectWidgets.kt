@@ -1229,12 +1229,14 @@ class ComboboxWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
-        if (event.isPaste) {
-            if (edit.insert(context.clipboard.replace("\n", " ").replace("\r", ""))) {
+        when (TextEditKeys.handleClipboard(edit, event, context, lineBreak = " ")) {
+            TextEditKeys.Result.IGNORED -> Unit
+            TextEditKeys.Result.MOVED -> return true
+            TextEditKeys.Result.CHANGED -> {
                 queryChanged(context)
                 open(context)
+                return true
             }
-            return true
         }
         when (event.key()) {
             GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> {

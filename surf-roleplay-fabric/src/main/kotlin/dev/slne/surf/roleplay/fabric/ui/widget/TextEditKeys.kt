@@ -3,6 +3,7 @@ package dev.slne.surf.roleplay.fabric.ui.widget
 import dev.slne.surf.roleplay.fabric.ui.UiGraphics
 import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import net.minecraft.client.input.KeyEvent
+import net.minecraft.util.StringUtil
 import org.lwjgl.glfw.GLFW
 
 /**
@@ -85,6 +86,53 @@ object TextEditKeys {
             else -> return Result.IGNORED
         }
         return Result.MOVED
+    }
+
+    /**
+     * Applies the clipboard keys to the state: Control+C copies the selection, Control+X cuts
+     * it, and Control+V replaces the selection with the clipboard text, cleaned by [cleanPaste]
+     * and passed through the field's filter. A secret text is neither copied nor cut.
+     *
+     * @param edit the state of the field
+     * @param event the key event
+     * @param context the screen, which holds the clipboard
+     * @param secret whether the text must not leave the field, as in password fields
+     * @param lineBreak what replaces a pasted line break, or `null` to keep line breaks
+     * @return what the key did, [Result.IGNORED] for keys other than the clipboard keys
+     */
+    fun handleClipboard(edit: TextEditState, event: KeyEvent, context: UiContext, secret: Boolean = false, lineBreak: String? = ""): Result {
+        when {
+            event.isCopy -> {
+                if (!secret && edit.hasSelection) context.clipboard = edit.selectedText
+                return Result.MOVED
+            }
+
+            event.isCut -> {
+                if (secret || !edit.hasSelection) return Result.MOVED
+                val selected = edit.selectedText
+                if (!edit.backspace()) return Result.MOVED
+                context.clipboard = selected
+                return Result.CHANGED
+            }
+
+            event.isPaste -> return changed(edit.insert(cleanPaste(context.clipboard, lineBreak)))
+            else -> return Result.IGNORED
+        }
+    }
+
+    /**
+     * Prepares clipboard text for a field: line breaks of every platform become `\n`, then are
+     * replaced in single-line fields, and characters that cannot be typed into a field are
+     * removed.
+     *
+     * @param text the clipboard text
+     * @param lineBreak what replaces a line break, or `null` to keep line breaks
+     * @return the text to insert
+     */
+    fun cleanPaste(text: String, lineBreak: String?): String {
+        val unified = text.replace("\r\n", "\n").replace('\r', '\n')
+        val joined = if (lineBreak == null) unified else unified.replace("\n", lineBreak)
+        return StringUtil.filterText(joined, lineBreak == null)
     }
 
     /**

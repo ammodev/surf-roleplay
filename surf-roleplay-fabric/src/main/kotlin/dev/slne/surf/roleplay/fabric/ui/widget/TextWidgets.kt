@@ -373,13 +373,14 @@ class TextareaWidget(
     }
 
     /**
-     * Inserts pasted text at the cursor, keeping its line breaks.
+     * Inserts pasted text at the cursor in place of the selection, keeping its line breaks and
+     * removing characters that cannot be typed.
      *
      * @param context the screen showing the widget
      * @param text the pasted text
      */
     fun paste(context: UiContext, text: String) {
-        if (edit.insert(text.replace("\r\n", "\n").replace("\r", "\n"))) markChanged(context, immediate = false)
+        if (edit.insert(TextEditKeys.cleanPaste(text, lineBreak = null))) markChanged(context, immediate = false)
     }
 
     /**
@@ -403,7 +404,7 @@ class TextareaWidget(
     }
 
     /**
-     * Handles line breaks, pasting, moves between and within drawn lines, and the editing keys of
+     * Handles line breaks, the clipboard, moves between and within drawn lines, and the editing keys of
      * [TextEditKeys]. Home and End move to the start and end of the drawn line, or of the whole
      * text with Control; Shift extends the selection with every move.
      *
@@ -413,9 +414,10 @@ class TextareaWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
-        if (event.isPaste) {
-            paste(context, context.clipboard)
-            return true
+        when (TextEditKeys.handleClipboard(edit, event, context, lineBreak = null)) {
+            TextEditKeys.Result.IGNORED -> Unit
+            TextEditKeys.Result.MOVED -> return true
+            TextEditKeys.Result.CHANGED -> return true.also { markChanged(context, immediate = false) }
         }
         val extend = event.hasShiftDown()
         val whole = event.hasControlDownWithQuirk()
