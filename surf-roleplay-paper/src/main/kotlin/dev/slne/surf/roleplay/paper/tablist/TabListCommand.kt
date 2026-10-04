@@ -73,6 +73,17 @@ object TabListCommand {
     private const val ANNOUNCEMENT_PATH = "tab-list.announcement"
 
     /**
+     * Serialises announcement updates so that changing the shared configuration and taking its
+     * snapshot happen as one step.
+     */
+    private val configLock = Any()
+
+    /**
+     * The sequence number of the next configuration snapshot. Guarded by [configLock].
+     */
+    private var nextSequence = 0L
+
+    /**
      * Registers the command.
      *
      * @param plugin the plugin that owns the command
@@ -97,17 +108,19 @@ object TabListCommand {
     }
 
     /**
-     * Takes a snapshot of the plugin configuration on the calling thread and writes it to the
-     * configuration file on the async scheduler. A failure is logged as a warning.
+     * Takes a snapshot of the plugin configuration with the next sequence number and writes it to
+     * the configuration file on the async scheduler, where an older snapshot never replaces a
+     * newer one. A failure is logged as a warning. Callers hold [configLock].
      *
      * @param plugin the plugin that owns the configuration
      */
     private fun save(plugin: Plugin) {
         val snapshot = plugin.config.saveToString()
+        val sequence = nextSequence++
         val file = plugin.dataFolder.toPath().resolve("config.yml")
         plugin.server.asyncScheduler.runNow(plugin) {
             try {
-                ConfigSnapshotWriter.write(file, snapshot)
+                ConfigSnapshotWriter.write(file, snapshot, sequence)
             } catch (exception: IOException) {
                 log.atWarning().withCause(exception).log("Could not save the tab list announcement to %s", file)
             }
@@ -127,16 +140,22 @@ object TabListCommand {
     private fun announce(plugin: Plugin, context: CommandContext<CommandSourceStack>, text: String?): Int {
         val sender = context.source.sender
         val service = PaperTabListService.INSTANCE
-        when (val result = TabListAnnouncement.set(service.config, text)) {
+        val result = synchronized(configLock) {
+            TabListAnnouncement.set(service.config, text).also { outcome ->
+                if (outcome is TabListAnnouncement.Result.Updated) {
+                    service.updateConfig(outcome.config)
+                    plugin.config.set(ANNOUNCEMENT_PATH, outcome.config.announcement ?: "")
+                    save(plugin)
+                }
+            }
+        }
+        when (result) {
             TabListAnnouncement.Result.TooLong -> sender.sendMessage(
                 Component.text("Die Ankündigung darf höchstens ${TabListAnnouncement.MAX_LENGTH} Zeichen lang sein.", NamedTextColor.RED),
             )
 
             is TabListAnnouncement.Result.Updated -> {
                 val announcement = result.config.announcement
-                service.updateConfig(result.config)
-                plugin.config.set(ANNOUNCEMENT_PATH, announcement ?: "")
-                save(plugin)
                 if (announcement == null) {
                     log.atInfo().log("%s cleared the tab list announcement", sender.name)
                     sender.sendMessage(Component.text("Ankündigung entfernt.", NamedTextColor.GREEN))
