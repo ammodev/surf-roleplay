@@ -168,29 +168,54 @@ class ComponentDslTest {
      */
     @Test
     fun `clicks and changes read typed values`() {
-        val screen = object : OpenScreen {
-            /** A fixed session id. */
-            override val sessionId: Int = 1
-
-            /** A fixed viewer. */
-            override val viewer: UUID = UUID(0, 0)
-
-            /** Always open. */
-            override val isOpen: Boolean = true
-
-            /** Ignores the patch. */
-            override fun patch(changes: ScreenPatchBuilder.() -> Unit) = Unit
-
-            /** Ignores the errors. */
-            override fun showErrors(errors: Map<String, Component>) = Unit
-
-            /** Does nothing. */
-            override fun close() = Unit
-        }
         val values = ScreenValues(mapOf("age" to "7"))
         val age = InputRef("age", InputParsers.number)
-        assertEquals(7L, ScreenClick(screen, "save", values)[age])
-        assertEquals(7L, ScreenInputChange(screen, "age", "7", values)[age])
+        assertEquals(7L, ScreenClick(TestScreen, "save", values)[age])
+        assertEquals(7L, ScreenInputChange(TestScreen, "age", "7", values)[age])
+    }
+
+    /**
+     * An open screen that ignores every call, for building clicks and changes.
+     */
+    private object TestScreen : OpenScreen {
+        /** A fixed session id. */
+        override val sessionId: Int = 1
+
+        /** A fixed viewer. */
+        override val viewer: UUID = UUID(0, 0)
+
+        /** Always open. */
+        override val isOpen: Boolean = true
+
+        /** Ignores the patch. */
+        override fun patch(changes: ScreenPatchBuilder.() -> Unit) = Unit
+
+        /** Ignores the errors. */
+        override fun showErrors(errors: Map<String, Component>) = Unit
+
+        /** Does nothing. */
+        override fun close() = Unit
+    }
+
+    /**
+     * Verifies that a handler cannot add components to the scope its element was built in.
+     */
+    @Test
+    fun `a built scope rejects new components`() {
+        val button = assertIs<ButtonElement>(renderRoot { Button("A") { Button("B") } })
+        val click = ScreenClick(TestScreen, button.id, ScreenValues(emptyMap()))
+        assertFailsWith<IllegalStateException> { button.onClick!!.onClick(click) }
+    }
+
+    /**
+     * Verifies that a handler cannot add components to the scope of a container's children.
+     */
+    @Test
+    fun `a built child scope rejects new components`() {
+        val column = assertIs<ColumnElement>(renderRoot { Column { Button("A") { Label("B") } } })
+        val button = assertIs<ButtonElement>(column.children[0])
+        val click = ScreenClick(TestScreen, button.id, ScreenValues(emptyMap()))
+        assertFailsWith<IllegalStateException> { button.onClick!!.onClick(click) }
     }
 
     /**

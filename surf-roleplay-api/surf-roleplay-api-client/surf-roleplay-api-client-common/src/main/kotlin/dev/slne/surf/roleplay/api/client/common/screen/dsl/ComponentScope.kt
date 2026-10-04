@@ -96,6 +96,9 @@ interface HandlerBinder {
  * element at path `[0, 2]` are `_0.2.0`, `_0.2.1` and so on. Every element added to a scope counts
  * for the position, whatever its id.
  *
+ * A scope is closed once its block has run; components called later, such as from a handler,
+ * fail instead of changing a tree that is already built.
+ *
  * @property path the child indices from the root to the element whose children this scope holds;
  *           empty for the root scope
  * @property binder the binder every handler of the tree passes through
@@ -108,6 +111,35 @@ open class ComponentScope internal constructor(internal val path: List<Int>, int
     internal val elements: MutableList<ScreenElement> = mutableListOf()
 
     /**
+     * Whether the block of this scope has run, after which no element can be added.
+     */
+    private var closed: Boolean = false
+
+    /**
+     * Runs a block on this scope and closes the scope, even if the block fails.
+     *
+     * @param block the builder of the elements
+     * @return this scope
+     */
+    internal fun build(block: ComponentScope.() -> Unit): ComponentScope {
+        try {
+            block()
+        } finally {
+            closed = true
+        }
+        return this
+    }
+
+    /**
+     * Checks that elements can still be added to this scope.
+     *
+     * @throws IllegalStateException if the scope was already built
+     */
+    private fun checkOpen() {
+        check(!closed) { "Components cannot be added after their scope was built" }
+    }
+
+    /**
      * Returns [explicit] after checking it does not start with `_`, or the generated id of the next
      * child.
      *
@@ -115,8 +147,10 @@ open class ComponentScope internal constructor(internal val path: List<Int>, int
      * @return the id of the next child
      * @throws IllegalArgumentException if [explicit] starts with `_`, which is reserved for
      *         generated ids
+     * @throws IllegalStateException if the scope was already built
      */
     internal fun nextId(explicit: String?): String {
+        checkOpen()
         if (explicit != null) {
             require(!explicit.startsWith(GENERATED_PREFIX)) { "Explicit element ids may not start with '$GENERATED_PREFIX': $explicit" }
             return explicit
@@ -131,15 +165,17 @@ open class ComponentScope internal constructor(internal val path: List<Int>, int
      * @return the built children, in order
      */
     internal fun children(block: ComponentScope.() -> Unit): List<ScreenElement> =
-        ComponentScope(path + elements.size, binder).apply(block).elements.toList()
+        ComponentScope(path + elements.size, binder).build(block).elements.toList()
 
     /**
      * Adds an element as the next child.
      *
      * @param element the element
      * @return [element]
+     * @throws IllegalStateException if the scope was already built
      */
     internal fun <E : ScreenElement> add(element: E): E {
+        checkOpen()
         elements += element
         return element
     }
@@ -237,4 +273,4 @@ fun Screen(
  * @throws IllegalArgumentException if an explicit id starts with `_`
  */
 fun renderRoot(binder: HandlerBinder = HandlerBinder.IDENTITY, content: ComponentScope.() -> Unit): ScreenElement =
-    ComponentScope(emptyList(), binder).apply(content).single()
+    ComponentScope(emptyList(), binder).build(content).single()
