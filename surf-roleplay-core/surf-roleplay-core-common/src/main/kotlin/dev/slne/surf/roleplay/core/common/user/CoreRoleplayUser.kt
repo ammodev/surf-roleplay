@@ -83,7 +83,7 @@ class CoreRoleplayUser(
      * An identity whose UUID and type are already held is updated in place; identities new to
      * [dto] are added and identities missing from it are removed. Identities of an unknown type
      * are left out. The active identity stays active if [dto] still contains its UUID; otherwise
-     * no identity is active afterwards.
+     * no identity is active afterwards. Every [UserStateListener] is notified afterwards.
      *
      * @param dto the complete state of this user as returned by the remote user service
      */
@@ -104,6 +104,7 @@ class CoreRoleplayUser(
 
         _identities = mutableObjectListOf<RoleplayIdentity>(next)
         _activeIdentity = _activeIdentity?.let { active -> next.firstOrNull { it.uuid == active.uuid } }
+        UserStateListeners.notifyChanged(uuid)
     }
 
     /**
@@ -137,7 +138,8 @@ class CoreRoleplayUser(
      * Makes the owned identity with the UUID of [identity] the active identity of this user.
      *
      * The owned identity is looked up and activated while holding this user's write lock, so a
-     * concurrent write operation cannot remove it in between.
+     * concurrent write operation cannot remove it in between. Every [UserStateListener] is
+     * notified afterwards.
      *
      * @param identity the identity to activate
      * @throws UnknownIdentityException if this user owns no identity with the UUID of [identity]
@@ -145,13 +147,16 @@ class CoreRoleplayUser(
     override suspend fun setActiveIdentity(identity: RoleplayIdentity): Unit = write {
         _activeIdentity = _identities.firstOrNull { it.uuid == identity.uuid }
             ?: throw UnknownIdentityException(uuid, identity.uuid)
+        UserStateListeners.notifyChanged(uuid)
     }
 
     /**
-     * Deactivates the active identity, so that no identity is active afterwards.
+     * Deactivates the active identity, so that no identity is active afterwards, and notifies
+     * every [UserStateListener].
      */
     override fun clearActiveIdentity() {
         _activeIdentity = null
+        UserStateListeners.notifyChanged(uuid)
     }
 
     /**

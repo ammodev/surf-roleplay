@@ -92,6 +92,15 @@ class CoreClientUserManager internal constructor(
     }
 
     /**
+     * Returns the user with [uuid] if it is held in memory, without loading it and without
+     * acquiring a hold. Safe to call from any thread; never blocks.
+     *
+     * @param uuid the UUID of the player
+     * @return the in-memory user, or `null` if no user with [uuid] is held
+     */
+    fun cached(uuid: UUID): RoleplayUser? = entries[uuid]?.user
+
+    /**
      * Gives back one hold on the user with [uuid], and removes the user from memory once no hold
      * remains.
      *
