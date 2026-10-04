@@ -164,6 +164,15 @@ class StorybookTest {
     )
 
     /**
+     * The navigation stories cover the navigation and layout components and render.
+     */
+    @Test
+    fun `the navigation stories cover their components and render`() = assertCategory(
+        StoryCategory.NAVIGATION,
+        setOf("accordion", "breadcrumb", "carousel", "collapsible", "direction", "navigation-menu", "pagination", "resizable", "scroll-area", "sidebar", "tabs"),
+    )
+
+    /**
      * Every test story renders and maps in every theme and variant.
      */
     @Test
