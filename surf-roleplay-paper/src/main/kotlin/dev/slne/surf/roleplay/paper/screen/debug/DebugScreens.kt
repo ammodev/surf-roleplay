@@ -1,20 +1,29 @@
 package dev.slne.surf.roleplay.paper.screen.debug
 
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Checkbox
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Image
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NumberInput
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Progress
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ScrollList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
-import dev.slne.surf.roleplay.api.client.common.screen.ButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
-import dev.slne.surf.roleplay.api.client.common.screen.select
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
 import dev.slne.surf.roleplay.api.client.common.screen.LabelElement
 import dev.slne.surf.roleplay.api.client.common.screen.OpenScreen
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.Spacing
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import dev.slne.surf.roleplay.paper.screen.PaperScreenService
 import dev.slne.surf.roleplay.protocol.screen.CounterState
@@ -51,51 +60,48 @@ class DebugScreens(private val plugin: Plugin) {
         var unlocked = false
         lateinit var demo: OpenScreen
 
-        val definition = screen(Component.text("Bildschirm-Demo")) {
-            this.theme = theme
-            this.variant = variant
-            onClose { progressTask?.cancel() }
-            column("root", width = ElementSize.fixed(320), gap = 6, crossAlign = Alignment.STRETCH) {
-                label("heading", Component.text("Alle Elemente", NamedTextColor.GOLD, TextDecoration.BOLD), icon = "info")
-                row("theme_row", gap = 6, crossAlign = Alignment.CENTER) {
-                    select("theme", THEMES, selected = theme, width = ElementSize.grow())
-                    select("variant", VARIANTS, selected = variant.name, width = ElementSize.fixed(90))
-                    button("apply_theme", Component.text("Anwenden"), submitsInput = false, icon = "palette") { click ->
+        val definition = Screen(Component.text("Bildschirm-Demo"), theme = theme, variant = variant, onClose = { progressTask?.cancel() }) {
+            Column(width = ElementSize.fixed(320), gap = 6, crossAlign = Alignment.STRETCH, id = "root") {
+                Label(Component.text("Alle Elemente", NamedTextColor.GOLD, TextDecoration.BOLD), icon = "info", id = "heading")
+                Row(gap = 6, crossAlign = Alignment.CENTER, id = "theme_row") {
+                    Select(THEMES, selected = theme, width = ElementSize.grow(), id = "theme")
+                    Select(VARIANTS, selected = variant.name, width = ElementSize.fixed(90), id = "variant")
+                    Button(Component.text("Anwenden"), submitsInput = false, icon = "palette", id = "apply_theme") { click ->
                         val chosenTheme = click.values.selected("theme") ?: ScreenThemes.DEFAULT
                         val chosenVariant = click.values.selected("variant")?.let(ScreenVariant::valueOf) ?: ScreenVariant.DARK
                         openDemo(player, chosenTheme, chosenVariant)
                     }
                 }
-                row("name_row", gap = 6, crossAlign = Alignment.CENTER) {
-                    label("name_label", Component.text("Name"), width = ElementSize.fixed(60))
-                    textInput("name", placeholder = Component.text("Max Mustermann"), maxLength = 16, required = true, width = ElementSize.grow(), icon = "search")
+                Row(gap = 6, crossAlign = Alignment.CENTER, id = "name_row") {
+                    Label(Component.text("Name"), width = ElementSize.fixed(60), id = "name_label")
+                    Input(placeholder = Component.text("Max Mustermann"), maxLength = 16, required = true, width = ElementSize.grow(), icon = "search", id = "name")
                 }
-                row("age_row", gap = 6, crossAlign = Alignment.CENTER) {
-                    label("age_label", Component.text("Alter"), width = ElementSize.fixed(60))
-                    numberInput("age", min = 18, max = 99, required = true, width = ElementSize.grow())
+                Row(gap = 6, crossAlign = Alignment.CENTER, id = "age_row") {
+                    Label(Component.text("Alter"), width = ElementSize.fixed(60), id = "age_label")
+                    NumberInput(min = 18, max = 99, required = true, width = ElementSize.grow(), id = "age")
                 }
-                row("city_row", gap = 6, crossAlign = Alignment.CENTER) {
-                    label("city_label", Component.text("Stadt"), width = ElementSize.fixed(60))
-                    select("city", CITIES, required = true, width = ElementSize.grow())
+                Row(gap = 6, crossAlign = Alignment.CENTER, id = "city_row") {
+                    Label(Component.text("Stadt"), width = ElementSize.fixed(60), id = "city_label")
+                    Select(CITIES, required = true, width = ElementSize.grow(), id = "city")
                 }
-                checkbox("rules", Component.text("Ich akzeptiere die Regeln"))
-                scrollList("list", height = ElementSize.fixed(60), gap = 2) {
+                Checkbox(Component.text("Ich akzeptiere die Regeln"), id = "rules")
+                ScrollList(height = ElementSize.fixed(60), gap = 2, id = "list") {
                     for (index in 1..8) {
-                        row("row_$index", gap = 4, crossAlign = Alignment.CENTER) {
-                            label("row_${index}_label", Component.text("Eintrag $index"), width = ElementSize.grow())
-                            button("row_${index}_open", Component.text("Öffnen"), submitsInput = false) { click -> openEntry(player, click.screen, index) }
+                        Row(gap = 4, crossAlign = Alignment.CENTER, id = "row_$index") {
+                            Label(Component.text("Eintrag $index"), width = ElementSize.grow(), id = "row_${index}_label")
+                            Button(Component.text("Öffnen"), submitsInput = false, id = "row_${index}_open") { click -> openEntry(player, click.screen, index) }
                         }
                     }
                 }
-                row("media", gap = 6, crossAlign = Alignment.CENTER) {
-                    image("logo", Key.key("minecraft", "textures/item/diamond.png"), ElementSize.fixed(16), ElementSize.fixed(16))
-                    progress("load", 0f, Component.text("0 %"), width = ElementSize.grow())
+                Row(gap = 6, crossAlign = Alignment.CENTER, id = "media") {
+                    Image(Key.key("minecraft", "textures/item/diamond.png"), ElementSize.fixed(16), ElementSize.fixed(16), id = "logo")
+                    Progress(0f, Component.text("0 %"), width = ElementSize.grow(), id = "load")
                 }
-                row("popups", gap = 6, padding = Spacing(top = 4), mainAlign = Alignment.END) {
-                    button("details", Component.text("Details"), submitsInput = false, icon = "panel-right") { click ->
+                Row(gap = 6, padding = Spacing(top = 4), mainAlign = Alignment.END, id = "popups") {
+                    Button(Component.text("Details"), submitsInput = false, icon = "panel-right", id = "details") { click ->
                         openDetails(player, click.screen, theme, variant)
                     }
-                    button("delete", Component.text("Löschen"), submitsInput = false, icon = "trash") { click ->
+                    Button(Component.text("Löschen"), submitsInput = false, icon = "trash", id = "delete") { click ->
                         ScreenService.confirm(
                             player,
                             click.screen,
@@ -109,20 +115,22 @@ class DebugScreens(private val plugin: Plugin) {
                         )
                     }
                 }
-                row("buttons", gap = 6, mainAlign = Alignment.END) {
-                    button("locked", Component.text("Gesperrt"), enabled = false, submitsInput = false, icon = "lock") { _ ->
+                Row(gap = 6, mainAlign = Alignment.END, id = "buttons") {
+                    Button(Component.text("Gesperrt"), enabled = false, submitsInput = false, icon = "lock", id = "locked") { _ ->
                         player.sendMessage(Component.text("Die gesperrte Schaltfläche wurde benutzt.", NamedTextColor.GREEN))
                     }
-                    button("patch", Component.text("Ändern"), submitsInput = false, icon = "refresh-cw") { _ ->
+                    Button(Component.text("Ändern"), submitsInput = false, icon = "refresh-cw", id = "patch") { _ ->
                         patches++
                         unlocked = !unlocked
                         demo.patch {
                             setText("heading", Component.text("Geändert um ${LocalTime.now().format(TIME)}", NamedTextColor.AQUA))
-                            replace("locked", ButtonElement("locked", Component.text(if (unlocked) "Freigeschaltet" else "Gesperrt"), enabled = unlocked, onClick = lockedHandler(player), submitsInput = false, icon = if (unlocked) "lock-open" else "lock"))
+                            replace("locked") {
+                                Button(Component.text(if (unlocked) "Freigeschaltet" else "Gesperrt"), enabled = unlocked, submitsInput = false, icon = if (unlocked) "lock-open" else "lock", id = "locked", onClick = lockedHandler(player))
+                            }
                             insert("list", 0, labelElement("patch_$patches", "Neu: Änderung $patches"))
                         }
                     }
-                    button("submit", Component.text("Absenden"), icon = "send") { click ->
+                    Button(Component.text("Absenden"), icon = "send", id = "submit") { click ->
                         val values = click.values
                         player.sendMessage(
                             Component.text(
@@ -166,14 +174,12 @@ class DebugScreens(private val plugin: Plugin) {
      * @param variant the variant of the demo's theme
      */
     private fun openDetails(player: Player, parent: OpenScreen, theme: String, variant: ScreenVariant) {
-        val definition = screen(Component.text("Details")) {
-            this.theme = theme
-            this.variant = variant
-            column("details", gap = 8, crossAlign = Alignment.STRETCH) {
-                label("details_heading", Component.text("Seitenleiste").decorate(TextDecoration.BOLD), icon = "panel-right")
-                label("details_text", Component.text("Diese Leiste gleitet von rechts herein."))
-                label("details_hint", Component.text("Escape oder ein Klick daneben schließt sie."))
-                button("details_close", Component.text("Schließen"), submitsInput = false, icon = "x") { click -> click.screen.close() }
+        val definition = Screen(Component.text("Details"), theme = theme, variant = variant) {
+            Column(gap = 8, crossAlign = Alignment.STRETCH, id = "details") {
+                Label(Component.text("Seitenleiste").decorate(TextDecoration.BOLD), icon = "panel-right", id = "details_heading")
+                Label(Component.text("Diese Leiste gleitet von rechts herein."), id = "details_text")
+                Label(Component.text("Escape oder ein Klick daneben schließt sie."), id = "details_hint")
+                Button(Component.text("Schließen"), submitsInput = false, icon = "x", id = "details_close") { click -> click.screen.close() }
             }
         }
         ScreenService.open(player, definition, parent, ScreenPresentation.SHEET, SheetSide.RIGHT)
@@ -187,10 +193,10 @@ class DebugScreens(private val plugin: Plugin) {
      * @param index the number of the entry
      */
     private fun openEntry(player: Player, parent: OpenScreen, index: Int) {
-        val definition: ScreenDefinition = screen(Component.text("Eintrag $index")) {
-            column("entry", gap = 8, crossAlign = Alignment.CENTER) {
-                label("entry_text", Component.text("Das ist Eintrag $index."))
-                button("back", Component.text("Zurück"), submitsInput = false) { click -> click.screen.close() }
+        val definition: ScreenDefinition = Screen(Component.text("Eintrag $index")) {
+            Column(gap = 8, crossAlign = Alignment.CENTER, id = "entry") {
+                Label(Component.text("Das ist Eintrag $index."), id = "entry_text")
+                Button(Component.text("Zurück"), submitsInput = false, id = "back") { click -> click.screen.close() }
             }
         }
         ScreenService.open(player, definition, parent)
