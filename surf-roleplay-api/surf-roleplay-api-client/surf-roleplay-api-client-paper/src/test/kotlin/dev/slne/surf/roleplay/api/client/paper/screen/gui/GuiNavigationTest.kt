@@ -418,6 +418,55 @@ class GuiNavigationTest {
     }
 
     /**
+     * A child page whose button changes its own variant and the counter of the page below it.
+     *
+     * @property below the page whose counter the button changes
+     */
+    class VariantChildPage(private val below: NavPage) : GuiPage() {
+        /**
+         * Whether the page uses the dark variant.
+         */
+        var dark by state(false)
+
+        /**
+         * A fixed title.
+         */
+        override val title: Component = Component.text("Kind")
+
+        /**
+         * The variant chosen by [dark].
+         */
+        override val variant: ScreenVariant get() = if (dark) ScreenVariant.DARK else ScreenVariant.LIGHT
+
+        /**
+         * Renders a button that changes the variant and the parent's counter.
+         */
+        override fun ComponentScope.render() {
+            Column {
+                Button("Dunkel und plus", id = "dark_plus") {
+                    dark = true
+                    below.count++
+                }
+            }
+        }
+    }
+
+    /**
+     * Verifies that a page below is refreshed even when the flush of the clicked page throws.
+     */
+    @Test
+    fun `ancestors flush although the flush of the page throws`() {
+        val fake = FakeOpener()
+        val root = fake.open(NavPage())
+        val rootScreen = fake.lastScreen
+        root.target = VariantChildPage(root)
+        fake.click("navigate", rootScreen)
+        fake.failNextOpen = true
+        assertFailsWith<IllegalStateException> { fake.click("dark_plus") }
+        assertEquals(Component.text("Wert: 1"), (rootScreen.find("value") as TextElement).text)
+    }
+
+    /**
      * Verifies that a reopen whose closing of a child page changes the reopened page's state
      * shows that state afterwards.
      */

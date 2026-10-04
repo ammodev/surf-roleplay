@@ -157,7 +157,7 @@ internal class GuiSession(
 
     /**
      * Runs the newest handler of an element and re-renders the page afterwards if it changed,
-     * followed by every page below it whose state the handler changed. An exception of the handler
+     * followed by every page below it whose state the handler changed, even if the re-render of this page throws. An exception of the handler
      * is logged and does not stop the re-render. Does nothing once the screen is closed, or if the
      * newest render has no such handler.
      *
@@ -179,8 +179,11 @@ internal class GuiSession(
         } catch (exception: Exception) {
             log.atWarning().withCause(exception).log("The %s handler of element %s on page %s failed", kind, elementId, page.javaClass.name)
         }
-        flush()
-        flushAncestors()
+        try {
+            flush()
+        } finally {
+            flushAncestors()
+        }
     }
 
     /**
