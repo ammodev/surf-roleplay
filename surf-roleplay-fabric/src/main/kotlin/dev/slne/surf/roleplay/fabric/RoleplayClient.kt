@@ -8,6 +8,7 @@ import dev.slne.surf.roleplay.fabric.server.RoleplayServerState
 import dev.slne.surf.roleplay.fabric.settings.SettingsEntry
 import dev.slne.surf.roleplay.fabric.settings.SettingsScreen
 import dev.slne.surf.roleplay.fabric.settings.SettingsStore
+import dev.slne.surf.roleplay.fabric.tablist.TabListLayer
 import dev.slne.surf.roleplay.fabric.toast.ToastLayer
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.loader.api.FabricLoader
@@ -51,7 +52,7 @@ object RoleplayClient : ClientModInitializer {
 
     /**
      * Initialises the mod on the client: loads the client settings, registers the roleplay payload channels, the mod
-     * handshake, the roleplay server detection, the server-driven screens, the toasts and the
+     * handshake, the roleplay server detection, the server-driven screens, the toasts, the tab list and the
      * settings screen with its key binding and pause menu button, and logs the mod version.
      */
     override fun onInitializeClient() {
@@ -61,6 +62,7 @@ object RoleplayClient : ClientModInitializer {
         RoleplayServerDetection.register(serverState)
         ClientScreenManager.register(serverState)
         ToastLayer.register(serverState)
+        TabListLayer.register(serverState)
         SettingsScreen.register(serverState)
         SettingsEntry.register(serverState)
         log.info("Surf Roleplay {} initialised", modVersion)
