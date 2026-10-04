@@ -173,6 +173,15 @@ class StorybookTest {
     )
 
     /**
+     * The data stories cover the table, chart and chat components and render.
+     */
+    @Test
+    fun `the data stories cover their components and render`() = assertCategory(
+        StoryCategory.DATA,
+        setOf("chart", "chat", "data-table", "table"),
+    )
+
+    /**
      * Every test story renders and maps in every theme and variant.
      */
     @Test
