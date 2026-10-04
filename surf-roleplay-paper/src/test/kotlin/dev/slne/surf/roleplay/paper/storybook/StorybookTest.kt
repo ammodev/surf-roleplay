@@ -285,6 +285,23 @@ class StorybookTest {
     }
 
     /**
+     * The category select and the pagination of the gallery report their element ids; the search
+     * input does not.
+     */
+    @Test
+    fun `the gallery reports the category select and the pagination but not the search`() {
+        val page = storybook()
+        page.storyKey = "icons"
+        val session = open(page)
+
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChangePacket(session, "icon_search", "icon")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleWidgetAction(ScreenWidgetAction(session, "icon_next")))
+        assertIs<PlayerScreenState.Outcome.Accepted>(state.handleInputChange(ScreenInputChangePacket(session, "icon_category", "odd")))
+
+        assertEquals(listOf("Symbole: icon_next", "Symbole: icon_category"), reports)
+    }
+
+    /**
      * A search that matches nothing shows the empty state and no icons.
      */
     @Test

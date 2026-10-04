@@ -27,6 +27,7 @@ import dev.slne.surf.roleplay.paper.storybook.IconPaging
 import dev.slne.surf.roleplay.paper.storybook.LucideCatalog
 import dev.slne.surf.roleplay.paper.storybook.Story
 import dev.slne.surf.roleplay.paper.storybook.StoryCategory
+import dev.slne.surf.roleplay.paper.storybook.StoryContext
 import net.kyori.adventure.text.Component
 
 /**
@@ -63,7 +64,8 @@ private const val ALL_CATEGORIES = "alle"
 /**
  * Creates the story of the icon gallery: a search input, a category select, a grid of the
  * matching icons with their names, one page at a time, and a pagination; an empty state when
- * nothing matches.
+ * nothing matches. The category select and the pagination report their element ids, the search
+ * input does not.
  *
  * @param catalog the icons the gallery lists
  * @param state the search, filter and page the gallery shows and changes
@@ -72,7 +74,7 @@ private const val ALL_CATEGORIES = "alle"
 fun iconGalleryStory(catalog: LucideCatalog, state: IconGalleryState): Story {
     val categories = listOf(SelectChoice(ALL_CATEGORIES, Component.text("Alle Kategorien"))) +
         catalog.categories.map { SelectChoice(it, Component.text(it)) }
-    return Story("icons", "Symbole", StoryCategory.ICONS) { iconGallery(catalog, state, categories) }
+    return Story("icons", "Symbole", StoryCategory.ICONS) { context -> iconGallery(catalog, state, categories, context) }
 }
 
 /**
@@ -81,8 +83,9 @@ fun iconGalleryStory(catalog: LucideCatalog, state: IconGalleryState): Story {
  * @param catalog the icons the gallery lists
  * @param state the search, filter and page
  * @param categories the options of the category select
+ * @param context the story context, which the category select and the pagination report to
  */
-private fun ComponentScope.iconGallery(catalog: LucideCatalog, state: IconGalleryState, categories: List<SelectChoice>) {
+private fun ComponentScope.iconGallery(catalog: LucideCatalog, state: IconGalleryState, categories: List<SelectChoice>, context: StoryContext) {
     val matches = catalog.search(state.iconQuery, state.iconCategory)
     val pageCount = IconPaging.pageCount(matches.size)
     val page = state.iconPage.coerceIn(0, pageCount - 1)
@@ -94,6 +97,7 @@ private fun ComponentScope.iconGallery(catalog: LucideCatalog, state: IconGaller
         Select(categories, selected = state.iconCategory ?: ALL_CATEGORIES, width = ElementSize.fixed(140), id = "icon_category") { change ->
             state.iconCategory = change.value.takeIf { it != ALL_CATEGORIES }
             state.iconPage = 0
+            context.changed.onChange(change)
         }
     }
     if (matches.isEmpty()) {
@@ -119,7 +123,7 @@ private fun ComponentScope.iconGallery(catalog: LucideCatalog, state: IconGaller
             }
         }
     }
-    if (pageCount > 1) iconPagination(state, page, pageCount)
+    if (pageCount > 1) iconPagination(state, page, pageCount, context)
 }
 
 /**
@@ -129,21 +133,31 @@ private fun ComponentScope.iconGallery(catalog: LucideCatalog, state: IconGaller
  * @param state the state whose page the links change
  * @param page the shown page, zero-based
  * @param pageCount the number of pages
+ * @param context the story context, which every link reports to
  */
-private fun ComponentScope.iconPagination(state: IconGalleryState, page: Int, pageCount: Int) {
+private fun ComponentScope.iconPagination(state: IconGalleryState, page: Int, pageCount: Int, context: StoryContext) {
     Pagination {
         PaginationContent {
-            PaginationItem { PaginationPrevious(enabled = page > 0, id = "icon_previous") { state.iconPage = page - 1 } }
+            PaginationItem { PaginationPrevious(enabled = page > 0, id = "icon_previous") { click ->
+                    state.iconPage = page - 1
+                    context.clicked.onClick(click)
+                } }
             pageWindow(page, pageCount).forEach { index ->
                 PaginationItem {
                     if (index == null) {
                         PaginationEllipsis()
                     } else {
-                        PaginationLink("${index + 1}", active = index == page, id = "icon_page_$index") { state.iconPage = index }
+                        PaginationLink("${index + 1}", active = index == page, id = "icon_page_$index") { click ->
+                            state.iconPage = index
+                            context.clicked.onClick(click)
+                        }
                     }
                 }
             }
-            PaginationItem { PaginationNext(enabled = page < pageCount - 1, id = "icon_next") { state.iconPage = page + 1 } }
+            PaginationItem { PaginationNext(enabled = page < pageCount - 1, id = "icon_next") { click ->
+                    state.iconPage = page + 1
+                    context.clicked.onClick(click)
+                } }
         }
     }
 }
