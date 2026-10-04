@@ -152,6 +152,18 @@ class StorybookTest {
     )
 
     /**
+     * The overlay stories cover the overlay and menu components and render.
+     */
+    @Test
+    fun `the overlay stories cover their components and render`() = assertCategory(
+        StoryCategory.OVERLAYS,
+        setOf(
+            "alert-dialog", "command", "context-menu", "dialog", "drawer", "dropdown-menu", "hover-card", "menubar", "popover",
+            "sheet", "sonner", "toast", "tooltip",
+        ),
+    )
+
+    /**
      * Every test story renders and maps in every theme and variant.
      */
     @Test

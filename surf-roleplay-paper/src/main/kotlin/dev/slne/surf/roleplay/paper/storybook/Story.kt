@@ -9,6 +9,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.H4
 import dev.slne.surf.roleplay.paper.storybook.stories.DISPLAY_STORIES
 import dev.slne.surf.roleplay.paper.storybook.stories.INPUT_STORIES
+import dev.slne.surf.roleplay.paper.storybook.stories.OVERLAY_STORIES
 import java.util.UUID
 
 /**
@@ -82,7 +83,7 @@ class StoryContext(val playerId: UUID, val report: (String) -> Unit) {
  *
  * @return the stories
  */
-internal fun storybookStories(): List<Story> = INPUT_STORIES + DISPLAY_STORIES
+internal fun storybookStories(): List<Story> = INPUT_STORIES + DISPLAY_STORIES + OVERLAY_STORIES
 
 /**
  * Adds a titled block of a story, such as all variants of a component.
