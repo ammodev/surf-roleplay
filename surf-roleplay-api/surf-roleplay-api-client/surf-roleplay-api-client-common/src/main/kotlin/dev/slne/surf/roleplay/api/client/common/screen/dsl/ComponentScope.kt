@@ -97,6 +97,12 @@ interface HandlerBinder {
  * not that element has an explicit id. Every element added to a scope counts for the position,
  * whatever its id.
  *
+ * Generated ids shift when an element is added or removed before them. Elements that are
+ * repeated or shown conditionally and carry a handler or an input therefore need explicit ids
+ * derived from their data, such as `"case_${case.id}"`: a click the player sent before the screen
+ * received a patch addresses the element by its old id, and runs the handler of whatever element
+ * holds that id in the newest tree.
+ *
  * A scope is closed once its block has run; components called later, such as from a handler,
  * fail instead of changing a tree that is already built.
  *

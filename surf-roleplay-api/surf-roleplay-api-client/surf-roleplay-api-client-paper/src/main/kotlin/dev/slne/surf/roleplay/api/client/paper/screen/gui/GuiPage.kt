@@ -36,6 +36,12 @@ import kotlin.reflect.KProperty
  * [variant] or [closable] changed reopens the page in place: on top of the same screen and with
  * the same presentation, without running [onClosed]; the pages opened on top of it are closed.
  *
+ * Handlers are found by element id. Elements without an explicit id get ids from their position,
+ * which shift when a sibling before them appears or disappears. Repeated or conditional elements
+ * that carry a handler or an input must therefore have explicit ids derived from their data, such
+ * as `id = "case_${case.id}"`: a click the player sent before the patch of a re-render arrived
+ * runs the handler of the element that holds the clicked id in the newest render.
+ *
  * A page can open other pages on top of its screen with [navigate], [dialog] and [sheet]; [back]
  * closes the page and [close] closes the whole GUI. Each open page renders and handles its own
  * screen. A handler or [onClosed] of a page that changes the state of a page below it re-renders
