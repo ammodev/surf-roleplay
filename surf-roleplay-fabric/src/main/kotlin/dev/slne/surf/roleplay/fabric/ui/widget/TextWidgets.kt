@@ -147,6 +147,7 @@ object TextLines {
  * @param context the screen showing the field
  * @param x the mouse x position
  * @param y the mouse y position
+ * @param timeMillis the time of the click in milliseconds
  * @param position the cursor position closest to the click
  * @param charIndex the index of the character under the click
  * @param tripleRange the range a triple click selects
@@ -158,6 +159,7 @@ internal fun applyTextClick(
     context: UiContext,
     x: Double,
     y: Double,
+    timeMillis: Long,
     position: Int,
     charIndex: Int,
     tripleRange: () -> TextRange,
@@ -167,7 +169,7 @@ internal fun applyTextClick(
         edit.moveCursorTo(position, extend = true)
         return
     }
-    when (clicks.click(x, y, System.currentTimeMillis())) {
+    when (clicks.click(x, y, timeMillis)) {
         1 -> edit.cursor = position
         2 -> TextBoundaries.wordAt(shown, charIndex).let { edit.select(it.start, it.end) }
         else -> tripleRange().let { edit.select(it.start, it.end) }
@@ -350,7 +352,7 @@ class TextareaWidget(
         val offset = (x - bounds.x - UiMetrics.WIDGET_PADDING).toInt()
         val position = TextLines.positionAt(edit.text, line, offset, measurer::plainWidth)
         val charIndex = TextLines.charIndexAt(edit.text, line, offset, measurer::plainWidth)
-        applyTextClick(edit, edit.text, clicks, context, x, y, position, charIndex) { TextBoundaries.lineAt(edit.text, position) }
+        applyTextClick(edit, edit.text, clicks, context, x, y, context.timeMillis, position, charIndex) { TextBoundaries.lineAt(edit.text, position) }
         return true
     }
 
@@ -437,6 +439,7 @@ class TextareaWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
+        clicks.reset()
         when (TextEditKeys.handleClipboard(edit, event, context, lineBreak = null)) {
             TextEditKeys.Result.IGNORED -> Unit
             TextEditKeys.Result.MOVED -> return true

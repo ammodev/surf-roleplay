@@ -120,6 +120,11 @@ interface UiContext {
     val shiftClick: Boolean get() = false
 
     /**
+     * The current time in milliseconds, which tells consecutive clicks apart.
+     */
+    val timeMillis: Long get() = System.currentTimeMillis()
+
+    /**
      * Reports that the player changed an input's value.
      *
      * @param widget the input

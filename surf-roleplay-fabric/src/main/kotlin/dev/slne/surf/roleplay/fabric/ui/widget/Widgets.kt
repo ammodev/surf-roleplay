@@ -362,7 +362,7 @@ open class TextInputWidget(
         val offset = (x - textLeft).toInt()
         val position = TextLines.positionAt(shown, line, offset, measurer::plainWidth)
         val charIndex = TextLines.charIndexAt(shown, line, offset, measurer::plainWidth)
-        applyTextClick(edit, shown, clicks, context, x, y, position, charIndex) { TextRange(0, edit.text.length) }
+        applyTextClick(edit, shown, clicks, context, x, y, context.timeMillis, position, charIndex) { TextRange(0, edit.text.length) }
         return true
     }
 
@@ -400,6 +400,7 @@ open class TextInputWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
+        clicks.reset()
         val secret = type == TextInputType.PASSWORD
         val clipboard = TextEditKeys.handleClipboard(edit, event, context, secret)
         val result = if (clipboard != TextEditKeys.Result.IGNORED) clipboard else TextEditKeys.handle(edit, event, oneWord = secret)

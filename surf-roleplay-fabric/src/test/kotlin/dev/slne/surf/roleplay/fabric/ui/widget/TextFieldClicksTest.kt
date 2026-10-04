@@ -20,24 +20,112 @@ class TextFieldClicksTest {
      * A measurer in which every character is 5 pixels wide.
      */
     private val measurer = object : TextMeasurer {
+        /**
+         * The height of one line.
+         */
         override val lineHeight: Int = 9
+
+        /**
+         * Measures component JSON as 5 pixels per character.
+         *
+         * @param json the text
+         * @return the width
+         */
         override fun width(json: String): Int = json.length * 5
+
+        /**
+         * Measures plain text as 5 pixels per character.
+         *
+         * @param text the text
+         * @return the width
+         */
         override fun plainWidth(text: String): Int = text.length * 5
     }
 
     /**
-     * A context that tracks the focus and reports whether Shift is held during a click.
+     * A context that tracks the focus, reports whether Shift is held during a click, and has a
+     * clock the tests set.
      */
     private val context = object : UiContext {
+        /**
+         * The focused widget.
+         */
         override var focusedWidget: Widget? = null
+
+        /**
+         * Whether Shift is held during the click.
+         */
         override var shiftClick: Boolean = false
+
+        /**
+         * The current time in milliseconds, which only the tests move.
+         */
+        override var timeMillis: Long = 1_000
+
+        /**
+         * Records the focused widget.
+         *
+         * @param widget the widget, or `null` to clear the focus
+         */
         override fun focus(widget: Widget?) {
             focusedWidget = widget
         }
+
+        /**
+         * Ignores layout requests.
+         */
         override fun requestLayout() = Unit
+
+        /**
+         * Ignores widget actions.
+         *
+         * @param widget the widget
+         * @param submitsInput whether the action submits the input
+         */
         override fun actionTriggered(widget: Widget, submitsInput: Boolean) = Unit
+
+        /**
+         * Finds no widgets.
+         *
+         * @param id the id
+         * @return `null`
+         */
         override fun widget(id: String): Widget? = null
+
+        /**
+         * The clipboard text.
+         */
         override var clipboard: String = ""
+    }
+
+    /**
+     * Verifies that a click after the double-click interval counts as a single click.
+     */
+    @Test
+    fun `slow clicks stay single clicks`() {
+        val field = field("Hallo schöne Welt")
+
+        clickAt(field, 8)
+        context.timeMillis += ClickCounter.INTERVAL_MILLIS + 1
+        clickAt(field, 8)
+
+        assertFalse(field.edit.hasSelection)
+        assertEquals(8, field.edit.cursor)
+    }
+
+    /**
+     * Verifies that a key press between two clicks makes the second a single click.
+     */
+    @Test
+    fun `a key press starts a new click count`() {
+        val field = field("Hallo schöne Welt")
+
+        clickAt(field, 8)
+        field.keyPressed(context, TestKeys.key(GLFW.GLFW_KEY_RIGHT))
+        clickAt(field, 8)
+
+        assertFalse(field.edit.hasSelection)
+        assertEquals(8, field.edit.cursor)
     }
 
     /**

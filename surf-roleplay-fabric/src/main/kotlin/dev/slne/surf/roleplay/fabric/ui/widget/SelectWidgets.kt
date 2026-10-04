@@ -1213,7 +1213,7 @@ class ComboboxWidget(
             val offset = (x - left).toInt()
             val position = TextLines.positionAt(edit.text, line, offset, measurer::plainWidth)
             val charIndex = TextLines.charIndexAt(edit.text, line, offset, measurer::plainWidth)
-            applyTextClick(edit, edit.text, clicks, context, x, y, position, charIndex) { TextRange(0, edit.text.length) }
+            applyTextClick(edit, edit.text, clicks, context, x, y, context.timeMillis, position, charIndex) { TextRange(0, edit.text.length) }
         }
         open(context)
         return true
@@ -1250,6 +1250,7 @@ class ComboboxWidget(
      */
     override fun keyPressed(context: UiContext, event: KeyEvent): Boolean {
         if (!enabled) return false
+        clicks.reset()
         when (TextEditKeys.handleClipboard(edit, event, context, lineBreak = " ")) {
             TextEditKeys.Result.IGNORED -> Unit
             TextEditKeys.Result.MOVED -> return true
