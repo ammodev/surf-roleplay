@@ -4,6 +4,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenPresentation
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
 import dev.slne.surf.roleplay.api.client.common.screen.SheetSide
+import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
@@ -347,6 +348,73 @@ class GuiNavigationTest {
         assertEquals(ScreenVariant.DARK, fake.lastScreen.definition.variant)
         assertTrue(page.isOpen)
         assertEquals(0, page.closedCount)
+    }
+
+    /**
+     * A child page that changes the counter of the page below it.
+     *
+     * @property below the page whose counter the child changes
+     */
+    class ParentWritingPage(private val below: NavPage) : GuiPage() {
+        /**
+         * A fixed title.
+         */
+        override val title: Component = Component.text("Kind")
+
+        /**
+         * Renders a button that changes the parent's counter and a button that does so and closes
+         * the child.
+         */
+        override fun ComponentScope.render() {
+            Column {
+                Button("Plus unten", id = "plus_below") { below.count++ }
+                Button("Plus und zurück", id = "plus_back") {
+                    below.count++
+                    back()
+                }
+            }
+        }
+
+        /**
+         * Changes the parent's counter when the child closes.
+         */
+        override fun onClosed() {
+            below.count += 10
+        }
+    }
+
+    /**
+     * Verifies that a child handler that changes the parent's state and goes back patches the
+     * parent's screen.
+     */
+    @Test
+    fun `a child handler that changes the parent state refreshes the parent`() {
+        val fake = FakeOpener()
+        val root = fake.open(NavPage())
+        val rootScreen = fake.lastScreen
+        root.target = ParentWritingPage(root)
+        fake.click("navigate", rootScreen)
+        fake.click("plus_below")
+        assertEquals(Component.text("Wert: 1"), (rootScreen.find("value") as TextElement).text)
+        fake.click("plus_back")
+        assertEquals(12, root.count)
+        assertEquals(Component.text("Wert: 12"), (rootScreen.find("value") as TextElement).text)
+    }
+
+    /**
+     * Verifies that a child closed by the player whose `onClosed` changes the parent's state
+     * patches the parent's screen.
+     */
+    @Test
+    fun `a child closed by the player refreshes the parent`() {
+        val fake = FakeOpener()
+        val root = fake.open(NavPage())
+        val rootScreen = fake.lastScreen
+        root.target = ParentWritingPage(root)
+        fake.click("navigate", rootScreen)
+        fake.close(fake.lastScreen)
+        assertEquals(10, root.count)
+        assertEquals(Component.text("Wert: 10"), (rootScreen.find("value") as TextElement).text)
     }
 
     /**

@@ -139,9 +139,10 @@ internal class GuiSession(
     }
 
     /**
-     * Runs the newest handler of an element and re-renders the page afterwards if it changed. An
-     * exception of the handler is logged and does not stop the re-render. Does nothing once the
-     * screen is closed, or if the newest render has no such handler.
+     * Runs the newest handler of an element and re-renders the page afterwards if it changed,
+     * followed by every page below it whose state the handler changed. An exception of the handler
+     * is logged and does not stop the re-render. Does nothing once the screen is closed, or if the
+     * newest render has no such handler.
      *
      * A reported value is remembered: a later render that changes the element's value to the
      * reported one sends no change for it.
@@ -161,6 +162,19 @@ internal class GuiSession(
             log.atWarning().withCause(exception).log("The %s handler of element %s on page %s failed", kind, elementId, page.javaClass.name)
         }
         flush()
+        flushAncestors()
+    }
+
+    /**
+     * Re-renders every page below this one, from the nearest to the root page, whose state
+     * changed and whose screen is open.
+     */
+    private fun flushAncestors() {
+        var ancestor = parent
+        while (ancestor != null) {
+            ancestor.flush()
+            ancestor = ancestor.parent
+        }
     }
 
     /**
@@ -276,11 +290,16 @@ internal class GuiSession(
 
     /**
      * Runs the page's close handler when its screen closed, unless the screen closed because the
-     * page is reopened in place.
+     * page is reopened in place, and then re-renders every page below it whose state changed and
+     * whose screen is still open.
      */
     private fun screenClosed() {
         if (reopening) return
-        page.onClosed()
+        try {
+            page.onClosed()
+        } finally {
+            flushAncestors()
+        }
     }
 
     /**

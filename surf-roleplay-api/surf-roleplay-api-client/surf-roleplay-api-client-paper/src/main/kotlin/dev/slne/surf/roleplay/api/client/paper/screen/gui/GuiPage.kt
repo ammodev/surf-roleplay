@@ -38,7 +38,8 @@ import kotlin.reflect.KProperty
  *
  * A page can open other pages on top of its screen with [navigate], [dialog] and [sheet]; [back]
  * closes the page and [close] closes the whole GUI. Each open page renders and handles its own
- * screen.
+ * screen. A handler or [onClosed] of a page that changes the state of a page below it re-renders
+ * that page as well once it finished.
  *
  * Every member must be used on the player's region thread, where the page's handlers run.
  */
