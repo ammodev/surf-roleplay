@@ -15,6 +15,7 @@ import dev.slne.surf.roleplay.protocol.screen.CollapsibleContentNode
 import dev.slne.surf.roleplay.protocol.screen.CollapsibleNode
 import dev.slne.surf.roleplay.protocol.screen.CollapsibleTriggerNode
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
+import dev.slne.surf.roleplay.protocol.screen.RowNode
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
@@ -269,5 +270,117 @@ class DisclosureWidgetsTest {
 
         assertEquals("a,c", widget(panel, "accordion").inputValue)
         assertFalse(widget(panel, "content_c").hidden)
+    }
+
+    /**
+     * Verifies that a trigger inside a row toggles the content without firing an action.
+     */
+    @Test
+    fun `collapsible trigger inside a row toggles the content`() {
+        val panel = panel(
+            CollapsibleNode(
+                "collapsible",
+                children = listOf(
+                    RowNode("row", children = listOf(CollapsibleTriggerNode("trigger", children = listOf(ButtonNode("toggle", text = "Mehr"))))),
+                    CollapsibleContentNode("content", children = listOf(LabelNode("text", text = "Text"))),
+                ),
+            ),
+        )
+
+        click(panel, "toggle")
+        assertFalse(widget(panel, "content").hidden)
+        click(panel, "toggle")
+
+        assertTrue(widget(panel, "content").hidden)
+        assertEquals(emptyList(), actions)
+    }
+
+    /**
+     * Verifies that content wrapped in a column is shown and hidden.
+     */
+    @Test
+    fun `collapsible content inside a column is shown and hidden`() {
+        val panel = panel(
+            CollapsibleNode(
+                "collapsible",
+                children = listOf(
+                    CollapsibleTriggerNode("trigger", children = listOf(ButtonNode("toggle", text = "Mehr"))),
+                    ColumnNode("wrap", children = listOf(CollapsibleContentNode("content", children = listOf(LabelNode("text", text = "Text"))))),
+                ),
+            ),
+        )
+        assertTrue(widget(panel, "content").hidden)
+
+        click(panel, "toggle")
+        assertFalse(widget(panel, "content").hidden)
+        click(panel, "toggle")
+
+        assertTrue(widget(panel, "content").hidden)
+    }
+
+    /**
+     * Verifies that the trigger of a nested collapsible toggles only the inner one.
+     */
+    @Test
+    fun `nested collapsible trigger toggles only the inner collapsible`() {
+        val panel = panel(
+            CollapsibleNode(
+                "outer",
+                children = listOf(
+                    CollapsibleTriggerNode("outer_trigger", children = listOf(ButtonNode("outer_toggle", text = "Aussen"))),
+                    CollapsibleContentNode(
+                        "outer_content",
+                        children = listOf(
+                            CollapsibleNode(
+                                "inner",
+                                children = listOf(
+                                    RowNode("row", children = listOf(CollapsibleTriggerNode("inner_trigger", children = listOf(ButtonNode("inner_toggle", text = "Innen"))))),
+                                    CollapsibleContentNode("inner_content", children = listOf(LabelNode("text", text = "Text"))),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        click(panel, "outer_toggle")
+        assertEquals("true", widget(panel, "outer").inputValue)
+
+        click(panel, "inner_toggle")
+
+        assertEquals("true", widget(panel, "inner").inputValue)
+        assertEquals("true", widget(panel, "outer").inputValue)
+        assertFalse(widget(panel, "inner_content").hidden)
+        assertFalse(widget(panel, "outer_content").hidden)
+        assertEquals(emptyList(), actions)
+    }
+
+    /**
+     * Verifies that an accordion trigger and content nested in layout containers of the item work.
+     */
+    @Test
+    fun `accordion trigger and content inside containers toggle the item`() {
+        val panel = panel(
+            AccordionNode(
+                "accordion",
+                type = AccordionType.SINGLE,
+                children = listOf(
+                    AccordionItemNode(
+                        "item",
+                        value = "a",
+                        children = listOf(
+                            RowNode("row", children = listOf(AccordionTriggerNode("trigger", text = "\"a\""))),
+                            ColumnNode("wrap", children = listOf(AccordionContentNode("content", children = listOf(LabelNode("text", text = "Text"))))),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        assertTrue(widget(panel, "content").hidden)
+
+        click(panel, "trigger")
+
+        assertFalse(widget(panel, "content").hidden)
+        assertEquals("a", widget(panel, "accordion").inputValue)
     }
 }

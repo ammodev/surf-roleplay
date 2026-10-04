@@ -48,8 +48,34 @@ class CollapsibleWidget(id: String) : ContainerWidget(id, Axis.VERTICAL), Action
      */
     fun setOpen(open: Boolean) {
         this.open = open
-        childList.filterIsInstance<CollapsibleContentWidget>().forEach { it.hidden = !open }
+        ownedParts(CollapsibleContentWidget::class.java, this).forEach { it.hidden = !open }
     }
+
+    /**
+     * Collects the parts of this collapsible: the widgets of a type below it at any depth, not
+     * looking into a nested collapsible or into a part found.
+     *
+     * @param type the type of the parts
+     * @param widget the widget whose children are searched
+     * @return the parts, in tree order
+     */
+    private fun <T : Widget> ownedParts(type: Class<T>, widget: Widget): List<T> =
+        widget.children.flatMap { child ->
+            when {
+                type.isInstance(child) -> listOf(type.cast(child))
+                child is CollapsibleWidget -> emptyList()
+                else -> ownedParts(type, child)
+            }
+        }
+
+    /**
+     * Tells whether a widget lies inside a trigger of this collapsible.
+     *
+     * @param widget the widget
+     * @return whether one of the triggers of this collapsible holds the widget
+     */
+    private fun inOwnTrigger(widget: Widget): Boolean =
+        ownedParts(CollapsibleTriggerWidget::class.java, this).any { trigger -> WidgetTree.find(trigger, widget.id) === widget }
 
     /**
      * Toggles the collapsible when an action fires inside one of its triggers, and reports the
@@ -58,10 +84,10 @@ class CollapsibleWidget(id: String) : ContainerWidget(id, Axis.VERTICAL), Action
      * @param context the screen showing the widget
      * @param widget the widget whose action fired
      * @param via the child holding the widget
-     * @return whether the action came from a trigger
+     * @return whether the action came from a trigger of this collapsible, at any depth
      */
     override fun interceptAction(context: UiContext, widget: Widget, via: Widget): Boolean {
-        if (via !is CollapsibleTriggerWidget) return false
+        if (!inOwnTrigger(widget)) return false
         if (enabled) {
             setOpen(!open)
             markChanged(context, immediate = true)
@@ -225,7 +251,18 @@ class AccordionItemWidget(id: String, val value: String) : ContainerWidget(id, A
     /**
      * The trigger of the item, or `null` if it has none.
      */
-    val trigger: AccordionTriggerWidget? get() = childList.firstOrNull { it is AccordionTriggerWidget } as AccordionTriggerWidget?
+    val trigger: AccordionTriggerWidget? get() = ownedParts(AccordionTriggerWidget::class.java, this).firstOrNull()
+
+    /**
+     * Collects the parts of this item: the widgets of a type below it at any depth, not looking
+     * into a part found.
+     *
+     * @param type the type of the parts
+     * @param widget the widget whose children are searched
+     * @return the parts, in tree order
+     */
+    private fun <T : Widget> ownedParts(type: Class<T>, widget: Widget): List<T> =
+        widget.children.flatMap { child -> if (type.isInstance(child)) listOf(type.cast(child)) else ownedParts(type, child) }
 
     /**
      * Shows or hides the content.
@@ -234,7 +271,7 @@ class AccordionItemWidget(id: String, val value: String) : ContainerWidget(id, A
      */
     fun setOpen(open: Boolean) {
         this.open = open
-        childList.filterIsInstance<AccordionContentWidget>().forEach { it.hidden = !open }
+        ownedParts(AccordionContentWidget::class.java, this).forEach { it.hidden = !open }
     }
 }
 
