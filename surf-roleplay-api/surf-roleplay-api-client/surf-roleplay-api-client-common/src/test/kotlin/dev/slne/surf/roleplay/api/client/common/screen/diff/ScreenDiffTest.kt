@@ -238,4 +238,56 @@ class ScreenDiffTest {
         val new = tree { Column { Popover(open = true, id = "pop") { P("b", id = "b"); P("a", id = "a") } } }
         assertEquals(listOf<ScreenChange>(ScreenChange.Replace("pop", (new as ContainerElement).children.single())), ScreenDiff.diff(old, new))
     }
+
+    /**
+     * Verifies that an input whose new value equals the value the screen reported sends nothing,
+     * although the old tree holds another value.
+     */
+    @Test
+    fun `a reported value equal to the new value gives no change`() {
+        val old = tree { Column { Input(value = "", id = "q") } }
+        val new = tree { Column { Input(value = "abc", id = "q") } }
+        assertEquals(emptyList(), ScreenDiff.diff(old, new, mapOf("q" to "abc")))
+    }
+
+    /**
+     * Verifies that an input whose value did not change between the trees gets the new value if
+     * the screen reported another one.
+     */
+    @Test
+    fun `a reported value that differs from the new value is set`() {
+        val old = tree { Column { Input(value = "", id = "q"); P("a", id = "a") } }
+        val new = tree { Column { Input(value = "", id = "q"); P("a", id = "a") } }
+        assertEquals(listOf(ScreenChange.SetValue("q", "")), ScreenDiff.diff(old, new, mapOf("q" to "abc")))
+    }
+
+    /**
+     * Verifies that a reported open state counts as the overlay's shown state.
+     */
+    @Test
+    fun `a reported open state counts as shown`() {
+        val old = tree { Column { Popover(open = false, id = "pop") { P("a", id = "a") } } }
+        val new = tree { Column { Popover(open = true, id = "pop") { P("a", id = "a") } } }
+        assertEquals(emptyList(), ScreenDiff.diff(old, new, mapOf("pop" to "true")))
+        assertEquals(listOf(ScreenChange.SetOpen("pop", false)), ScreenDiff.diff(old, old, mapOf("pop" to "true")))
+    }
+
+    /**
+     * Verifies that an input with a reported value and another changed field is still replaced.
+     */
+    @Test
+    fun `a reported input with another change is replaced`() {
+        val old = tree { Column { Input(value = "", placeholder = Component.text("p"), id = "q") } }
+        val new = tree { Column { Input(value = "abc", placeholder = Component.text("r"), id = "q") } }
+        assertEquals("q", assertIs<ScreenChange.Replace>(ScreenDiff.diff(old, new, mapOf("q" to "abc")).single()).targetId)
+    }
+
+    /**
+     * Verifies that a reported id that is not in the old tree changes nothing.
+     */
+    @Test
+    fun `a reported id missing from the tree is ignored`() {
+        val old = tree { Column { P("a", id = "a") } }
+        assertEquals(emptyList(), ScreenDiff.diff(old, old, mapOf("gone" to "x")))
+    }
 }
