@@ -12,7 +12,6 @@ import dev.slne.surf.roleplay.paper.listener.UserConnectionListener
 import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
 import dev.slne.surf.roleplay.paper.screen.PaperScreenService
 import dev.slne.surf.roleplay.paper.toast.PaperToastService
-import dev.slne.surf.roleplay.paper.screen.debug.ScreenDebugCommand
 import dev.slne.surf.roleplay.paper.storybook.StorybookCommand
 import dev.slne.surf.roleplay.paper.welcome.WelcomeListener
 import org.bukkit.plugin.java.JavaPlugin
@@ -38,7 +37,7 @@ class PaperMain : SuspendingJavaPlugin() {
 
     /**
      * Enables the client instance, registers the roleplay payload channels, the mod handshake, the
-     * welcome sender, the screen service, the screen debug and storybook commands and the vanilla crafting block,
+     * welcome sender, the screen service, the storybook command and the vanilla crafting block,
      * and registers the listener that acquires a hold on the roleplay user of every player logging in and releases it when the
      * player's connection closes.
      *
@@ -58,7 +57,6 @@ class PaperMain : SuspendingJavaPlugin() {
         server.pluginManager.registerEvents(WelcomeListener(packetRegistry), this)
         PaperScreenService.INSTANCE.start(this, packetRegistry, config.getInt("screens.max-actions-per-second", 20))
         PaperToastService.INSTANCE.start(this, packetRegistry, PaperScreenService.INSTANCE.actionLimiter)
-        ScreenDebugCommand.register(this)
         StorybookCommand.register(this)
         server.pluginManager.registerEvents(CraftingBlocker(), this)
 

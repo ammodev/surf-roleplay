@@ -6,10 +6,37 @@ import dev.slne.surf.roleplay.protocol.PacketDirection
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.Packets
 import dev.slne.surf.roleplay.protocol.ProtocolCodec
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.protobuf.ProtoNumber
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+
+/**
+ * The state of the test screen type.
+ *
+ * @property value the number the screen shows
+ */
+@Serializable
+private data class TestState(
+    @ProtoNumber(1) val value: Int = 0,
+)
+
+/**
+ * An action of the test screen type.
+ *
+ * @property delta the amount by which the player asks to change the number
+ */
+@Serializable
+private data class TestAction(
+    @ProtoNumber(1) val delta: Int = 0,
+)
+
+/**
+ * A screen type that exists only for these tests.
+ */
+private val TEST_TYPE: ScreenType<TestState, TestAction> = ScreenType("test_counter", TestState.serializer(), TestAction.serializer())
 
 /**
  * Tests for the screen model and the screen packets.
@@ -101,13 +128,13 @@ class ScreenProtocolTest {
      */
     @Test
     fun `screen open with a typed body round-trips`() {
-        val state = ScreenTypes.DEBUG_COUNTER.encodeState(CounterState(5))
-        val packet = ScreenOpen(sessionId = 2, title = "{}", body = TypedScreenBody(ScreenTypes.DEBUG_COUNTER.key, state))
+        val state = TEST_TYPE.encodeState(TestState(5))
+        val packet = ScreenOpen(sessionId = 2, title = "{}", body = TypedScreenBody(TEST_TYPE.key, state))
 
         val body = assertIs<TypedScreenBody>(assertIs<ScreenOpen>(roundTrip(Packets.SCREEN_OPEN, packet)).body)
 
-        assertEquals("debug_counter", body.typeKey)
-        assertEquals(CounterState(5), ScreenTypes.DEBUG_COUNTER.decodeState(body.state))
+        assertEquals("test_counter", body.typeKey)
+        assertEquals(TestState(5), TEST_TYPE.decodeState(body.state))
     }
 
     /**
@@ -168,15 +195,15 @@ class ScreenProtocolTest {
     }
 
     /**
-     * Verifies that a typed action keeps its action bytes and decodes as a counter action.
+     * Verifies that a typed action keeps its action bytes and decodes as an action of its type.
      */
     @Test
     fun `screen typed action round-trips`() {
-        val packet = ScreenTypedAction(3, ScreenTypes.DEBUG_COUNTER.encodeAction(CounterAction(-1)))
+        val packet = ScreenTypedAction(3, TEST_TYPE.encodeAction(TestAction(-1)))
 
         val decoded = assertIs<ScreenTypedAction>(roundTrip(Packets.SCREEN_TYPED_ACTION, packet))
 
-        assertEquals(CounterAction(-1), ScreenTypes.DEBUG_COUNTER.decodeAction(decoded.action))
+        assertEquals(TestAction(-1), TEST_TYPE.decodeAction(decoded.action))
     }
 
     /**

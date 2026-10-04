@@ -3,7 +3,6 @@ package dev.slne.surf.roleplay.paper.storybook
 import com.mojang.brigadier.Command
 import dev.slne.surf.roleplay.api.client.common.toast.Toast
 import dev.slne.surf.roleplay.api.client.paper.toast.ToastService
-import dev.slne.surf.roleplay.paper.screen.debug.ScreenDebugCommand
 import io.papermc.paper.command.brigadier.Commands
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
 import net.kyori.adventure.text.Component
@@ -12,10 +11,15 @@ import org.bukkit.plugin.Plugin
 
 /**
  * The staff command `/rpstorybook`, which opens the storybook of the screen components. It needs
- * the permission [ScreenDebugCommand.PERMISSION] and a player as sender. Clicks and changes in the
+ * the permission [PERMISSION] and a player as sender. Clicks and changes in the
  * storybook are reported to the player as toasts.
  */
 object StorybookCommand {
+
+    /**
+     * The permission needed to run the command.
+     */
+    const val PERMISSION: String = "surf.roleplay.command.rpstorybook"
 
     /**
      * Registers the command.
@@ -26,7 +30,7 @@ object StorybookCommand {
         plugin.lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS) { event ->
             event.registrar().register(
                 Commands.literal("rpstorybook")
-                    .requires { it.sender.hasPermission(ScreenDebugCommand.PERMISSION) && it.executor is Player }
+                    .requires { it.sender.hasPermission(PERMISSION) && it.executor is Player }
                     .executes { context ->
                         open(context.source.executor as Player)
                         Command.SINGLE_SUCCESS

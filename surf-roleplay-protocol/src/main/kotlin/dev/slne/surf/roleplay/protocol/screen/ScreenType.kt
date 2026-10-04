@@ -1,9 +1,7 @@
 package dev.slne.surf.roleplay.protocol.screen
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoBuf
-import kotlinx.serialization.protobuf.ProtoNumber
 
 /**
  * The description of one kind of typed screen: its key and the schemas of its state and of the
@@ -82,15 +80,9 @@ class ScreenType<S, A>(
  */
 object ScreenTypes {
     /**
-     * The debug counter, a typed screen that shows a number and can raise or lower it.
-     */
-    val DEBUG_COUNTER: ScreenType<CounterState, CounterAction> =
-        ScreenType("debug_counter", CounterState.serializer(), CounterAction.serializer())
-
-    /**
      * Every screen type of the protocol.
      */
-    val all: List<ScreenType<*, *>> = listOf(DEBUG_COUNTER)
+    val all: List<ScreenType<*, *>> = emptyList()
 
     /**
      * The screen types keyed by their key.
@@ -109,23 +101,3 @@ object ScreenTypes {
      */
     fun byKey(key: String): ScreenType<*, *>? = typesByKey[key]
 }
-
-/**
- * The state of the debug counter screen.
- *
- * @property value the number the screen shows
- */
-@Serializable
-data class CounterState(
-    @ProtoNumber(1) val value: Int = 0,
-)
-
-/**
- * An action of the debug counter screen.
- *
- * @property delta the amount by which the player asks to change the number
- */
-@Serializable
-data class CounterAction(
-    @ProtoNumber(1) val delta: Int = 0,
-)
