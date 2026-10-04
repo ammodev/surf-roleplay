@@ -367,8 +367,8 @@ class CommandListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL) {
         if (!isOver(x, y)) return false
         val next = (scrollOffset - (amount * STEP).toInt()).coerceIn(0, maxScroll)
         if (next == scrollOffset) return false
+        shownChildren.forEach { it.offset(0, scrollOffset - next) }
         scrollOffset = next
-        context.requestLayout()
         return true
     }
 

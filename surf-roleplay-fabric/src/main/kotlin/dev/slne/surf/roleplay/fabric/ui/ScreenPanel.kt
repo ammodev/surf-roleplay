@@ -634,7 +634,8 @@ class ScreenPanel(
         }
         if (!panel.contains(x, y)) return false
         if (viewport.contains(x, y) && root.mouseScrolled(this, x, y, amount)) return true
-        if (scroll.scrollBy((amount * UiMetrics.SCROLL_STEP).roundToInt())) requestLayout()
+        val before = scroll.offset
+        if (scroll.scrollBy((amount * UiMetrics.SCROLL_STEP).roundToInt())) root.offset(0, before - scroll.offset)
         return true
     }
 

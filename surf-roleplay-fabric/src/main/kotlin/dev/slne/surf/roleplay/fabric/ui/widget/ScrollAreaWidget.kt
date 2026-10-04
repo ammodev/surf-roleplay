@@ -227,13 +227,27 @@ open class ScrollAreaWidget(id: String, val orientation: ScrollOrientation) : Co
         if (axis == Axis.VERTICAL) {
             val thumb = verticalThumb()
             val track = bounds.height - thumb.height
-            if (track > 0) scrollY = ((y.toInt() - offset - bounds.y) * maxScrollY / track).coerceIn(0, maxScrollY)
+            if (track > 0) scrollTo(scrollX, ((y.toInt() - offset - bounds.y) * maxScrollY / track).coerceIn(0, maxScrollY))
         } else {
             val thumb = horizontalThumb()
             val track = bounds.width - thumb.width
-            if (track > 0) scrollX = ((x.toInt() - offset - bounds.x) * maxScrollX / track).coerceIn(0, maxScrollX)
+            if (track > 0) scrollTo(((x.toInt() - offset - bounds.x) * maxScrollX / track).coerceIn(0, maxScrollX), scrollY)
         }
-        context.requestLayout()
+    }
+
+    /**
+     * Scrolls to new offsets by moving the content by the difference, without laying it out
+     * again.
+     *
+     * @param x the new horizontal offset, within the content
+     * @param y the new vertical offset, within the content
+     */
+    private fun scrollTo(x: Int, y: Int) {
+        val dx = x - scrollX
+        val dy = y - scrollY
+        scrollX = x
+        scrollY = y
+        if (dx != 0 || dy != 0) shownChildren.forEach { it.offset(-dx, -dy) }
     }
 
     /**
@@ -253,16 +267,14 @@ open class ScrollAreaWidget(id: String, val orientation: ScrollOrientation) : Co
         if (scrollsY) {
             val next = (scrollY - step).coerceIn(0, maxScrollY)
             if (next != scrollY) {
-                scrollY = next
-                context.requestLayout()
+                scrollTo(scrollX, next)
                 return true
             }
         }
         if (scrollsX) {
             val next = (scrollX - step).coerceIn(0, maxScrollX)
             if (next != scrollX) {
-                scrollX = next
-                context.requestLayout()
+                scrollTo(next, scrollY)
                 return true
             }
         }

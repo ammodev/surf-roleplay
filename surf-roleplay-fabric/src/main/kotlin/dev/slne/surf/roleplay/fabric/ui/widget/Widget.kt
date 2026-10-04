@@ -707,8 +707,8 @@ class ScrollListWidget(id: String) : ContainerWidget(id, Axis.VERTICAL), ScrollC
         if (super.mouseScrolled(context, x, y, amount)) return true
         val next = (scrollOffset - (amount * UiMetrics.SCROLL_STEP).toInt()).coerceIn(0, maxScroll)
         if (next == scrollOffset) return false
+        shownChildren.forEach { it.offset(0, scrollOffset - next) }
         scrollOffset = next
-        context.requestLayout()
         return true
     }
 
