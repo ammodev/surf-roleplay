@@ -108,14 +108,19 @@ class TabListStateBuilderTest {
     }
 
     /**
-     * Verifies that an organisation whose provider throws is left out, the others are kept, and
-     * the failure is logged at most once per minute.
+     * Verifies that an organisation whose provider throws keeps its row with the unknown level and
+     * no exact count, the others are kept, and the failure is logged at most once per minute.
      */
     @Test
-    fun `throwing organisation is left out and logged once per minute`() {
+    fun `throwing organisation is unknown and logged once per minute`() {
         val providers = listOf(FakeOrganisation("broken", null), FakeOrganisation("sar", 1))
+        val exact = TabListConfig(organisations = mapOf("broken" to TabListConfig.Organisation(exact = true)))
 
-        repeat(3) { assertEquals(listOf("sar"), builder.organisations(providers, count, TabListConfig()).map { it.key }) }
+        repeat(3) {
+            val counts = builder.organisations(providers, count, exact)
+            assertEquals(OrganisationCount("broken", ScreenMapper.text(Component.text("broken")), "shield", OnlineLevel.UNKNOWN, null), counts[0])
+            assertEquals(OnlineLevel.FEW, counts[1].level)
+        }
         assertEquals(listOf("organisation 'broken'"), logged)
 
         now += 59_999
@@ -125,6 +130,33 @@ class TabListStateBuilderTest {
         now += 1
         builder.organisations(providers, count, TabListConfig())
         assertEquals(2, logged.size)
+    }
+
+    /**
+     * Verifies that a provider whose label and icon throw still gets a row, labelled with its key
+     * and without an icon, and that a provider whose key and count throw is keyed by its class name
+     * with the unknown level.
+     */
+    @Test
+    fun `throwing label and key fall back`() {
+        val broken = object : OrganisationCountProvider {
+            override val key: String get() = error("broken")
+            override val label: Component get() = error("broken")
+            override val icon: String get() = error("broken")
+            override fun counts(player: Player): Boolean = error("unused")
+        }
+        val noLabel = object : OrganisationCountProvider {
+            override val key = "police"
+            override val label: Component get() = error("broken")
+            override val icon: String get() = error("broken")
+            override fun counts(player: Player): Boolean = error("unused")
+        }
+
+        val counts = builder.organisations(listOf(noLabel, broken), { if (it === broken) error("broken") else 1 }, TabListConfig())
+
+        assertEquals(OrganisationCount("police", ScreenMapper.text(Component.text("police")), "", OnlineLevel.FEW), counts[0])
+        assertEquals(broken.javaClass.name, counts[1].key)
+        assertEquals(OnlineLevel.UNKNOWN, counts[1].level)
     }
 
     /**

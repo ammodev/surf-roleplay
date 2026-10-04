@@ -72,6 +72,16 @@ class TabListProtocolTest {
     }
 
     /**
+     * Verifies that every online level, including the unknown level, survives a round trip.
+     */
+    @Test
+    fun `every level round-trips`() {
+        val state = TabListState(organisations = OnlineLevel.entries.map { OrganisationCount(it.name, "\"${it.name}\"", level = it) })
+
+        assertEquals(state, roundTrip(state))
+    }
+
+    /**
      * Verifies that the packet is registered as clientbound in the play phase.
      */
     @Test

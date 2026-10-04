@@ -26,6 +26,12 @@ enum class OnlineLevel {
      */
     @ProtoNumber(2)
     MANY,
+
+    /**
+     * The count is not known because it could not be determined.
+     */
+    @ProtoNumber(3)
+    UNKNOWN,
 }
 
 /**

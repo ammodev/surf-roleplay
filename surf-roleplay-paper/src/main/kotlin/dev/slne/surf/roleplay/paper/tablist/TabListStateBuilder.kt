@@ -3,6 +3,7 @@ package dev.slne.surf.roleplay.paper.tablist
 import dev.slne.surf.roleplay.api.client.paper.tablist.OrganisationCountProvider
 import dev.slne.surf.roleplay.api.client.paper.tablist.SelfInfoProvider
 import dev.slne.surf.roleplay.paper.screen.ScreenMapper
+import dev.slne.surf.roleplay.protocol.tablist.OnlineLevel
 import dev.slne.surf.roleplay.protocol.tablist.OrganisationCount
 import dev.slne.surf.roleplay.protocol.tablist.TabListState
 import net.kyori.adventure.text.Component
@@ -13,8 +14,10 @@ import java.util.concurrent.ConcurrentHashMap
  * Builds the tab list state of a player from the registered providers, the tab list settings and
  * the clock.
  *
- * A provider that throws does not stop the build: an organisation whose provider throws is left
- * out, and a self value whose provider throws is taken from the next provider or left empty. Each
+ * A provider that throws does not stop the build: an organisation whose count cannot be determined
+ * keeps its row with [OnlineLevel.UNKNOWN] and no exact count, a key, label or icon that cannot
+ * be read falls back to the provider's class name, the key, or no icon, and a self value whose
+ * provider throws is taken from the next provider or left empty. Each
  * failing provider is reported to [logFailure] at most once per [LOG_INTERVAL_MILLIS]. Every
  * method is thread-safe.
  *
@@ -36,25 +39,27 @@ class TabListStateBuilder(
      * @param providers the organisation providers in display order
      * @param count returns the number of online players a provider counts
      * @param config the tab list settings
-     * @return one count per organisation whose provider did not throw, in provider order; the
-     *         exact count is set only for organisations configured exact
+     * @return one count per organisation, in provider order; the exact count is set only for
+     *         organisations configured exact whose count could be determined
      */
     fun organisations(
         providers: List<OrganisationCountProvider>,
         count: (OrganisationCountProvider) -> Int,
         config: TabListConfig,
-    ): List<OrganisationCount> = providers.mapNotNull { provider ->
-        guarded(provider, { "organisation '${runCatching { provider.key }.getOrElse { provider.javaClass.name }}'" }) {
-            val settings = config.organisation(provider.key)
-            val count = count(provider)
-            OrganisationCount(
-                key = provider.key,
-                label = ScreenMapper.text(provider.label),
-                icon = provider.icon,
-                level = OnlineLevels.level(count, settings.thresholds),
-                exact = if (settings.exact) count else null,
-            )
-        }
+    ): List<OrganisationCount> = providers.map { provider ->
+        val key = guarded(provider, { "organisation ${provider.javaClass.name}" }) { provider.key } ?: provider.javaClass.name
+        val name = { "organisation '$key'" }
+        val label = guarded(provider, name) { ScreenMapper.text(provider.label) } ?: ScreenMapper.text(Component.text(key))
+        val icon = guarded(provider, name) { provider.icon } ?: ""
+        val settings = config.organisation(key)
+        val count = guarded(provider, name) { count(provider) }
+        OrganisationCount(
+            key = key,
+            label = label,
+            icon = icon,
+            level = count?.let { OnlineLevels.level(it, settings.thresholds) } ?: OnlineLevel.UNKNOWN,
+            exact = if (settings.exact) count else null,
+        )
     }
 
     /**

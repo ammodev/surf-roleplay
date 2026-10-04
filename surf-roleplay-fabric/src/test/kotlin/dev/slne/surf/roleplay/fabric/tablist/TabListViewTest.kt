@@ -84,6 +84,17 @@ class TabListViewTest {
     }
 
     /**
+     * Verifies that an organisation whose count is unknown shows a dash.
+     */
+    @Test
+    fun `unknown level is a dash`() {
+        val unknown = state.copy(organisations = listOf(OrganisationCount("police", """{"text":"Polizei"}""", "shield", OnlineLevel.UNKNOWN)))
+        val view = TabListView.of(unknown, serverTime, berlin, ping = 20)
+        assertEquals(listOf("–"), view.organisations.map { plain(it.value) })
+        assertEquals("shield", view.organisations[0].icon)
+    }
+
+    /**
      * Verifies the info cells: online total, clock and weather.
      */
     @Test

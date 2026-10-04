@@ -87,15 +87,16 @@ data class TabListView(
             Cell(Text(count.label, json = true), Text(count.exact?.toString() ?: level(count.level)), count.icon)
 
         /**
-         * Returns the German word for a coarse online level.
+         * Returns the German word for a coarse online level, or a dash for an unknown level.
          *
          * @param level the level
-         * @return the word
+         * @return the word or [MISSING]
          */
         private fun level(level: OnlineLevel): String = when (level) {
             OnlineLevel.NONE -> "keine"
             OnlineLevel.FEW -> "wenige"
             OnlineLevel.MANY -> "viele"
+            OnlineLevel.UNKNOWN -> MISSING
         }
     }
 }
