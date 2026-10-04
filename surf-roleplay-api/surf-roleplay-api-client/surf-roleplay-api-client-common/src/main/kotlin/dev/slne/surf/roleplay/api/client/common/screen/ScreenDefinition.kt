@@ -1,8 +1,13 @@
 package dev.slne.surf.roleplay.api.client.common.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.HandlerBinder
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputRef
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.renderRoot
 import net.kyori.adventure.text.Component
 import java.time.LocalDate
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * A generic server-driven screen, ready to be opened for a player.
@@ -83,7 +88,15 @@ fun interface ChangeHandler {
  * @property value the new value, in the string form of [ScreenValues.all]
  * @property values the values of every input of the screen after the change
  */
-data class ScreenInputChange(val screen: OpenScreen, val inputId: String, val value: String, val values: ScreenValues)
+data class ScreenInputChange(val screen: OpenScreen, val inputId: String, val value: String, val values: ScreenValues) {
+    /**
+     * Returns the typed value of an input after the change, as [ScreenValues.get] does.
+     *
+     * @param ref the reference to the input
+     * @return the typed value
+     */
+    operator fun <T> get(ref: InputRef<T>): T = values[ref]
+}
 
 /**
  * Handles the closing of a screen.
@@ -111,6 +124,14 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
      * @param errors the error of every invalid input, keyed by input id
      */
     fun fail(errors: Map<String, Component>) = screen.showErrors(errors)
+
+    /**
+     * Returns the typed value of an input, as [ScreenValues.get] does.
+     *
+     * @param ref the reference to the input
+     * @return the typed value
+     */
+    operator fun <T> get(ref: InputRef<T>): T = values[ref]
 }
 
 /**
@@ -120,9 +141,26 @@ data class ScreenClick(val screen: OpenScreen, val buttonId: String, val values:
  *           empty string for number inputs, `true` or `false` for checkboxes, switches and
  *           toggles, the option value or an empty string for selects, native selects and radio
  *           groups, comma-separated values for comboboxes, toggle groups and sliders, and
- *           ISO dates for calendars
+ *           ISO dates for calendars, comma-separated or as `first/last` for a range. Elements
+ *           with a state report it as well: `true` or `false` for the open state of popovers,
+ *           hover cards, dropdown, context and menubar menus, sub-menus, dialogs, alert dialogs,
+ *           sheets, drawers, collapsibles, navigation menu items and sidebar providers, and for
+ *           menu checkbox items; the value of the chosen item or an empty string for menu radio
+ *           groups; the value of the selected tab for tabs; the comma-separated values of the open
+ *           items for accordions; the decimal index of the shown slide, from 0, for carousels;
+ *           the comma-separated shares of the panels in percent for resizable panel groups; and a
+ *           [DataTableView] as JSON, as [DataTableView.toJson] writes it, for data tables
  */
 class ScreenValues(val all: Map<String, String>) {
+
+    /**
+     * Returns the typed value of an input referenced by the component DSL.
+     *
+     * @param ref the reference to the input
+     * @return the value parsed by the reference: an empty text, `null`, `false` or an empty list
+     *         if the value is empty or the screen has no such input, as fits the input's type
+     */
+    operator fun <T> get(ref: InputRef<T>): T = ref.parse(all[ref.id])
 
     /**
      * Returns the text of a text input.
@@ -219,6 +257,21 @@ interface OpenScreen {
      * @param changes the builder that records the changes
      */
     fun patch(changes: ScreenPatchBuilder.() -> Unit)
+
+    /**
+     * Applies changes that were computed before, in order, as one patch, as [patch] does, and
+     * reports whether the screen accepted every one of them. A change the screen refuses, such as
+     * one whose target is missing, is skipped while the others are applied. Screens that cannot
+     * tell refused changes apart report every change as accepted. A closed screen applies nothing
+     * and reports `true`.
+     *
+     * @param changes the changes
+     * @return `false` if the screen refused at least one change, otherwise `true`
+     */
+    fun apply(changes: List<ScreenChange>): Boolean {
+        patch { changes.forEach(::add) }
+        return true
+    }
 
     /**
      * Shows the errors of inputs found by a check the server made. Every field that holds an
@@ -330,7 +383,6 @@ sealed interface ScreenChange {
 /**
  * Records the changes of one patch to an open screen.
  */
-@ScreenDsl
 class ScreenPatchBuilder {
     /**
      * The recorded changes, in order.
@@ -343,6 +395,15 @@ class ScreenPatchBuilder {
     val changes: List<ScreenChange> get() = recorded.toList()
 
     /**
+     * Records a change.
+     *
+     * @param change the change
+     */
+    fun add(change: ScreenChange) {
+        recorded += change
+    }
+
+    /**
      * Replaces an element.
      *
      * @param targetId the id of the element to replace
@@ -353,14 +414,19 @@ class ScreenPatchBuilder {
     }
 
     /**
-     * Replaces an element with one built by the element DSL.
+     * Replaces an element with one built by the component DSL.
+     *
+     * The element is rendered as the root of a tree that replaces [targetId], so it gets the id
+     * [targetId] and a later change can address it again. The generated ids of its descendants are
+     * derived from [targetId] if that starts with `_`, and from `_#` followed by [targetId]
+     * otherwise. An explicit id given to the element wins over [targetId].
      *
      * @param targetId the id of the element to replace
      * @param build the builder that adds exactly one element
      * @throws IllegalStateException if [build] does not add exactly one element
      */
-    fun replace(targetId: String, build: ElementsBuilder.() -> Unit) {
-        replace(targetId, ElementsBuilder().apply(build).single())
+    fun replace(targetId: String, build: ComponentScope.() -> Unit) {
+        replace(targetId, renderRoot(at = targetId, content = build))
     }
 
     /**
@@ -375,14 +441,22 @@ class ScreenPatchBuilder {
     }
 
     /**
-     * Appends the elements built by the element DSL to a container, after its other children,
+     * Appends the elements built by the component DSL to a container, after its other children,
      * such as a new message of a chat view.
+     *
+     * Every call renders its elements under a generated id `_+n` that is unique in the JVM: `n`
+     * comes from one process-wide counter. The first element gets `_+n`, a further element gets
+     * `_+n+1`, `_+n+2` and so on, and the descendants of an element get ids below it, such as
+     * `_+n.0`. Appended content therefore never collides with the generated ids of the screen's
+     * own tree or with other appended content. An explicit id given to an element wins over the
+     * generated one.
      *
      * @param parentId the id of the container
      * @param build the builder of the elements, appended in order
      */
-    fun append(parentId: String, build: ElementsBuilder.() -> Unit) {
-        ElementsBuilder().apply(build).elements.forEach { insert(parentId, Int.MAX_VALUE, it) }
+    fun append(parentId: String, build: ComponentScope.() -> Unit) {
+        val scope = ComponentScope.root(APPEND_PREFIX + APPEND_COUNTER.incrementAndGet(), HandlerBinder.IDENTITY)
+        scope.build(build).elements.toList().forEach { insert(parentId, Int.MAX_VALUE, it) }
     }
 
     /**
@@ -462,5 +536,20 @@ class ScreenPatchBuilder {
      */
     fun setInvalid(targetId: String, invalid: Boolean) {
         recorded += ScreenChange.SetInvalid(targetId, invalid)
+    }
+
+    /**
+     * Holds the counter of appended content.
+     */
+    private companion object {
+        /**
+         * The prefix of the root id of appended content.
+         */
+        const val APPEND_PREFIX: String = "_+"
+
+        /**
+         * The process-wide counter that makes the ids of appended content unique.
+         */
+        val APPEND_COUNTER: AtomicLong = AtomicLong()
     }
 }

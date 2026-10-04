@@ -4,8 +4,10 @@ import dev.slne.surf.roleplay.api.client.common.screen.CalendarElement
 import dev.slne.surf.roleplay.api.client.common.screen.CalendarMode
 import dev.slne.surf.roleplay.api.client.common.screen.CaptionLayout
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
-import dev.slne.surf.roleplay.api.client.common.screen.calendar
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Calendar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.CalendarNode
@@ -71,18 +73,18 @@ class CalendarTest {
     fun `calendars map and submit ISO dates`() {
         val clicks = mutableListOf<ScreenClick>()
         val session = state.open(
-            screen(Component.text("Kalender")) {
-                column("root") {
-                    calendar(
-                        "trip",
+            Screen(Component.text("Kalender")) {
+                Column(id = "root") {
+                    Calendar(
                         CalendarMode.RANGE,
                         selected = listOf(sep(1), sep(5)),
                         month = YearMonth.of(2026, 9),
                         min = sep(1),
                         disabled = setOf(sep(20), sep(10)),
                         captionLayout = CaptionLayout.DROPDOWN,
+                        id = "trip",
                     )
-                    button("submit", Component.text("Senden")) { clicks += it }
+                    Button(Component.text("Senden"), id = "submit") { clicks += it }
                 }
             },
             null,

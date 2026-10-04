@@ -87,36 +87,3 @@ data class CalendarElement(
         }
     }
 }
-
-/**
- * Adds a calendar.
- *
- * @param id the id of the calendar
- * @param mode how many dates the calendar selects
- * @param selected the initially selected dates; for a range its first and last date
- * @param month the initially displayed month, or `null`
- * @param min the first selectable date, or `null` for no limit
- * @param max the last selectable date, or `null` for no limit
- * @param disabled the dates that cannot be selected
- * @param showOutsideDays whether days of the neighbouring months fill the first and last week
- * @param captionLayout how the month caption is shown
- * @param required whether an empty selection is invalid
- * @param enabled whether the player can select dates
- * @param onChange the handler run on every validated change, or `null`
- */
-fun ElementsBuilder.calendar(
-    id: String,
-    mode: CalendarMode = CalendarMode.SINGLE,
-    selected: List<LocalDate> = emptyList(),
-    month: YearMonth? = null,
-    min: LocalDate? = null,
-    max: LocalDate? = null,
-    disabled: Set<LocalDate> = emptySet(),
-    showOutsideDays: Boolean = true,
-    captionLayout: CaptionLayout = CaptionLayout.LABEL,
-    required: Boolean = false,
-    enabled: Boolean = true,
-    onChange: ChangeHandler? = null,
-) {
-    elements += CalendarElement(id, mode, selected, month, min, max, disabled, showOutsideDays, captionLayout, required, enabled, onChange)
-}

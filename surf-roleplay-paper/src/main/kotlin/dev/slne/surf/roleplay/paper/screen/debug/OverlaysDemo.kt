@@ -6,68 +6,74 @@ import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonVariant
 import dev.slne.surf.roleplay.api.client.common.screen.CalendarMode
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.ElementsBuilder
 import dev.slne.surf.roleplay.api.client.common.screen.OverlaySide
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenDefinition
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenThemes
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenVariant
-import dev.slne.surf.roleplay.api.client.common.screen.TextKind
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialog
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialogAction
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialogCancel
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialogContent
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialogMedia
-import dev.slne.surf.roleplay.api.client.common.screen.avatar
-import dev.slne.surf.roleplay.api.client.common.screen.calendar
-import dev.slne.surf.roleplay.api.client.common.screen.command
-import dev.slne.surf.roleplay.api.client.common.screen.commandEmpty
-import dev.slne.surf.roleplay.api.client.common.screen.commandGroup
-import dev.slne.surf.roleplay.api.client.common.screen.commandInput
-import dev.slne.surf.roleplay.api.client.common.screen.commandItem
-import dev.slne.surf.roleplay.api.client.common.screen.commandList
-import dev.slne.surf.roleplay.api.client.common.screen.commandSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.contextMenu
-import dev.slne.surf.roleplay.api.client.common.screen.dialog
-import dev.slne.surf.roleplay.api.client.common.screen.dialogClose
-import dev.slne.surf.roleplay.api.client.common.screen.dialogContent
-import dev.slne.surf.roleplay.api.client.common.screen.dialogDescription
-import dev.slne.surf.roleplay.api.client.common.screen.dialogFooter
-import dev.slne.surf.roleplay.api.client.common.screen.dialogHeader
-import dev.slne.surf.roleplay.api.client.common.screen.dialogTitle
-import dev.slne.surf.roleplay.api.client.common.screen.drawer
-import dev.slne.surf.roleplay.api.client.common.screen.drawerContent
-import dev.slne.surf.roleplay.api.client.common.screen.dropdownMenu
-import dev.slne.surf.roleplay.api.client.common.screen.hoverCard
-import dev.slne.surf.roleplay.api.client.common.screen.hoverCardContent
-import dev.slne.surf.roleplay.api.client.common.screen.menuCheckboxItem
-import dev.slne.surf.roleplay.api.client.common.screen.menuContent
-import dev.slne.surf.roleplay.api.client.common.screen.menuGroup
-import dev.slne.surf.roleplay.api.client.common.screen.menuItem
-import dev.slne.surf.roleplay.api.client.common.screen.menuLabel
-import dev.slne.surf.roleplay.api.client.common.screen.menuRadioGroup
-import dev.slne.surf.roleplay.api.client.common.screen.menuRadioItem
-import dev.slne.surf.roleplay.api.client.common.screen.menuSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.menuSub
-import dev.slne.surf.roleplay.api.client.common.screen.menuSubTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.menubar
-import dev.slne.surf.roleplay.api.client.common.screen.menubarMenu
-import dev.slne.surf.roleplay.api.client.common.screen.menubarTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.overlayContainer
-import dev.slne.surf.roleplay.api.client.common.screen.popover
-import dev.slne.surf.roleplay.api.client.common.screen.popoverContent
-import dev.slne.surf.roleplay.api.client.common.screen.popoverDescription
-import dev.slne.surf.roleplay.api.client.common.screen.popoverHeader
-import dev.slne.surf.roleplay.api.client.common.screen.popoverTitle
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.select
-import dev.slne.surf.roleplay.api.client.common.screen.sheet
-import dev.slne.surf.roleplay.api.client.common.screen.sheetContent
-import dev.slne.surf.roleplay.api.client.common.screen.sheetDescription
-import dev.slne.surf.roleplay.api.client.common.screen.sheetFooter
-import dev.slne.surf.roleplay.api.client.common.screen.sheetHeader
-import dev.slne.surf.roleplay.api.client.common.screen.sheetTitle
-import dev.slne.surf.roleplay.api.client.common.screen.text
-import dev.slne.surf.roleplay.api.client.common.screen.tooltip
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialog
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogAction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogCancel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogMedia
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Avatar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Calendar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Command
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandEmpty
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandInput
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ContextMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Dialog
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogClose
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Drawer
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.H3
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.HoverCard
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.HoverCardContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Large
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuCheckboxItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuLabel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuRadioGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuRadioItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSub
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSubTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Menubar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenubarMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenubarTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Muted
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.OverlayContainer
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Popover
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PopoverTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Sheet
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Tooltip
 import dev.slne.surf.roleplay.api.client.common.toast.Toast
 import dev.slne.surf.roleplay.api.client.common.toast.ToastButton
 import dev.slne.surf.roleplay.api.client.common.toast.ToastType
@@ -128,14 +134,12 @@ object OverlaysDemo {
      */
     fun definition(hooks: Hooks, theme: String, variant: ScreenVariant): ScreenDefinition {
         val clicked = ButtonHandler { click -> hooks.report(Component.text("${click.buttonId} geklickt", NamedTextColor.GREEN)) }
-        return screen(Component.text("Overlays")) {
-            this.theme = theme
-            this.variant = variant
-            column("root", width = ElementSize.fixed(380), gap = 12, crossAlign = Alignment.STRETCH) {
-                row("theme_row", gap = 4, crossAlign = Alignment.CENTER) {
-                    select("theme", InputsDemo.THEMES, selected = theme, width = ElementSize.grow())
-                    select("variant", InputsDemo.VARIANTS, selected = variant.name, width = ElementSize.fixed(90))
-                    button("apply_theme", Component.text("Anwenden"), submitsInput = false, icon = "palette", variant = ButtonVariant.OUTLINE) { click ->
+        return Screen(Component.text("Overlays"), theme = theme, variant = variant) {
+            Column(width = ElementSize.fixed(380), gap = 12, crossAlign = Alignment.STRETCH, id = "root") {
+                Row(gap = 4, crossAlign = Alignment.CENTER, id = "theme_row") {
+                    Select(InputsDemo.THEMES, selected = theme, width = ElementSize.grow(), id = "theme")
+                    Select(InputsDemo.VARIANTS, selected = variant.name, width = ElementSize.fixed(90), id = "variant")
+                    Button(Component.text("Anwenden"), submitsInput = false, icon = "palette", variant = ButtonVariant.OUTLINE, id = "apply_theme") { click ->
                         hooks.reopen(click.values.selected("theme") ?: ScreenThemes.DEFAULT, click.values.selected("variant")?.let(ScreenVariant::valueOf) ?: ScreenVariant.DARK)
                     }
                 }
@@ -155,9 +159,9 @@ object OverlaysDemo {
      * @param title the heading
      * @param content the builder of the section's content
      */
-    private fun ElementsBuilder.section(id: String, title: String, content: ElementsBuilder.() -> Unit) {
-        column(id, gap = 6, crossAlign = Alignment.START) {
-            text("${id}_title", Component.text(title), TextKind.H3)
+    private fun ComponentScope.section(id: String, title: String, content: ComponentScope.() -> Unit) {
+        Column(gap = 6, crossAlign = Alignment.START, id = id) {
+            H3(Component.text(title), id = "${id}_title")
             content()
         }
     }
@@ -167,51 +171,51 @@ object OverlaysDemo {
      *
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.floating(clicked: ButtonHandler) = section("floating", "Popover, Hover-Karte, Tooltip") {
-        row("floating_row", gap = 6, crossAlign = Alignment.CENTER) {
-            popover("popover") {
-                button("popover_trigger", Component.text("Maße"), submitsInput = false, variant = ButtonVariant.OUTLINE)
-                popoverContent("popover_content") {
-                    popoverHeader("popover_header") {
-                        popoverTitle("popover_title", Component.text("Maße"))
-                        popoverDescription("popover_description", Component.text("Lege die Maße der Ebene fest."))
+    private fun ComponentScope.floating(clicked: ButtonHandler) = section("floating", "Popover, Hover-Karte, Tooltip") {
+        Row(gap = 6, crossAlign = Alignment.CENTER, id = "floating_row") {
+            Popover(id = "popover") {
+                Button(Component.text("Maße"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "popover_trigger")
+                PopoverContent(id = "popover_content") {
+                    PopoverHeader(id = "popover_header") {
+                        PopoverTitle(Component.text("Maße"), id = "popover_title")
+                        PopoverDescription(Component.text("Lege die Maße der Ebene fest."), id = "popover_description")
                     }
-                    row("popover_width_row", gap = 4, crossAlign = Alignment.CENTER) {
-                        label("popover_width_label", Component.text("Breite"), width = ElementSize.fixed(40))
-                        textInput("popover_width", value = "100%", width = ElementSize.grow())
+                    Row(gap = 4, crossAlign = Alignment.CENTER, id = "popover_width_row") {
+                        Label(Component.text("Breite"), width = ElementSize.fixed(40), id = "popover_width_label")
+                        Input(value = "100%", width = ElementSize.grow(), id = "popover_width")
                     }
-                    button("popover_save", Component.text("Speichern"), submitsInput = false, onClick = clicked)
+                    Button(Component.text("Speichern"), submitsInput = false, onClick = clicked, id = "popover_save")
                 }
             }
-            popover("date_picker", align = Alignment.START) {
-                button("date_trigger", Component.text("Datum wählen"), submitsInput = false, icon = "calendar", variant = ButtonVariant.OUTLINE)
-                popoverContent("date_content", width = ElementSize.FIT) {
-                    calendar("date", CalendarMode.SINGLE, onChange = { change ->
+            Popover(align = Alignment.START, id = "date_picker") {
+                Button(Component.text("Datum wählen"), submitsInput = false, icon = "calendar", variant = ButtonVariant.OUTLINE, id = "date_trigger")
+                PopoverContent(width = ElementSize.FIT, id = "date_content") {
+                    Calendar(CalendarMode.SINGLE, onChange = { change ->
                         val chosen = change.values.dates("date")?.firstOrNull()
                         change.screen.patch {
                             chosen?.let { setText("date_trigger", Component.text(it.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))) }
                             setOpen("date_picker", false)
                         }
-                    })
+                    }, id = "date")
                 }
             }
-            hoverCard("hover") {
-                button("hover_trigger", Component.text("@ammo"), submitsInput = false, variant = ButtonVariant.LINK)
-                hoverCardContent("hover_content") {
-                    row("hover_row", gap = 6) {
-                        avatar("hover_avatar", Component.text("AM"))
-                        column("hover_texts", gap = 2, width = ElementSize.grow()) {
-                            text("hover_name", Component.text("@ammo"), TextKind.LARGE)
-                            text("hover_bio", Component.text("Baut das Rollenspiel und seine Oberflächen."), TextKind.MUTED)
+            HoverCard(id = "hover") {
+                Button(Component.text("@ammo"), submitsInput = false, variant = ButtonVariant.LINK, id = "hover_trigger")
+                HoverCardContent(id = "hover_content") {
+                    Row(gap = 6, id = "hover_row") {
+                        Avatar(Component.text("AM"), id = "hover_avatar")
+                        Column(gap = 2, width = ElementSize.grow(), id = "hover_texts") {
+                            Large(Component.text("@ammo"), id = "hover_name")
+                            Muted(Component.text("Baut das Rollenspiel und seine Oberflächen."), id = "hover_bio")
                         }
                     }
                 }
             }
         }
-        row("tooltip_row", gap = 6) {
+        Row(gap = 6, id = "tooltip_row") {
             OverlaySide.entries.forEach { side ->
-                tooltip("tooltip_${side.name.lowercase()}", Component.text("Tooltip ${side.name.lowercase()}"), side) {
-                    button("tooltip_trigger_${side.name.lowercase()}", Component.text(side.name.lowercase().replaceFirstChar(Char::uppercase)), submitsInput = false, variant = ButtonVariant.OUTLINE)
+                Tooltip(Component.text("Tooltip ${side.name.lowercase()}"), side, id = "tooltip_${side.name.lowercase()}") {
+                    Button(Component.text(side.name.lowercase().replaceFirstChar(Char::uppercase)), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "tooltip_trigger_${side.name.lowercase()}")
                 }
             }
         }
@@ -222,55 +226,55 @@ object OverlaysDemo {
      *
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.menus(clicked: ButtonHandler) = section("menus", "Menüs") {
-        row("menus_row", gap = 6, crossAlign = Alignment.CENTER) {
-            dropdownMenu("menu", align = Alignment.START) {
-                button("menu_trigger", Component.text("Konto"), submitsInput = false, icon = "user", variant = ButtonVariant.OUTLINE)
-                menuContent("menu_content") {
-                    menuLabel("menu_label", Component.text("Mein Konto"))
-                    menuGroup("menu_group") {
-                        menuItem("menu_profile", Component.text("Profil"), icon = "user", shortcut = Component.text("⇧P"), onClick = clicked)
-                        menuItem("menu_billing", Component.text("Abrechnung"), icon = "credit-card", onClick = clicked)
-                        menuItem("menu_locked", Component.text("Gesperrt"), icon = "lock", enabled = false)
+    private fun ComponentScope.menus(clicked: ButtonHandler) = section("menus", "Menüs") {
+        Row(gap = 6, crossAlign = Alignment.CENTER, id = "menus_row") {
+            DropdownMenu(align = Alignment.START, id = "menu") {
+                Button(Component.text("Konto"), submitsInput = false, icon = "user", variant = ButtonVariant.OUTLINE, id = "menu_trigger")
+                MenuContent(id = "menu_content") {
+                    MenuLabel(Component.text("Mein Konto"), id = "menu_label")
+                    MenuGroup(id = "menu_group") {
+                        MenuItem(Component.text("Profil"), icon = "user", shortcut = Component.text("⇧P"), onClick = clicked, id = "menu_profile")
+                        MenuItem(Component.text("Abrechnung"), icon = "credit-card", onClick = clicked, id = "menu_billing")
+                        MenuItem(Component.text("Gesperrt"), icon = "lock", enabled = false, id = "menu_locked")
                     }
-                    menuSeparator("menu_sep_a")
-                    menuCheckboxItem("menu_status", Component.text("Statusleiste"), checked = true) { click ->
+                    MenuSeparator(id = "menu_sep_a")
+                    MenuCheckboxItem(Component.text("Statusleiste"), checked = true, id = "menu_status") { click ->
                         reportValue(click.buttonId, click.values.checked("menu_status").toString(), clicked, click)
                     }
-                    menuRadioGroup("menu_position", "unten", onSelect = { click -> reportValue(click.buttonId, click.values.text("menu_position").orEmpty(), clicked, click) }) {
-                        menuRadioItem("menu_position_top", Component.text("Oben"), "oben")
-                        menuRadioItem("menu_position_bottom", Component.text("Unten"), "unten")
+                    MenuRadioGroup("unten", onSelect = { click -> reportValue(click.buttonId, click.values.text("menu_position").orEmpty(), clicked, click) }, id = "menu_position") {
+                        MenuRadioItem(Component.text("Oben"), "oben", id = "menu_position_top")
+                        MenuRadioItem(Component.text("Unten"), "unten", id = "menu_position_bottom")
                     }
-                    menuSeparator("menu_sep_b")
-                    menuSub("menu_invite") {
-                        menuSubTrigger("menu_invite_trigger", Component.text("Einladen"), icon = "user-plus")
-                        menuContent("menu_invite_content") {
-                            menuItem("menu_invite_mail", Component.text("Per Funk"), icon = "radio", onClick = clicked)
-                            menuItem("menu_invite_sms", Component.text("Per Nachricht"), icon = "message-square", onClick = clicked)
+                    MenuSeparator(id = "menu_sep_b")
+                    MenuSub(id = "menu_invite") {
+                        MenuSubTrigger(Component.text("Einladen"), icon = "user-plus", id = "menu_invite_trigger")
+                        MenuContent(id = "menu_invite_content") {
+                            MenuItem(Component.text("Per Funk"), icon = "radio", onClick = clicked, id = "menu_invite_mail")
+                            MenuItem(Component.text("Per Nachricht"), icon = "message-square", onClick = clicked, id = "menu_invite_sms")
                         }
                     }
-                    menuSeparator("menu_sep_c")
-                    menuItem("menu_logout", Component.text("Abmelden"), icon = "log-out", destructive = true, onClick = clicked)
+                    MenuSeparator(id = "menu_sep_c")
+                    MenuItem(Component.text("Abmelden"), icon = "log-out", destructive = true, onClick = clicked, id = "menu_logout")
                 }
             }
-            contextMenu("context") {
-                column("context_area", width = ElementSize.fixed(140), height = ElementSize.fixed(40), mainAlign = Alignment.CENTER, crossAlign = Alignment.CENTER) {
-                    text("context_text", Component.text("Rechtsklick hier"), TextKind.MUTED)
+            ContextMenu(id = "context") {
+                Column(width = ElementSize.fixed(140), height = ElementSize.fixed(40), mainAlign = Alignment.CENTER, crossAlign = Alignment.CENTER, id = "context_area") {
+                    Muted(Component.text("Rechtsklick hier"), id = "context_text")
                 }
-                menuContent("context_content") {
-                    menuItem("context_back", Component.text("Zurück"), shortcut = Component.text("Alt+←"), onClick = clicked)
-                    menuItem("context_reload", Component.text("Neu laden"), shortcut = Component.text("Strg+R"), onClick = clicked)
-                    menuSeparator("context_sep")
-                    menuCheckboxItem("context_bookmarks", Component.text("Lesezeichen zeigen"), onToggle = clicked)
+                MenuContent(id = "context_content") {
+                    MenuItem(Component.text("Zurück"), shortcut = Component.text("Alt+←"), onClick = clicked, id = "context_back")
+                    MenuItem(Component.text("Neu laden"), shortcut = Component.text("Strg+R"), onClick = clicked, id = "context_reload")
+                    MenuSeparator(id = "context_sep")
+                    MenuCheckboxItem(Component.text("Lesezeichen zeigen"), onToggle = clicked, id = "context_bookmarks")
                 }
             }
         }
-        menubar("menubar") {
+        Menubar(id = "menubar") {
             listOf("Datei" to listOf("Neu", "Öffnen", "Speichern"), "Bearbeiten" to listOf("Rückgängig", "Wiederholen"), "Ansicht" to listOf("Vollbild")).forEachIndexed { index, (title, entries) ->
-                menubarMenu("menubar_$index") {
-                    menubarTrigger("menubar_${index}_trigger", Component.text(title))
-                    menuContent("menubar_${index}_content") {
-                        entries.forEachIndexed { entry, label -> menuItem("menubar_${index}_$entry", Component.text(label), onClick = clicked) }
+                MenubarMenu(id = "menubar_$index") {
+                    MenubarTrigger(Component.text(title), id = "menubar_${index}_trigger")
+                    MenuContent(id = "menubar_${index}_content") {
+                        entries.forEachIndexed { entry, label -> MenuItem(Component.text(label), onClick = clicked, id = "menubar_${index}_$entry") }
                     }
                 }
             }
@@ -295,33 +299,33 @@ object OverlaysDemo {
      *
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.commands(clicked: ButtonHandler) = section("commands", "Befehle") {
-        text("command_title", Component.text("Tippe, um zu filtern."), TextKind.MUTED)
-        command("command") {
-            commandInput("command_input", Component.text("Befehl oder Suche eingeben …"))
-            commandList("command_list") {
-                commandEmpty("command_empty", Component.text("Keine Ergebnisse."))
-                commandGroup("command_suggestions", Component.text("Vorschläge")) {
-                    commandItem("command_calendar", Component.text("Kalender"), icon = "calendar", keywords = listOf("termin"), onClick = clicked)
-                    commandItem("command_search", Component.text("Personen suchen"), icon = "search", onClick = clicked)
-                    commandItem("command_calculator", Component.text("Rechner"), icon = "calculator", enabled = false)
+    private fun ComponentScope.commands(clicked: ButtonHandler) = section("commands", "Befehle") {
+        Muted(Component.text("Tippe, um zu filtern."), id = "command_title")
+        Command(id = "command") {
+            CommandInput(Component.text("Befehl oder Suche eingeben …"), id = "command_input")
+            CommandList(id = "command_list") {
+                CommandEmpty(Component.text("Keine Ergebnisse."), id = "command_empty")
+                CommandGroup(Component.text("Vorschläge"), id = "command_suggestions") {
+                    CommandItem(Component.text("Kalender"), icon = "calendar", keywords = listOf("termin"), onClick = clicked, id = "command_calendar")
+                    CommandItem(Component.text("Personen suchen"), icon = "search", onClick = clicked, id = "command_search")
+                    CommandItem(Component.text("Rechner"), icon = "calculator", enabled = false, id = "command_calculator")
                 }
-                commandSeparator("command_sep")
-                commandGroup("command_settings", Component.text("Einstellungen")) {
-                    commandItem("command_profile", Component.text("Profil"), icon = "user", shortcut = Component.text("⌘P"), onClick = clicked)
-                    commandItem("command_mail", Component.text("Funk"), icon = "radio", shortcut = Component.text("⌘F"), onClick = clicked)
+                CommandSeparator(id = "command_sep")
+                CommandGroup(Component.text("Einstellungen"), id = "command_settings") {
+                    CommandItem(Component.text("Profil"), icon = "user", shortcut = Component.text("⌘P"), onClick = clicked, id = "command_profile")
+                    CommandItem(Component.text("Funk"), icon = "radio", shortcut = Component.text("⌘F"), onClick = clicked, id = "command_mail")
                 }
             }
         }
-        dialog("command_dialog") {
-            button("command_dialog_trigger", Component.text("Befehlsdialog öffnen"), submitsInput = false, icon = "terminal", variant = ButtonVariant.OUTLINE)
-            dialogContent("command_dialog_content", showCloseButton = false) {
-                command("command_in_dialog") {
-                    commandInput("command_in_dialog_input", Component.text("Befehl eingeben …"))
-                    commandList("command_in_dialog_list") {
-                        commandEmpty("command_in_dialog_empty", Component.text("Keine Ergebnisse."))
-                        commandItem("command_in_dialog_help", Component.text("Hilfe"), icon = "circle-help", onClick = clicked)
-                        commandItem("command_in_dialog_settings", Component.text("Einstellungen"), icon = "settings", onClick = clicked)
+        Dialog(id = "command_dialog") {
+            Button(Component.text("Befehlsdialog öffnen"), submitsInput = false, icon = "terminal", variant = ButtonVariant.OUTLINE, id = "command_dialog_trigger")
+            DialogContent(showCloseButton = false, id = "command_dialog_content") {
+                Command(id = "command_in_dialog") {
+                    CommandInput(Component.text("Befehl eingeben …"), id = "command_in_dialog_input")
+                    CommandList(id = "command_in_dialog_list") {
+                        CommandEmpty(Component.text("Keine Ergebnisse."), id = "command_in_dialog_empty")
+                        CommandItem(Component.text("Hilfe"), icon = "circle-help", onClick = clicked, id = "command_in_dialog_help")
+                        CommandItem(Component.text("Einstellungen"), icon = "settings", onClick = clicked, id = "command_in_dialog_settings")
                     }
                 }
             }
@@ -333,99 +337,99 @@ object OverlaysDemo {
      *
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.modals(clicked: ButtonHandler) = section("modals", "Dialoge, Sheets, Drawer") {
-        row("dialogs_row", gap = 6) {
-            dialog("dialog") {
-                button("dialog_trigger", Component.text("Profil bearbeiten"), submitsInput = false, variant = ButtonVariant.OUTLINE)
-                dialogContent("dialog_content") {
-                    dialogHeader("dialog_header") {
-                        dialogTitle("dialog_title", Component.text("Profil bearbeiten"))
-                        dialogDescription("dialog_description", Component.text("Ändere hier dein Profil. Klicke auf Speichern, wenn du fertig bist."))
+    private fun ComponentScope.modals(clicked: ButtonHandler) = section("modals", "Dialoge, Sheets, Drawer") {
+        Row(gap = 6, id = "dialogs_row") {
+            Dialog(id = "dialog") {
+                Button(Component.text("Profil bearbeiten"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "dialog_trigger")
+                DialogContent(id = "dialog_content") {
+                    DialogHeader(id = "dialog_header") {
+                        DialogTitle(Component.text("Profil bearbeiten"), id = "dialog_title")
+                        DialogDescription(Component.text("Ändere hier dein Profil. Klicke auf Speichern, wenn du fertig bist."), id = "dialog_description")
                     }
-                    textInput("dialog_name", value = "Max Mustermann", width = ElementSize.grow())
-                    dialogFooter("dialog_footer") {
-                        dialogClose("dialog_close") { button("dialog_cancel", Component.text("Abbrechen"), submitsInput = false, variant = ButtonVariant.OUTLINE) }
-                        dialogClose("dialog_save_close") { button("dialog_save", Component.text("Speichern"), submitsInput = false, onClick = clicked) }
-                    }
-                }
-            }
-            alertDialog("alert") {
-                button("alert_trigger", Component.text("Akte löschen"), submitsInput = false, variant = ButtonVariant.DESTRUCTIVE)
-                alertDialogContent("alert_content") {
-                    dialogHeader("alert_header") {
-                        dialogTitle("alert_title", Component.text("Bist du sicher?"))
-                        dialogDescription("alert_description", Component.text("Das kann nicht rückgängig gemacht werden. Die Akte wird dauerhaft gelöscht."))
-                    }
-                    dialogFooter("alert_footer") {
-                        alertDialogCancel("alert_cancel", Component.text("Abbrechen"))
-                        alertDialogAction("alert_confirm", Component.text("Löschen"), ButtonVariant.DESTRUCTIVE, clicked)
+                    Input(value = "Max Mustermann", width = ElementSize.grow(), id = "dialog_name")
+                    DialogFooter(id = "dialog_footer") {
+                        DialogClose(id = "dialog_close") { Button(Component.text("Abbrechen"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "dialog_cancel") }
+                        DialogClose(id = "dialog_save_close") { Button(Component.text("Speichern"), submitsInput = false, onClick = clicked, id = "dialog_save") }
                     }
                 }
             }
-            alertDialog("alert_small") {
-                button("alert_small_trigger", Component.text("Klein"), submitsInput = false, variant = ButtonVariant.OUTLINE)
-                alertDialogContent("alert_small_content", AlertDialogSize.SM) {
-                    dialogHeader("alert_small_header") {
-                        alertDialogMedia("alert_small_media", "bluetooth")
-                        dialogTitle("alert_small_title", Component.text("Verbindung erlauben?"))
-                        dialogDescription("alert_small_description", Component.text("Das Funkgerät möchte sich verbinden."))
+            AlertDialog(id = "alert") {
+                Button(Component.text("Akte löschen"), submitsInput = false, variant = ButtonVariant.DESTRUCTIVE, id = "alert_trigger")
+                AlertDialogContent(id = "alert_content") {
+                    DialogHeader(id = "alert_header") {
+                        DialogTitle(Component.text("Bist du sicher?"), id = "alert_title")
+                        DialogDescription(Component.text("Das kann nicht rückgängig gemacht werden. Die Akte wird dauerhaft gelöscht."), id = "alert_description")
                     }
-                    dialogFooter("alert_small_footer") {
-                        alertDialogCancel("alert_small_cancel", Component.text("Nein"))
-                        alertDialogAction("alert_small_confirm", Component.text("Erlauben"), onClick = clicked)
+                    DialogFooter(id = "alert_footer") {
+                        AlertDialogCancel(Component.text("Abbrechen"), id = "alert_cancel")
+                        AlertDialogAction(Component.text("Löschen"), ButtonVariant.DESTRUCTIVE, onClick = clicked, id = "alert_confirm")
+                    }
+                }
+            }
+            AlertDialog(id = "alert_small") {
+                Button(Component.text("Klein"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "alert_small_trigger")
+                AlertDialogContent(AlertDialogSize.SM, id = "alert_small_content") {
+                    DialogHeader(id = "alert_small_header") {
+                        AlertDialogMedia("bluetooth", id = "alert_small_media")
+                        DialogTitle(Component.text("Verbindung erlauben?"), id = "alert_small_title")
+                        DialogDescription(Component.text("Das Funkgerät möchte sich verbinden."), id = "alert_small_description")
+                    }
+                    DialogFooter(id = "alert_small_footer") {
+                        AlertDialogCancel(Component.text("Nein"), id = "alert_small_cancel")
+                        AlertDialogAction(Component.text("Erlauben"), onClick = clicked, id = "alert_small_confirm")
                     }
                 }
             }
         }
-        row("sheets_row", gap = 6) {
+        Row(gap = 6, id = "sheets_row") {
             OverlaySide.entries.forEach { side ->
                 val name = side.name.lowercase()
-                sheet("sheet_$name") {
-                    button("sheet_${name}_trigger", Component.text("Sheet $name"), submitsInput = false, variant = ButtonVariant.OUTLINE)
-                    sheetContent("sheet_${name}_content", side) {
-                        sheetHeader("sheet_${name}_header") {
-                            sheetTitle("sheet_${name}_title", Component.text("Filter"))
-                            sheetDescription("sheet_${name}_description", Component.text("Grenze die Liste der Einsätze ein."))
+                Sheet(id = "sheet_$name") {
+                    Button(Component.text("Sheet $name"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "sheet_${name}_trigger")
+                    SheetContent(side, id = "sheet_${name}_content") {
+                        SheetHeader(id = "sheet_${name}_header") {
+                            SheetTitle(Component.text("Filter"), id = "sheet_${name}_title")
+                            SheetDescription(Component.text("Grenze die Liste der Einsätze ein."), id = "sheet_${name}_description")
                         }
-                        column("sheet_${name}_body", gap = 4, padding = dev.slne.surf.roleplay.api.client.common.screen.Spacing(0, 8, 0, 8), crossAlign = Alignment.STRETCH) {
-                            textInput("sheet_${name}_query", placeholder = Component.text("Stichwort"))
+                        Column(gap = 4, padding = dev.slne.surf.roleplay.api.client.common.screen.Spacing(0, 8, 0, 8), crossAlign = Alignment.STRETCH, id = "sheet_${name}_body") {
+                            Input(placeholder = Component.text("Stichwort"), id = "sheet_${name}_query")
                         }
-                        sheetFooter("sheet_${name}_footer") {
-                            dialogClose("sheet_${name}_close") { button("sheet_${name}_apply", Component.text("Anwenden"), submitsInput = false, width = ElementSize.grow(), onClick = clicked) }
+                        SheetFooter(id = "sheet_${name}_footer") {
+                            DialogClose(id = "sheet_${name}_close") { Button(Component.text("Anwenden"), submitsInput = false, width = ElementSize.grow(), onClick = clicked, id = "sheet_${name}_apply") }
                         }
                     }
                 }
             }
         }
-        row("phone_row", gap = 8) {
-            overlayContainer("phone", ElementSize.fixed(120), ElementSize.fixed(180)) {
-                column("phone_screen", width = ElementSize.grow(), height = ElementSize.grow(), gap = 6, padding = dev.slne.surf.roleplay.api.client.common.screen.Spacing(8, 8, 8, 8), crossAlign = Alignment.STRETCH) {
-                    text("phone_title", Component.text("Handy"), TextKind.LARGE)
-                    drawer("phone_drawer") {
-                        button("phone_drawer_trigger", Component.text("Nachrichten"), submitsInput = false, variant = ButtonVariant.OUTLINE)
-                        drawerContent("phone_drawer_content") {
-                            sheetHeader("phone_drawer_header") {
-                                sheetTitle("phone_drawer_title", Component.text("Neue Nachricht"))
-                                sheetDescription("phone_drawer_description", Component.text("Von: Leitstelle"))
+        Row(gap = 8, id = "phone_row") {
+            OverlayContainer(ElementSize.fixed(120), ElementSize.fixed(180), id = "phone") {
+                Column(width = ElementSize.grow(), height = ElementSize.grow(), gap = 6, padding = dev.slne.surf.roleplay.api.client.common.screen.Spacing(8, 8, 8, 8), crossAlign = Alignment.STRETCH, id = "phone_screen") {
+                    Large(Component.text("Handy"), id = "phone_title")
+                    Drawer(id = "phone_drawer") {
+                        Button(Component.text("Nachrichten"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "phone_drawer_trigger")
+                        DrawerContent(id = "phone_drawer_content") {
+                            SheetHeader(id = "phone_drawer_header") {
+                                SheetTitle(Component.text("Neue Nachricht"), id = "phone_drawer_title")
+                                SheetDescription(Component.text("Von: Leitstelle"), id = "phone_drawer_description")
                             }
                         }
                     }
                 }
             }
-            text("phone_hint", Component.text("Dialoge, Sheets und Drawer bleiben in ihrem Overlay-Container, hier einem Handy."), TextKind.MUTED, width = ElementSize.grow())
+            Muted(Component.text("Dialoge, Sheets und Drawer bleiben in ihrem Overlay-Container, hier einem Handy."), width = ElementSize.grow(), id = "phone_hint")
         }
-        row("drawers_row", gap = 6) {
+        Row(gap = 6, id = "drawers_row") {
             listOf(OverlaySide.BOTTOM, OverlaySide.TOP).forEach { side ->
                 val name = side.name.lowercase()
-                drawer("drawer_$name") {
-                    button("drawer_${name}_trigger", Component.text("Drawer $name"), submitsInput = false, variant = ButtonVariant.OUTLINE)
-                    drawerContent("drawer_${name}_content", side) {
-                        sheetHeader("drawer_${name}_header") {
-                            sheetTitle("drawer_${name}_title", Component.text("Tagesziel"))
-                            sheetDescription("drawer_${name}_description", Component.text("Lege dein Tagesziel für Streifen fest."))
+                Drawer(id = "drawer_$name") {
+                    Button(Component.text("Drawer $name"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "drawer_${name}_trigger")
+                    DrawerContent(side, id = "drawer_${name}_content") {
+                        SheetHeader(id = "drawer_${name}_header") {
+                            SheetTitle(Component.text("Tagesziel"), id = "drawer_${name}_title")
+                            SheetDescription(Component.text("Lege dein Tagesziel für Streifen fest."), id = "drawer_${name}_description")
                         }
-                        sheetFooter("drawer_${name}_footer") {
-                            dialogClose("drawer_${name}_close") { button("drawer_${name}_submit", Component.text("Übernehmen"), submitsInput = false, width = ElementSize.grow(), onClick = clicked) }
+                        SheetFooter(id = "drawer_${name}_footer") {
+                            DialogClose(id = "drawer_${name}_close") { Button(Component.text("Übernehmen"), submitsInput = false, width = ElementSize.grow(), onClick = clicked, id = "drawer_${name}_submit") }
                         }
                     }
                 }
@@ -438,30 +442,30 @@ object OverlaysDemo {
      *
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.toasts(hooks: Hooks) = section("toasts", "Toasts") {
-        row("toasts_row_a", gap = 4) {
-            button("toast_default", Component.text("Standard"), submitsInput = false, variant = ButtonVariant.OUTLINE) {
+    private fun ComponentScope.toasts(hooks: Hooks) = section("toasts", "Toasts") {
+        Row(gap = 4, id = "toasts_row_a") {
+            Button(Component.text("Standard"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_default") {
                 hooks.toast(Toast(Component.text("Termin angelegt"), Component.text("Freitag, 18:00 Uhr")))
             }
-            button("toast_success", Component.text("Erfolg"), submitsInput = false, variant = ButtonVariant.OUTLINE) {
+            Button(Component.text("Erfolg"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_success") {
                 hooks.toast(Toast(Component.text("Gespeichert"), type = ToastType.SUCCESS))
             }
-            button("toast_info", Component.text("Info"), submitsInput = false, variant = ButtonVariant.OUTLINE) {
+            Button(Component.text("Info"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_info") {
                 hooks.toast(Toast(Component.text("Neue Dienstanweisung"), Component.text("Bitte bis Schichtbeginn lesen."), ToastType.INFO))
             }
-            button("toast_warning", Component.text("Warnung"), submitsInput = false, variant = ButtonVariant.OUTLINE) {
+            Button(Component.text("Warnung"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_warning") {
                 hooks.toast(Toast(Component.text("Tank fast leer"), type = ToastType.WARNING))
             }
-            button("toast_error", Component.text("Fehler"), submitsInput = false, variant = ButtonVariant.OUTLINE) {
+            Button(Component.text("Fehler"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_error") {
                 hooks.toast(Toast(Component.text("Zahlung fehlgeschlagen"), Component.text("Konto nicht gedeckt."), ToastType.ERROR))
             }
         }
-        row("toasts_row_b", gap = 4) {
-            button("toast_loading", Component.text("Laden"), submitsInput = false, variant = ButtonVariant.OUTLINE) {
+        Row(gap = 4, id = "toasts_row_b") {
+            Button(Component.text("Laden"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_loading") {
                 val id = hooks.toast(Toast(Component.text("Akte wird hochgeladen …"), type = ToastType.LOADING, id = "demo-upload"))
                 hooks.later(LOADING_MILLIS) { hooks.toast(Toast(Component.text("Akte hochgeladen"), type = ToastType.SUCCESS, id = id)) }
             }
-            button("toast_action", Component.text("Mit Aktion"), submitsInput = false, variant = ButtonVariant.OUTLINE) {
+            Button(Component.text("Mit Aktion"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_action") {
                 hooks.toast(
                     Toast(
                         Component.text("Eingehender Funkspruch"),
@@ -472,11 +476,11 @@ object OverlaysDemo {
                     ),
                 )
             }
-            button("toast_sticky", Component.text("Bleibt"), submitsInput = false, variant = ButtonVariant.OUTLINE) {
+            Button(Component.text("Bleibt"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "toast_sticky") {
                 hooks.toast(Toast(Component.text("Wartungsarbeiten um 22:00 Uhr"), durationMillis = 0, closeButton = true))
             }
         }
-        text("toasts_hint", Component.text("Halte die linke Alt-Taste gedrückt, um Toasts ohne geöffneten Bildschirm anzuklicken."), TextKind.MUTED)
+        Muted(Component.text("Halte die linke Alt-Taste gedrückt, um Toasts ohne geöffneten Bildschirm anzuklicken."), id = "toasts_hint")
     }
 
     /**

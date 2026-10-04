@@ -6,20 +6,22 @@ import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
 import dev.slne.surf.roleplay.api.client.common.screen.SelectSize
-import dev.slne.surf.roleplay.api.client.common.screen.combobox
-import dev.slne.surf.roleplay.api.client.common.screen.nativeSelect
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.select
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MultiCombobox
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NativeSelect
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ComboboxNode
+import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.NativeSelectNode
 import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
-import dev.slne.surf.roleplay.protocol.screen.InputValue
 import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
-import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
+import dev.slne.surf.roleplay.protocol.screen.ScreenWidgetAction
 import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.SetOptions
 import dev.slne.surf.roleplay.protocol.screen.WidgetScreenBody
@@ -81,15 +83,15 @@ class SelectComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Auswahl")) {
-            column("root") {
-                select("fruit", groups = groups, placeholder = Component.text("Wähle"), size = SelectSize.SM)
-                nativeSelect("native", groups = groups, selected = "carrot")
-                combobox("tags", groups = groups, selected = listOf("carrot"), multiple = true, showClear = true, onSearch = { search ->
+        Screen(Component.text("Auswahl")) {
+            Column(id = "root") {
+                Select(groups = groups, placeholder = Component.text("Wähle"), size = SelectSize.SM, id = "fruit")
+                NativeSelect(groups = groups, selected = "carrot", id = "native")
+                MultiCombobox(groups = groups, selected = listOf("carrot"), showClear = true, onSearch = { search ->
                     searches += search
                     search.screen.patch { setOptions("tags", listOf(SelectChoiceGroup(null, listOf(SelectChoice("kiwi", Component.text("Kiwi")))))) }
-                })
-                button("submit", Component.text("Senden"))
+                }, id = "tags")
+                Button(Component.text("Senden"), id = "submit")
             }
         },
         null,

@@ -11,6 +11,7 @@ import dev.slne.surf.roleplay.fabric.ui.layout.Rect
 import dev.slne.surf.roleplay.fabric.ui.layout.Size
 import dev.slne.surf.roleplay.protocol.screen.Align
 import dev.slne.surf.roleplay.protocol.screen.ScrollOrientation
+import dev.slne.surf.roleplay.protocol.screen.SizeMode
 import org.lwjgl.glfw.GLFW
 
 /**
@@ -96,7 +97,8 @@ open class ScrollAreaWidget(id: String, val orientation: ScrollOrientation) : Co
 
     /**
      * Creates a leaf layout box for the area, sized by its own sizing or by its content, and
-     * keeps the box of the content to lay it out separately.
+     * keeps the box of the content to lay it out separately. A vertically scrolling area that
+     * grows in height can be laid out as short as nothing, since its content scrolls.
      *
      * @param measurer the text measurer
      * @return the layout box of the area
@@ -114,6 +116,7 @@ open class ScrollAreaWidget(id: String, val orientation: ScrollOrientation) : Co
             width = width,
             height = height,
             measureContent = { limit -> FlexLayout.measure(content, if (scrollsX) FlexLayout.UNBOUNDED else limit) },
+            minHeight = if (scrollsY && height.mode == SizeMode.GROW) 0 else null,
         ).also { layoutBox = it }
     }
 

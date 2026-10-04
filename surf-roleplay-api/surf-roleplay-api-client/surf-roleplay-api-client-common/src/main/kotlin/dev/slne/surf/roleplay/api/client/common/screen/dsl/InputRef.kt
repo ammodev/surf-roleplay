@@ -1,0 +1,86 @@
+package dev.slne.surf.roleplay.api.client.common.screen.dsl
+
+import dev.slne.surf.roleplay.api.client.common.screen.DataTableView
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenValues
+import java.time.LocalDate
+
+/**
+ * A typed reference to an input of a screen, returned by the input components of the component
+ * DSL. Handlers read the input's value with `values[ref]` on [ScreenValues].
+ *
+ * @param T the type of the input's value
+ * @property id the id of the input element
+ * @property parse the function that turns the value in its string form, or `null` if the screen
+ *           has no such input, into a typed value
+ */
+class InputRef<T> internal constructor(val id: String, internal val parse: (String?) -> T) {
+    /**
+     * Returns a readable description of the reference.
+     *
+     * @return the description
+     */
+    override fun toString(): String = "InputRef($id)"
+}
+
+/**
+ * The parsers that turn the string form of an input's value, or `null` if the screen has no such
+ * input, into a typed value. Each parser names the format it reads.
+ */
+internal object InputParsers {
+    /**
+     * Parses the text of a text input, textarea or one-time code input; empty if missing.
+     */
+    val text: (String?) -> String = { it ?: "" }
+
+    /**
+     * Parses the number of a number input; `null` if empty, not a number or missing.
+     */
+    val number: (String?) -> Long? = { it?.toLongOrNull() }
+
+    /**
+     * Parses the index of the shown slide of a carousel; `null` if not a number or missing.
+     */
+    val index: (String?) -> Int? = { it?.toIntOrNull() }
+
+    /**
+     * Parses the state of a checkbox, switch, toggle, menu checkbox item or overlay; `false` if
+     * missing.
+     */
+    val checked: (String?) -> Boolean = { it == "true" }
+
+    /**
+     * Parses the selected option of a select, native select, radio group, single combobox, menu
+     * radio group or tabs; `null` if nothing is selected or the input is missing.
+     */
+    val selected: (String?) -> String? = { it?.takeIf { value -> value.isNotEmpty() } }
+
+    /**
+     * Parses the comma-separated values of a toggle group, multiple combobox or accordion; empty if
+     * missing.
+     */
+    val list: (String?) -> List<String> = { value ->
+        value?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
+    }
+
+    /**
+     * Parses the comma-separated thumb values of a slider or panel shares of a resizable panel
+     * group; empty if missing.
+     */
+    val numbers: (String?) -> List<Double> = { value ->
+        value?.split(',')?.mapNotNull { it.trim().toDoubleOrNull() }.orEmpty()
+    }
+
+    /**
+     * Parses the ISO dates of a calendar, separated by commas or by `/` for a range; empty if
+     * missing.
+     */
+    val dates: (String?) -> List<LocalDate> = { value ->
+        value?.split(',', '/')?.mapNotNull { runCatching { LocalDate.parse(it.trim()) }.getOrNull() }.orEmpty()
+    }
+
+    /**
+     * Parses the view of a data table from its JSON form; the default view if missing or not a
+     * valid view.
+     */
+    val dataTableView: (String?) -> DataTableView = { value -> value?.let(DataTableView::parse) ?: DataTableView() }
+}

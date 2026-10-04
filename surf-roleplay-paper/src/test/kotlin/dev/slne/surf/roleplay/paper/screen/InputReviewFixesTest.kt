@@ -3,9 +3,11 @@ package dev.slne.surf.roleplay.paper.screen
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoice
 import dev.slne.surf.roleplay.api.client.common.screen.SelectChoiceGroup
 import dev.slne.surf.roleplay.api.client.common.screen.TextInputElement
-import dev.slne.surf.roleplay.api.client.common.screen.combobox
-import dev.slne.surf.roleplay.api.client.common.screen.inputOtp
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputOtp
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MultiCombobox
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.InputValue
@@ -57,16 +59,15 @@ class InputReviewFixesTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Test")) {
-            column("root") {
-                inputOtp("code", length = 4, required = true, onChange = {})
-                combobox(
-                    "city",
+        Screen(Component.text("Test")) {
+            Column(id = "root") {
+                InputOtp(length = 4, required = true, onChange = {}, id = "code")
+                MultiCombobox(
                     groups = options("north"),
-                    multiple = true,
                     onSearch = { search -> search.screen.patch { setOptions("city", options(search.query)) } },
+                    id = "city",
                 )
-                button("submit", Component.text("Senden"))
+                Button(Component.text("Senden"), id = "submit")
             }
         },
         null,

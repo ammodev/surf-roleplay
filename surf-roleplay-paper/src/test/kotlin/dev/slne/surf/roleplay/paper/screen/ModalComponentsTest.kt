@@ -2,26 +2,28 @@ package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.AlertDialogSize
 import dev.slne.surf.roleplay.api.client.common.screen.OverlaySide
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialog
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialogAction
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialogCancel
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialogContent
-import dev.slne.surf.roleplay.api.client.common.screen.alertDialogMedia
-import dev.slne.surf.roleplay.api.client.common.screen.dialog
-import dev.slne.surf.roleplay.api.client.common.screen.dialogClose
-import dev.slne.surf.roleplay.api.client.common.screen.dialogContent
-import dev.slne.surf.roleplay.api.client.common.screen.dialogDescription
-import dev.slne.surf.roleplay.api.client.common.screen.dialogFooter
-import dev.slne.surf.roleplay.api.client.common.screen.dialogHeader
-import dev.slne.surf.roleplay.api.client.common.screen.dialogTitle
-import dev.slne.surf.roleplay.api.client.common.screen.drawer
-import dev.slne.surf.roleplay.api.client.common.screen.drawerContent
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.sheet
-import dev.slne.surf.roleplay.api.client.common.screen.sheetContent
-import dev.slne.surf.roleplay.api.client.common.screen.sheetFooter
-import dev.slne.surf.roleplay.api.client.common.screen.sheetHeader
-import dev.slne.surf.roleplay.api.client.common.screen.sheetTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialog
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogAction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogCancel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDialogMedia
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Dialog
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogClose
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DialogTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Drawer
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DrawerContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Sheet
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetTitle
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.AlertDialogContentNode
@@ -94,40 +96,40 @@ class ModalComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Dialoge")) {
-            column("root") {
-                dialog("dialog", onChange = { clicks += "dialog=${it.value}" }) {
-                    button("open_dialog", Component.text("Öffnen"), submitsInput = false)
-                    dialogContent("dialog_content") {
-                        dialogHeader("dialog_header") {
-                            dialogTitle("dialog_title", Component.text("Profil bearbeiten"))
-                            dialogDescription("dialog_description", Component.text("Ändere dein Profil."))
+        Screen(Component.text("Dialoge")) {
+            Column(id = "root") {
+                Dialog(onChange = { clicks += "dialog=${it.value}" }, id = "dialog") {
+                    Button(Component.text("Öffnen"), submitsInput = false, id = "open_dialog")
+                    DialogContent(id = "dialog_content") {
+                        DialogHeader(id = "dialog_header") {
+                            DialogTitle(Component.text("Profil bearbeiten"), id = "dialog_title")
+                            DialogDescription(Component.text("Ändere dein Profil."), id = "dialog_description")
                         }
-                        dialogFooter("dialog_footer") {
-                            dialogClose("dialog_close") { button("cancel", Component.text("Abbrechen"), submitsInput = false) }
-                        }
-                    }
-                }
-                alertDialog("alert") {
-                    button("open_alert", Component.text("Löschen"), submitsInput = false)
-                    alertDialogContent("alert_content", AlertDialogSize.SM) {
-                        dialogHeader("alert_header") { alertDialogMedia("alert_media", "trash") }
-                        dialogFooter("alert_footer") {
-                            alertDialogCancel("alert_cancel", Component.text("Abbrechen"))
-                            alertDialogAction("alert_ok", Component.text("Löschen")) { clicks += it.buttonId }
+                        DialogFooter(id = "dialog_footer") {
+                            DialogClose(id = "dialog_close") { Button(Component.text("Abbrechen"), submitsInput = false, id = "cancel") }
                         }
                     }
                 }
-                sheet("sheet") {
-                    button("open_sheet", Component.text("Sheet"), submitsInput = false)
-                    sheetContent("sheet_content", OverlaySide.LEFT) {
-                        sheetHeader("sheet_header") { sheetTitle("sheet_title", Component.text("Filter")) }
-                        sheetFooter("sheet_footer") { button("apply", Component.text("Anwenden")) }
+                AlertDialog(id = "alert") {
+                    Button(Component.text("Löschen"), submitsInput = false, id = "open_alert")
+                    AlertDialogContent(AlertDialogSize.SM, id = "alert_content") {
+                        DialogHeader(id = "alert_header") { AlertDialogMedia("trash", id = "alert_media") }
+                        DialogFooter(id = "alert_footer") {
+                            AlertDialogCancel(Component.text("Abbrechen"), id = "alert_cancel")
+                            AlertDialogAction(Component.text("Löschen"), id = "alert_ok") { clicks += it.buttonId }
+                        }
                     }
                 }
-                drawer("drawer") {
-                    button("open_drawer", Component.text("Drawer"), submitsInput = false)
-                    drawerContent("drawer_content", OverlaySide.TOP) {}
+                Sheet(id = "sheet") {
+                    Button(Component.text("Sheet"), submitsInput = false, id = "open_sheet")
+                    SheetContent(OverlaySide.LEFT, id = "sheet_content") {
+                        SheetHeader(id = "sheet_header") { SheetTitle(Component.text("Filter"), id = "sheet_title") }
+                        SheetFooter(id = "sheet_footer") { Button(Component.text("Anwenden"), id = "apply") }
+                    }
+                }
+                Drawer(id = "drawer") {
+                    Button(Component.text("Drawer"), submitsInput = false, id = "open_drawer")
+                    DrawerContent(OverlaySide.TOP, id = "drawer_content") {}
                 }
             }
         },

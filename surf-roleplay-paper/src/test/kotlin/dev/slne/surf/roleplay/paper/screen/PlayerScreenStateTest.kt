@@ -1,7 +1,12 @@
 package dev.slne.surf.roleplay.paper.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.ScreenChange
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.CounterAction
@@ -85,12 +90,11 @@ class PlayerScreenStateTest {
      * @param name the name recorded when the screen closes
      * @return the definition
      */
-    private fun form(name: String) = screen(Component.text(name)) {
-        onClose { closed += name }
-        column("root") {
-            label("title", Component.text(name))
-            textInput("name", maxLength = 8)
-            button("submit", Component.text("OK")) { clicks += it }
+    private fun form(name: String) = Screen(Component.text(name), onClose = { closed += name }) {
+        Column(id = "root") {
+            Label(Component.text(name), id = "title")
+            Input(maxLength = 8, id = "name")
+            Button(Component.text("OK"), id = "submit") { clicks += it }
         }
     }
 
@@ -174,6 +178,20 @@ class PlayerScreenStateTest {
         val count = sent.size
         screen.patch { setText("title", Component.text("Zu")) }
         assertEquals(count, sent.size)
+    }
+
+    /**
+     * Verifies that applying changes reports whether every change was accepted, and that the
+     * accepted ones are still sent when another is refused.
+     */
+    @Test
+    fun `apply reports refused changes`() {
+        val screen = state.open(form("a"), null)
+
+        assertTrue(screen.apply(listOf(ScreenChange.SetText("title", Component.text("Neu")))))
+        assertFalse(screen.apply(listOf(ScreenChange.SetText("title", Component.text("Zwei")), ScreenChange.SetText("missing", Component.text("x")))))
+        val patch = assertIs<ScreenPatch>(sent.last())
+        assertEquals(listOf(SetText("title", ScreenMapper.text(Component.text("Zwei")))), patch.operations)
     }
 
     /**
@@ -277,7 +295,7 @@ class PlayerScreenStateTest {
      */
     @Test
     fun `open maps elements to nodes`() {
-        state.open(screen(Component.text("x")) { label("only", Component.text("L")) }, null)
+        state.open(Screen(Component.text("x")) { Label(Component.text("L"), id = "only") }, null)
 
         val root = assertIs<WidgetScreenBody>(assertIs<ScreenOpen>(sent.last()).body).root
         assertEquals(LabelNode("only", text = ScreenMapper.text(Component.text("L"))), root)
@@ -303,7 +321,7 @@ class PlayerScreenStateTest {
      */
     @Test
     fun `close reports for non-closable screens are ignored`() {
-        val locked = state.open(screen(Component.text("fest")) { closable = false; label("l", Component.empty()) }, null)
+        val locked = state.open(Screen(Component.text("fest"), closable = false) { Label(Component.empty(), id = "l") }, null)
 
         state.handleClosed(ScreenClosed(locked.sessionId))
 
@@ -316,8 +334,8 @@ class PlayerScreenStateTest {
      */
     @Test
     fun `close handlers that open screens keep both stacks in step`() {
-        val hub = screen(Component.text("hub")) { label("hub", Component.empty()) }
-        state.open(screen(Component.text("a")) { onClose { state.open(hub, null) }; label("a", Component.empty()) }, null)
+        val hub = Screen(Component.text("hub")) { Label(Component.empty(), id = "hub") }
+        state.open(Screen(Component.text("a"), onClose = { state.open(hub, null) }) { Label(Component.empty(), id = "a") }, null)
 
         state.open(form("b"), null)
 
@@ -333,9 +351,8 @@ class PlayerScreenStateTest {
     @Test
     fun `dispose runs close handlers and refuses new screens`() {
         var reopenFailed = false
-        state.open(screen(Component.text("a")) {
-            onClose { reopenFailed = runCatching { state.open(form("late"), null) }.isFailure }
-            label("a", Component.empty())
+        state.open(Screen(Component.text("a"), onClose = { reopenFailed = runCatching { state.open(form("late"), null) }.isFailure }) {
+            Label(Component.empty(), id = "a")
         }, null)
 
         state.dispose()

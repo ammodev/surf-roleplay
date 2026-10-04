@@ -1,14 +1,15 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenSearch
-import dev.slne.surf.roleplay.api.client.common.screen.command
-import dev.slne.surf.roleplay.api.client.common.screen.commandEmpty
-import dev.slne.surf.roleplay.api.client.common.screen.commandGroup
-import dev.slne.surf.roleplay.api.client.common.screen.commandInput
-import dev.slne.surf.roleplay.api.client.common.screen.commandItem
-import dev.slne.surf.roleplay.api.client.common.screen.commandList
-import dev.slne.surf.roleplay.api.client.common.screen.commandSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Command
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandEmpty
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandInput
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CommandSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
@@ -70,21 +71,21 @@ class CommandComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Befehle")) {
-            column("root") {
-                command("command") {
-                    commandInput("input", Component.text("Befehl suchen"))
-                    commandList("list") {
-                        commandEmpty("empty", Component.text("Nichts gefunden"))
-                        commandGroup("group", Component.text("Vorschläge")) {
-                            commandItem("calendar", Component.text("Kalender"), icon = "calendar", shortcut = Component.text("K"), keywords = listOf("termin")) { events += it.buttonId }
+        Screen(Component.text("Befehle")) {
+            Column(id = "root") {
+                Command(id = "command") {
+                    CommandInput(Component.text("Befehl suchen"), id = "input")
+                    CommandList(id = "list") {
+                        CommandEmpty(Component.text("Nichts gefunden"), id = "empty")
+                        CommandGroup(Component.text("Vorschläge"), id = "group") {
+                            CommandItem(Component.text("Kalender"), icon = "calendar", shortcut = Component.text("K"), keywords = listOf("termin"), id = "calendar") { events += it.buttonId }
                         }
-                        commandSeparator("sep")
+                        CommandSeparator(id = "sep")
                     }
                 }
-                command("server", onSearch = { search: ScreenSearch -> events += "search:${search.query}" }) {
-                    commandInput("server_input")
-                    commandList("server_list") {}
+                Command(onSearch = { search: ScreenSearch -> events += "search:${search.query}" }, id = "server") {
+                    CommandInput(id = "server_input")
+                    CommandList(id = "server_list") {}
                 }
             }
         },

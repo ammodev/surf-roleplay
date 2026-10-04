@@ -130,15 +130,22 @@ object PanelSizing {
 
     /**
      * Returns the height a panel's content is laid out at: its preferred height, or for a growing
-     * root at least the available height.
+     * root at least the available height. A growing root whose content can become as short as the
+     * available height, because growing scroll areas inside it take what is left, is laid out at
+     * exactly the available height, so that those areas scroll instead of the panel.
      *
      * @param mode how the root is sized vertically
      * @param preferred the height the content needs
+     * @param shortest the shortest height the content can be laid out at, as
+     *        [dev.slne.surf.roleplay.fabric.ui.layout.FlexLayout.shortestAt] computes it
      * @param available the height the window leaves for the content
      * @return the content height
      */
-    fun contentHeight(mode: dev.slne.surf.roleplay.protocol.screen.SizeMode, preferred: Int, available: Int): Int =
-        if (mode == dev.slne.surf.roleplay.protocol.screen.SizeMode.GROW) maxOf(preferred, available) else preferred
+    fun contentHeight(mode: dev.slne.surf.roleplay.protocol.screen.SizeMode, preferred: Int, shortest: Int, available: Int): Int = when {
+        mode != dev.slne.surf.roleplay.protocol.screen.SizeMode.GROW -> preferred
+        shortest <= available -> available
+        else -> preferred
+    }
 
     /**
      * Returns the height of a scroll bar handle: proportional to the visible share of the

@@ -8,12 +8,14 @@ import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupChoice
 import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupElement
 import dev.slne.surf.roleplay.api.client.common.screen.ToggleSize
 import dev.slne.surf.roleplay.api.client.common.screen.ToggleVariant
-import dev.slne.surf.roleplay.api.client.common.screen.buttonGroup
-import dev.slne.surf.roleplay.api.client.common.screen.buttonGroupSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.buttonGroupText
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.toggle
-import dev.slne.surf.roleplay.api.client.common.screen.toggleGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ButtonGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ButtonGroupSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ButtonGroupText
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Toggle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ToggleGroup
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ButtonGroupNode
@@ -80,22 +82,22 @@ class ActionComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Aktionen")) {
-            column("root") {
-                button("delete", Component.text("Löschen"), variant = ButtonVariant.DESTRUCTIVE, size = ButtonSize.SM)
-                buttonGroup("group", orientation = Orientation.VERTICAL) {
-                    buttonGroupText("group_text", Component.text("Text"), icon = "info")
-                    button("group_a", Component.text("A"))
-                    buttonGroupSeparator("group_sep")
-                    button("group_b", Component.text("B"))
+        Screen(Component.text("Aktionen")) {
+            Column(id = "root") {
+                Button(Component.text("Löschen"), variant = ButtonVariant.DESTRUCTIVE, size = ButtonSize.SM, id = "delete")
+                ButtonGroup(orientation = Orientation.VERTICAL, id = "group") {
+                    ButtonGroupText(Component.text("Text"), icon = "info", id = "group_text")
+                    Button(Component.text("A"), id = "group_a")
+                    ButtonGroupSeparator(id = "group_sep")
+                    Button(Component.text("B"), id = "group_b")
                 }
-                toggle("bold", Component.text("B"), icon = "bold", variant = ToggleVariant.OUTLINE, size = ToggleSize.LG) { toggles += it }
-                toggleGroup(
-                    "align",
+                Toggle(Component.text("B"), icon = "bold", variant = ToggleVariant.OUTLINE, size = ToggleSize.LG, id = "bold") { toggles += it }
+                ToggleGroup(
                     listOf(ToggleGroupChoice("left", icon = "align-left"), ToggleGroupChoice("center"), ToggleGroupChoice("right", enabled = false)),
                     multiple = false,
                     selected = listOf("left"),
                     variant = ToggleVariant.OUTLINE,
+                    id = "align",
                 )
             }
         },

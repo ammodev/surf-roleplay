@@ -8,7 +8,6 @@ import dev.slne.surf.roleplay.api.client.common.screen.ButtonSize
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonVariant
 import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.ElementsBuilder
 import dev.slne.surf.roleplay.api.client.common.screen.LayoutDirection
 import dev.slne.surf.roleplay.api.client.common.screen.Orientation
 import dev.slne.surf.roleplay.api.client.common.screen.OverlaySide
@@ -25,86 +24,95 @@ import dev.slne.surf.roleplay.api.client.common.screen.SidebarSide
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarVariant
 import dev.slne.surf.roleplay.api.client.common.screen.Spacing
 import dev.slne.surf.roleplay.api.client.common.screen.TabsVariant
-import dev.slne.surf.roleplay.api.client.common.screen.TextKind
-import dev.slne.surf.roleplay.api.client.common.screen.accordion
-import dev.slne.surf.roleplay.api.client.common.screen.accordionContent
-import dev.slne.surf.roleplay.api.client.common.screen.accordionItem
-import dev.slne.surf.roleplay.api.client.common.screen.accordionTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.badge
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumb
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbEllipsis
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbItem
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbLink
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbList
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbPage
-import dev.slne.surf.roleplay.api.client.common.screen.breadcrumbSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.card
-import dev.slne.surf.roleplay.api.client.common.screen.carousel
-import dev.slne.surf.roleplay.api.client.common.screen.carouselContent
-import dev.slne.surf.roleplay.api.client.common.screen.carouselItem
-import dev.slne.surf.roleplay.api.client.common.screen.carouselNext
-import dev.slne.surf.roleplay.api.client.common.screen.carouselPrevious
-import dev.slne.surf.roleplay.api.client.common.screen.collapsible
-import dev.slne.surf.roleplay.api.client.common.screen.collapsibleContent
-import dev.slne.surf.roleplay.api.client.common.screen.collapsibleTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.direction
-import dev.slne.surf.roleplay.api.client.common.screen.dropdownMenu
-import dev.slne.surf.roleplay.api.client.common.screen.menuContent
-import dev.slne.surf.roleplay.api.client.common.screen.menuItem
-import dev.slne.surf.roleplay.api.client.common.screen.menuSub
-import dev.slne.surf.roleplay.api.client.common.screen.menuSubTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenu
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuContent
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuItem
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuLink
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuList
-import dev.slne.surf.roleplay.api.client.common.screen.navigationMenuTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.pagination
-import dev.slne.surf.roleplay.api.client.common.screen.paginationContent
-import dev.slne.surf.roleplay.api.client.common.screen.paginationEllipsis
-import dev.slne.surf.roleplay.api.client.common.screen.paginationItem
-import dev.slne.surf.roleplay.api.client.common.screen.paginationLink
-import dev.slne.surf.roleplay.api.client.common.screen.paginationNext
-import dev.slne.surf.roleplay.api.client.common.screen.paginationPrevious
-import dev.slne.surf.roleplay.api.client.common.screen.resizableHandle
-import dev.slne.surf.roleplay.api.client.common.screen.resizablePanel
-import dev.slne.surf.roleplay.api.client.common.screen.resizablePanelGroup
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.scrollArea
-import dev.slne.surf.roleplay.api.client.common.screen.select
-import dev.slne.surf.roleplay.api.client.common.screen.sheet
-import dev.slne.surf.roleplay.api.client.common.screen.sheetContent
-import dev.slne.surf.roleplay.api.client.common.screen.sheetDescription
-import dev.slne.surf.roleplay.api.client.common.screen.sheetHeader
-import dev.slne.surf.roleplay.api.client.common.screen.sheetTitle
-import dev.slne.surf.roleplay.api.client.common.screen.sidebar
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarContent
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarFooter
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroup
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupAction
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupContent
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarGroupLabel
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarHeader
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarInput
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarInset
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenu
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuAction
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuBadge
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuButton
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuItem
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSkeleton
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSub
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSubButton
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarMenuSubItem
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarProvider
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarRail
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.sidebarTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.tabs
-import dev.slne.surf.roleplay.api.client.common.screen.tabsContent
-import dev.slne.surf.roleplay.api.client.common.screen.tabsList
-import dev.slne.surf.roleplay.api.client.common.screen.tabsTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.text
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Accordion
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AccordionContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AccordionItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AccordionTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Badge
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Breadcrumb
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbEllipsis
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbLink
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbPage
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.BreadcrumbSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Card
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Carousel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CarouselContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CarouselItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CarouselNext
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CarouselPrevious
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Collapsible
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CollapsibleContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CollapsibleTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Direction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.H3
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.H4
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Large
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSub
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSubTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Muted
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuLink
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NavigationMenuTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Pagination
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationEllipsis
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationLink
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationNext
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.PaginationPrevious
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ResizableHandle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ResizablePanel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ResizablePanelGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ScrollArea
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Sheet
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SheetTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Sidebar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarGroupAction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarGroupContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarGroupLabel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarInput
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarInset
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuAction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuBadge
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuButton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuSkeleton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuSub
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuSubButton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarMenuSubItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarProvider
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarRail
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.SidebarTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Small
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Tabs
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TabsContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TabsList
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TabsTrigger
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -167,17 +175,15 @@ object NavigationDemo {
      */
     fun definition(hooks: Hooks, theme: String, variant: ScreenVariant, setup: SidebarSetup): ScreenDefinition {
         val clicked = ButtonHandler { click -> hooks.report(Component.text("${click.buttonId} geklickt", NamedTextColor.GREEN)) }
-        return screen(Component.text("Navigation")) {
-            this.theme = theme
-            this.variant = variant
-            column("root", width = ElementSize.fixed(620), gap = 12, crossAlign = Alignment.STRETCH) {
-                row("theme_row", gap = 4, crossAlign = Alignment.CENTER) {
-                    select("theme", InputsDemo.THEMES, selected = theme, width = ElementSize.grow(), onChange = { change ->
+        return Screen(Component.text("Navigation"), theme = theme, variant = variant) {
+            Column(width = ElementSize.fixed(620), gap = 12, crossAlign = Alignment.STRETCH, id = "root") {
+                Row(gap = 4, crossAlign = Alignment.CENTER, id = "theme_row") {
+                    Select(InputsDemo.THEMES, selected = theme, width = ElementSize.grow(), onChange = { change ->
                         hooks.reopen(change.value, variant, setup)
-                    })
-                    select("variant", InputsDemo.VARIANTS, selected = variant.name, width = ElementSize.fixed(90), onChange = { change ->
+                    }, id = "theme")
+                    Select(InputsDemo.VARIANTS, selected = variant.name, width = ElementSize.fixed(90), onChange = { change ->
                         hooks.reopen(theme, ScreenVariant.valueOf(change.value), setup)
-                    })
+                    }, id = "variant")
                 }
                 disclosures(hooks)
                 tabsSection(hooks)
@@ -199,9 +205,9 @@ object NavigationDemo {
      * @param title the heading
      * @param content the builder of the section's content
      */
-    private fun ElementsBuilder.section(id: String, title: String, content: ElementsBuilder.() -> Unit) {
-        column(id, gap = 6, crossAlign = Alignment.STRETCH) {
-            text("${id}_title", Component.text(title), TextKind.H3)
+    private fun ComponentScope.section(id: String, title: String, content: ComponentScope.() -> Unit) {
+        Column(gap = 6, crossAlign = Alignment.STRETCH, id = id) {
+            H3(Component.text(title), id = "${id}_title")
             content()
         }
     }
@@ -222,52 +228,52 @@ object NavigationDemo {
      *
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.disclosures(hooks: Hooks) = section("disclosures", "Collapsible und Accordion") {
-        collapsible("collapsible", onChange = changed(hooks, "Collapsible offen")) {
-            row("collapsible_head", width = ElementSize.grow(), gap = 6, crossAlign = Alignment.CENTER) {
-                text("collapsible_title", Component.text("@ammo hat 3 Funkkanäle"), TextKind.LARGE, width = ElementSize.grow())
-                collapsibleTrigger("collapsible_trigger") {
-                    button("collapsible_toggle", Component.empty(), submitsInput = false, icon = "chevrons-up-down", variant = ButtonVariant.GHOST, size = ButtonSize.ICON_SM)
+    private fun ComponentScope.disclosures(hooks: Hooks) = section("disclosures", "Collapsible und Accordion") {
+        Collapsible(onChange = changed(hooks, "Collapsible offen"), id = "collapsible") {
+            Row(width = ElementSize.grow(), gap = 6, crossAlign = Alignment.CENTER, id = "collapsible_head") {
+                Large(Component.text("@ammo hat 3 Funkkanäle"), width = ElementSize.grow(), id = "collapsible_title")
+                CollapsibleTrigger(id = "collapsible_trigger") {
+                    Button(Component.empty(), submitsInput = false, icon = "chevrons-up-down", variant = ButtonVariant.GHOST, size = ButtonSize.ICON_SM, id = "collapsible_toggle")
                 }
             }
-            label("collapsible_first", Component.text("Kanal 1: Leitstelle"))
-            collapsibleContent("collapsible_content") {
-                label("collapsible_second", Component.text("Kanal 2: Rettungsdienst"))
-                label("collapsible_third", Component.text("Kanal 3: Polizei"))
+            Label(Component.text("Kanal 1: Leitstelle"), id = "collapsible_first")
+            CollapsibleContent(id = "collapsible_content") {
+                Label(Component.text("Kanal 2: Rettungsdienst"), id = "collapsible_second")
+                Label(Component.text("Kanal 3: Polizei"), id = "collapsible_third")
             }
         }
-        row("accordions", gap = 12) {
-            column("accordion_single_box", width = ElementSize.grow(), gap = 4, crossAlign = Alignment.STRETCH) {
-                text("accordion_single_title", Component.text("Einzeln, einklappbar"), TextKind.MUTED)
-                accordion("accordion_single", AccordionType.SINGLE, collapsible = true, value = listOf("shipping"), onChange = changed(hooks, "Accordion einzeln")) {
-                    accordionItem("accordion_shipping", "shipping") {
-                        accordionTrigger("accordion_shipping_trigger", Component.text("Wie melde ich einen Einsatz?"))
-                        accordionContent("accordion_shipping_content") {
-                            text("accordion_shipping_text", Component.text("Über das Funkgerät oder die Leitstellen-App."))
+        Row(gap = 12, id = "accordions") {
+            Column(width = ElementSize.grow(), gap = 4, crossAlign = Alignment.STRETCH, id = "accordion_single_box") {
+                Muted(Component.text("Einzeln, einklappbar"), id = "accordion_single_title")
+                Accordion(AccordionType.SINGLE, collapsible = true, value = listOf("shipping"), onChange = changed(hooks, "Accordion einzeln"), id = "accordion_single") {
+                    AccordionItem("shipping", id = "accordion_shipping") {
+                        AccordionTrigger(Component.text("Wie melde ich einen Einsatz?"), id = "accordion_shipping_trigger")
+                        AccordionContent(id = "accordion_shipping_content") {
+                            P(Component.text("Über das Funkgerät oder die Leitstellen-App."), id = "accordion_shipping_text")
                         }
                     }
-                    accordionItem("accordion_returns", "returns") {
-                        accordionTrigger("accordion_returns_trigger", Component.text("Wer darf Einheiten alarmieren?"))
-                        accordionContent("accordion_returns_content") {
-                            text("accordion_returns_text", Component.text("Nur Disponenten mit Freigabe."))
+                    AccordionItem("returns", id = "accordion_returns") {
+                        AccordionTrigger(Component.text("Wer darf Einheiten alarmieren?"), id = "accordion_returns_trigger")
+                        AccordionContent(id = "accordion_returns_content") {
+                            P(Component.text("Nur Disponenten mit Freigabe."), id = "accordion_returns_text")
                         }
                     }
-                    accordionItem("accordion_locked", "locked", enabled = false) {
-                        accordionTrigger("accordion_locked_trigger", Component.text("Gesperrt"))
-                        accordionContent("accordion_locked_content") { text("accordion_locked_text", Component.text("Nicht sichtbar.")) }
+                    AccordionItem("locked", enabled = false, id = "accordion_locked") {
+                        AccordionTrigger(Component.text("Gesperrt"), id = "accordion_locked_trigger")
+                        AccordionContent(id = "accordion_locked_content") { P(Component.text("Nicht sichtbar."), id = "accordion_locked_text") }
                     }
                 }
             }
-            column("accordion_multiple_box", width = ElementSize.grow(), gap = 4, crossAlign = Alignment.STRETCH) {
-                text("accordion_multiple_title", Component.text("Mehrere"), TextKind.MUTED)
-                accordion("accordion_multiple", AccordionType.MULTIPLE, onChange = changed(hooks, "Accordion mehrere")) {
-                    accordionItem("accordion_a", "a") {
-                        accordionTrigger("accordion_a_trigger", Component.text("Fahrzeuge"))
-                        accordionContent("accordion_a_content") { text("accordion_a_text", Component.text("RTW, NEF, KTW")) }
+            Column(width = ElementSize.grow(), gap = 4, crossAlign = Alignment.STRETCH, id = "accordion_multiple_box") {
+                Muted(Component.text("Mehrere"), id = "accordion_multiple_title")
+                Accordion(AccordionType.MULTIPLE, onChange = changed(hooks, "Accordion mehrere"), id = "accordion_multiple") {
+                    AccordionItem("a", id = "accordion_a") {
+                        AccordionTrigger(Component.text("Fahrzeuge"), id = "accordion_a_trigger")
+                        AccordionContent(id = "accordion_a_content") { P(Component.text("RTW, NEF, KTW"), id = "accordion_a_text") }
                     }
-                    accordionItem("accordion_b", "b") {
-                        accordionTrigger("accordion_b_trigger", Component.text("Wachen"))
-                        accordionContent("accordion_b_content") { text("accordion_b_text", Component.text("Nord, Süd, Mitte")) }
+                    AccordionItem("b", id = "accordion_b") {
+                        AccordionTrigger(Component.text("Wachen"), id = "accordion_b_trigger")
+                        AccordionContent(id = "accordion_b_content") { P(Component.text("Nord, Süd, Mitte"), id = "accordion_b_text") }
                     }
                 }
             }
@@ -279,12 +285,12 @@ object NavigationDemo {
      *
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.tabsSection(hooks: Hooks) = section("tabs_section", "Tabs") {
-        row("tabs_row", gap = 12) {
+    private fun ComponentScope.tabsSection(hooks: Hooks) = section("tabs_section", "Tabs") {
+        Row(gap = 12, id = "tabs_row") {
             tabsDemo("tabs_default", TabsVariant.DEFAULT, Orientation.HORIZONTAL, hooks)
             tabsDemo("tabs_line", TabsVariant.LINE, Orientation.HORIZONTAL, hooks)
         }
-        row("tabs_vertical_row", gap = 12) {
+        Row(gap = 12, id = "tabs_vertical_row") {
             tabsDemo("tabs_vertical", TabsVariant.DEFAULT, Orientation.VERTICAL, hooks)
             tabsDemo("tabs_vertical_line", TabsVariant.LINE, Orientation.VERTICAL, hooks)
         }
@@ -298,20 +304,20 @@ object NavigationDemo {
      * @param orientation whether the list is above or beside the contents
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.tabsDemo(id: String, tabsVariant: TabsVariant, orientation: Orientation, hooks: Hooks) {
-        tabs(id, value = "overview", orientation = orientation, onChange = changed(hooks, "Tab $id")) {
-            tabsList("${id}_list", tabsVariant) {
-                tabsTrigger("${id}_overview", "overview", Component.text("Übersicht"), icon = "layout-dashboard")
-                tabsTrigger("${id}_report", "report", Component.text("Bericht"))
-                tabsTrigger("${id}_locked", "locked", Component.text("Gesperrt"), enabled = false)
+    private fun ComponentScope.tabsDemo(id: String, tabsVariant: TabsVariant, orientation: Orientation, hooks: Hooks) {
+        Tabs(value = "overview", orientation = orientation, onChange = changed(hooks, "Tab $id"), id = id) {
+            TabsList(tabsVariant, id = "${id}_list") {
+                TabsTrigger("overview", Component.text("Übersicht"), icon = "layout-dashboard", id = "${id}_overview")
+                TabsTrigger("report", Component.text("Bericht"), id = "${id}_report")
+                TabsTrigger("locked", Component.text("Gesperrt"), enabled = false, id = "${id}_locked")
             }
-            tabsContent("${id}_overview_content", "overview") {
-                text("${id}_overview_text", Component.text("3 offene Einsätze"), TextKind.MUTED)
+            TabsContent("overview", id = "${id}_overview_content") {
+                Muted(Component.text("3 offene Einsätze"), id = "${id}_overview_text")
             }
-            tabsContent("${id}_report_content", "report") {
-                text("${id}_report_text", Component.text("Bericht vom 29.09.2026"), TextKind.MUTED)
+            TabsContent("report", id = "${id}_report_content") {
+                Muted(Component.text("Bericht vom 29.09.2026"), id = "${id}_report_text")
             }
-            tabsContent("${id}_locked_content", "locked") {}
+            TabsContent("locked", id = "${id}_locked_content") {}
         }
     }
 
@@ -321,17 +327,17 @@ object NavigationDemo {
      *
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.paths(clicked: ButtonHandler) = section("paths", "Breadcrumb und Pagination") {
+    private fun ComponentScope.paths(clicked: ButtonHandler) = section("paths", "Breadcrumb und Pagination") {
         breadcrumbTrail("breadcrumb", "chevron-right", clicked)
         breadcrumbTrail("breadcrumb_slash", "slash", clicked)
-        pagination("pagination") {
-            paginationContent("pagination_content") {
-                paginationItem("pagination_prev_item") { paginationPrevious("pagination_prev", onClick = clicked) }
-                paginationItem("pagination_1_item") { paginationLink("pagination_1", Component.text("1"), onClick = clicked) }
-                paginationItem("pagination_2_item") { paginationLink("pagination_2", Component.text("2"), active = true, onClick = clicked) }
-                paginationItem("pagination_3_item") { paginationLink("pagination_3", Component.text("3"), onClick = clicked) }
-                paginationItem("pagination_gap_item") { paginationEllipsis("pagination_gap") }
-                paginationItem("pagination_next_item") { paginationNext("pagination_next", onClick = clicked) }
+        Pagination(id = "pagination") {
+            PaginationContent(id = "pagination_content") {
+                PaginationItem(id = "pagination_prev_item") { PaginationPrevious(onClick = clicked, id = "pagination_prev") }
+                PaginationItem(id = "pagination_1_item") { PaginationLink(Component.text("1"), onClick = clicked, id = "pagination_1") }
+                PaginationItem(id = "pagination_2_item") { PaginationLink(Component.text("2"), active = true, onClick = clicked, id = "pagination_2") }
+                PaginationItem(id = "pagination_3_item") { PaginationLink(Component.text("3"), onClick = clicked, id = "pagination_3") }
+                PaginationItem(id = "pagination_gap_item") { PaginationEllipsis(id = "pagination_gap") }
+                PaginationItem(id = "pagination_next_item") { PaginationNext(onClick = clicked, id = "pagination_next") }
             }
         }
     }
@@ -344,24 +350,24 @@ object NavigationDemo {
      * @param separator the Lucide icon of the separators
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.breadcrumbTrail(id: String, separator: String, clicked: ButtonHandler) {
-        breadcrumb(id) {
-            breadcrumbList("${id}_list") {
-                breadcrumbItem("${id}_home_item") { breadcrumbLink("${id}_home", Component.text("Start"), onClick = clicked) }
-                breadcrumbSeparator("${id}_sep_1", separator)
-                breadcrumbItem("${id}_more_item") {
-                    dropdownMenu("${id}_more_menu", align = Alignment.START) {
-                        breadcrumbEllipsis("${id}_more")
-                        menuContent("${id}_more_content") {
-                            menuItem("${id}_more_docs", Component.text("Dokumente"), onClick = clicked)
-                            menuItem("${id}_more_units", Component.text("Einheiten"), onClick = clicked)
+    private fun ComponentScope.breadcrumbTrail(id: String, separator: String, clicked: ButtonHandler) {
+        Breadcrumb(id = id) {
+            BreadcrumbList(id = "${id}_list") {
+                BreadcrumbItem(id = "${id}_home_item") { BreadcrumbLink(Component.text("Start"), onClick = clicked, id = "${id}_home") }
+                BreadcrumbSeparator(separator, id = "${id}_sep_1")
+                BreadcrumbItem(id = "${id}_more_item") {
+                    DropdownMenu(align = Alignment.START, id = "${id}_more_menu") {
+                        BreadcrumbEllipsis(id = "${id}_more")
+                        MenuContent(id = "${id}_more_content") {
+                            MenuItem(Component.text("Dokumente"), onClick = clicked, id = "${id}_more_docs")
+                            MenuItem(Component.text("Einheiten"), onClick = clicked, id = "${id}_more_units")
                         }
                     }
                 }
-                breadcrumbSeparator("${id}_sep_2", separator)
-                breadcrumbItem("${id}_calls_item") { breadcrumbLink("${id}_calls", Component.text("Einsätze"), onClick = clicked) }
-                breadcrumbSeparator("${id}_sep_3", separator)
-                breadcrumbItem("${id}_page_item") { breadcrumbPage("${id}_page", Component.text("Einsatz 42")) }
+                BreadcrumbSeparator(separator, id = "${id}_sep_2")
+                BreadcrumbItem(id = "${id}_calls_item") { BreadcrumbLink(Component.text("Einsätze"), onClick = clicked, id = "${id}_calls") }
+                BreadcrumbSeparator(separator, id = "${id}_sep_3")
+                BreadcrumbItem(id = "${id}_page_item") { BreadcrumbPage(Component.text("Einsatz 42"), id = "${id}_page") }
             }
         }
     }
@@ -369,24 +375,24 @@ object NavigationDemo {
     /**
      * Adds scroll areas that scroll vertically, horizontally and both ways.
      */
-    private fun ElementsBuilder.scrollAreas() = section("scroll_areas", "Scroll Area") {
-        row("scroll_row", gap = 12) {
-            scrollArea("scroll_vertical", ElementSize.fixed(140), ElementSize.fixed(100)) {
-                column("scroll_vertical_list", width = ElementSize.grow(), gap = 4, padding = Spacing(4, 6, 4, 6), crossAlign = Alignment.STRETCH) {
-                    text("scroll_vertical_title", Component.text("Einheiten"), TextKind.SMALL)
-                    (1..20).forEach { label("scroll_vertical_$it", Component.text("RTW $it")) }
+    private fun ComponentScope.scrollAreas() = section("scroll_areas", "Scroll Area") {
+        Row(gap = 12, id = "scroll_row") {
+            ScrollArea(ElementSize.fixed(140), ElementSize.fixed(100), id = "scroll_vertical") {
+                Column(width = ElementSize.grow(), gap = 4, padding = Spacing(4, 6, 4, 6), crossAlign = Alignment.STRETCH, id = "scroll_vertical_list") {
+                    Small(Component.text("Einheiten"), id = "scroll_vertical_title")
+                    (1..20).forEach { Label(Component.text("RTW $it"), id = "scroll_vertical_$it") }
                 }
             }
-            scrollArea("scroll_horizontal", ElementSize.fixed(200), ElementSize.fixed(40), ScrollOrientation.HORIZONTAL) {
-                row("scroll_horizontal_list", gap = 4, padding = Spacing(4, 4, 4, 4)) {
-                    (1..15).forEach { badge("scroll_horizontal_$it", Component.text("Wache $it"), variant = BadgeVariant.OUTLINE) }
+            ScrollArea(ElementSize.fixed(200), ElementSize.fixed(40), ScrollOrientation.HORIZONTAL, id = "scroll_horizontal") {
+                Row(gap = 4, padding = Spacing(4, 4, 4, 4), id = "scroll_horizontal_list") {
+                    (1..15).forEach { Badge(Component.text("Wache $it"), variant = BadgeVariant.OUTLINE, id = "scroll_horizontal_$it") }
                 }
             }
-            scrollArea("scroll_both", ElementSize.fixed(140), ElementSize.fixed(100), ScrollOrientation.BOTH) {
-                column("scroll_both_grid", gap = 4, padding = Spacing(4, 4, 4, 4)) {
+            ScrollArea(ElementSize.fixed(140), ElementSize.fixed(100), ScrollOrientation.BOTH, id = "scroll_both") {
+                Column(gap = 4, padding = Spacing(4, 4, 4, 4), id = "scroll_both_grid") {
                     (1..12).forEach { rowIndex ->
-                        row("scroll_both_row_$rowIndex", gap = 4) {
-                            (1..8).forEach { label("scroll_both_${rowIndex}_$it", Component.text("Feld $rowIndex.$it")) }
+                        Row(gap = 4, id = "scroll_both_row_$rowIndex") {
+                            (1..8).forEach { Label(Component.text("Feld $rowIndex.$it"), id = "scroll_both_${rowIndex}_$it") }
                         }
                     }
                 }
@@ -399,17 +405,17 @@ object NavigationDemo {
      *
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.resizables(hooks: Hooks) = section("resizables", "Resizable") {
-        resizablePanelGroup("resizable", height = ElementSize.fixed(120), onChange = changed(hooks, "Größen")) {
-            resizablePanel("resizable_left", defaultSize = 40.0, minSize = 20.0, maxSize = 70.0) {
+    private fun ComponentScope.resizables(hooks: Hooks) = section("resizables", "Resizable") {
+        ResizablePanelGroup(height = ElementSize.fixed(120), onChange = changed(hooks, "Größen"), id = "resizable") {
+            ResizablePanel(defaultSize = 40.0, minSize = 20.0, maxSize = 70.0, id = "resizable_left") {
                 resizableLabel("resizable_left_label", "Karte")
             }
-            resizableHandle("resizable_handle", withHandle = true)
-            resizablePanel("resizable_right", defaultSize = 60.0) {
-                resizablePanelGroup("resizable_nested", Orientation.VERTICAL, height = ElementSize.grow(), onChange = changed(hooks, "Größen rechts")) {
-                    resizablePanel("resizable_top", defaultSize = 50.0, minSize = 25.0) { resizableLabel("resizable_top_label", "Einsätze") }
-                    resizableHandle("resizable_nested_handle")
-                    resizablePanel("resizable_bottom", defaultSize = 50.0, minSize = 25.0) { resizableLabel("resizable_bottom_label", "Funk") }
+            ResizableHandle(withHandle = true, id = "resizable_handle")
+            ResizablePanel(defaultSize = 60.0, id = "resizable_right") {
+                ResizablePanelGroup(Orientation.VERTICAL, height = ElementSize.grow(), onChange = changed(hooks, "Größen rechts"), id = "resizable_nested") {
+                    ResizablePanel(defaultSize = 50.0, minSize = 25.0, id = "resizable_top") { resizableLabel("resizable_top_label", "Einsätze") }
+                    ResizableHandle(id = "resizable_nested_handle")
+                    ResizablePanel(defaultSize = 50.0, minSize = 25.0, id = "resizable_bottom") { resizableLabel("resizable_bottom_label", "Funk") }
                 }
             }
         }
@@ -421,9 +427,9 @@ object NavigationDemo {
      * @param id the id of the text
      * @param title the text
      */
-    private fun ElementsBuilder.resizableLabel(id: String, title: String) {
-        column("${id}_box", width = ElementSize.grow(), height = ElementSize.grow(), mainAlign = Alignment.CENTER, crossAlign = Alignment.CENTER) {
-            text(id, Component.text(title), TextKind.LARGE)
+    private fun ComponentScope.resizableLabel(id: String, title: String) {
+        Column(width = ElementSize.grow(), height = ElementSize.grow(), mainAlign = Alignment.CENTER, crossAlign = Alignment.CENTER, id = "${id}_box") {
+            Large(Component.text(title), id = id)
         }
     }
 
@@ -432,8 +438,8 @@ object NavigationDemo {
      *
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.carousels(hooks: Hooks) = section("carousels", "Carousel") {
-        row("carousel_row", gap = 12, crossAlign = Alignment.CENTER) {
+    private fun ComponentScope.carousels(hooks: Hooks) = section("carousels", "Carousel") {
+        Row(gap = 12, crossAlign = Alignment.CENTER, id = "carousel_row") {
             carouselDemo("carousel_single", 100.0, Orientation.HORIZONTAL, loop = false, hooks)
             carouselDemo("carousel_half", 50.0, Orientation.HORIZONTAL, loop = true, hooks)
             carouselDemo("carousel_vertical", 50.0, Orientation.VERTICAL, loop = false, hooks)
@@ -449,31 +455,24 @@ object NavigationDemo {
      * @param loop whether the last position is followed by the first
      * @param hooks what the page needs from its surroundings
      */
-    private fun ElementsBuilder.carouselDemo(id: String, basis: Double, orientation: Orientation, loop: Boolean, hooks: Hooks) {
+    private fun ComponentScope.carouselDemo(id: String, basis: Double, orientation: Orientation, loop: Boolean, hooks: Hooks) {
         val vertical = orientation == Orientation.VERTICAL
-        carousel(
-            id,
-            width = ElementSize.fixed(if (vertical) 120 else 160),
-            orientation = orientation,
-            loop = loop,
-            height = if (vertical) ElementSize.fixed(150) else ElementSize.FIT,
-            onChange = changed(hooks, "Folie $id"),
-        ) {
-            carouselPrevious("${id}_prev")
-            carouselContent("${id}_content") {
+        Carousel(width = ElementSize.fixed(if (vertical) 120 else 160), orientation = orientation, loop = loop, height = if (vertical) ElementSize.fixed(150) else ElementSize.FIT, onChange = changed(hooks, "Folie $id"), id = id) {
+            CarouselPrevious(id = "${id}_prev")
+            CarouselContent(id = "${id}_content") {
                 (1..5).forEach { number ->
-                    carouselItem("${id}_slide_$number", basis) {
-                        column("${id}_slide_${number}_pad", width = ElementSize.grow(), padding = Spacing(2, 2, 2, 2), crossAlign = Alignment.STRETCH) {
-                            card("${id}_card_$number", width = ElementSize.grow()) {
-                                column("${id}_card_${number}_body", width = ElementSize.grow(), height = ElementSize.fixed(if (vertical) 40 else 60), mainAlign = Alignment.CENTER, crossAlign = Alignment.CENTER) {
-                                    text("${id}_card_${number}_text", Component.text("$number"), TextKind.H3)
+                    CarouselItem(basis, id = "${id}_slide_$number") {
+                        Column(width = ElementSize.grow(), padding = Spacing(2, 2, 2, 2), crossAlign = Alignment.STRETCH, id = "${id}_slide_${number}_pad") {
+                            Card(width = ElementSize.grow(), id = "${id}_card_$number") {
+                                Column(width = ElementSize.grow(), height = ElementSize.fixed(if (vertical) 40 else 60), mainAlign = Alignment.CENTER, crossAlign = Alignment.CENTER, id = "${id}_card_${number}_body") {
+                                    H3(Component.text("$number"), id = "${id}_card_${number}_text")
                                 }
                             }
                         }
                     }
                 }
             }
-            carouselNext("${id}_next")
+            CarouselNext(id = "${id}_next")
         }
     }
 
@@ -483,30 +482,30 @@ object NavigationDemo {
      * @param hooks what the page needs from its surroundings
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.navigationMenus(hooks: Hooks, clicked: ButtonHandler) = section("navigation_menus", "Navigation Menu") {
-        navigationMenu("navigation_menu") {
-            navigationMenuList("navigation_menu_list") {
-                navigationMenuItem("navigation_start_item", onChange = changed(hooks, "Menü Einstieg offen")) {
-                    navigationMenuTrigger("navigation_start_trigger", Component.text("Einstieg"))
-                    navigationMenuContent("navigation_start_content") {
-                        column("navigation_start_links", width = ElementSize.fixed(220), gap = 2, crossAlign = Alignment.STRETCH) {
+    private fun ComponentScope.navigationMenus(hooks: Hooks, clicked: ButtonHandler) = section("navigation_menus", "Navigation Menu") {
+        NavigationMenu(id = "navigation_menu") {
+            NavigationMenuList(id = "navigation_menu_list") {
+                NavigationMenuItem(onChange = changed(hooks, "Menü Einstieg offen"), id = "navigation_start_item") {
+                    NavigationMenuTrigger(Component.text("Einstieg"), id = "navigation_start_trigger")
+                    NavigationMenuContent(id = "navigation_start_content") {
+                        Column(width = ElementSize.fixed(220), gap = 2, crossAlign = Alignment.STRETCH, id = "navigation_start_links") {
                             navigationLink("navigation_intro", "Einführung", "Die Leitstelle in fünf Minuten.", clicked)
                             navigationLink("navigation_rules", "Regeln", "Was im Funk erlaubt ist.", clicked)
                         }
                     }
                 }
-                navigationMenuItem("navigation_units_item", onChange = changed(hooks, "Menü Einheiten offen")) {
-                    navigationMenuTrigger("navigation_units_trigger", Component.text("Einheiten"))
-                    navigationMenuContent("navigation_units_content") {
-                        column("navigation_units_links", width = ElementSize.fixed(180), gap = 2, crossAlign = Alignment.STRETCH) {
+                NavigationMenuItem(onChange = changed(hooks, "Menü Einheiten offen"), id = "navigation_units_item") {
+                    NavigationMenuTrigger(Component.text("Einheiten"), id = "navigation_units_trigger")
+                    NavigationMenuContent(id = "navigation_units_content") {
+                        Column(width = ElementSize.fixed(180), gap = 2, crossAlign = Alignment.STRETCH, id = "navigation_units_links") {
                             navigationLink("navigation_rtw", "Rettungswagen", "Notfallrettung", clicked)
                             navigationLink("navigation_nef", "Notarzt", "Notarzteinsatzfahrzeug", clicked)
                             navigationLink("navigation_ktw", "Krankentransport", "Planbare Fahrten", clicked, enabled = false)
                         }
                     }
                 }
-                navigationMenuItem("navigation_docs_item") {
-                    navigationMenuLink("navigation_docs", onClick = clicked) { label("navigation_docs_text", Component.text("Dokumente")) }
+                NavigationMenuItem(id = "navigation_docs_item") {
+                    NavigationMenuLink(onClick = clicked, id = "navigation_docs") { Label(Component.text("Dokumente"), id = "navigation_docs_text") }
                 }
             }
         }
@@ -521,10 +520,10 @@ object NavigationDemo {
      * @param clicked the handler that reports clicks
      * @param enabled whether the link can be used
      */
-    private fun ElementsBuilder.navigationLink(id: String, title: String, description: String, clicked: ButtonHandler, enabled: Boolean = true) {
-        navigationMenuLink(id, enabled = enabled, onClick = clicked) {
-            text("${id}_title", Component.text(title), TextKind.SMALL)
-            text("${id}_description", Component.text(description), TextKind.MUTED)
+    private fun ComponentScope.navigationLink(id: String, title: String, description: String, clicked: ButtonHandler, enabled: Boolean = true) {
+        NavigationMenuLink(enabled = enabled, onClick = clicked, id = id) {
+            Small(Component.text(title), id = "${id}_title")
+            Muted(Component.text(description), id = "${id}_description")
         }
     }
 
@@ -535,57 +534,57 @@ object NavigationDemo {
      * @param hooks what the page needs from its surroundings
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.directions(hooks: Hooks, clicked: ButtonHandler) = section("directions", "Direction (rechts nach links)") {
-        direction("direction_rtl", LayoutDirection.RTL, width = ElementSize.grow()) {
-            column("direction_body", width = ElementSize.grow(), gap = 8) {
+    private fun ComponentScope.directions(hooks: Hooks, clicked: ButtonHandler) = section("directions", "Direction (rechts nach links)") {
+        Direction(LayoutDirection.RTL, width = ElementSize.grow(), id = "direction_rtl") {
+            Column(width = ElementSize.grow(), gap = 8, id = "direction_body") {
                 breadcrumbTrail("direction_breadcrumb", "chevron-right", clicked)
-                pagination("direction_pagination") {
-                    paginationContent("direction_pagination_content") {
-                        paginationItem("direction_prev_item") { paginationPrevious("direction_prev", onClick = clicked) }
-                        paginationItem("direction_1_item") { paginationLink("direction_1", Component.text("1"), active = true, onClick = clicked) }
-                        paginationItem("direction_2_item") { paginationLink("direction_2", Component.text("2"), onClick = clicked) }
-                        paginationItem("direction_next_item") { paginationNext("direction_next", onClick = clicked) }
+                Pagination(id = "direction_pagination") {
+                    PaginationContent(id = "direction_pagination_content") {
+                        PaginationItem(id = "direction_prev_item") { PaginationPrevious(onClick = clicked, id = "direction_prev") }
+                        PaginationItem(id = "direction_1_item") { PaginationLink(Component.text("1"), active = true, onClick = clicked, id = "direction_1") }
+                        PaginationItem(id = "direction_2_item") { PaginationLink(Component.text("2"), onClick = clicked, id = "direction_2") }
+                        PaginationItem(id = "direction_next_item") { PaginationNext(onClick = clicked, id = "direction_next") }
                     }
                 }
-                row("direction_row", width = ElementSize.grow(), gap = 12) {
+                Row(width = ElementSize.grow(), gap = 12, id = "direction_row") {
                     tabsDemo("direction_tabs", TabsVariant.LINE, Orientation.HORIZONTAL, hooks)
-                    column("direction_accordion_box", width = ElementSize.grow(), crossAlign = Alignment.STRETCH) {
-                        accordion("direction_accordion", AccordionType.SINGLE, collapsible = true, onChange = changed(hooks, "Accordion rechts nach links")) {
-                            accordionItem("direction_accordion_a", "a") {
-                                accordionTrigger("direction_accordion_a_trigger", Component.text("Gespiegelt"))
-                                accordionContent("direction_accordion_a_content") { text("direction_accordion_a_text", Component.text("Der Pfeil steht links.")) }
+                    Column(width = ElementSize.grow(), crossAlign = Alignment.STRETCH, id = "direction_accordion_box") {
+                        Accordion(AccordionType.SINGLE, collapsible = true, onChange = changed(hooks, "Accordion rechts nach links"), id = "direction_accordion") {
+                            AccordionItem("a", id = "direction_accordion_a") {
+                                AccordionTrigger(Component.text("Gespiegelt"), id = "direction_accordion_a_trigger")
+                                AccordionContent(id = "direction_accordion_a_content") { P(Component.text("Der Pfeil steht links."), id = "direction_accordion_a_text") }
                             }
                         }
                     }
                 }
-                row("direction_controls", gap = 12, crossAlign = Alignment.CENTER) {
+                Row(gap = 12, crossAlign = Alignment.CENTER, id = "direction_controls") {
                     carouselDemo("direction_carousel", 50.0, Orientation.HORIZONTAL, loop = false, hooks)
-                    dropdownMenu("direction_menu", align = Alignment.START) {
-                        button("direction_menu_trigger", Component.text("Menü"), submitsInput = false, icon = "menu", variant = ButtonVariant.OUTLINE)
-                        menuContent("direction_menu_content") {
-                            menuItem("direction_menu_profile", Component.text("Profil"), icon = "user", shortcut = Component.text("⇧P"), onClick = clicked)
-                            menuSub("direction_menu_sub") {
-                                menuSubTrigger("direction_menu_sub_trigger", Component.text("Einladen"), icon = "user-plus")
-                                menuContent("direction_menu_sub_content") {
-                                    menuItem("direction_menu_sub_radio", Component.text("Per Funk"), icon = "radio", onClick = clicked)
+                    DropdownMenu(align = Alignment.START, id = "direction_menu") {
+                        Button(Component.text("Menü"), submitsInput = false, icon = "menu", variant = ButtonVariant.OUTLINE, id = "direction_menu_trigger")
+                        MenuContent(id = "direction_menu_content") {
+                            MenuItem(Component.text("Profil"), icon = "user", shortcut = Component.text("⇧P"), onClick = clicked, id = "direction_menu_profile")
+                            MenuSub(id = "direction_menu_sub") {
+                                MenuSubTrigger(Component.text("Einladen"), icon = "user-plus", id = "direction_menu_sub_trigger")
+                                MenuContent(id = "direction_menu_sub_content") {
+                                    MenuItem(Component.text("Per Funk"), icon = "radio", onClick = clicked, id = "direction_menu_sub_radio")
                                 }
                             }
                         }
                     }
-                    sheet("direction_sheet") {
-                        button("direction_sheet_trigger", Component.text("Sheet links"), submitsInput = false, variant = ButtonVariant.OUTLINE)
-                        sheetContent("direction_sheet_content", OverlaySide.LEFT) {
-                            sheetHeader("direction_sheet_header") {
-                                sheetTitle("direction_sheet_title", Component.text("Gespiegelt"))
-                                sheetDescription("direction_sheet_description", Component.text("Links angefordert, rechts geöffnet."))
+                    Sheet(id = "direction_sheet") {
+                        Button(Component.text("Sheet links"), submitsInput = false, variant = ButtonVariant.OUTLINE, id = "direction_sheet_trigger")
+                        SheetContent(OverlaySide.LEFT, id = "direction_sheet_content") {
+                            SheetHeader(id = "direction_sheet_header") {
+                                SheetTitle(Component.text("Gespiegelt"), id = "direction_sheet_title")
+                                SheetDescription(Component.text("Links angefordert, rechts geöffnet."), id = "direction_sheet_description")
                             }
                         }
                     }
                 }
-                direction("direction_ltr", LayoutDirection.LTR) {
-                    row("direction_ltr_row", gap = 6, crossAlign = Alignment.CENTER) {
-                        badge("direction_ltr_badge", Component.text("Verschachtelt"), variant = BadgeVariant.SECONDARY)
-                        text("direction_ltr_text", Component.text("Diese Zeile läuft wieder von links nach rechts."), TextKind.MUTED)
+                Direction(LayoutDirection.LTR, id = "direction_ltr") {
+                    Row(gap = 6, crossAlign = Alignment.CENTER, id = "direction_ltr_row") {
+                        Badge(Component.text("Verschachtelt"), variant = BadgeVariant.SECONDARY, id = "direction_ltr_badge")
+                        Muted(Component.text("Diese Zeile läuft wieder von links nach rechts."), id = "direction_ltr_text")
                     }
                 }
             }
@@ -602,99 +601,95 @@ object NavigationDemo {
      * @param variant the variant of the theme
      * @param setup how the sidebar is set up
      */
-    private fun ElementsBuilder.sidebars(hooks: Hooks, clicked: ButtonHandler, theme: String, variant: ScreenVariant, setup: SidebarSetup) = section("sidebars", "Sidebar") {
-        row("sidebar_setup", gap = 4, crossAlign = Alignment.CENTER) {
-            select("sidebar_side", SIDES, selected = setup.side.name, width = ElementSize.grow(), onChange = { change ->
+    private fun ComponentScope.sidebars(hooks: Hooks, clicked: ButtonHandler, theme: String, variant: ScreenVariant, setup: SidebarSetup) = section("sidebars", "Sidebar") {
+        Row(gap = 4, crossAlign = Alignment.CENTER, id = "sidebar_setup") {
+            Select(SIDES, selected = setup.side.name, width = ElementSize.grow(), onChange = { change ->
                 hooks.reopen(theme, variant, setup.copy(side = SidebarSide.valueOf(change.value)))
-            })
-            select("sidebar_variant", VARIANTS, selected = setup.variant.name, width = ElementSize.grow(), onChange = { change ->
+            }, id = "sidebar_side")
+            Select(VARIANTS, selected = setup.variant.name, width = ElementSize.grow(), onChange = { change ->
                 hooks.reopen(theme, variant, setup.copy(variant = SidebarVariant.valueOf(change.value)))
-            })
-            select("sidebar_collapsible", COLLAPSIBLES, selected = setup.collapsible.name, width = ElementSize.grow(), onChange = { change ->
+            }, id = "sidebar_variant")
+            Select(COLLAPSIBLES, selected = setup.collapsible.name, width = ElementSize.grow(), onChange = { change ->
                 hooks.reopen(theme, variant, setup.copy(collapsible = SidebarCollapsible.valueOf(change.value)))
-            })
+            }, id = "sidebar_collapsible")
         }
-        sidebarProvider("sidebar_provider", ElementSize.grow(), ElementSize.fixed(320), onChange = { change ->
+        SidebarProvider(ElementSize.grow(), ElementSize.fixed(320), onChange = { change ->
             val state = if (change.value == "true") "ausgeklappt" else "eingeklappt"
             hooks.report(Component.text("Sidebar $state", NamedTextColor.AQUA))
-        }) {
-            sidebar("sidebar", side = setup.side, variant = setup.variant, collapsible = setup.collapsible) {
-                sidebarHeader("sidebar_header") {
-                    sidebarMenu("sidebar_header_menu") {
-                        sidebarMenuItem("sidebar_org_item") {
-                            sidebarMenuButton("sidebar_org", Component.text("Leitstelle"), icon = "radio-tower", size = SidebarMenuButtonSize.LG, tooltip = Component.text("Leitstelle"), onClick = clicked)
+        }, id = "sidebar_provider") {
+            Sidebar(side = setup.side, variant = setup.variant, collapsible = setup.collapsible, id = "sidebar") {
+                SidebarHeader(id = "sidebar_header") {
+                    SidebarMenu(id = "sidebar_header_menu") {
+                        SidebarMenuItem(id = "sidebar_org_item") {
+                            SidebarMenuButton(Component.text("Leitstelle"), icon = "radio-tower", size = SidebarMenuButtonSize.LG, tooltip = Component.text("Leitstelle"), onClick = clicked, id = "sidebar_org")
                         }
                     }
-                    sidebarInput("sidebar_search", Component.text("Suchen..."))
+                    SidebarInput(Component.text("Suchen..."), id = "sidebar_search")
                 }
-                sidebarSeparator("sidebar_separator")
-                sidebarContent("sidebar_content") {
-                    sidebarGroup("sidebar_group_main") {
-                        sidebarGroupLabel("sidebar_group_main_label", Component.text("Dienst"))
-                        sidebarGroupAction("sidebar_group_main_action", onClick = clicked)
-                        sidebarGroupContent("sidebar_group_main_content") {
-                            sidebarMenu("sidebar_menu_main") {
-                                sidebarMenuItem("sidebar_home_item") {
-                                    sidebarMenuButton("sidebar_home", Component.text("Übersicht"), icon = "house", active = true, tooltip = Component.text("Übersicht"), onClick = clicked)
+                SidebarSeparator(id = "sidebar_separator")
+                SidebarContent(id = "sidebar_content") {
+                    SidebarGroup(id = "sidebar_group_main") {
+                        SidebarGroupLabel(Component.text("Dienst"), id = "sidebar_group_main_label")
+                        SidebarGroupAction(onClick = clicked, id = "sidebar_group_main_action")
+                        SidebarGroupContent(id = "sidebar_group_main_content") {
+                            SidebarMenu(id = "sidebar_menu_main") {
+                                SidebarMenuItem(id = "sidebar_home_item") {
+                                    SidebarMenuButton(Component.text("Übersicht"), icon = "house", active = true, tooltip = Component.text("Übersicht"), onClick = clicked, id = "sidebar_home")
                                 }
-                                sidebarMenuItem("sidebar_calls_item") {
-                                    sidebarMenuButton("sidebar_calls", Component.text("Einsätze"), icon = "siren", tooltip = Component.text("Einsätze"), onClick = clicked)
-                                    sidebarMenuBadge("sidebar_calls_badge", Component.text("12"))
+                                SidebarMenuItem(id = "sidebar_calls_item") {
+                                    SidebarMenuButton(Component.text("Einsätze"), icon = "siren", tooltip = Component.text("Einsätze"), onClick = clicked, id = "sidebar_calls")
+                                    SidebarMenuBadge(Component.text("12"), id = "sidebar_calls_badge")
                                 }
-                                sidebarMenuItem("sidebar_units_item") {
-                                    sidebarMenuButton("sidebar_units", Component.text("Einheiten"), icon = "ambulance", tooltip = Component.text("Einheiten"), onClick = clicked)
-                                    sidebarMenuAction("sidebar_units_action", showOnHover = true, onClick = clicked)
-                                    sidebarMenuSub("sidebar_units_sub") {
-                                        sidebarMenuSubItem("sidebar_units_rtw_item") {
-                                            sidebarMenuSubButton("sidebar_units_rtw", Component.text("RTW 1"), active = true, onClick = clicked)
+                                SidebarMenuItem(id = "sidebar_units_item") {
+                                    SidebarMenuButton(Component.text("Einheiten"), icon = "ambulance", tooltip = Component.text("Einheiten"), onClick = clicked, id = "sidebar_units")
+                                    SidebarMenuAction(showOnHover = true, onClick = clicked, id = "sidebar_units_action")
+                                    SidebarMenuSub(id = "sidebar_units_sub") {
+                                        SidebarMenuSubItem(id = "sidebar_units_rtw_item") {
+                                            SidebarMenuSubButton(Component.text("RTW 1"), active = true, onClick = clicked, id = "sidebar_units_rtw")
                                         }
-                                        sidebarMenuSubItem("sidebar_units_nef_item") {
-                                            sidebarMenuSubButton("sidebar_units_nef", Component.text("NEF 2"), onClick = clicked)
+                                        SidebarMenuSubItem(id = "sidebar_units_nef_item") {
+                                            SidebarMenuSubButton(Component.text("NEF 2"), onClick = clicked, id = "sidebar_units_nef")
                                         }
-                                        sidebarMenuSubItem("sidebar_units_ktw_item") {
-                                            sidebarMenuSubButton("sidebar_units_ktw", Component.text("KTW 3 (außer Dienst)"), size = SidebarMenuSubButtonSize.SM, enabled = false, onClick = clicked)
+                                        SidebarMenuSubItem(id = "sidebar_units_ktw_item") {
+                                            SidebarMenuSubButton(Component.text("KTW 3 (außer Dienst)"), size = SidebarMenuSubButtonSize.SM, enabled = false, onClick = clicked, id = "sidebar_units_ktw")
                                         }
                                     }
                                 }
-                                sidebarMenuItem("sidebar_archive_item") {
-                                    sidebarMenuButton("sidebar_archive", Component.text("Archiv"), icon = "archive", size = SidebarMenuButtonSize.SM, tooltip = Component.text("Archiv"), enabled = false, onClick = clicked)
+                                SidebarMenuItem(id = "sidebar_archive_item") {
+                                    SidebarMenuButton(Component.text("Archiv"), icon = "archive", size = SidebarMenuButtonSize.SM, tooltip = Component.text("Archiv"), enabled = false, onClick = clicked, id = "sidebar_archive")
                                 }
                             }
                         }
                     }
-                    sidebarGroup("sidebar_group_more") {
-                        sidebarGroupLabel("sidebar_group_more_label", Component.text("Weiteres"))
-                        sidebarGroupContent("sidebar_group_more_content") {
-                            sidebarMenu("sidebar_menu_more") {
-                                sidebarMenuItem("sidebar_settings_item") {
-                                    sidebarMenuButton("sidebar_settings", Component.text("Einstellungen"), icon = "settings", variant = SidebarMenuButtonVariant.OUTLINE, tooltip = Component.text("Einstellungen"), onClick = clicked)
+                    SidebarGroup(id = "sidebar_group_more") {
+                        SidebarGroupLabel(Component.text("Weiteres"), id = "sidebar_group_more_label")
+                        SidebarGroupContent(id = "sidebar_group_more_content") {
+                            SidebarMenu(id = "sidebar_menu_more") {
+                                SidebarMenuItem(id = "sidebar_settings_item") {
+                                    SidebarMenuButton(Component.text("Einstellungen"), icon = "settings", variant = SidebarMenuButtonVariant.OUTLINE, tooltip = Component.text("Einstellungen"), onClick = clicked, id = "sidebar_settings")
                                 }
-                                sidebarMenuItem("sidebar_loading_1") { sidebarMenuSkeleton("sidebar_skeleton_1", showIcon = true) }
-                                sidebarMenuItem("sidebar_loading_2") { sidebarMenuSkeleton("sidebar_skeleton_2") }
+                                SidebarMenuItem(id = "sidebar_loading_1") { SidebarMenuSkeleton(showIcon = true, id = "sidebar_skeleton_1") }
+                                SidebarMenuItem(id = "sidebar_loading_2") { SidebarMenuSkeleton(id = "sidebar_skeleton_2") }
                             }
                         }
                     }
                 }
-                sidebarFooter("sidebar_footer") {
-                    sidebarMenu("sidebar_footer_menu") {
-                        sidebarMenuItem("sidebar_user_item") {
-                            sidebarMenuButton("sidebar_user", Component.text("Ammo"), icon = "circle-user", tooltip = Component.text("Ammo"), onClick = clicked)
-                            sidebarMenuAction("sidebar_user_action", icon = "log-out", onClick = clicked)
+                SidebarFooter(id = "sidebar_footer") {
+                    SidebarMenu(id = "sidebar_footer_menu") {
+                        SidebarMenuItem(id = "sidebar_user_item") {
+                            SidebarMenuButton(Component.text("Ammo"), icon = "circle-user", tooltip = Component.text("Ammo"), onClick = clicked, id = "sidebar_user")
+                            SidebarMenuAction(icon = "log-out", onClick = clicked, id = "sidebar_user_action")
                         }
                     }
                 }
-                sidebarRail("sidebar_rail")
+                SidebarRail(id = "sidebar_rail")
             }
-            sidebarInset("sidebar_inset") {
-                row("sidebar_inset_bar", gap = 6, crossAlign = Alignment.CENTER) {
-                    sidebarTrigger("sidebar_trigger")
-                    text("sidebar_inset_title", Component.text("Übersicht"), TextKind.H4)
+            SidebarInset(id = "sidebar_inset") {
+                Row(gap = 6, crossAlign = Alignment.CENTER, id = "sidebar_inset_bar") {
+                    SidebarTrigger(id = "sidebar_trigger")
+                    H4(Component.text("Übersicht"), id = "sidebar_inset_title")
                 }
-                text(
-                    "sidebar_inset_text",
-                    Component.text("Mit dem Knopf oben links, der Leiste am Rand oder Strg+B klappt die Sidebar ein und aus."),
-                    TextKind.MUTED,
-                )
+                Muted(Component.text("Mit dem Knopf oben links, der Leiste am Rand oder Strg+B klappt die Sidebar ein und aus."), id = "sidebar_inset_text")
             }
         }
     }

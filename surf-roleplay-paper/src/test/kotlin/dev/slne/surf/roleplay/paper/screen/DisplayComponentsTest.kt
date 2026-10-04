@@ -1,69 +1,73 @@
 package dev.slne.surf.roleplay.paper.screen
 
+import dev.slne.surf.roleplay.api.client.common.screen.AlertVariant
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarSize
+import dev.slne.surf.roleplay.api.client.common.screen.AvatarSource
 import dev.slne.surf.roleplay.api.client.common.screen.BadgeElement
 import dev.slne.surf.roleplay.api.client.common.screen.BadgeVariant
+import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
+import dev.slne.surf.roleplay.api.client.common.screen.IconTint
 import dev.slne.surf.roleplay.api.client.common.screen.KbdElement
 import dev.slne.surf.roleplay.api.client.common.screen.Orientation
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
-import dev.slne.surf.roleplay.api.client.common.screen.TextKind
-import dev.slne.surf.roleplay.api.client.common.screen.badge
-import dev.slne.surf.roleplay.api.client.common.screen.kbd
-import dev.slne.surf.roleplay.api.client.common.screen.kbdGroup
-import dev.slne.surf.roleplay.api.client.common.screen.separator
-import dev.slne.surf.roleplay.api.client.common.screen.text
-import dev.slne.surf.roleplay.api.client.common.screen.textList
-import dev.slne.surf.roleplay.protocol.screen.BadgeNode
-import dev.slne.surf.roleplay.protocol.screen.ColumnNode
-import dev.slne.surf.roleplay.protocol.screen.KbdGroupNode
-import dev.slne.surf.roleplay.protocol.screen.KbdNode
-import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
-import dev.slne.surf.roleplay.protocol.screen.SizeMode
-import dev.slne.surf.roleplay.protocol.screen.TextListNode
-import dev.slne.surf.roleplay.protocol.screen.TextNode
-import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.IconTint
-import dev.slne.surf.roleplay.api.client.common.screen.aspectRatio
-import dev.slne.surf.roleplay.api.client.common.screen.skeleton
-import dev.slne.surf.roleplay.api.client.common.screen.spinner
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Alert
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AlertTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AspectRatio
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Avatar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AvatarGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.AvatarGroupCount
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Badge
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Card
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardAction
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.CardTitle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.H2
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Image
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Kbd
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.KbdGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Separator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Skeleton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Spinner
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TypographyList
+import dev.slne.surf.roleplay.protocol.screen.AlertNode
 import dev.slne.surf.roleplay.protocol.screen.AspectRatioNode
-import dev.slne.surf.roleplay.protocol.screen.IconColor
-import dev.slne.surf.roleplay.protocol.screen.ImageNode
-import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
-import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
-import dev.slne.surf.roleplay.api.client.common.screen.AvatarSize
-import dev.slne.surf.roleplay.api.client.common.screen.AvatarSource
-import dev.slne.surf.roleplay.api.client.common.screen.avatar
-import dev.slne.surf.roleplay.api.client.common.screen.avatarGroup
-import dev.slne.surf.roleplay.api.client.common.screen.avatarGroupCount
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupCountNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarGroupNode
 import dev.slne.surf.roleplay.protocol.screen.AvatarNode
-import dev.slne.surf.roleplay.api.client.common.screen.AlertVariant
-import dev.slne.surf.roleplay.api.client.common.screen.alert
-import dev.slne.surf.roleplay.api.client.common.screen.alertDescription
-import dev.slne.surf.roleplay.api.client.common.screen.alertTitle
-import dev.slne.surf.roleplay.api.client.common.screen.card
-import dev.slne.surf.roleplay.api.client.common.screen.cardAction
-import dev.slne.surf.roleplay.api.client.common.screen.cardContent
-import dev.slne.surf.roleplay.api.client.common.screen.cardDescription
-import dev.slne.surf.roleplay.api.client.common.screen.cardFooter
-import dev.slne.surf.roleplay.api.client.common.screen.cardHeader
-import dev.slne.surf.roleplay.api.client.common.screen.cardTitle
-import dev.slne.surf.roleplay.protocol.screen.AlertNode
+import dev.slne.surf.roleplay.protocol.screen.BadgeNode
 import dev.slne.surf.roleplay.protocol.screen.ButtonNode
 import dev.slne.surf.roleplay.protocol.screen.CardActionNode
 import dev.slne.surf.roleplay.protocol.screen.CardContentNode
 import dev.slne.surf.roleplay.protocol.screen.CardFooterNode
 import dev.slne.surf.roleplay.protocol.screen.CardHeaderNode
 import dev.slne.surf.roleplay.protocol.screen.CardNode
+import dev.slne.surf.roleplay.protocol.screen.ColumnNode
+import dev.slne.surf.roleplay.protocol.screen.IconColor
+import dev.slne.surf.roleplay.protocol.screen.ImageNode
+import dev.slne.surf.roleplay.protocol.screen.KbdGroupNode
+import dev.slne.surf.roleplay.protocol.screen.KbdNode
+import dev.slne.surf.roleplay.protocol.screen.SeparatorNode
+import dev.slne.surf.roleplay.protocol.screen.SizeMode
+import dev.slne.surf.roleplay.protocol.screen.SkeletonNode
+import dev.slne.surf.roleplay.protocol.screen.SpinnerNode
+import dev.slne.surf.roleplay.protocol.screen.TextListNode
+import dev.slne.surf.roleplay.protocol.screen.TextNode
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import dev.slne.surf.roleplay.api.client.common.screen.screen as buildScreen
 import dev.slne.surf.roleplay.protocol.screen.AlertVariant as NodeAlertVariant
 import dev.slne.surf.roleplay.protocol.screen.Align as NodeAlign
 import dev.slne.surf.roleplay.protocol.screen.AvatarSize as NodeAvatarSize
@@ -82,8 +86,8 @@ class DisplayComponentsTest {
      * @param build the builder of the root
      * @return the mapped root node
      */
-    private fun map(build: dev.slne.surf.roleplay.api.client.common.screen.ElementsBuilder.() -> Unit) =
-        ScreenMapper.toNode(buildScreen(Component.text("Anzeige")) { column("root") { build() } }.root)
+    private fun map(build: ComponentScope.() -> Unit) =
+        ScreenMapper.toNode(Screen(Component.text("Anzeige")) { Column(id = "root") { build() } }.root)
 
     /**
      * Verifies that texts, lists, separators, keys and badges map to their nodes with all their
@@ -93,15 +97,15 @@ class DisplayComponentsTest {
     fun `texts, separators, keys and badges map to their nodes`() {
         val root = assertIs<ColumnNode>(
             map {
-                text("title", Component.text("Titel"), kind = TextKind.H2, maxLines = 1, align = Alignment.CENTER)
-                textList("list", listOf(Component.text("Eins"), Component.text("Zwei")), ordered = true)
-                separator("line")
-                separator("upright", orientation = Orientation.VERTICAL)
-                kbdGroup("keys") {
-                    kbd("ctrl", Component.text("Strg"))
-                    kbd("cmd", icon = "command")
+                H2(Component.text("Titel"), maxLines = 1, align = Alignment.CENTER, id = "title")
+                TypographyList(listOf(Component.text("Eins"), Component.text("Zwei")), ordered = true, id = "list")
+                Separator(id = "line")
+                Separator(orientation = Orientation.VERTICAL, id = "upright")
+                KbdGroup(id = "keys") {
+                    Kbd(Component.text("Strg"), id = "ctrl")
+                    Kbd(icon = "command", id = "cmd")
                 }
-                badge("badge", Component.text("Neu"), icon = "check", variant = BadgeVariant.DESTRUCTIVE)
+                Badge(Component.text("Neu"), icon = "check", variant = BadgeVariant.DESTRUCTIVE, id = "badge")
             },
         )
 
@@ -144,10 +148,10 @@ class DisplayComponentsTest {
     fun `loading components map to their nodes`() {
         val root = assertIs<ColumnNode>(
             map {
-                skeleton("skeleton", ElementSize.fixed(40), ElementSize.fixed(8), round = true)
-                spinner("spinner", size = 14, tint = IconTint.MUTED)
-                aspectRatio("ratio", 16f / 9f) {
-                    image("image", Key.key("minecraft", "textures/block/stone.png"))
+                Skeleton(ElementSize.fixed(40), ElementSize.fixed(8), round = true, id = "skeleton")
+                Spinner(size = 14, tint = IconTint.MUTED, id = "spinner")
+                AspectRatio(16f / 9f, id = "ratio") {
+                    Image(Key.key("minecraft", "textures/block/stone.png"), id = "image")
                 }
             },
         )
@@ -173,11 +177,11 @@ class DisplayComponentsTest {
         val player = UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5")
         val root = assertIs<ColumnNode>(
             map {
-                avatarGroup("group") {
-                    avatar("player", Component.text("NO"), AvatarSource.Player(player), AvatarSize.LG, badgeIcon = "check")
-                    avatar("texture", Component.text("AP"), AvatarSource.Texture(Key.key("minecraft", "textures/item/apple.png")), AvatarSize.SM)
-                    avatar("fallback", Component.text("CN"))
-                    avatarGroupCount("count", Component.text("+3"))
+                AvatarGroup(id = "group") {
+                    Avatar(Component.text("NO"), AvatarSource.Player(player), AvatarSize.LG, badgeIcon = "check", id = "player")
+                    Avatar(Component.text("AP"), AvatarSource.Texture(Key.key("minecraft", "textures/item/apple.png")), AvatarSize.SM, id = "texture")
+                    Avatar(Component.text("CN"), id = "fallback")
+                    AvatarGroupCount(Component.text("+3"), id = "count")
                 }
             },
         )
@@ -203,18 +207,18 @@ class DisplayComponentsTest {
     fun `alerts and cards map to their nodes`() {
         val root = assertIs<ColumnNode>(
             map {
-                alert("alert", AlertVariant.DESTRUCTIVE, icon = "circle-alert") {
-                    alertTitle("alert_title", Component.text("Fehler"))
-                    alertDescription("alert_description", Component.text("Etwas ging schief."))
+                Alert(AlertVariant.DESTRUCTIVE, icon = "circle-alert", id = "alert") {
+                    AlertTitle(Component.text("Fehler"), id = "alert_title")
+                    AlertDescription(Component.text("Etwas ging schief."), id = "alert_description")
                 }
-                card("card") {
-                    cardHeader("header") {
-                        cardTitle("title", Component.text("Konto"))
-                        cardDescription("description", Component.text("Deine Daten"))
-                        cardAction("action") { button("more", Component.text("Mehr")) }
+                Card(id = "card") {
+                    CardHeader(id = "header") {
+                        CardTitle(Component.text("Konto"), id = "title")
+                        CardDescription(Component.text("Deine Daten"), id = "description")
+                        CardAction(id = "action") { Button(Component.text("Mehr"), id = "more") }
                     }
-                    cardContent("content") { text("body", Component.text("Inhalt")) }
-                    cardFooter("footer") { button("save", Component.text("Speichern")) }
+                    CardContent(id = "content") { P(Component.text("Inhalt"), id = "body") }
+                    CardFooter(id = "footer") { Button(Component.text("Speichern"), id = "save") }
                 }
             },
         )

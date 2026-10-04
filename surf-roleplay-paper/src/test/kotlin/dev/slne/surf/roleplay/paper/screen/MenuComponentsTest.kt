@@ -1,22 +1,25 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.ScreenClick
-import dev.slne.surf.roleplay.api.client.common.screen.contextMenu
-import dev.slne.surf.roleplay.api.client.common.screen.dropdownMenu
-import dev.slne.surf.roleplay.api.client.common.screen.menuCheckboxItem
-import dev.slne.surf.roleplay.api.client.common.screen.menuContent
-import dev.slne.surf.roleplay.api.client.common.screen.menuGroup
-import dev.slne.surf.roleplay.api.client.common.screen.menuItem
-import dev.slne.surf.roleplay.api.client.common.screen.menuLabel
-import dev.slne.surf.roleplay.api.client.common.screen.menuRadioGroup
-import dev.slne.surf.roleplay.api.client.common.screen.menuRadioItem
-import dev.slne.surf.roleplay.api.client.common.screen.menuSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.menuSub
-import dev.slne.surf.roleplay.api.client.common.screen.menuSubTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.menubar
-import dev.slne.surf.roleplay.api.client.common.screen.menubarMenu
-import dev.slne.surf.roleplay.api.client.common.screen.menubarTrigger
-import dev.slne.surf.roleplay.api.client.common.screen.screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ContextMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DropdownMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuCheckboxItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuLabel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuRadioGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuRadioItem
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSub
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenuSubTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Menubar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenubarMenu
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MenubarTrigger
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.ColumnNode
@@ -85,37 +88,37 @@ class MenuComponentsTest {
      * @return the session id
      */
     private fun open(): Int = state.open(
-        screen(Component.text("Menüs")) {
-            column("root") {
-                dropdownMenu("menu") {
-                    button("trigger", Component.text("Menü"), submitsInput = false)
-                    menuContent("content") {
-                        menuLabel("label", Component.text("Konto"))
-                        menuGroup("group") {
-                            menuItem("profile", Component.text("Profil"), icon = "user", shortcut = Component.text("P")) { clicks += it.buttonId }
-                            menuItem("locked", Component.text("Gesperrt"), enabled = false) { clicks += it.buttonId }
+        Screen(Component.text("Menüs")) {
+            Column(id = "root") {
+                DropdownMenu(id = "menu") {
+                    Button(Component.text("Menü"), submitsInput = false, id = "trigger")
+                    MenuContent(id = "content") {
+                        MenuLabel(Component.text("Konto"), id = "label")
+                        MenuGroup(id = "group") {
+                            MenuItem(Component.text("Profil"), icon = "user", shortcut = Component.text("P"), id = "profile") { clicks += it.buttonId }
+                            MenuItem(Component.text("Gesperrt"), enabled = false, id = "locked") { clicks += it.buttonId }
                         }
-                        menuSeparator("sep")
-                        menuCheckboxItem("status", Component.text("Status")) { clicks += "status=${it.values.checked("status")}" }
-                        menuRadioGroup("position", "top", onSelect = { clicks += "position=${it.values.text("position")}" }) {
-                            menuRadioItem("top", Component.text("Oben"), "top")
-                            menuRadioItem("bottom", Component.text("Unten"), "bottom")
-                            menuRadioItem("hidden", Component.text("Weg"), "hidden", enabled = false)
+                        MenuSeparator(id = "sep")
+                        MenuCheckboxItem(Component.text("Status"), id = "status") { clicks += "status=${it.values.checked("status")}" }
+                        MenuRadioGroup("top", onSelect = { clicks += "position=${it.values.text("position")}" }, id = "position") {
+                            MenuRadioItem(Component.text("Oben"), "top", id = "top")
+                            MenuRadioItem(Component.text("Unten"), "bottom", id = "bottom")
+                            MenuRadioItem(Component.text("Weg"), "hidden", enabled = false, id = "hidden")
                         }
-                        menuSub("more") {
-                            menuSubTrigger("more_trigger", Component.text("Mehr"))
-                            menuContent("more_content") { menuItem("share", Component.text("Teilen"), destructive = true) }
+                        MenuSub(id = "more") {
+                            MenuSubTrigger(Component.text("Mehr"), id = "more_trigger")
+                            MenuContent(id = "more_content") { MenuItem(Component.text("Teilen"), destructive = true, id = "share") }
                         }
                     }
                 }
-                contextMenu("ctx") {
-                    label("area", Component.text("Rechtsklick"))
-                    menuContent("ctx_content") { menuItem("copy", Component.text("Kopieren")) }
+                ContextMenu(id = "ctx") {
+                    Label(Component.text("Rechtsklick"), id = "area")
+                    MenuContent(id = "ctx_content") { MenuItem(Component.text("Kopieren"), id = "copy") }
                 }
-                menubar("bar") {
-                    menubarMenu("file") {
-                        menubarTrigger("file_trigger", Component.text("Datei"))
-                        menuContent("file_content") { menuItem("new", Component.text("Neu")) }
+                Menubar(id = "bar") {
+                    MenubarMenu(id = "file") {
+                        MenubarTrigger(Component.text("Datei"), id = "file_trigger")
+                        MenuContent(id = "file_content") { MenuItem(Component.text("Neu"), id = "new") }
                     }
                 }
             }

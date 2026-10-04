@@ -1,5 +1,41 @@
 package dev.slne.surf.roleplay.paper.screen.debug
 
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ButtonGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ButtonGroupSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ButtonGroupText
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Calendar
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Checkbox
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Column
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Combobox
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.MultiCombobox
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Field
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldContent
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldDescription
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldError
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldLabel
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldLegend
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldSeparator
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.FieldSet
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Form
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Icon
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Input
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupAddon
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupButton
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputGroupText
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.InputOtp
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.NativeSelect
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.RadioGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Row
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Select
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Slider
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Switch
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Textarea
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Toggle
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ToggleGroup
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ButtonSize
@@ -8,7 +44,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.CalendarMode
 import dev.slne.surf.roleplay.api.client.common.screen.CaptionLayout
 import dev.slne.surf.roleplay.api.client.common.screen.ChangeHandler
 import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.api.client.common.screen.ElementsBuilder
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ComponentScope
 import dev.slne.surf.roleplay.api.client.common.screen.InputGroupAlign
 import dev.slne.surf.roleplay.api.client.common.screen.Orientation
 import dev.slne.surf.roleplay.api.client.common.screen.OtpPattern
@@ -24,35 +60,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.TextInputType
 import dev.slne.surf.roleplay.api.client.common.screen.ToggleGroupChoice
 import dev.slne.surf.roleplay.api.client.common.screen.ToggleSize
 import dev.slne.surf.roleplay.api.client.common.screen.ToggleVariant
-import dev.slne.surf.roleplay.api.client.common.screen.buttonGroup
-import dev.slne.surf.roleplay.api.client.common.screen.buttonGroupSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.buttonGroupText
-import dev.slne.surf.roleplay.api.client.common.screen.calendar
-import dev.slne.surf.roleplay.api.client.common.screen.combobox
-import dev.slne.surf.roleplay.api.client.common.screen.field
-import dev.slne.surf.roleplay.api.client.common.screen.fieldContent
-import dev.slne.surf.roleplay.api.client.common.screen.fieldDescription
-import dev.slne.surf.roleplay.api.client.common.screen.fieldError
-import dev.slne.surf.roleplay.api.client.common.screen.fieldGroup
-import dev.slne.surf.roleplay.api.client.common.screen.fieldLabel
-import dev.slne.surf.roleplay.api.client.common.screen.fieldLegend
-import dev.slne.surf.roleplay.api.client.common.screen.fieldSeparator
-import dev.slne.surf.roleplay.api.client.common.screen.fieldSet
-import dev.slne.surf.roleplay.api.client.common.screen.form
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroup
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroupAddon
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroupButton
-import dev.slne.surf.roleplay.api.client.common.screen.inputGroupText
-import dev.slne.surf.roleplay.api.client.common.screen.inputOtp
-import dev.slne.surf.roleplay.api.client.common.screen.nativeSelect
-import dev.slne.surf.roleplay.api.client.common.screen.radioGroup
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.select
-import dev.slne.surf.roleplay.api.client.common.screen.slider
-import dev.slne.surf.roleplay.api.client.common.screen.switch
-import dev.slne.surf.roleplay.api.client.common.screen.textarea
-import dev.slne.surf.roleplay.api.client.common.screen.toggle
-import dev.slne.surf.roleplay.api.client.common.screen.toggleGroup
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
 import dev.slne.surf.roleplay.api.client.paper.screen.ScreenService
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -93,14 +101,12 @@ object InputsDemo {
         val clicked = ButtonHandler { click ->
             report(Component.text("${click.buttonId} geklickt", NamedTextColor.GREEN))
         }
-        return screen(Component.text("Eingaben")) {
-            this.theme = theme
-            this.variant = variant
-            column("root", width = ElementSize.fixed(380), gap = 10, crossAlign = Alignment.STRETCH) {
-                row("theme_row", gap = 4, crossAlign = Alignment.CENTER) {
-                    select("theme", THEMES, selected = theme, width = ElementSize.grow())
-                    select("variant", VARIANTS, selected = variant.name, width = ElementSize.fixed(90))
-                    button("apply_theme", Component.text("Anwenden"), submitsInput = false, icon = "palette", variant = ButtonVariant.OUTLINE) { click ->
+        return Screen(Component.text("Eingaben"), theme = theme, variant = variant) {
+            Column(width = ElementSize.fixed(380), gap = 10, crossAlign = Alignment.STRETCH, id = "root") {
+                Row(gap = 4, crossAlign = Alignment.CENTER, id = "theme_row") {
+                    Select(THEMES, selected = theme, width = ElementSize.grow(), id = "theme")
+                    Select(VARIANTS, selected = variant.name, width = ElementSize.fixed(90), id = "variant")
+                    Button(Component.text("Anwenden"), submitsInput = false, icon = "palette", variant = ButtonVariant.OUTLINE, id = "apply_theme") { click ->
                         reopen(click.values.selected("theme") ?: ScreenThemes.DEFAULT, click.values.selected("variant")?.let(ScreenVariant::valueOf) ?: ScreenVariant.DARK)
                     }
                 }
@@ -122,9 +128,9 @@ object InputsDemo {
      * @param title the heading
      * @param content the builder of the section's content
      */
-    private fun ElementsBuilder.section(id: String, title: String, content: ElementsBuilder.() -> Unit) {
-        column(id, gap = 4, crossAlign = Alignment.START) {
-            label("${id}_title", Component.text(title, NamedTextColor.GOLD, TextDecoration.BOLD))
+    private fun ComponentScope.section(id: String, title: String, content: ComponentScope.() -> Unit) {
+        Column(gap = 4, crossAlign = Alignment.START, id = id) {
+            Label(Component.text(title, NamedTextColor.GOLD, TextDecoration.BOLD), id = "${id}_title")
             content()
         }
     }
@@ -134,31 +140,31 @@ object InputsDemo {
      *
      * @param clicked the handler that reports clicks
      */
-    private fun ElementsBuilder.buttons(clicked: ButtonHandler) = section("buttons", "Schaltflächen") {
-        row("button_variants", gap = 4) {
+    private fun ComponentScope.buttons(clicked: ButtonHandler) = section("buttons", "Schaltflächen") {
+        Row(gap = 4, id = "button_variants") {
             ButtonVariant.entries.forEach { variant ->
-                button("button_${variant.name.lowercase()}", Component.text(variant.name.lowercase().replaceFirstChar(Char::uppercase)), submitsInput = false, variant = variant, onClick = clicked)
+                Button(Component.text(variant.name.lowercase().replaceFirstChar(Char::uppercase)), submitsInput = false, variant = variant, onClick = clicked, id = "button_${variant.name.lowercase()}")
             }
         }
-        row("button_sizes", gap = 4, crossAlign = Alignment.CENTER) {
+        Row(gap = 4, crossAlign = Alignment.CENTER, id = "button_sizes") {
             listOf(ButtonSize.XS, ButtonSize.SM, ButtonSize.DEFAULT, ButtonSize.LG).forEach { size ->
-                button("button_size_${size.name.lowercase()}", Component.text(size.name), submitsInput = false, icon = "send", size = size, onClick = clicked)
+                Button(Component.text(size.name), submitsInput = false, icon = "send", size = size, onClick = clicked, id = "button_size_${size.name.lowercase()}")
             }
             listOf(ButtonSize.ICON_XS, ButtonSize.ICON_SM, ButtonSize.ICON, ButtonSize.ICON_LG).forEach { size ->
-                button("button_size_${size.name.lowercase()}", Component.empty(), submitsInput = false, icon = "plus", variant = ButtonVariant.OUTLINE, size = size, onClick = clicked)
+                Button(Component.empty(), submitsInput = false, icon = "plus", variant = ButtonVariant.OUTLINE, size = size, onClick = clicked, id = "button_size_${size.name.lowercase()}")
             }
-            button("button_disabled", Component.text("Gesperrt"), enabled = false, icon = "lock")
+            Button(Component.text("Gesperrt"), enabled = false, icon = "lock", id = "button_disabled")
         }
-        row("button_groups", gap = 8) {
-            buttonGroup("group_horizontal") {
-                buttonGroupText("group_text", Component.text("Seite"), icon = "file")
-                button("group_back", Component.empty(), submitsInput = false, icon = "chevron-left", variant = ButtonVariant.OUTLINE, size = ButtonSize.ICON, onClick = clicked)
-                buttonGroupSeparator("group_separator")
-                button("group_next", Component.empty(), submitsInput = false, icon = "chevron-right", variant = ButtonVariant.OUTLINE, size = ButtonSize.ICON, onClick = clicked)
+        Row(gap = 8, id = "button_groups") {
+            ButtonGroup(id = "group_horizontal") {
+                ButtonGroupText(Component.text("Seite"), icon = "file", id = "group_text")
+                Button(Component.empty(), submitsInput = false, icon = "chevron-left", variant = ButtonVariant.OUTLINE, size = ButtonSize.ICON, onClick = clicked, id = "group_back")
+                ButtonGroupSeparator(id = "group_separator")
+                Button(Component.empty(), submitsInput = false, icon = "chevron-right", variant = ButtonVariant.OUTLINE, size = ButtonSize.ICON, onClick = clicked, id = "group_next")
             }
-            buttonGroup("group_vertical", orientation = Orientation.VERTICAL) {
-                button("group_up", Component.text("Hoch"), submitsInput = false, variant = ButtonVariant.SECONDARY, size = ButtonSize.SM, onClick = clicked)
-                button("group_down", Component.text("Runter"), submitsInput = false, variant = ButtonVariant.SECONDARY, size = ButtonSize.SM, onClick = clicked)
+            ButtonGroup(orientation = Orientation.VERTICAL, id = "group_vertical") {
+                Button(Component.text("Hoch"), submitsInput = false, variant = ButtonVariant.SECONDARY, size = ButtonSize.SM, onClick = clicked, id = "group_up")
+                Button(Component.text("Runter"), submitsInput = false, variant = ButtonVariant.SECONDARY, size = ButtonSize.SM, onClick = clicked, id = "group_down")
             }
         }
     }
@@ -169,29 +175,17 @@ object InputsDemo {
      * @param clicked the handler that reports toggle presses
      * @param changed the handler that reports changes
      */
-    private fun ElementsBuilder.toggles(clicked: ButtonHandler, changed: ChangeHandler) = section("toggles", "Umschalter") {
-        row("toggle_row", gap = 4, crossAlign = Alignment.CENTER) {
-            toggle("toggle_bold", icon = "bold", onToggle = clicked)
-            toggle("toggle_italic", icon = "italic", variant = ToggleVariant.OUTLINE, pressed = true, onToggle = clicked)
-            toggle("toggle_sm", Component.text("Klein"), size = ToggleSize.SM, onToggle = clicked)
-            toggle("toggle_lg", Component.text("Groß"), size = ToggleSize.LG, variant = ToggleVariant.OUTLINE, onToggle = clicked)
-            toggle("toggle_disabled", Component.text("Aus"), enabled = false)
+    private fun ComponentScope.toggles(clicked: ButtonHandler, changed: ChangeHandler) = section("toggles", "Umschalter") {
+        Row(gap = 4, crossAlign = Alignment.CENTER, id = "toggle_row") {
+            Toggle(icon = "bold", onToggle = clicked, id = "toggle_bold")
+            Toggle(icon = "italic", variant = ToggleVariant.OUTLINE, pressed = true, onToggle = clicked, id = "toggle_italic")
+            Toggle(Component.text("Klein"), size = ToggleSize.SM, onToggle = clicked, id = "toggle_sm")
+            Toggle(Component.text("Groß"), size = ToggleSize.LG, variant = ToggleVariant.OUTLINE, onToggle = clicked, id = "toggle_lg")
+            Toggle(Component.text("Aus"), enabled = false, id = "toggle_disabled")
         }
-        row("toggle_groups", gap = 8) {
-            toggleGroup(
-                "align",
-                listOf(ToggleGroupChoice("left", icon = "align-left"), ToggleGroupChoice("center", icon = "align-center"), ToggleGroupChoice("right", icon = "align-right")),
-                selected = listOf("left"),
-                variant = ToggleVariant.OUTLINE,
-                onChange = changed,
-            )
-            toggleGroup(
-                "styles",
-                listOf(ToggleGroupChoice("b", Component.text("F")), ToggleGroupChoice("i", Component.text("K")), ToggleGroupChoice("u", Component.text("U"), enabled = false)),
-                multiple = true,
-                spacing = 2,
-                onChange = changed,
-            )
+        Row(gap = 8, id = "toggle_groups") {
+            ToggleGroup(listOf(ToggleGroupChoice("left", icon = "align-left"), ToggleGroupChoice("center", icon = "align-center"), ToggleGroupChoice("right", icon = "align-right")), selected = listOf("left"), variant = ToggleVariant.OUTLINE, onChange = changed, id = "align")
+            ToggleGroup(listOf(ToggleGroupChoice("b", Component.text("F")), ToggleGroupChoice("i", Component.text("K")), ToggleGroupChoice("u", Component.text("U"), enabled = false)), multiple = true, spacing = 2, onChange = changed, id = "styles")
         }
     }
 
@@ -201,35 +195,35 @@ object InputsDemo {
      * @param clicked the handler that reports clicks
      * @param changed the handler that reports changes
      */
-    private fun ElementsBuilder.texts(clicked: ButtonHandler, changed: ChangeHandler) = section("texts", "Texteingaben") {
-        row("text_row", gap = 4, width = ElementSize.grow()) {
-            textInput("text_plain", placeholder = Component.text("Text"), width = ElementSize.grow(), onChange = changed)
-            textInput("text_password", placeholder = Component.text("Passwort"), type = TextInputType.PASSWORD, width = ElementSize.grow())
-            textInput("text_email", placeholder = Component.text("E-Mail"), type = TextInputType.EMAIL, width = ElementSize.grow(), onChange = changed)
+    private fun ComponentScope.texts(clicked: ButtonHandler, changed: ChangeHandler) = section("texts", "Texteingaben") {
+        Row(gap = 4, width = ElementSize.grow(), id = "text_row") {
+            Input(placeholder = Component.text("Text"), width = ElementSize.grow(), onChange = changed, id = "text_plain")
+            Input(placeholder = Component.text("Passwort"), type = TextInputType.PASSWORD, width = ElementSize.grow(), id = "text_password")
+            Input(placeholder = Component.text("E-Mail"), type = TextInputType.EMAIL, width = ElementSize.grow(), onChange = changed, id = "text_email")
         }
-        row("label_row", gap = 6, crossAlign = Alignment.CENTER) {
-            label("text_label", Component.text("Rufname"), forId = "text_labelled")
-            textInput("text_labelled", placeholder = Component.text("Klick auf das Label"), required = true)
+        Row(gap = 6, crossAlign = Alignment.CENTER, id = "label_row") {
+            Label(Component.text("Rufname"), forId = "text_labelled", id = "text_label")
+            Input(placeholder = Component.text("Klick auf das Label"), required = true, id = "text_labelled")
         }
-        textarea("textarea", placeholder = Component.text("Erzähl etwas über dich"), rows = 3, maxLength = 200, width = ElementSize.grow(), onChange = changed)
-        inputGroup("search_group", width = ElementSize.grow()) {
-            inputGroupAddon("search_start") { icon("search_icon", "search", size = 10) }
-            textInput("search_query", placeholder = Component.text("Suchen …"))
-            inputGroupAddon("search_end", InputGroupAlign.INLINE_END) {
-                inputGroupText("search_count", Component.text("12 Treffer"))
-                inputGroupButton("search_clear", icon = "x", size = ButtonSize.ICON_XS, onClick = clicked)
+        Textarea(placeholder = Component.text("Erzähl etwas über dich"), rows = 3, maxLength = 200, width = ElementSize.grow(), onChange = changed, id = "textarea")
+        InputGroup(width = ElementSize.grow(), id = "search_group") {
+            InputGroupAddon(id = "search_start") { Icon("search", size = 10, id = "search_icon") }
+            Input(placeholder = Component.text("Suchen …"), id = "search_query")
+            InputGroupAddon(InputGroupAlign.INLINE_END, id = "search_end") {
+                InputGroupText(Component.text("12 Treffer"), id = "search_count")
+                InputGroupButton(icon = "x", size = ButtonSize.ICON_XS, onClick = clicked, id = "search_clear")
             }
         }
-        inputGroup("message_group", width = ElementSize.grow()) {
-            textarea("message", placeholder = Component.text("Nachricht"), rows = 2)
-            inputGroupAddon("message_toolbar", InputGroupAlign.BLOCK_END) {
-                inputGroupText("message_hint", Component.text("Markdown erlaubt"))
-                inputGroupButton("message_send", Component.text("Senden"), icon = "send", variant = ButtonVariant.DEFAULT, onClick = clicked)
+        InputGroup(width = ElementSize.grow(), id = "message_group") {
+            Textarea(placeholder = Component.text("Nachricht"), rows = 2, id = "message")
+            InputGroupAddon(InputGroupAlign.BLOCK_END, id = "message_toolbar") {
+                InputGroupText(Component.text("Markdown erlaubt"), id = "message_hint")
+                InputGroupButton(Component.text("Senden"), icon = "send", variant = ButtonVariant.DEFAULT, onClick = clicked, id = "message_send")
             }
         }
-        row("otp_row", gap = 8, crossAlign = Alignment.CENTER) {
-            inputOtp("otp_digits", length = 6, groups = listOf(3, 3), onChange = changed)
-            inputOtp("otp_letters", length = 4, pattern = OtpPattern.ALPHANUMERIC, onChange = changed)
+        Row(gap = 8, crossAlign = Alignment.CENTER, id = "otp_row") {
+            InputOtp(length = 6, groups = listOf(3, 3), onChange = changed, id = "otp_digits")
+            InputOtp(length = 4, pattern = OtpPattern.ALPHANUMERIC, onChange = changed, id = "otp_letters")
         }
     }
 
@@ -238,37 +232,26 @@ object InputsDemo {
      *
      * @param changed the handler that reports changes
      */
-    private fun ElementsBuilder.choices(changed: ChangeHandler) = section("choices", "Auswahl") {
-        row("switch_row", gap = 6, crossAlign = Alignment.CENTER) {
-            switch("switch_default", checked = true, onChange = changed)
-            label("switch_label", Component.text("Benachrichtigungen"), forId = "switch_default")
-            switch("switch_small", size = SwitchSize.SM, onChange = changed)
-            switch("switch_disabled", enabled = false)
-            checkbox("checkbox", Component.text("Regeln akzeptiert"), onChange = changed)
-            checkbox("checkbox_disabled", Component.text("Gesperrt"), checked = true, enabled = false)
+    private fun ComponentScope.choices(changed: ChangeHandler) = section("choices", "Auswahl") {
+        Row(gap = 6, crossAlign = Alignment.CENTER, id = "switch_row") {
+            Switch(checked = true, onChange = changed, id = "switch_default")
+            Label(Component.text("Benachrichtigungen"), forId = "switch_default", id = "switch_label")
+            Switch(size = SwitchSize.SM, onChange = changed, id = "switch_small")
+            Switch(enabled = false, id = "switch_disabled")
+            Checkbox(Component.text("Regeln akzeptiert"), onChange = changed, id = "checkbox")
+            Checkbox(Component.text("Gesperrt"), checked = true, enabled = false, id = "checkbox_disabled")
         }
-        row("radio_row", gap = 16) {
-            radioGroup(
-                "radio_vertical",
-                listOf(RadioChoice("free", Component.text("Kostenlos")), RadioChoice("pro", Component.text("Pro")), RadioChoice("team", Component.text("Team"), enabled = false)),
-                selected = "free",
-                onChange = changed,
-            )
-            radioGroup(
-                "radio_horizontal",
-                listOf(RadioChoice("small", Component.text("S")), RadioChoice("medium", Component.text("M")), RadioChoice("large", Component.text("L"))),
-                orientation = Orientation.HORIZONTAL,
-                required = true,
-                onChange = changed,
-            )
+        Row(gap = 16, id = "radio_row") {
+            RadioGroup(listOf(RadioChoice("free", Component.text("Kostenlos")), RadioChoice("pro", Component.text("Pro")), RadioChoice("team", Component.text("Team"), enabled = false)), selected = "free", onChange = changed, id = "radio_vertical")
+            RadioGroup(listOf(RadioChoice("small", Component.text("S")), RadioChoice("medium", Component.text("M")), RadioChoice("large", Component.text("L"))), orientation = Orientation.HORIZONTAL, required = true, onChange = changed, id = "radio_horizontal")
         }
-        row("slider_row", gap = 12, crossAlign = Alignment.CENTER, width = ElementSize.grow()) {
-            column("slider_column", gap = 8, width = ElementSize.grow(), crossAlign = Alignment.STRETCH) {
-                slider("slider_single", listOf(40.0), step = 5.0, onChange = changed)
-                slider("slider_range", listOf(20.0, 80.0), onChange = changed)
-                slider("slider_fine", listOf(0.5), min = 0.0, max = 1.0, step = 0.1, enabled = false)
+        Row(gap = 12, crossAlign = Alignment.CENTER, width = ElementSize.grow(), id = "slider_row") {
+            Column(gap = 8, width = ElementSize.grow(), crossAlign = Alignment.STRETCH, id = "slider_column") {
+                Slider(listOf(40.0), step = 5.0, onChange = changed, id = "slider_single")
+                Slider(listOf(20.0, 80.0), onChange = changed, id = "slider_range")
+                Slider(listOf(0.5), min = 0.0, max = 1.0, step = 0.1, enabled = false, id = "slider_fine")
             }
-            slider("slider_vertical", listOf(30.0), orientation = Orientation.VERTICAL, onChange = changed)
+            Slider(listOf(30.0), orientation = Orientation.VERTICAL, onChange = changed, id = "slider_vertical")
         }
     }
 
@@ -278,25 +261,17 @@ object InputsDemo {
      * @param report sends a report of a search to the player
      * @param changed the handler that reports changes
      */
-    private fun ElementsBuilder.selections(report: (Component) -> Unit, changed: ChangeHandler) = section("selections", "Auswahllisten") {
-        row("select_row", gap = 4) {
-            select("select_grouped", groups = FOOD, placeholder = Component.text("Essen wählen"), onChange = changed)
-            select("select_small", CITIES, selected = "north", size = SelectSize.SM, onChange = changed)
-            nativeSelect("native", CITIES, selected = "south", onChange = changed)
+    private fun ComponentScope.selections(report: (Component) -> Unit, changed: ChangeHandler) = section("selections", "Auswahllisten") {
+        Row(gap = 4, id = "select_row") {
+            Select(groups = FOOD, placeholder = Component.text("Essen wählen"), onChange = changed, id = "select_grouped")
+            Select(CITIES, selected = "north", size = SelectSize.SM, onChange = changed, id = "select_small")
+            NativeSelect(CITIES, selected = "south", onChange = changed, id = "native")
         }
-        row("combobox_row", gap = 4) {
-            combobox("combobox_single", groups = FOOD, placeholder = Component.text("Suchen …"), showClear = true, onChange = changed)
-            combobox(
-                "combobox_multiple",
-                CITIES,
-                selected = listOf("north"),
-                multiple = true,
-                placeholder = Component.text("Städte"),
-                onSearch = { search ->
+        Row(gap = 4, id = "combobox_row") {
+            Combobox(groups = FOOD, placeholder = Component.text("Suchen …"), showClear = true, onChange = changed, id = "combobox_single")
+            MultiCombobox(CITIES, selected = listOf("north"), placeholder = Component.text("Städte"), onSearch = { search ->
                     report(Component.text("Suche: \"${search.query}\"", NamedTextColor.DARK_AQUA))
-                },
-                onChange = changed,
-            )
+                }, onChange = changed, id = "combobox_multiple")
         }
     }
 
@@ -305,20 +280,11 @@ object InputsDemo {
      *
      * @param changed the handler that reports changes
      */
-    private fun ElementsBuilder.calendars(changed: ChangeHandler) = section("calendars", "Kalender") {
+    private fun ComponentScope.calendars(changed: ChangeHandler) = section("calendars", "Kalender") {
         val today = LocalDate.now()
-        row("calendar_row", gap = 8) {
-            calendar("calendar_single", selected = listOf(today), disabled = setOf(today.plusDays(2)), onChange = changed)
-            calendar(
-                "calendar_range",
-                CalendarMode.RANGE,
-                selected = listOf(today.plusDays(3), today.plusDays(7)),
-                min = today,
-                max = today.plusMonths(6),
-                showOutsideDays = false,
-                captionLayout = CaptionLayout.DROPDOWN,
-                onChange = changed,
-            )
+        Row(gap = 8, id = "calendar_row") {
+            Calendar(selected = listOf(today), disabled = setOf(today.plusDays(2)), onChange = changed, id = "calendar_single")
+            Calendar(CalendarMode.RANGE, selected = listOf(today.plusDays(3), today.plusDays(7)), min = today, max = today.plusMonths(6), showOutsideDays = false, captionLayout = CaptionLayout.DROPDOWN, onChange = changed, id = "calendar_range")
         }
     }
 
@@ -327,29 +293,29 @@ object InputsDemo {
      *
      * @param report sends the result to the player
      */
-    private fun ElementsBuilder.forms(report: (Component) -> Unit) = section("forms", "Formular") {
-        form("account_form", submitId = "account_send", width = ElementSize.grow()) {
-            fieldSet("account_set") {
-                fieldLegend("account_legend", Component.text("Konto"))
-                fieldGroup("account_group") {
-                    field("account_name_field") {
-                        fieldLabel("account_name_label", Component.text("Name"), forId = "account_name")
-                        textInput("account_name", placeholder = Component.text("Max"), required = true, width = ElementSize.grow())
-                        fieldDescription("account_name_hint", Component.text("\"Max\" ist schon vergeben."))
-                        fieldError("account_name_error")
+    private fun ComponentScope.forms(report: (Component) -> Unit) = section("forms", "Formular") {
+        Form(submitId = "account_send", width = ElementSize.grow(), id = "account_form") {
+            FieldSet(id = "account_set") {
+                FieldLegend(Component.text("Konto"), id = "account_legend")
+                FieldGroup(id = "account_group") {
+                    Field(id = "account_name_field") {
+                        FieldLabel(Component.text("Name"), forId = "account_name", id = "account_name_label")
+                        Input(placeholder = Component.text("Max"), required = true, width = ElementSize.grow(), id = "account_name")
+                        FieldDescription(Component.text("\"Max\" ist schon vergeben."), id = "account_name_hint")
+                        FieldError(id = "account_name_error")
                     }
-                    fieldSeparator("account_separator", Component.text("Optionen"))
-                    field("account_news_field", orientation = Orientation.HORIZONTAL) {
-                        fieldContent("account_news_content") {
-                            fieldLabel("account_news_label", Component.text("Newsletter"), forId = "account_news")
-                            fieldDescription("account_news_hint", Component.text("Einmal pro Woche"))
+                    FieldSeparator(Component.text("Optionen"), id = "account_separator")
+                    Field(orientation = Orientation.HORIZONTAL, id = "account_news_field") {
+                        FieldContent(id = "account_news_content") {
+                            FieldLabel(Component.text("Newsletter"), forId = "account_news", id = "account_news_label")
+                            FieldDescription(Component.text("Einmal pro Woche"), id = "account_news_hint")
                         }
-                        switch("account_news")
+                        Switch(id = "account_news")
                     }
                 }
             }
-            row("account_actions", gap = 4, mainAlign = Alignment.END, width = ElementSize.grow()) {
-                button("account_send", Component.text("Speichern"), submitsInput = false, icon = "check") { click ->
+            Row(gap = 4, mainAlign = Alignment.END, width = ElementSize.grow(), id = "account_actions") {
+                Button(Component.text("Speichern"), submitsInput = false, icon = "check", id = "account_send") { click ->
                     if (click.values.text("account_name") == "Max") {
                         click.fail(mapOf("account_name" to Component.text("Dieser Name ist vergeben.")))
                     } else {

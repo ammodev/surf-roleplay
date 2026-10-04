@@ -1,48 +1,46 @@
 package dev.slne.surf.roleplay.paper.screen
 
 import dev.slne.surf.roleplay.api.client.common.screen.Alignment
-import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
-import dev.slne.surf.roleplay.protocol.screen.InsertNode
-import dev.slne.surf.roleplay.protocol.screen.ChatMessageNode
-import dev.slne.surf.roleplay.protocol.screen.ChatViewNode
-import dev.slne.surf.roleplay.api.client.common.screen.text
-import dev.slne.surf.roleplay.api.client.common.screen.chatView
-import dev.slne.surf.roleplay.api.client.common.screen.chatMessage
-import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
-import dev.slne.surf.roleplay.protocol.screen.ChartIndicator as NodeChartIndicator
-import dev.slne.surf.roleplay.protocol.screen.ChartCurve as NodeChartCurve
-import dev.slne.surf.roleplay.protocol.screen.ChartKind as NodeChartKind
-import dev.slne.surf.roleplay.protocol.screen.ChartNode
-import dev.slne.surf.roleplay.api.client.common.screen.chart
-import dev.slne.surf.roleplay.api.client.common.screen.ChartSeries
-import dev.slne.surf.roleplay.api.client.common.screen.ChartKind
-import dev.slne.surf.roleplay.api.client.common.screen.ChartIndicator
 import dev.slne.surf.roleplay.api.client.common.screen.ChartCurve
-import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
-import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
-import dev.slne.surf.roleplay.protocol.screen.DataTableNode
-import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
-import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
-import dev.slne.surf.roleplay.api.client.common.screen.dataTableRow
-import dev.slne.surf.roleplay.api.client.common.screen.dataTableColumn
-import dev.slne.surf.roleplay.api.client.common.screen.dataTableCell
-import dev.slne.surf.roleplay.api.client.common.screen.dataTable
+import dev.slne.surf.roleplay.api.client.common.screen.ChartIndicator
+import dev.slne.surf.roleplay.api.client.common.screen.ChartKind
+import dev.slne.surf.roleplay.api.client.common.screen.ChartSeries
 import dev.slne.surf.roleplay.api.client.common.screen.DataTableView
-import dev.slne.surf.roleplay.api.client.common.screen.screen
-import dev.slne.surf.roleplay.api.client.common.screen.table
-import dev.slne.surf.roleplay.api.client.common.screen.tableBody
-import dev.slne.surf.roleplay.api.client.common.screen.tableCaption
-import dev.slne.surf.roleplay.api.client.common.screen.tableCell
-import dev.slne.surf.roleplay.api.client.common.screen.tableFooter
-import dev.slne.surf.roleplay.api.client.common.screen.tableHead
-import dev.slne.surf.roleplay.api.client.common.screen.tableHeader
-import dev.slne.surf.roleplay.api.client.common.screen.tableRow
+import dev.slne.surf.roleplay.api.client.common.screen.ElementSize
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Chart
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ChatMessage
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.ChatView
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTable
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableCell
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableColumn
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.DataTableRow
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Label
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.P
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Screen
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.Table
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableBody
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableCaption
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableCell
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableFooter
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableHead
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableHeader
+import dev.slne.surf.roleplay.api.client.common.screen.dsl.TableRow
 import dev.slne.surf.roleplay.protocol.Packet
 import dev.slne.surf.roleplay.protocol.PacketType
 import dev.slne.surf.roleplay.protocol.screen.Align
+import dev.slne.surf.roleplay.protocol.screen.ChartNode
+import dev.slne.surf.roleplay.protocol.screen.ChatMessageNode
+import dev.slne.surf.roleplay.protocol.screen.ChatViewNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableCellNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableColumnNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableNode
+import dev.slne.surf.roleplay.protocol.screen.DataTableRowNode
+import dev.slne.surf.roleplay.protocol.screen.InsertNode
 import dev.slne.surf.roleplay.protocol.screen.LabelNode
-import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
+import dev.slne.surf.roleplay.protocol.screen.ScreenInputChange
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
+import dev.slne.surf.roleplay.protocol.screen.ScreenOpen
+import dev.slne.surf.roleplay.protocol.screen.ScreenPatch
 import dev.slne.surf.roleplay.protocol.screen.TableCaptionNode
 import dev.slne.surf.roleplay.protocol.screen.TableCellNode
 import dev.slne.surf.roleplay.protocol.screen.TableNode
@@ -56,6 +54,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import dev.slne.surf.roleplay.protocol.screen.ChartCurve as NodeChartCurve
+import dev.slne.surf.roleplay.protocol.screen.ChartIndicator as NodeChartIndicator
+import dev.slne.surf.roleplay.protocol.screen.ChartKind as NodeChartKind
 
 /**
  * Tests for the data, chat and chart components in the API and on Paper.
@@ -100,12 +101,12 @@ class DataComponentsTest {
     @Test
     fun `tables map to their nodes`() {
         state.open(
-            screen(Component.text("Tabelle")) {
-                table("table") {
-                    tableHeader("header") { tableRow("head_row") { tableHead("head", Component.text("Einheit")) } }
-                    tableBody("body") { tableRow("row", selected = true) { tableCell("cell", Component.text("10"), Alignment.END) } }
-                    tableFooter("footer") { tableRow("sum_row") { tableCell("sum") { label("sum_text", Component.text("Summe")) } } }
-                    tableCaption("caption", Component.text("Einsätze"))
+            Screen(Component.text("Tabelle")) {
+                Table(id = "table") {
+                    TableHeader(id = "header") { TableRow(id = "head_row") { TableHead(Component.text("Einheit"), id = "head") } }
+                    TableBody(id = "body") { TableRow(selected = true, id = "row") { TableCell(Component.text("10"), Alignment.END, id = "cell") } }
+                    TableFooter(id = "footer") { TableRow(id = "sum_row") { TableCell(id = "sum") { Label(Component.text("Summe"), id = "sum_text") } } }
+                    TableCaption(Component.text("Einsätze"), id = "caption")
                 }
             },
             null,
@@ -130,14 +131,14 @@ class DataComponentsTest {
      * @return the session id
      */
     private fun openDataTable(): Int = state.open(
-        screen(Component.text("Einheiten")) {
-            dataTable("units", pageSize = 2, selectable = true, filterColumn = "name", onChange = { reports += it.value }) {
-                dataTableColumn("name_column", "name", Component.text("Name"), sortable = true)
-                dataTableColumn("note_column", "note", Component.text("Notiz"))
+        Screen(Component.text("Einheiten")) {
+            DataTable(pageSize = 2, selectable = true, filterColumn = "name", onChange = { reports += it.value }, id = "units") {
+                DataTableColumn("name", Component.text("Name"), sortable = true, id = "name_column")
+                DataTableColumn("note", Component.text("Notiz"), id = "note_column")
                 listOf("RTW", "NEF", "KTW", "RTW Nord", "Leitstelle").forEachIndexed { index, name ->
-                    dataTableRow("r$index", selectable = index != 4) {
-                        dataTableCell("r${index}_name", Component.text(name), name)
-                        dataTableCell("r${index}_note", Component.text("-"), "")
+                    DataTableRow(selectable = index != 4, id = "r$index") {
+                        DataTableCell(Component.text(name), name, id = "r${index}_name")
+                        DataTableCell(Component.text("-"), "", id = "r${index}_note")
                     }
                 }
             }
@@ -199,9 +200,8 @@ class DataComponentsTest {
     @Test
     fun `charts map to their nodes`() {
         state.open(
-            screen(Component.text("Diagramm")) {
-                chart(
-                    "chart",
+            Screen(Component.text("Diagramm")) {
+                Chart(
                     ChartKind.AREA,
                     listOf(Component.text("Jan"), Component.text("Feb")),
                     listOf(ChartSeries("calls", Component.text("Einsätze"), 9, listOf(1.0, Double.NaN))),
@@ -210,6 +210,7 @@ class DataComponentsTest {
                     curve = ChartCurve.STEP,
                     legend = true,
                     indicator = ChartIndicator.LINE,
+                    id = "chart",
                 )
             },
             null,
@@ -233,10 +234,10 @@ class DataComponentsTest {
     @Test
     fun `chat views map and append messages`() {
         val screen = state.open(
-            screen(Component.text("Chat")) {
-                chatView("chat", ElementSize.fixed(100)) {
-                    chatMessage("m1", name = Component.text("Leitstelle"), time = Component.text("12:30"), playerId = UUID(1, 2)) { text("m1_text", Component.text("Hallo")) }
-                    chatMessage("m2", own = true) { text("m2_text", Component.text("Hi")) }
+            Screen(Component.text("Chat")) {
+                ChatView(ElementSize.fixed(100), id = "chat") {
+                    ChatMessage(name = Component.text("Leitstelle"), time = Component.text("12:30"), playerId = UUID(1, 2), id = "m1") { P(Component.text("Hallo"), id = "m1_text") }
+                    ChatMessage(own = true, id = "m2") { P(Component.text("Hi"), id = "m2_text") }
                 }
             },
             null,
@@ -251,7 +252,7 @@ class DataComponentsTest {
         assertEquals("", second.name)
         assertEquals("", second.time)
 
-        screen.patch { append("chat") { chatMessage("m3") { text("m3_text", Component.text("Neu")) } } }
+        screen.patch { append("chat") { ChatMessage(id = "m3") { P(Component.text("Neu"), id = "m3_text") } } }
         val insert = assertIs<InsertNode>(assertIs<ScreenPatch>(sent.last()).operations.single())
         assertEquals("chat", insert.parentId)
         assertTrue(insert.index >= 2)
