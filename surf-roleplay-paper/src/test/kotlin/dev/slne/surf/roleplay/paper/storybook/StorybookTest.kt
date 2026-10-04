@@ -25,6 +25,7 @@ import dev.slne.surf.roleplay.api.client.common.screen.SidebarHeaderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarMenuButtonElement
 import dev.slne.surf.roleplay.api.client.common.screen.SidebarProviderElement
 import dev.slne.surf.roleplay.api.client.common.screen.SelectElement
+import dev.slne.surf.roleplay.api.client.common.screen.SwitchElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextElement
 import dev.slne.surf.roleplay.api.client.common.screen.TextKind
 import dev.slne.surf.roleplay.api.client.common.screen.dsl.Button
@@ -614,7 +615,7 @@ class StorybookTest {
 
     /**
      * The story name and key in the header take the width the controls leave and stay on one
-     * line, and the theme select keeps its fixed width.
+     * line, and the theme select below keeps its fixed width.
      */
     @Test
     fun `the header clamps the story name to one line`() {
@@ -628,6 +629,8 @@ class StorybookTest {
         assertEquals(1, key.maxLines)
         assertEquals(ElementSize.grow(), key.width)
         assertEquals(ElementSize.fixed(120), all.filterIsInstance<SelectElement>().single { it.id == "storybook_theme" }.width)
+        val nameRow = all.filterIsInstance<RowElement>().single { row -> elements(row).any { it === name } && elements(row).none { it is SelectElement } }
+        assertTrue(elements(nameRow).none { it is SwitchElement })
     }
 
     /**
