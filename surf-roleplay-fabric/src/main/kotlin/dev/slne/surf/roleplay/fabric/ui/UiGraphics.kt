@@ -145,6 +145,11 @@ class FontTextMeasurer(private val font: Font) : TextMeasurer {
 class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens: ThemeTokens) : TextMeasurer by FontTextMeasurer(font) {
 
     /**
+     * Fills shapes as single GUI elements with the current pose and scissor, and counts them.
+     */
+    internal val shapes: ShapeFills = ShapeFills { data, count -> fills(data, count, 0, 0) }
+
+    /**
      * Fills a rectangle with rounded corners.
      *
      * @param rect the rectangle
@@ -153,7 +158,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param corners the corners that are rounded
      */
     fun fillRounded(rect: Rect, color: Int, radius: Int = tokens.radius, corners: Corners = Corners.ALL) {
-        RoundedShape.spans(rect, radius, corners).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
+        shapes.rounded(rect, color, radius, corners)
     }
 
     /**
@@ -165,7 +170,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param corners the corners that are rounded
      */
     fun borderRounded(rect: Rect, color: Int, radius: Int = tokens.radius, corners: Corners = Corners.ALL) {
-        RoundedShape.borderSpans(rect, radius, corners).forEach { graphics.fill(it.x0, it.y, it.x1, it.y + 1, color) }
+        shapes.roundedBorder(rect, color, radius, corners)
     }
 
     /**
@@ -317,7 +322,7 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
         val cell = index.find(name)
         if (cell == null) {
             border(rect, color)
-            for (step in 0 until minOf(rect.width, rect.height)) graphics.fill(rect.x + step, rect.y + step, rect.x + step + 1, rect.y + step + 1, color)
+            fillRects(List(minOf(rect.width, rect.height)) { step -> Rect(rect.x + step, rect.y + step, 1, 1) }, color)
             return
         }
         graphics.blit(
@@ -369,12 +374,12 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
     }
 
     /**
-     * Runs drawing code that is clipped to a rectangle with rounded corners, once for every row
-     * of the rectangle that lies within the clip already in effect.
+     * Runs drawing code that is clipped to a rectangle with rounded corners, once for every run
+     * of rows of the rectangle with the same columns that lies within the clip already in effect.
      *
      * @param rect the rectangle to clip to
      * @param radius the corner radius; half the side of a square clips to a circle
-     * @param block the drawing code, run once for every row
+     * @param block the drawing code, run once for every run of rows
      */
     fun clippedRound(rect: Rect, radius: Int, block: () -> Unit) {
         clips.roundedRows(rect, radius) { row -> scissored(row, block) }
@@ -405,22 +410,18 @@ class UiGraphics(val graphics: GuiGraphicsExtractor, val font: Font, val tokens:
      * @param space the length of the space between two dashes
      */
     fun dashedBorder(rect: Rect, color: Int, dash: Int = 3, space: Int = 2) {
-        if (rect.width <= 0 || rect.height <= 0) return
-        val step = dash + space
-        var x = rect.x
-        while (x < rect.right) {
-            val length = minOf(dash, rect.right - x)
-            fill(Rect(x, rect.y, length, 1), color)
-            fill(Rect(x, rect.bottom - 1, length, 1), color)
-            x += step
-        }
-        var y = rect.y
-        while (y < rect.bottom) {
-            val length = minOf(dash, rect.bottom - y)
-            fill(Rect(rect.x, y, 1, length), color)
-            fill(Rect(rect.right - 1, y, 1, length), color)
-            y += step
-        }
+        shapes.dashedBorder(rect, color, dash, space)
+    }
+
+    /**
+     * Fills rectangles in one colour as one GUI element, in order, which looks the same as
+     * filling them one by one.
+     *
+     * @param rects the rectangles
+     * @param color the ARGB colour
+     */
+    fun fillRects(rects: List<Rect>, color: Int) {
+        shapes.rects(rects, color)
     }
 
     /**
@@ -526,20 +527,20 @@ class ClipStack {
     }
 
     /**
-     * Runs code once for every one-pixel row of a rectangle with rounded corners that lies within
-     * the clips in effect. Throughout, the current clip is the whole rectangle within the outer
-     * clips, so that what is culled does not depend on the row.
+     * Runs code once for every run of rows of a rectangle with rounded corners that lies within
+     * the clips in effect, where a run joins consecutive rows that start and end at the same
+     * columns. Throughout, the current clip is the whole rectangle within the outer clips, so
+     * that what is culled does not depend on the run.
      *
      * @param rect the rectangle
      * @param radius the corner radius
-     * @param row the code, given the row
+     * @param row the code, given the run of rows
      */
     fun roundedRows(rect: Rect, radius: Int, row: (Rect) -> Unit) {
         val outer = current
         push(rect) {
-            RoundedShape.spans(rect, radius).forEach { span ->
-                val line = Rect(span.x0, span.y, span.x1 - span.x0, 1)
-                if (outer == null || line.intersects(outer)) row(line)
+            RoundedShape.merge(RoundedShape.spans(rect, radius)).forEach { run ->
+                if (outer == null || run.intersects(outer)) row(run)
             }
         }
     }

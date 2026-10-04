@@ -109,6 +109,32 @@ object RoundedShape {
     }
 
     /**
+     * Joins spans into rectangles: a span extends the rectangle that ends right above it when
+     * both start and end at the same columns, and starts a new rectangle otherwise. The
+     * rectangles cover exactly the pixels of the spans.
+     *
+     * @param spans the spans, row by row from top to bottom
+     * @return the rectangles, in the order their first row appears
+     */
+    fun merge(spans: List<Span>): List<Rect> {
+        val rects = mutableListOf<Rect>()
+        val open = HashMap<Long, Int>()
+        for (span in spans) {
+            if (span.x0 >= span.x1) continue
+            val key = (span.x0.toLong() shl 32) or (span.x1.toLong() and 0xFFFFFFFFL)
+            val index = open[key]
+            val above = index?.let { rects[it] }
+            if (above != null && above.bottom == span.y) {
+                rects[index] = above.copy(height = above.height + 1)
+            } else {
+                open[key] = rects.size
+                rects += Rect(span.x0, span.y, span.x1 - span.x0, 1)
+            }
+        }
+        return rects
+    }
+
+    /**
      * Computes how far a row of a rounded rectangle is inset from the sides.
      *
      * @param row the row, from `0` at the top
