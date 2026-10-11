@@ -4,6 +4,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Bisected
+import org.bukkit.block.data.type.Door
 import org.bukkit.entity.Entity
 import org.bukkit.persistence.PersistentDataType
 
@@ -19,14 +20,13 @@ class BindingIndex {
     var bindings: Bindings = Bindings.EMPTY
 
     /**
-     * Returns the binding of a block. The upper half of a two-block block resolves to its lower
-     * half.
+     * Returns the binding of a block. The upper half of a door resolves to its lower half.
      *
      * @param block the targeted block
      * @return the lower block with its binding, or `null` if the block is unbound
      */
     fun forBlock(block: Block): Pair<Block, TargetBinding>? {
-        val base = if ((block.blockData as? Bisected)?.half == Bisected.Half.TOP) block.getRelative(BlockFace.DOWN) else block
+        val base = if ((block.blockData as? Door)?.half == Bisected.Half.TOP) block.getRelative(BlockFace.DOWN) else block
         val binding = bindings.blocks[BlockPosition(base.world.name, base.x, base.y, base.z)] ?: return null
         return base to binding
     }

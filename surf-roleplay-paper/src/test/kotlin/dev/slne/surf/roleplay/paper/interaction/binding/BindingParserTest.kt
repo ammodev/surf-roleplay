@@ -81,6 +81,28 @@ class BindingParserTest {
     }
 
     /**
+     * Verifies the limits on behaviours per entry and on coordinate values.
+     */
+    @Test
+    fun `behaviour count duplicates and coordinate range are validated`() {
+        val many = (1..17).joinToString(", ") { "door.toggle" }
+        val result = BindingParser.parse(
+            """
+            blocks:
+              - { world: world, x: 1, y: 64, z: 1, behaviours: [door.toggle, door.toggle] }
+              - { world: world, x: 2, y: 64, z: 2, behaviours: [$many] }
+              - { world: world, x: 4294967306, y: 64, z: 3, behaviours: [door.toggle] }
+            """.trimIndent(),
+            ::kinds,
+        )
+
+        assertEquals(emptyMap(), result.bindings.blocks)
+        assertEquals(3, result.errors.size)
+        assertTrue(result.errors.any { "duplicate" in it })
+        assertTrue(result.errors.any { "at most 16" in it })
+    }
+
+    /**
      * Verifies that an empty file gives no bindings and that unparsable YAML throws.
      */
     @Test

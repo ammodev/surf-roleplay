@@ -55,7 +55,7 @@ object BindingParser {
         config.getMapList("blocks").forEachIndexed { index, entry ->
             val where = "blocks[$index]"
             val world = entry["world"] as? String
-            val coords = listOf("x", "y", "z").map { (entry[it] as? Number)?.takeIf { n -> n.toDouble() % 1.0 == 0.0 }?.toInt() }
+            val coords = listOf("x", "y", "z").map { (entry[it] as? Number)?.takeIf { n -> n.toDouble() % 1.0 == 0.0 && n.toDouble() in Int.MIN_VALUE.toDouble()..Int.MAX_VALUE.toDouble() }?.toInt() }
             val binding = target(where, entry, TargetKind.BLOCK, kindsOf, errors) ?: return@forEachIndexed
             when {
                 world.isNullOrBlank() -> errors += "$where: missing world"
@@ -101,6 +101,10 @@ object BindingParser {
             errors += "$where: no behaviours"
             return null
         }
+        if (raw.size > InteractionLimits.MAX_OPTIONS) {
+            errors += "$where: at most ${InteractionLimits.MAX_OPTIONS} behaviours"
+            return null
+        }
         val behaviours = raw.map { item ->
             val (key, parameters) = when (item) {
                 is String -> item to emptyMap<String, String>()
@@ -121,6 +125,11 @@ object BindingParser {
                 return null
             }
             BehaviourBinding(key, parameters)
+        }
+        val duplicate = behaviours.groupBy { it.key }.entries.firstOrNull { it.value.size > 1 }?.key
+        if (duplicate != null) {
+            errors += "$where: duplicate behaviour $duplicate"
+            return null
         }
         return TargetBinding(behaviours, range)
     }

@@ -7,6 +7,8 @@ import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Bisected
 import org.bukkit.block.data.type.Door
+import org.bukkit.block.data.type.Stairs
+import org.bukkit.block.data.type.TrapDoor
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -52,6 +54,32 @@ class BindingIndexTest {
         val (base, found) = index.forBlock(upper)!!
         assertSame(lower, base)
         assertEquals(binding, found)
+    }
+
+    /**
+     * Verifies that a top-half trapdoor is looked up at its own position.
+     */
+    @Test
+    fun `top half trapdoor resolves to itself`() {
+        val trapdoor = block(64, null)
+        every { trapdoor.blockData } returns mockk<TrapDoor> { every { half } returns Bisected.Half.TOP }
+        val index = BindingIndex().apply { bindings = Bindings(mapOf(BlockPosition("world", 10, 64, -3) to binding), emptyMap()) }
+
+        assertEquals(trapdoor to binding, index.forBlock(trapdoor))
+    }
+
+    /**
+     * Verifies that an upper stair is not redirected to the block below it.
+     */
+    @Test
+    fun `upper stair does not resolve to the block below`() {
+        val below = block(64, null)
+        val stair = block(65, null)
+        every { stair.blockData } returns mockk<Stairs> { every { half } returns Bisected.Half.TOP }
+        every { stair.getRelative(BlockFace.DOWN) } returns below
+        val index = BindingIndex().apply { bindings = Bindings(mapOf(BlockPosition("world", 10, 64, -3) to binding), emptyMap()) }
+
+        assertNull(index.forBlock(stair))
     }
 
     /**
