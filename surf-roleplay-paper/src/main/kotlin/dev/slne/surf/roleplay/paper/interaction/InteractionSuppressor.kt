@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 
@@ -33,10 +34,20 @@ class InteractionSuppressor(private val service: PaperInteractionService) : List
     /**
      * Cancels right-clicks on bound entities.
      *
-     * @param event the event; also covers interactions at a position on the entity
+     * @param event the event
      */
     @EventHandler(priority = EventPriority.LOWEST)
     fun onInteractEntity(event: PlayerInteractEntityEvent) {
+        if (service.bindings.forEntity(event.rightClicked) != null) event.isCancelled = true
+    }
+
+    /**
+     * Cancels right-clicks at a position on bound entities, such as armor stand equipment swaps.
+     *
+     * @param event the event
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    fun onInteractAtEntity(event: PlayerInteractAtEntityEvent) {
         if (service.bindings.forEntity(event.rightClicked) != null) event.isCancelled = true
     }
 }

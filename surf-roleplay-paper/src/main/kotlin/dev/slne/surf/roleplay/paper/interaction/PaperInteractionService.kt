@@ -191,12 +191,19 @@ class PaperInteractionService : InteractionService, Listener {
         if (packet.kind.length > MAX_KIND_LENGTH) return reject(player, "target kind too long (${packet.kind.length} characters)")
         if (packet.id.length > InteractionLimits.MAX_TARGET_ID_LENGTH) return reject(player, "target id too long (${packet.id.length} characters)")
         val noOptions = { sendOffer(player, InteractionTargetOffer(0, packet.kind, packet.id)) }
+        val retired = { player.scheduler.run(plugin, { noOptions() }, null); Unit }
         when (packet.kind) {
             TargetKinds.BLOCK -> {
                 val position = BlockTargetId.parse(packet.id) ?: return reject(player, "malformed block id ${packet.id}")
                 val world = player.world
                 if (!world.isChunkLoaded(position.x shr 4, position.z shr 4)) return reject(player, "block ${packet.id} is in an unloaded chunk")
                 val location = Location(world, position.x.toDouble(), position.y.toDouble(), position.z.toDouble())
+                val here = player.location
+                val dx = position.x + 0.5 - here.x
+                val dy = position.y + 0.5 - here.y
+                val dz = position.z + 0.5 - here.z
+                val farthest = InteractionLimits.MAX_RANGE + 2
+                if (dx * dx + dy * dy + dz * dz > farthest * farthest) return reject(player, "block ${packet.id} is far from the player")
                 Bukkit.getRegionScheduler().run(plugin, location) {
                     val (base, binding) = bindings.forBlock(world.getBlockAt(position.x, position.y, position.z)) ?: return@run noOptions()
                     offer(player, BlockTarget(base), binding, packet)
@@ -209,7 +216,7 @@ class PaperInteractionService : InteractionService, Listener {
                 entity.scheduler.run(plugin, {
                     val binding = bindings.forEntity(entity) ?: return@run noOptions()
                     offer(player, EntityTarget(entity), binding, packet)
-                }, null)
+                }, retired)
             }
             else -> reject(player, "unknown target kind ${packet.kind}")
         }
@@ -317,12 +324,15 @@ class PaperInteractionService : InteractionService, Listener {
     private fun boundBehaviours(binding: TargetBinding) = binding.behaviours.mapNotNull { bound -> behaviours[bound.key]?.let { BoundBehaviour(it, bound.parameters) } }
 
     /**
-     * Sends a target offer.
+     * Sends a target offer. An offer without options also drops the player's current offer.
      *
      * @param player the player
      * @param offer the offer
      */
-    private fun sendOffer(player: Player, offer: InteractionTargetOffer) = registry.send(player, Packets.INTERACTION_TARGET_OFFER, offer)
+    private fun sendOffer(player: Player, offer: InteractionTargetOffer) {
+        if (offer.options.isEmpty()) offers.clear(player.uniqueId)
+        registry.send(player, Packets.INTERACTION_TARGET_OFFER, offer)
+    }
 
     /**
      * Builds and sends the radial menu. Runs on the player's thread.
@@ -354,8 +364,9 @@ class PaperInteractionService : InteractionService, Listener {
         when (pending) {
             is Pending.Target -> {
                 val bound = pending.options.getOrNull(packet.index) ?: return reject(player, "execute: option ${packet.index} was never offered")
-                onOwner(pending.target) {
+                onOwner(pending.target, retired = { player.scheduler.run(plugin, { denied(player) }, null) }) {
                     val failure = reachFailure(player, pending.target, pending.binding)
+                        ?: "interaction is blocked".takeIf { isBlocked(player) }
                         ?: runCatching { bound.passes(player, pending.target) }.getOrDefault(false).let { if (it) null else "conditions no longer pass" }
                     if (failure != null) {
                         log.atFine().log("Dropped pick %s of %s: %s", bound.behaviour.key, player.name, failure)
@@ -379,12 +390,13 @@ class PaperInteractionService : InteractionService, Listener {
      * Runs work on the thread that owns a target.
      *
      * @param target the target
+     * @param retired run instead of [work] if an entity target was removed before the work could run
      * @param work the work
      */
-    private fun onOwner(target: InteractionTarget, work: () -> Unit) {
+    private fun onOwner(target: InteractionTarget, retired: () -> Unit, work: () -> Unit) {
         when (target) {
             is BlockTarget -> Bukkit.getRegionScheduler().run(plugin, target.block.location) { work() }
-            is EntityTarget -> target.entity.scheduler.run(plugin, { work() }, null)
+            is EntityTarget -> target.entity.scheduler.run(plugin, { work() }, retired)
             else -> Unit
         }
     }
