@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.fabric
 
 import dev.slne.surf.roleplay.fabric.handshake.ClientHandshake
 import dev.slne.surf.roleplay.fabric.interaction.InteractionClientState
+import dev.slne.surf.roleplay.fabric.interaction.RadialMenuLayer
 import dev.slne.surf.roleplay.fabric.interaction.TargetEyeLayer
 import dev.slne.surf.roleplay.fabric.protocol.FabricPacketRegistry
 import dev.slne.surf.roleplay.fabric.screen.ClientScreenManager
@@ -66,6 +67,7 @@ object RoleplayClient : ClientModInitializer {
         ToastLayer.register(serverState)
         InteractionClientState.register(serverState)
         TargetEyeLayer.register()
+        RadialMenuLayer.register(serverState)
         TabListLayer.register(serverState)
         SettingsScreen.register(serverState)
         SettingsEntry.register(serverState)

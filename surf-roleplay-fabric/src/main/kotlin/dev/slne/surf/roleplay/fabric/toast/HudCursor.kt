@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.fabric.toast
 
 import com.mojang.blaze3d.platform.InputConstants
 import dev.slne.surf.roleplay.fabric.RoleplayClient
+import dev.slne.surf.roleplay.fabric.interaction.RadialMenuLayer
 import dev.slne.surf.roleplay.fabric.interaction.TargetEyeLayer
 import dev.slne.surf.roleplay.fabric.settings.KeyMode
 import dev.slne.surf.roleplay.fabric.settings.RoleplayKeys
@@ -82,10 +83,11 @@ object HudCursor {
      * Applies the key and screen state of the current tick.
      *
      * @param mc the Minecraft client
-     * @param enabled whether the cursor may be shown, as while the roleplay server is active
+     * @param enabled whether the cursor may be shown, as while the roleplay server is active; the
+     *        cursor is not shown while the radial menu is open
      */
     fun tick(mc: Minecraft, enabled: Boolean) {
-        val ready = enabled && mc.player != null
+        val ready = enabled && mc.player != null && !RadialMenuLayer.isOpen
         val keyPressed = key.consumeClick() && ready
         val keyDown = ready && key.isDown
         when (change(keyDown, keyPressed, mc.gui.screen() != null, active, RoleplayClient.settings.current.cursorKeyMode, ready)) {
@@ -123,8 +125,9 @@ object HudCursor {
         cursorKey != buttonKey
 
     /**
-     * Handles a mouse button while the cursor mode is on and no screen is open: a press is passed
-     * to the toasts, then to the option list of the target eye, and every button event is kept from the world.
+     * Handles a mouse button while the cursor mode is on or the radial menu is open, and no screen
+     * is open: a press is passed to the toasts, then to the radial menu if it is open or else to
+     * the option list of the target eye, and every button event is kept from the world.
      *
      * @param button the mouse button
      * @param action the GLFW action
@@ -133,11 +136,14 @@ object HudCursor {
     @JvmStatic
     fun handleButton(button: Int, action: Int): Boolean {
         val mc = Minecraft.getInstance()
-        if (!active || mc.gui.screen() != null) return false
+        val radial = RadialMenuLayer.isOpen
+        if (!(active || radial) || mc.gui.screen() != null) return false
         if (!takesButton(key.saveString(), InputConstants.Type.MOUSE.getOrCreate(button).name)) return false
         if (action == GLFW.GLFW_PRESS) {
             val (x, y) = position(mc)
-            if (!ToastLayer.click(x, y, button)) TargetEyeLayer.click(x, y, button)
+            if (!ToastLayer.click(x, y, button)) {
+                if (radial) RadialMenuLayer.click(x, y, button) else TargetEyeLayer.click(x, y, button)
+            }
         }
         return true
     }
