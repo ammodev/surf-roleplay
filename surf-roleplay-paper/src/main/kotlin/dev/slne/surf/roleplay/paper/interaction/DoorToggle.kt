@@ -9,7 +9,11 @@ import dev.slne.surf.roleplay.api.client.paper.interaction.TargetKind
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.Sound
+import org.bukkit.block.Block
+import org.bukkit.block.BlockFace
+import org.bukkit.block.data.Bisected
 import org.bukkit.block.data.Openable
+import org.bukkit.block.data.type.Door
 
 /**
  * The behaviour `door.toggle`: opens or closes a door, trapdoor or gate.
@@ -34,7 +38,27 @@ object DoorToggle {
     fun label(open: Boolean): String = if (open) "Schließen" else "Öffnen"
 
     /**
-     * The behaviour.
+     * Applies an open state to the other half of a door, so both halves agree without waiting for
+     * a neighbour update. Single-block openables such as trapdoors and gates have no other half.
+     *
+     * @param block the block that was toggled
+     * @param data the block data of the toggled block
+     * @param open the open state to apply
+     */
+    private fun syncOtherHalf(block: Block, data: Openable, open: Boolean) {
+        if (data !is Door) return
+        val face = if (data.half == Bisected.Half.BOTTOM) BlockFace.UP else BlockFace.DOWN
+        val other = block.getRelative(face)
+        val otherData = other.blockData as? Door ?: return
+        if (other.type != block.type || otherData.half == data.half) return
+        otherData.isOpen = open
+        other.blockData = otherData
+    }
+
+    /**
+     * The behaviour: toggles the open state of doors, trapdoors and gates (both halves of a door),
+     * plays the matching door sound once, and is labelled "Öffnen" or "Schließen" by the current
+     * state.
      */
     val behaviour: InteractionBehaviour = InteractionBehaviour(
         key = "door.toggle",
@@ -48,6 +72,7 @@ object DoorToggle {
             val open = !data.isOpen
             data.isOpen = open
             block.blockData = data
+            syncOtherHalf(block, data, open)
             val iron = block.type == Material.IRON_DOOR || block.type == Material.IRON_TRAPDOOR
             val sound = when {
                 iron && open -> Sound.BLOCK_IRON_DOOR_OPEN

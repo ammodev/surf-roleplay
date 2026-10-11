@@ -6,7 +6,14 @@ import dev.slne.surf.roleplay.api.client.paper.interaction.TargetKind
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.Sound
+import org.bukkit.World
 import org.bukkit.block.Block
+import org.bukkit.block.BlockFace
+import org.bukkit.block.data.Bisected
+import org.bukkit.block.data.BlockData
 import org.bukkit.block.data.type.Door
 import org.bukkit.entity.Player
 import kotlin.test.Test
@@ -25,7 +32,7 @@ class DoorToggleTest {
      * @param data the block data
      * @return the block and its context
      */
-    private fun context(data: org.bukkit.block.data.BlockData): Pair<Block, InteractionContext> {
+    private fun context(data: BlockData): Pair<Block, InteractionContext> {
         val block = mockk<Block>(relaxed = true) { every { blockData } returns data }
         return block to InteractionContext(mockk<Player>(relaxed = true), BlockTarget(block), emptyMap())
     }
@@ -65,5 +72,74 @@ class DoorToggleTest {
 
         verify { data.setOpen(true) }
         verify { block.setBlockData(data) }
+    }
+
+    /**
+     * Verifies that the action closes an open door.
+     */
+    @Test
+    fun `action closes an open door`() {
+        val data = mockk<Door>(relaxed = true) { every { isOpen } returns true }
+        val (_, ctx) = context(data)
+
+        DoorToggle.behaviour.action.run(ctx)
+
+        verify { data.setOpen(false) }
+    }
+
+    /**
+     * Verifies that the other half of a door receives the same open state.
+     */
+    @Test
+    fun `action opens the other door half`() {
+        val data = mockk<Door>(relaxed = true) {
+            every { isOpen } returns false
+            every { half } returns Bisected.Half.BOTTOM
+        }
+        val otherData = mockk<Door>(relaxed = true) { every { half } returns Bisected.Half.TOP }
+        val other = mockk<Block>(relaxed = true) {
+            every { blockData } returns otherData
+            every { type } returns Material.OAK_DOOR
+        }
+        val (block, ctx) = context(data)
+        every { block.type } returns Material.OAK_DOOR
+        every { block.getRelative(BlockFace.UP) } returns other
+
+        DoorToggle.behaviour.action.run(ctx)
+
+        verify { otherData.setOpen(true) }
+        verify { other.setBlockData(otherData) }
+    }
+
+    /**
+     * Verifies that opening an iron door plays the iron door sound.
+     */
+    @Test
+    fun `opening an iron door plays the iron sound`() {
+        val data = mockk<Door>(relaxed = true) { every { isOpen } returns false }
+        val (block, ctx) = context(data)
+        val world = mockk<World>(relaxed = true)
+        every { block.type } returns Material.IRON_DOOR
+        every { block.world } returns world
+
+        DoorToggle.behaviour.action.run(ctx)
+
+        verify(exactly = 1) { world.playSound(any<Location>(), Sound.BLOCK_IRON_DOOR_OPEN, 1f, 1f) }
+    }
+
+    /**
+     * Verifies that closing a wooden door plays the wooden door sound.
+     */
+    @Test
+    fun `closing a wooden door plays the wooden sound`() {
+        val data = mockk<Door>(relaxed = true) { every { isOpen } returns true }
+        val (block, ctx) = context(data)
+        val world = mockk<World>(relaxed = true)
+        every { block.type } returns Material.OAK_DOOR
+        every { block.world } returns world
+
+        DoorToggle.behaviour.action.run(ctx)
+
+        verify(exactly = 1) { world.playSound(any<Location>(), Sound.BLOCK_WOODEN_DOOR_CLOSE, 1f, 1f) }
     }
 }
