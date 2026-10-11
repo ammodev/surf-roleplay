@@ -2,6 +2,7 @@ package dev.slne.surf.roleplay.fabric.toast
 
 import com.mojang.blaze3d.platform.InputConstants
 import dev.slne.surf.roleplay.fabric.RoleplayClient
+import dev.slne.surf.roleplay.fabric.interaction.TargetEyeLayer
 import dev.slne.surf.roleplay.fabric.settings.KeyMode
 import dev.slne.surf.roleplay.fabric.settings.RoleplayKeys
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
@@ -123,7 +124,7 @@ object HudCursor {
 
     /**
      * Handles a mouse button while the cursor mode is on and no screen is open: a press is passed
-     * to the toasts, and every button event is kept from the world.
+     * to the toasts, then to the option list of the target eye, and every button event is kept from the world.
      *
      * @param button the mouse button
      * @param action the GLFW action
@@ -136,7 +137,7 @@ object HudCursor {
         if (!takesButton(key.saveString(), InputConstants.Type.MOUSE.getOrCreate(button).name)) return false
         if (action == GLFW.GLFW_PRESS) {
             val (x, y) = position(mc)
-            ToastLayer.click(x, y, button)
+            if (!ToastLayer.click(x, y, button)) TargetEyeLayer.click(x, y, button)
         }
         return true
     }
