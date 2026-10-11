@@ -1,6 +1,7 @@
 package dev.slne.surf.roleplay.paper
 
 import com.github.shynixn.mccoroutine.folia.SuspendingJavaPlugin
+import dev.slne.surf.roleplay.api.client.paper.interaction.RadialCategory
 import dev.slne.surf.roleplay.api.common.user.UserManager
 import dev.slne.surf.roleplay.core.client.common.ClientInstance
 import dev.slne.surf.roleplay.core.client.common.user.CoreClientUserManager
@@ -9,6 +10,8 @@ import dev.slne.surf.roleplay.paper.handshake.HandshakeConfig
 import dev.slne.surf.roleplay.paper.handshake.HandshakeEvaluator
 import dev.slne.surf.roleplay.paper.handshake.HandshakeListener
 import dev.slne.surf.roleplay.paper.interaction.BindingLoadListener
+import dev.slne.surf.roleplay.paper.interaction.DemoRadialEntries
+import dev.slne.surf.roleplay.paper.interaction.DoorToggle
 import dev.slne.surf.roleplay.paper.interaction.InteractionConfig
 import dev.slne.surf.roleplay.paper.interaction.InteractionSuppressor
 import dev.slne.surf.roleplay.paper.interaction.PaperInteractionService
@@ -51,7 +54,8 @@ class PaperMain : SuspendingJavaPlugin() {
 
     /**
      * Enables the client instance, registers the roleplay payload channels, the mod handshake, the
-     * welcome sender, the screen, toast, interaction and tab list services, the storybook command, the vanilla
+     * welcome sender, the screen, toast, interaction and tab list services, the door toggle behaviour, the demo
+     * radial entry when enabled in the config, the storybook command, the vanilla
      * crafting block, the suppression of vanilla clicks on bound blocks and entities, the loading of the interaction
      * bindings once the server has finished loading,
      * registers the listener that acquires a hold on the roleplay user of every player logging in and releases it when the
@@ -75,6 +79,10 @@ class PaperMain : SuspendingJavaPlugin() {
         PaperToastService.INSTANCE.start(this, packetRegistry, PaperScreenService.INSTANCE.actionLimiter)
         PaperTabListService.INSTANCE.start(this, packetRegistry, TabListConfig.from(config) { logger.warning(it) })
         PaperInteractionService.INSTANCE.start(this, packetRegistry, InteractionConfig.from(config) { logger.warning(it) })
+        PaperInteractionService.INSTANCE.registerBehaviour(DoorToggle.behaviour)
+        if (PaperInteractionService.INSTANCE.config.demoEntries) {
+            PaperInteractionService.INSTANCE.registerRadialEntry(RadialCategory.SELF, DemoRadialEntries.entry)
+        }
         server.pluginManager.registerEvents(InteractionSuppressor(PaperInteractionService.INSTANCE), this)
         server.pluginManager.registerEvents(BindingLoadListener(), this)
         StorybookCommand.register(this)
