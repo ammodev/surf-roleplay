@@ -12,6 +12,7 @@ import dev.slne.surf.roleplay.paper.handshake.HandshakeListener
 import dev.slne.surf.roleplay.paper.interaction.BindingLoadListener
 import dev.slne.surf.roleplay.paper.interaction.DemoRadialEntries
 import dev.slne.surf.roleplay.paper.interaction.DoorToggle
+import dev.slne.surf.roleplay.paper.interaction.InteractionCommand
 import dev.slne.surf.roleplay.paper.interaction.InteractionConfig
 import dev.slne.surf.roleplay.paper.interaction.InteractionSuppressor
 import dev.slne.surf.roleplay.paper.interaction.PaperInteractionService
@@ -55,7 +56,7 @@ class PaperMain : SuspendingJavaPlugin() {
     /**
      * Enables the client instance, registers the roleplay payload channels, the mod handshake, the
      * welcome sender, the screen, toast, interaction and tab list services, the door toggle behaviour, the demo
-     * radial entry when enabled in the config, the storybook command, the vanilla
+     * radial entry when enabled in the config, the staff command for interaction bindings, the storybook command, the vanilla
      * crafting block, the suppression of vanilla clicks on bound blocks and entities, the loading of the interaction
      * bindings once the server has finished loading,
      * registers the listener that acquires a hold on the roleplay user of every player logging in and releases it when the
@@ -85,6 +86,7 @@ class PaperMain : SuspendingJavaPlugin() {
         }
         server.pluginManager.registerEvents(InteractionSuppressor(PaperInteractionService.INSTANCE), this)
         server.pluginManager.registerEvents(BindingLoadListener(), this)
+        InteractionCommand.register(this)
         StorybookCommand.register(this)
         TabListCommand.register(this)
         server.pluginManager.registerEvents(CraftingBlocker(), this)
