@@ -42,7 +42,10 @@ class SettingsStore(private val file: Path) {
         try {
             val parsed = JsonParser.parseString(Files.readString(file)).asJsonObject
             json = parsed
-            current = ClientSettings(cursorKeyMode = readKeyMode(parsed, "cursorKeyMode", KeyMode.HOLD))
+            current = ClientSettings(
+                cursorKeyMode = readKeyMode(parsed, "cursorKeyMode", KeyMode.HOLD),
+                radialKeyMode = readKeyMode(parsed, "radialKeyMode", KeyMode.HOLD),
+            )
         } catch (e: Exception) {
             json = JsonObject()
             current = ClientSettings()
@@ -88,6 +91,7 @@ class SettingsStore(private val file: Path) {
     fun update(transform: (ClientSettings) -> ClientSettings) {
         current = transform(current)
         json.addProperty("cursorKeyMode", current.cursorKeyMode.name)
+        json.addProperty("radialKeyMode", current.radialKeyMode.name)
         save()
         listeners.toList().forEach { it(current) }
     }

@@ -270,8 +270,8 @@ object SettingsScreen {
         }
 
         /**
-         * Remembers the selected settings category and stores a changed cursor key mode in the
-         * client settings.
+         * Remembers the selected settings category and stores a changed cursor or radial key
+         * mode in the client settings.
          *
          * @param panel the panel
          * @param widget the input that changed
@@ -281,9 +281,11 @@ object SettingsScreen {
                 category = SettingsNavigation.select(widget.inputValue, SettingsView.categories.map { it.id })
                 return
             }
-            if (widget.id != SettingsView.CURSOR_MODE_ID) return
             val mode = KeyMode.entries.firstOrNull { it.name == widget.inputValue } ?: return
-            RoleplayClient.settings.update { it.copy(cursorKeyMode = mode) }
+            when (widget.id) {
+                SettingsView.CURSOR_MODE_ID -> RoleplayClient.settings.update { it.copy(cursorKeyMode = mode) }
+                SettingsView.RADIAL_MODE_ID -> RoleplayClient.settings.update { it.copy(radialKeyMode = mode) }
+            }
         }
     }
 }

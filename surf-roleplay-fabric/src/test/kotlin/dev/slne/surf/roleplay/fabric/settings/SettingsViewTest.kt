@@ -4,6 +4,7 @@ import dev.slne.surf.roleplay.protocol.screen.ColumnNode
 import dev.slne.surf.roleplay.protocol.screen.ContainerNode
 import dev.slne.surf.roleplay.protocol.screen.Orientation
 import dev.slne.surf.roleplay.protocol.screen.ScreenNode
+import dev.slne.surf.roleplay.protocol.screen.SelectNode
 import dev.slne.surf.roleplay.protocol.screen.Sizing
 import dev.slne.surf.roleplay.protocol.screen.TabsContentNode
 import dev.slne.surf.roleplay.protocol.screen.TabsNode
@@ -118,5 +119,15 @@ class SettingsViewTest {
     fun `the selected category is preserved`() {
         assertEquals("controls", (SettingsView.build(rows, emptySet(), null, ClientSettings()) as TabsNode).value)
         assertEquals("cursor", (SettingsView.build(rows, emptySet(), null, ClientSettings(), "cursor") as TabsNode).value)
+    }
+
+    /**
+     * Verifies that the cursor category has a radial key mode select showing the stored mode.
+     */
+    @Test
+    fun `the cursor category has a radial mode select`() {
+        val tree = SettingsView.build(rows, emptySet(), null, ClientSettings(radialKeyMode = KeyMode.TOGGLE))
+        val select = tree.all().first { it.id == SettingsView.RADIAL_MODE_ID } as SelectNode
+        assertEquals(KeyMode.TOGGLE.name, select.selected)
     }
 }
