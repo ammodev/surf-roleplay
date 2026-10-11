@@ -15,6 +15,9 @@ import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.Plugin
 
+/**
+ * The logger of the staff command.
+ */
 private val log = logger()
 
 /**
@@ -59,7 +62,8 @@ object InteractionCommand {
     }
 
     /**
-     * Reloads the bindings off the main threads and reports the result.
+     * Reloads the bindings on the async scheduler and reports the result to the sender; a failed
+     * reload is logged and reported as a failure.
      *
      * @param plugin the plugin
      * @param source the command source
@@ -68,9 +72,14 @@ object InteractionCommand {
     private fun reload(plugin: Plugin, source: CommandSourceStack): Int {
         val sender = source.sender
         plugin.server.asyncScheduler.runNow(plugin) {
-            val summary = PaperInteractionService.INSTANCE.reloadBindings(plugin)
-            log.atInfo().log("%s reloaded the interaction bindings", sender.name)
-            sender.sendMessage(Component.text(summary, NamedTextColor.GREEN))
+            try {
+                val summary = PaperInteractionService.INSTANCE.reloadBindings(plugin)
+                log.atInfo().log("%s reloaded the interaction bindings", sender.name)
+                sender.sendMessage(Component.text(summary, NamedTextColor.GREEN))
+            } catch (exception: Exception) {
+                log.atWarning().withCause(exception).log("Could not reload the interaction bindings")
+                sender.sendMessage(Component.text("Die Bindungen konnten nicht neu geladen werden.", NamedTextColor.RED))
+            }
         }
         return Command.SINGLE_SUCCESS
     }
@@ -89,6 +98,7 @@ object InteractionCommand {
         }
         val entity = player.getTargetEntity(TAG_REACH)
             ?: return fail(source, "Schau ein Entity an, das höchstens $TAG_REACH Blöcke entfernt ist.")
+        if (entity is Player) return fail(source, "Spieler können nicht markiert werden.")
         if (!Bukkit.isOwnedByCurrentRegion(entity)) {
             return fail(source, "Dieses Entity kann gerade nicht bearbeitet werden. Geh näher heran.")
         }
