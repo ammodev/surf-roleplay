@@ -8,6 +8,10 @@ import dev.slne.surf.roleplay.paper.crafting.CraftingBlocker
 import dev.slne.surf.roleplay.paper.handshake.HandshakeConfig
 import dev.slne.surf.roleplay.paper.handshake.HandshakeEvaluator
 import dev.slne.surf.roleplay.paper.handshake.HandshakeListener
+import dev.slne.surf.roleplay.paper.interaction.BindingLoadListener
+import dev.slne.surf.roleplay.paper.interaction.InteractionConfig
+import dev.slne.surf.roleplay.paper.interaction.InteractionSuppressor
+import dev.slne.surf.roleplay.paper.interaction.PaperInteractionService
 import dev.slne.surf.roleplay.paper.listener.UserConnectionListener
 import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
 import dev.slne.surf.roleplay.paper.screen.PaperScreenService
@@ -47,7 +51,9 @@ class PaperMain : SuspendingJavaPlugin() {
 
     /**
      * Enables the client instance, registers the roleplay payload channels, the mod handshake, the
-     * welcome sender, the screen, toast and tab list services, the storybook command and the vanilla crafting block,
+     * welcome sender, the screen, toast, interaction and tab list services, the storybook command, the vanilla
+     * crafting block, the suppression of vanilla clicks on bound blocks and entities, the loading of the interaction
+     * bindings once the server has finished loading,
      * registers the listener that acquires a hold on the roleplay user of every player logging in and releases it when the
      * player's connection closes, and registers the built-in tab list providers based on the active identity.
      *
@@ -68,6 +74,9 @@ class PaperMain : SuspendingJavaPlugin() {
         PaperScreenService.INSTANCE.start(this, packetRegistry, config.getInt("screens.max-actions-per-second", 20))
         PaperToastService.INSTANCE.start(this, packetRegistry, PaperScreenService.INSTANCE.actionLimiter)
         PaperTabListService.INSTANCE.start(this, packetRegistry, TabListConfig.from(config) { logger.warning(it) })
+        PaperInteractionService.INSTANCE.start(this, packetRegistry, InteractionConfig.from(config) { logger.warning(it) })
+        server.pluginManager.registerEvents(InteractionSuppressor(PaperInteractionService.INSTANCE), this)
+        server.pluginManager.registerEvents(BindingLoadListener(), this)
         StorybookCommand.register(this)
         TabListCommand.register(this)
         server.pluginManager.registerEvents(CraftingBlocker(), this)

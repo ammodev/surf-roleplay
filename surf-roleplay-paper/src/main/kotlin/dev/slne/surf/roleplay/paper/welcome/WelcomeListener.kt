@@ -1,5 +1,6 @@
 package dev.slne.surf.roleplay.paper.welcome
 
+import dev.slne.surf.roleplay.paper.interaction.PaperInteractionService
 import dev.slne.surf.roleplay.paper.protocol.PaperPacketRegistry
 import dev.slne.surf.roleplay.paper.screen.PaperScreenService
 import dev.slne.surf.roleplay.paper.tablist.PaperTabListService
@@ -15,7 +16,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Sends the [Welcome] to every joined player whose client has registered every clientbound
- * roleplay channel, then marks the player as ready for screens and sends the full tab list state.
+ * roleplay channel, then marks the player as ready for screens, sends the full tab list state and tells the client
+ * whether interaction is available.
  *
  * The client mod registers its play-phase channels after joining, and the server only delivers
  * payloads on channels the client has registered, so the welcome waits for the last of them.
@@ -48,6 +50,7 @@ class WelcomeListener(private val registry: PaperPacketRegistry) : Listener {
         registry.send(player, Packets.WELCOME, Welcome)
         PaperScreenService.INSTANCE.markReady(player)
         PaperTabListService.INSTANCE.pushNow(player)
+        PaperInteractionService.INSTANCE.refreshAvailability(player)
     }
 
     /**
