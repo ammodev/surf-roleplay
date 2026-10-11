@@ -1,5 +1,7 @@
 package dev.slne.surf.roleplay.paper.interaction
 
+import java.util.Locale
+
 /**
  * Decides whether a target is reachable from its distance and line of sight.
  */
@@ -30,8 +32,8 @@ object TargetCheck {
      * @return the decision
      */
     fun check(distance: Double, range: Double, inSight: Boolean): Result = when {
-        distance.isNaN() -> Result.Failed("invalid distance")
-        distance > range -> Result.Failed("out of range (%.2f > %.2f)".format(distance, range))
+        distance.isNaN() || range.isNaN() -> Result.Failed("invalid distance or range")
+        distance > range -> Result.Failed("out of range (%.2f > %.2f)".format(Locale.ROOT, distance, range))
         !inSight -> Result.Failed("not in line of sight")
         else -> Result.Passed
     }

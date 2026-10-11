@@ -3,6 +3,7 @@ package dev.slne.surf.roleplay.paper.interaction
 import dev.slne.surf.roleplay.api.client.paper.interaction.RadialAction
 import dev.slne.surf.roleplay.api.client.paper.interaction.RadialCategory
 import dev.slne.surf.roleplay.api.client.paper.interaction.RadialCondition
+import dev.slne.surf.roleplay.api.client.paper.interaction.RadialEntry
 import dev.slne.surf.roleplay.api.client.paper.interaction.RadialSubmenu
 import dev.slne.surf.roleplay.protocol.interaction.InteractionLimits
 import io.mockk.mockk
@@ -35,7 +36,7 @@ class RadialTreeBuilderTest {
      * @param entries the entries with their categories
      * @return the built tree
      */
-    private fun build(vararg entries: Pair<RadialCategory, dev.slne.surf.roleplay.api.client.paper.interaction.RadialEntry>) =
+    private fun build(vararg entries: Pair<RadialCategory, RadialEntry>) =
         RadialTreeBuilder.build(entries.toList(), player, ::plain) { _, _ -> }
 
     /**

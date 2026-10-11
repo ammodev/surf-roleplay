@@ -42,7 +42,8 @@ data class BoundBehaviour(val behaviour: InteractionBehaviour, val parameters: M
 object OptionEvaluator {
     /**
      * Returns the bound behaviours that apply to the target's kind and whose conditions all pass,
-     * in order and at most [InteractionLimits.MAX_OPTIONS].
+     * in order and at most [InteractionLimits.MAX_OPTIONS]. Conditions of behaviours after the cap
+     * are not evaluated.
      *
      * @param bound the behaviours bound to the target
      * @param player the player
@@ -52,12 +53,12 @@ object OptionEvaluator {
      * @return the passing behaviours
      */
     fun passing(bound: List<BoundBehaviour>, player: Player, target: InteractionTarget, onError: (String, Throwable) -> Unit): List<BoundBehaviour> =
-        bound.filter {
+        bound.asSequence().filter {
             try {
                 it.passes(player, target)
             } catch (exception: Exception) {
                 onError(it.behaviour.key, exception)
                 false
             }
-        }.take(InteractionLimits.MAX_OPTIONS)
+        }.take(InteractionLimits.MAX_OPTIONS).toList()
 }

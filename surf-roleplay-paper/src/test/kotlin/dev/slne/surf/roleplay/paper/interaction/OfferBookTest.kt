@@ -55,4 +55,30 @@ class OfferBookTest {
         book.clear(player)
         assertIs<OfferBook.Claim.Rejected>(book.claim(player, id))
     }
+
+    /**
+     * Verifies that concurrent issues for one player leave exactly one claimable offer, whose id
+     * was returned to one of the issuers.
+     */
+    @Test
+    fun `concurrent issues leave one consistent offer`() {
+        repeat(200) {
+            val book = OfferBook<Int>()
+            val threads = 8
+            val ids = java.util.concurrent.ConcurrentHashMap<Int, Int>()
+            val start = java.util.concurrent.CountDownLatch(1)
+            val workers = (1..threads).map { n ->
+                Thread {
+                    start.await()
+                    ids[book.issue(player, n)] = n
+                }.also { it.start() }
+            }
+            start.countDown()
+            workers.forEach { it.join() }
+
+            val claimable = ids.keys.filter { id -> book.claim(player, id) is OfferBook.Claim.Accepted }
+            assertEquals(1, claimable.size)
+            assertEquals(threads, ids.size)
+        }
+    }
 }

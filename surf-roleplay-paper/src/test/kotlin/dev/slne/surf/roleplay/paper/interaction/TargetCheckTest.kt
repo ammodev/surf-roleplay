@@ -26,5 +26,6 @@ class TargetCheckTest {
         assertIs<TargetCheck.Result.Failed>(TargetCheck.check(distance = 3.01, range = 3.0, inSight = true))
         assertIs<TargetCheck.Result.Failed>(TargetCheck.check(distance = 1.0, range = 3.0, inSight = false))
         assertIs<TargetCheck.Result.Failed>(TargetCheck.check(distance = Double.NaN, range = 3.0, inSight = true))
+        assertIs<TargetCheck.Result.Failed>(TargetCheck.check(distance = 1.0, range = Double.NaN, inSight = true))
     }
 }

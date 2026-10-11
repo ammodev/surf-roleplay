@@ -46,6 +46,12 @@ object RadialTreeBuilder {
      * @return the tree
      */
     fun build(entries: List<Pair<RadialCategory, RadialEntry>>, player: Player, text: (Component) -> String, onError: (String, Throwable) -> Unit): Built {
+        /**
+         * Tells whether an entry is shown to the player; an entry whose condition throws is hidden.
+         *
+         * @param entry the entry
+         * @return whether all conditions pass
+         */
         fun shown(entry: RadialEntry): Boolean = try {
             entry.conditions.all { it.test(player) }
         } catch (exception: Exception) {
@@ -53,6 +59,14 @@ object RadialTreeBuilder {
             false
         }
 
+        /**
+         * Returns the visible form of an entry, or `null` if the entry is hidden or is a submenu
+         * without visible children.
+         *
+         * @param entry the entry
+         * @param path the entries from the top entry down to the entry's parent
+         * @return the visible node, or `null`
+         */
         fun visible(entry: RadialEntry, path: List<RadialEntry>): Visible? {
             if (!shown(entry)) return null
             val own = path + entry

@@ -59,9 +59,12 @@ class OfferBook<T> {
      * @return the offer id, never 0
      */
     fun issue(player: UUID, payload: T): Int {
-        val id = next.updateAndGet { if (it == Int.MAX_VALUE) 1 else it + 1 }
-        current[player] = Current(id, payload)
-        return id
+        var issued = 0
+        current.compute(player) { _, _ ->
+            issued = next.updateAndGet { if (it == Int.MAX_VALUE) 1 else it + 1 }
+            Current(issued, payload)
+        }
+        return issued
     }
 
     /**
