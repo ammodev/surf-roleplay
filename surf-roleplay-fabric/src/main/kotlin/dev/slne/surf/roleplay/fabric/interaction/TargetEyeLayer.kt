@@ -9,6 +9,7 @@ import dev.slne.surf.roleplay.fabric.ui.theme.ThemeColors
 import dev.slne.surf.roleplay.fabric.ui.theme.Themes
 import dev.slne.surf.roleplay.protocol.Packets
 import dev.slne.surf.roleplay.protocol.interaction.InteractionExecute
+import dev.slne.surf.roleplay.protocol.interaction.InteractionLimits
 import dev.slne.surf.roleplay.protocol.interaction.InteractionTargetOffer
 import dev.slne.surf.roleplay.protocol.interaction.InteractionTargetQuery
 import dev.slne.surf.roleplay.protocol.screen.ThemeVariant
@@ -55,14 +56,14 @@ object TargetEyeLayer {
             ui.icon("eye", Rect(centerX - EYE / 2, centerY - EYE / 2, EYE, EYE), ui.tokens.foreground)
             val offer = shown ?: return@addLast
             val (mouseX, mouseY) = HudCursor.position(mc)
-            val width = offer.options.maxOf { ui.width(it.label) } + PADDING * 2 + EYE
+            val width = minOf(offer.options.maxOf { ui.width(it.label) }, MAX_LABEL_WIDTH) + PADDING * 2 + EYE
             rows = OptionListLayout.place(offer.options.size, ROW, width, centerX, centerY, Rect(0, 0, mc.window.guiScaledWidth, mc.window.guiScaledHeight))
             ui.fillRounded(listArea!!.grow(2), ui.tokens.popover)
             offer.options.forEachIndexed { index, option ->
                 val row = rows[index]
                 if (row.contains(mouseX, mouseY)) ui.fillRounded(row, ThemeColors.blend(ui.tokens.popover, ui.tokens.foreground, HOVER_BLEND), 2)
                 if (option.icon.isNotEmpty()) ui.icon(option.icon, Rect(row.x + PADDING, row.y + (ROW - ICON) / 2, ICON, ICON), ui.tokens.popoverForeground)
-                ui.text(option.label, row.x + PADDING + EYE, row.y + (ROW - ui.lineHeight) / 2 + 1, ui.tokens.popoverForeground)
+                ui.wrappedText(option.label, row.x + PADDING + EYE, row.y + (ROW - ui.lineHeight) / 2 + 1, width - PADDING * 2 - EYE, ui.tokens.popoverForeground, maxLines = 1)
             }
         }
     }
@@ -95,14 +96,17 @@ object TargetEyeLayer {
     }
 
     /**
-     * Shows an offer if it is for the target under the crosshair and has options.
+     * Applies an offer: an offer for the target under the crosshair replaces the list, or hides
+     * it when it has no options. An offer for another target, or with more options than the
+     * protocol allows, is ignored.
      *
      * @param offer the offer
      */
     private fun receive(offer: InteractionTargetOffer) {
         val mc = Minecraft.getInstance()
-        if (!visible(mc) || offer.options.isEmpty() || TargetPicker.pick(mc) != TargetRef(offer.kind, offer.id)) return hide()
-        shown = offer
+        if (!visible(mc) || offer.options.size > InteractionLimits.MAX_OPTIONS) return
+        if (TargetPicker.pick(mc) != TargetRef(offer.kind, offer.id)) return
+        if (offer.options.isEmpty()) hide() else shown = offer
     }
 
     /**
@@ -138,6 +142,9 @@ object TargetEyeLayer {
 
     /** The size of an option icon. */
     private const val ICON: Int = 9
+
+    /** The widest an option label is drawn; longer labels end with an ellipsis. */
+    private const val MAX_LABEL_WIDTH: Int = 160
 
     /** The height of an option row. */
     private const val ROW: Int = 14
