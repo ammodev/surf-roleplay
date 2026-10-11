@@ -83,12 +83,15 @@ interface TypedOpenScreen<S> : OpenScreen {
  * @property sender the sender of the player's screen packets
  * @property limiter the action rate limiter
  * @property threadCheck throws [IllegalStateException] if the calling thread does not own the player
+ * @property onEmptyChanged called with `true` when the last screen closed and with `false` when
+ *           the first screen opened
  */
 class PlayerScreenState(
     val viewer: UUID,
     private val sender: ScreenPacketSender,
     private val limiter: ActionRateLimiter,
     private val threadCheck: () -> Unit = {},
+    private val onEmptyChanged: (Boolean) -> Unit = {},
 ) {
     /**
      * The outcome of handling a player's action.
@@ -228,6 +231,21 @@ class PlayerScreenState(
     }
 
     /**
+     * Runs a change of the stack and reports whether the stack went from empty to non-empty or
+     * back.
+     *
+     * @param change the change
+     * @return the result of [change]
+     */
+    private inline fun <R> tracked(change: () -> R): R {
+        val wasEmpty = stack.top == null
+        val result = change()
+        val isEmpty = stack.top == null
+        if (wasEmpty != isEmpty) onEmptyChanged(isEmpty)
+        return result
+    }
+
+    /**
      * Puts a session on the stack, sends its open packet, and then runs the close handlers of the
      * screens it replaced, so that screens those handlers open follow the new one on the client.
      *
@@ -235,7 +253,7 @@ class PlayerScreenState(
      * @param packet the open packet of the session
      */
     private fun push(session: Session, packet: ScreenOpen) {
-        val removed = stack.open(session.sessionId, packet.parentSessionId, session.closable, session)
+        val removed = tracked { stack.open(session.sessionId, packet.parentSessionId, session.closable, session) }
         sender.send(Packets.SCREEN_OPEN, packet)
         removed.forEach { it.content.closed() }
     }
@@ -248,7 +266,7 @@ class PlayerScreenState(
      */
     fun close(sessionId: Int, notifyClient: Boolean) {
         threadCheck()
-        val removed = stack.close(sessionId)
+        val removed = tracked { stack.close(sessionId) }
         if (removed.isEmpty()) return
         if (notifyClient) sender.send(Packets.SCREEN_CLOSE, ScreenClose(sessionId))
         removed.forEach { it.content.closed() }
@@ -261,7 +279,7 @@ class PlayerScreenState(
      */
     fun closeAll(notifyClient: Boolean) {
         threadCheck()
-        val removed = stack.closeAll()
+        val removed = tracked { stack.closeAll() }
         if (removed.isEmpty()) return
         if (notifyClient) sender.send(Packets.SCREEN_CLOSE, ScreenClose(null))
         removed.forEach { it.content.closed() }

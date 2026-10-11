@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.Plugin
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val log = logger()
 
@@ -74,6 +75,11 @@ class PaperScreenService : ScreenService, Listener {
     val actionLimiter: ActionRateLimiter get() = limiter
 
     /**
+     * The listeners told when a player's first screen opens or last screen closes.
+     */
+    private val screensChanged = CopyOnWriteArrayList<(Player) -> Unit>()
+
+    /**
      * The limiter of rejection log entries.
      */
     private val rejections = RejectionLog(REJECTIONS_LOGGED_PER_MINUTE)
@@ -95,6 +101,16 @@ class PaperScreenService : ScreenService, Listener {
         registry.dispatcher.on(Packets.SCREEN_CLOSED, onPlayerThread { state, packet -> report(state, state.handleClosed(packet)) })
         registry.dispatcher.on(Packets.SCREEN_INPUT_CHANGE, onPlayerThread { state, packet -> report(state, state.handleInputChange(packet)) })
         plugin.server.pluginManager.registerEvents(this, plugin)
+    }
+
+    /**
+     * Registers a listener that is called on the player's thread when the player's first screen
+     * opens or last screen closes.
+     *
+     * @param listener the listener
+     */
+    fun onScreensChanged(listener: (Player) -> Unit) {
+        screensChanged += listener
     }
 
     /**
@@ -168,7 +184,7 @@ class PaperScreenService : ScreenService, Listener {
         return states.computeIfAbsent(player.uniqueId) { id ->
             val sender = QueueingScreenSender(registrySender(player), ready = id in ready)
             senders[id] = sender
-            PlayerScreenState(id, sender, limiter) { checkOwned(player) }
+            PlayerScreenState(id, sender, limiter, threadCheck = { checkOwned(player) }, onEmptyChanged = { screensChanged.forEach { listener -> listener(player) } })
         }
     }
 
