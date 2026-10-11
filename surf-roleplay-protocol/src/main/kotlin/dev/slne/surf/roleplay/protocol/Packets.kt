@@ -1,5 +1,11 @@
 package dev.slne.surf.roleplay.protocol
 
+import dev.slne.surf.roleplay.protocol.interaction.InteractionAvailability
+import dev.slne.surf.roleplay.protocol.interaction.InteractionExecute
+import dev.slne.surf.roleplay.protocol.interaction.InteractionRadialOffer
+import dev.slne.surf.roleplay.protocol.interaction.InteractionRadialRequest
+import dev.slne.surf.roleplay.protocol.interaction.InteractionTargetOffer
+import dev.slne.surf.roleplay.protocol.interaction.InteractionTargetQuery
 import dev.slne.surf.roleplay.protocol.packets.ClientHello
 import dev.slne.surf.roleplay.protocol.packets.Welcome
 import dev.slne.surf.roleplay.protocol.screen.ScreenClose
@@ -163,6 +169,48 @@ object Packets {
     )
 
     /**
+     * Asks the server for the options of a target.
+     */
+    val INTERACTION_TARGET_QUERY: PacketType<InteractionTargetQuery> = PacketType(
+        "interaction_target_query", PacketDirection.SERVERBOUND, setOf(ConnectionPhase.PLAY), InteractionTargetQuery.serializer(),
+    )
+
+    /**
+     * Answers a target query with the options of the target.
+     */
+    val INTERACTION_TARGET_OFFER: PacketType<InteractionTargetOffer> = PacketType(
+        "interaction_target_offer", PacketDirection.CLIENTBOUND, setOf(ConnectionPhase.PLAY), InteractionTargetOffer.serializer(),
+    )
+
+    /**
+     * Asks the server for the radial menu.
+     */
+    val INTERACTION_RADIAL_REQUEST: PacketType<InteractionRadialRequest> = PacketType(
+        "interaction_radial_request", PacketDirection.SERVERBOUND, setOf(ConnectionPhase.PLAY), InteractionRadialRequest.serializer(),
+    )
+
+    /**
+     * Answers a radial request with the whole menu tree.
+     */
+    val INTERACTION_RADIAL_OFFER: PacketType<InteractionRadialOffer> = PacketType(
+        "interaction_radial_offer", PacketDirection.CLIENTBOUND, setOf(ConnectionPhase.PLAY), InteractionRadialOffer.serializer(),
+    )
+
+    /**
+     * Reports the option or node the player picked.
+     */
+    val INTERACTION_EXECUTE: PacketType<InteractionExecute> = PacketType(
+        "interaction_execute", PacketDirection.SERVERBOUND, setOf(ConnectionPhase.PLAY), InteractionExecute.serializer(),
+    )
+
+    /**
+     * Shows or hides the target eye and the radial menu.
+     */
+    val INTERACTION_AVAILABILITY: PacketType<InteractionAvailability> = PacketType(
+        "interaction_availability", PacketDirection.CLIENTBOUND, setOf(ConnectionPhase.PLAY), InteractionAvailability.serializer(),
+    )
+
+    /**
      * Every packet type of the protocol.
      */
     val all: List<PacketType<*>> = listOf(
@@ -180,6 +228,12 @@ object Packets {
         TOAST_DISMISS,
         TOAST_ACTION,
         TAB_LIST_STATE,
+        INTERACTION_TARGET_QUERY,
+        INTERACTION_TARGET_OFFER,
+        INTERACTION_RADIAL_REQUEST,
+        INTERACTION_RADIAL_OFFER,
+        INTERACTION_EXECUTE,
+        INTERACTION_AVAILABILITY,
     )
 
     /**
