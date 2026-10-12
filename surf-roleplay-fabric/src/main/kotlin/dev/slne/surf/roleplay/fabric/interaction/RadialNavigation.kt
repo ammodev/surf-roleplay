@@ -50,6 +50,9 @@ class RadialNavigation(private val nodes: List<RadialNode>) {
         return true
     }
 
+    /**
+     * Holds the tree validation.
+     */
     companion object {
 
         /**
