@@ -50,3 +50,11 @@ handshake:
     - fabric-tag-api-v1
     - fabric-transfer-api-v1
     - fabric-transitive-access-wideners-v1
+
+interaction:
+  # The default reach in blocks, from the player's eyes to the target surface (above 0, at most 8).
+  default-range: 3.0
+  # The largest number of target queries, radial requests and picks a player may send per second.
+  max-queries-per-second: 10
+  # Whether the radial menu gets the demo entry "Ich" > "Test" > "Hallo".
+  demo-entries: true

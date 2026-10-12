@@ -25,3 +25,6 @@ tools/devenv/jars/
 
 # Screenshots from live verification runs
 screenshots/
+
+# Dev client logs
+surf-roleplay-fabric/logs/

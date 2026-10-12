@@ -2,6 +2,8 @@ package dev.slne.surf.roleplay.fabric.toast
 
 import com.mojang.blaze3d.platform.InputConstants
 import dev.slne.surf.roleplay.fabric.RoleplayClient
+import dev.slne.surf.roleplay.fabric.interaction.RadialMenuLayer
+import dev.slne.surf.roleplay.fabric.interaction.TargetEyeLayer
 import dev.slne.surf.roleplay.fabric.settings.KeyMode
 import dev.slne.surf.roleplay.fabric.settings.RoleplayKeys
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
@@ -81,10 +83,11 @@ object HudCursor {
      * Applies the key and screen state of the current tick.
      *
      * @param mc the Minecraft client
-     * @param enabled whether the cursor may be shown, as while the roleplay server is active
+     * @param enabled whether the cursor may be shown, as while the roleplay server is active; the
+     *        cursor is not shown while the radial menu is open
      */
     fun tick(mc: Minecraft, enabled: Boolean) {
-        val ready = enabled && mc.player != null
+        val ready = enabled && mc.player != null && !RadialMenuLayer.isOpen
         val keyPressed = key.consumeClick() && ready
         val keyDown = ready && key.isDown
         when (change(keyDown, keyPressed, mc.gui.screen() != null, active, RoleplayClient.settings.current.cursorKeyMode, ready)) {
@@ -115,15 +118,17 @@ object HudCursor {
      *
      * @param cursorKey the saved name of the key bound to the cursor, such as `key.mouse.4`
      * @param buttonKey the saved name of the mouse button, such as `key.mouse.left`
-     * @return `false` when the cursor key is bound to that very button, so that the key binding
-     *         still sees its presses and releases; `true` otherwise
+     * @param radialKey the saved name of the key bound to the radial menu, or an empty string
+     * @return `false` when the cursor key or the radial menu key is bound to that very button, so
+     *         that the key binding still sees its presses and releases; `true` otherwise
      */
-    fun takesButton(cursorKey: String, buttonKey: String): Boolean =
-        cursorKey != buttonKey
+    fun takesButton(cursorKey: String, buttonKey: String, radialKey: String = ""): Boolean =
+        cursorKey != buttonKey && radialKey != buttonKey
 
     /**
-     * Handles a mouse button while the cursor mode is on and no screen is open: a press is passed
-     * to the toasts, and every button event is kept from the world.
+     * Handles a mouse button while the cursor mode is on or the radial menu is open, and no screen
+     * is open: a press goes to the radial menu alone while it is open without the cursor, otherwise to
+     * the toasts, then to the radial menu if it is open or else to the option list of the target eye, and every button event is kept from the world.
      *
      * @param button the mouse button
      * @param action the GLFW action
@@ -132,11 +137,16 @@ object HudCursor {
     @JvmStatic
     fun handleButton(button: Int, action: Int): Boolean {
         val mc = Minecraft.getInstance()
-        if (!active || mc.gui.screen() != null) return false
-        if (!takesButton(key.saveString(), InputConstants.Type.MOUSE.getOrCreate(button).name)) return false
+        val radial = RadialMenuLayer.isOpen
+        if (!(active || radial) || mc.gui.screen() != null) return false
+        if (!takesButton(key.saveString(), InputConstants.Type.MOUSE.getOrCreate(button).name, RadialMenuLayer.key.saveString())) return false
         if (action == GLFW.GLFW_PRESS) {
             val (x, y) = position(mc)
-            ToastLayer.click(x, y, button)
+            if (radial && !active) {
+                RadialMenuLayer.click(x, y, button)
+            } else if (!ToastLayer.click(x, y, button)) {
+                if (radial) RadialMenuLayer.click(x, y, button) else TargetEyeLayer.click(x, y, button)
+            }
         }
         return true
     }

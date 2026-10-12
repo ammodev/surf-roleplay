@@ -30,8 +30,9 @@ import dev.slne.surf.roleplay.protocol.screen.TextNode
  * shown by the panel, not by the tree.
  * Its interactive nodes have stable ids: `binding_<id>` is the key button of a binding,
  * `reset_<id>` restores its default key, `conflict_<id>` marks a binding whose key is also bound
- * elsewhere, `reset_all` restores every default key, and `cursor_mode` is the select of the
- * cursor key mode with the values of [KeyMode].
+ * elsewhere, `reset_all` restores every default key, `cursor_mode` is the select of the
+ * cursor key mode and `radial_mode` the select of the radial menu key mode, both with the values
+ * of [KeyMode].
  */
 object SettingsView {
 
@@ -49,6 +50,11 @@ object SettingsView {
      * The id of the select of the cursor key mode.
      */
     const val CURSOR_MODE_ID: String = "cursor_mode"
+
+    /**
+     * The id of the select of the radial menu key mode.
+     */
+    const val RADIAL_MODE_ID: String = "radial_mode"
 
     /**
      * The prefix of the id of a binding's key button.
@@ -197,15 +203,18 @@ object SettingsView {
     )
 
     /**
-     * Builds the content of the cursor category: the cursor key mode select and its hint.
+     * Builds the content of the cursor category: the cursor key mode select with its hint and the
+     * radial menu key mode select.
      *
      * @param state what the settings screen shows
      * @return the nodes of the category
      */
     private fun cursorContent(state: SettingsState): List<ScreenNode> = listOf(
         TextNode("cursor_heading", kind = TextKind.H4, text = text("Mauszeiger")),
-        cursorModeSelect(state.settings.cursorKeyMode),
+        keyModeSelect(CURSOR_MODE_ID, state.settings.cursorKeyMode),
         TextNode("cursor_hint", kind = TextKind.MUTED, text = text("Gilt auch für das Zielauge.")),
+        TextNode("radial_heading", kind = TextKind.H4, text = text("Radialmenü")),
+        keyModeSelect(RADIAL_MODE_ID, state.settings.radialKeyMode),
     )
 
     /**
@@ -262,14 +271,15 @@ object SettingsView {
     }
 
     /**
-     * Builds the select of the cursor key mode, which reports each change.
+     * Builds a select of a key mode, which reports each change.
      *
+     * @param id the id of the select
      * @param mode the current mode
      * @return the select node
      */
-    private fun cursorModeSelect(mode: KeyMode): ScreenNode =
+    private fun keyModeSelect(id: String, mode: KeyMode): ScreenNode =
         SelectNode(
-            CURSOR_MODE_ID,
+            id,
             width = Sizing.grow(),
             groups = listOf(
                 SelectGroup(

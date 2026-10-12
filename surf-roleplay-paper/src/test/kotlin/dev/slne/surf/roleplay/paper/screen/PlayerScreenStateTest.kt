@@ -74,9 +74,9 @@ class PlayerScreenStateTest {
     /**
      * The state under test, with a limit of five actions per second and a fake thread check.
      */
-    private val state = PlayerScreenState(UUID.randomUUID(), sender, ActionRateLimiter(5) { now }) {
+    private val state = PlayerScreenState(UUID.randomUUID(), sender, ActionRateLimiter(5) { now }, threadCheck = {
         check(onOwningThread) { "wrong thread" }
-    }
+    })
 
     /**
      * The names of the screens whose close handler ran, in order.
@@ -378,5 +378,21 @@ class PlayerScreenStateTest {
         kotlin.test.assertFailsWith<IllegalStateException> { screen.patch { setText("title", Component.empty()) } }
         kotlin.test.assertFailsWith<IllegalStateException> { screen.close() }
         kotlin.test.assertFailsWith<IllegalStateException> { screen.isOpen }
+    }
+
+    /**
+     * Verifies that the empty-stack listener fires when the first screen opens and when the last
+     * one closes, and not in between.
+     */
+    @Test
+    fun `empty stack changes are reported`() {
+        val changes = mutableListOf<Boolean>()
+        val tracked = PlayerScreenState(UUID.randomUUID(), sender, ActionRateLimiter(5) { now }, onEmptyChanged = { changes += it })
+
+        val first = tracked.open(form("a"), null)
+        tracked.open(form("b"), first.sessionId)
+        tracked.closeAll(notifyClient = false)
+
+        assertEquals(listOf(false, true), changes)
     }
 }

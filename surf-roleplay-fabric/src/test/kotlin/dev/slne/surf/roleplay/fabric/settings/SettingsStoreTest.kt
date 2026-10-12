@@ -64,9 +64,9 @@ class SettingsStoreTest {
      */
     @Test
     fun `unknown keys survive a rewrite`() {
-        val file = dir.resolve("surf-roleplay.json").also { Files.writeString(it, """{"radialKeyMode":"TOGGLE"}""") }
+        val file = dir.resolve("surf-roleplay.json").also { Files.writeString(it, """{"someOtherKey":"TOGGLE"}""") }
         SettingsStore(file).apply { load(); update { it.copy(cursorKeyMode = KeyMode.TOGGLE) } }
-        assertTrue(Files.readString(file).contains("radialKeyMode"))
+        assertTrue(Files.readString(file).contains("someOtherKey"))
     }
 
     /**
@@ -103,5 +103,29 @@ class SettingsStoreTest {
         assertTrue(SettingsStore.isContentError(java.nio.charset.MalformedInputException(1)))
         assertFalse(SettingsStore.isContentError(java.io.IOException("locked")))
         assertFalse(SettingsStore.isContentError(java.nio.file.AccessDeniedException("f")))
+    }
+
+    /**
+     * Verifies that the radial key mode is read from the file and kept together with the cursor
+     * key mode when the file is rewritten.
+     */
+    @Test
+    fun `radial key mode is read and both modes are written`() {
+        val file = dir.resolve("surf-roleplay.json").also { Files.writeString(it, """{"radialKeyMode":"TOGGLE"}""") }
+        val store = SettingsStore(file).apply { load() }
+        assertEquals(KeyMode.TOGGLE, store.current.radialKeyMode)
+        store.update { it.copy(cursorKeyMode = KeyMode.TOGGLE) }
+        val written = Files.readString(file)
+        assertTrue(written.contains("cursorKeyMode") && written.contains("radialKeyMode"))
+        assertEquals(KeyMode.TOGGLE, SettingsStore(file).apply { load() }.current.radialKeyMode)
+    }
+
+    /**
+     * Verifies that a radial key mode of the wrong type falls back to the default.
+     */
+    @Test
+    fun `wrong type for the radial key mode falls back to hold`() {
+        val file = dir.resolve("surf-roleplay.json").also { Files.writeString(it, """{"radialKeyMode": 5}""") }
+        assertEquals(KeyMode.HOLD, SettingsStore(file).apply { load() }.current.radialKeyMode)
     }
 }

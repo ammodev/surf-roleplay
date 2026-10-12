@@ -1,0 +1,21 @@
+# Which blocks and entities offer which interaction behaviours.
+# Blocks are bound by world and position; for doors use the lower half.
+# Entities are bound by the binding key in their tag, set with /rpinteract tag <key>.
+# range is optional, in blocks (above 0, at most 8); the default comes from config.yml.
+#
+# blocks:
+#   - world: world
+#     x: 10
+#     y: 64
+#     z: -3
+#     behaviours:
+#       - door.toggle
+# entities:
+#   - key: guard_1
+#     range: 4
+#     behaviours:
+#       - key: some.behaviour
+#         parameters:
+#           name: value
+blocks: []
+entities: []

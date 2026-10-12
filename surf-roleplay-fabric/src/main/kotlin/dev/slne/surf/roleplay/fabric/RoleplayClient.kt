@@ -1,6 +1,9 @@
 package dev.slne.surf.roleplay.fabric
 
 import dev.slne.surf.roleplay.fabric.handshake.ClientHandshake
+import dev.slne.surf.roleplay.fabric.interaction.InteractionClientState
+import dev.slne.surf.roleplay.fabric.interaction.RadialMenuLayer
+import dev.slne.surf.roleplay.fabric.interaction.TargetEyeLayer
 import dev.slne.surf.roleplay.fabric.protocol.FabricPacketRegistry
 import dev.slne.surf.roleplay.fabric.screen.ClientScreenManager
 import dev.slne.surf.roleplay.fabric.server.RoleplayServerDetection
@@ -52,7 +55,7 @@ object RoleplayClient : ClientModInitializer {
 
     /**
      * Initialises the mod on the client: loads the client settings, registers the roleplay payload channels, the mod
-     * handshake, the roleplay server detection, the server-driven screens, the toasts, the tab list and the
+     * handshake, the roleplay server detection, the server-driven screens, the toasts, the target eye, the tab list and the
      * settings screen with its key binding and pause menu button, and logs the mod version.
      */
     override fun onInitializeClient() {
@@ -62,6 +65,9 @@ object RoleplayClient : ClientModInitializer {
         RoleplayServerDetection.register(serverState)
         ClientScreenManager.register(serverState)
         ToastLayer.register(serverState)
+        InteractionClientState.register(serverState)
+        TargetEyeLayer.register()
+        RadialMenuLayer.register(serverState)
         TabListLayer.register(serverState)
         SettingsScreen.register(serverState)
         SettingsEntry.register(serverState)
