@@ -118,16 +118,17 @@ object HudCursor {
      *
      * @param cursorKey the saved name of the key bound to the cursor, such as `key.mouse.4`
      * @param buttonKey the saved name of the mouse button, such as `key.mouse.left`
-     * @return `false` when the cursor key is bound to that very button, so that the key binding
-     *         still sees its presses and releases; `true` otherwise
+     * @param radialKey the saved name of the key bound to the radial menu, or an empty string
+     * @return `false` when the cursor key or the radial menu key is bound to that very button, so
+     *         that the key binding still sees its presses and releases; `true` otherwise
      */
-    fun takesButton(cursorKey: String, buttonKey: String): Boolean =
-        cursorKey != buttonKey
+    fun takesButton(cursorKey: String, buttonKey: String, radialKey: String = ""): Boolean =
+        cursorKey != buttonKey && radialKey != buttonKey
 
     /**
      * Handles a mouse button while the cursor mode is on or the radial menu is open, and no screen
-     * is open: a press is passed to the toasts, then to the radial menu if it is open or else to
-     * the option list of the target eye, and every button event is kept from the world.
+     * is open: a press goes to the radial menu alone while it is open without the cursor, otherwise to
+     * the toasts, then to the radial menu if it is open or else to the option list of the target eye, and every button event is kept from the world.
      *
      * @param button the mouse button
      * @param action the GLFW action
@@ -138,10 +139,12 @@ object HudCursor {
         val mc = Minecraft.getInstance()
         val radial = RadialMenuLayer.isOpen
         if (!(active || radial) || mc.gui.screen() != null) return false
-        if (!takesButton(key.saveString(), InputConstants.Type.MOUSE.getOrCreate(button).name)) return false
+        if (!takesButton(key.saveString(), InputConstants.Type.MOUSE.getOrCreate(button).name, RadialMenuLayer.key.saveString())) return false
         if (action == GLFW.GLFW_PRESS) {
             val (x, y) = position(mc)
-            if (!ToastLayer.click(x, y, button)) {
+            if (radial && !active) {
+                RadialMenuLayer.click(x, y, button)
+            } else if (!ToastLayer.click(x, y, button)) {
                 if (radial) RadialMenuLayer.click(x, y, button) else TargetEyeLayer.click(x, y, button)
             }
         }

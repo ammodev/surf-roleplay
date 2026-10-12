@@ -119,4 +119,13 @@ class SettingsStoreTest {
         assertTrue(written.contains("cursorKeyMode") && written.contains("radialKeyMode"))
         assertEquals(KeyMode.TOGGLE, SettingsStore(file).apply { load() }.current.radialKeyMode)
     }
+
+    /**
+     * Verifies that a radial key mode of the wrong type falls back to the default.
+     */
+    @Test
+    fun `wrong type for the radial key mode falls back to hold`() {
+        val file = dir.resolve("surf-roleplay.json").also { Files.writeString(it, """{"radialKeyMode": 5}""") }
+        assertEquals(KeyMode.HOLD, SettingsStore(file).apply { load() }.current.radialKeyMode)
+    }
 }

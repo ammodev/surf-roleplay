@@ -89,4 +89,15 @@ class HudCursorTest {
         assertFalse(HudCursor.takesButton("key.mouse.middle", name(2)))
         assertTrue(HudCursor.takesButton("key.mouse.middle", name(0)))
     }
+
+    /**
+     * Verifies that a mouse button bound to the radial menu key is not taken either.
+     */
+    @Test
+    fun `a mouse button bound to the radial key is not taken`() {
+        fun name(button: Int) = InputConstants.Type.MOUSE.getOrCreate(button).name
+        assertFalse(HudCursor.takesButton("key.keyboard.left.alt", name(3), "key.mouse.4"))
+        assertTrue(HudCursor.takesButton("key.keyboard.left.alt", name(0), "key.mouse.4"))
+        assertTrue(HudCursor.takesButton("key.keyboard.left.alt", name(3), "key.keyboard.r"))
+    }
 }

@@ -137,18 +137,21 @@ object RadialMenuLayer {
     }
 
     /**
-     * Shows a received tree if it was requested, is not empty and passes
-     * [RadialNavigation.isValid]; any other offer is dropped.
+     * Shows a received tree if it was requested, the menu may still open (a player is present, no
+     * screen is open, the HUD cursor is off and interaction is available), it is not empty and it
+     * passes [RadialNavigation.isValid]; any other offer is dropped.
      *
      * @param packet the offer
      */
     private fun receive(packet: InteractionRadialOffer) {
         if (!requested) return
         requested = false
+        val mc = Minecraft.getInstance()
+        if (mc.player == null || mc.gui.screen() != null || HudCursor.active || !InteractionClientState.available) return
         if (packet.nodes.isEmpty() || !RadialNavigation.isValid(packet.nodes)) return
         offer = packet
         navigation = RadialNavigation(packet.nodes)
-        Minecraft.getInstance().mouseHandler.releaseMouse()
+        mc.mouseHandler.releaseMouse()
     }
 
     /**
@@ -183,7 +186,7 @@ object RadialMenuLayer {
         navigation = null
         offer = null
         val mc = Minecraft.getInstance()
-        if (!HudCursor.active && mc.gui.screen() == null) mc.mouseHandler.grabMouse()
+        if (mc.player != null && !HudCursor.active && mc.gui.screen() == null) mc.mouseHandler.grabMouse()
     }
 
     /** The label of the overflow item as component JSON. */
