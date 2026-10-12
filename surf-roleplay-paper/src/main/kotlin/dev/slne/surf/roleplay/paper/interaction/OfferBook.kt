@@ -88,4 +88,11 @@ class OfferBook<T> {
     fun clear(player: UUID) {
         current.remove(player)
     }
+
+    /**
+     * Returns the id of the most recently issued offer of any player.
+     *
+     * @return the id, or 0 if no offer was issued yet
+     */
+    fun lastIssued(): Int = next.get()
 }

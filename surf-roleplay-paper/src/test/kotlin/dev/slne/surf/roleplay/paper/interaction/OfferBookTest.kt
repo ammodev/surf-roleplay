@@ -81,4 +81,18 @@ class OfferBookTest {
             assertEquals(threads, ids.size)
         }
     }
+
+    /**
+     * Verifies that the last issued id starts at 0 and follows every issued offer, whoever it was for.
+     */
+    @Test
+    fun `last issued follows issued offers`() {
+        val book = OfferBook<String>()
+        assertEquals(0, book.lastIssued())
+
+        book.issue(player, "a")
+        val second = book.issue(UUID.randomUUID(), "b")
+
+        assertEquals(second, book.lastIssued())
+    }
 }

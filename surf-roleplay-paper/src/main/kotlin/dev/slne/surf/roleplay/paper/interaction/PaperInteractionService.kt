@@ -54,6 +54,7 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
+/** The logger of the interaction service. */
 private val log = logger()
 
 /**
@@ -100,6 +101,9 @@ class PaperInteractionService : InteractionService, Listener {
 
     /** The availability last sent to each player. */
     private val sentAvailability = ConcurrentHashMap<UUID, Boolean>()
+
+    /** Limits how often a failing condition logs its stack trace. */
+    private val conditionLog = LogThrottle(60_000)
 
     /** Logs at most 20 rejections per player and minute. */
     private val rejections = RejectionLog(REJECTIONS_LOGGED_PER_MINUTE)
@@ -234,10 +238,10 @@ class PaperInteractionService : InteractionService, Listener {
         val empty = InteractionTargetOffer(0, packet.kind, packet.id)
         val failure = reachFailure(player, target, binding)
         if (failure != null) {
-            reject(player, "query for ${packet.kind} ${packet.id}: $failure")
+            reject(player, "query for ${packet.kind} ${packet.id}: ${failure.reason}", suspicious = failure.suspicious)
             return sendOffer(player, empty)
         }
-        val passing = OptionEvaluator.passing(boundBehaviours(binding), player, target) { key, error -> log.atWarning().withCause(error).log("Condition of %s failed", key) }
+        val passing = OptionEvaluator.passing(boundBehaviours(binding), player, target) { key, error -> conditionFailed("behaviour", key, error) }
         if (passing.isEmpty()) {
             offers.clear(player.uniqueId)
             return sendOffer(player, empty)
@@ -248,20 +252,45 @@ class PaperInteractionService : InteractionService, Listener {
     }
 
     /**
+     * Why a target cannot be reached.
+     *
+     * @property reason why, for the log
+     * @property suspicious whether a normal client could not have asked for this target
+     */
+    private class ReachFailure(val reason: String, val suspicious: Boolean)
+
+    /**
      * Returns why a target cannot be reached, or `null` if it can. Runs on the target's thread.
      *
      * @param player the player
      * @param target the target
      * @param binding the target's binding
-     * @return the reason, or `null`
+     * @return the failure, or `null`
      */
-    private fun reachFailure(player: Player, target: InteractionTarget, binding: TargetBinding): String? {
-        if (!Bukkit.isOwnedByCurrentRegion(player)) return "player and target are in different regions"
-        val box = boxOf(target) ?: return "target no longer exists"
-        if (worldOf(target) != player.world) return "target is in another world"
+    private fun reachFailure(player: Player, target: InteractionTarget, binding: TargetBinding): ReachFailure? {
+        if (!Bukkit.isOwnedByCurrentRegion(player)) return ReachFailure("player and target are in different regions", suspicious = false)
+        val box = boxOf(target) ?: return ReachFailure("target no longer exists", suspicious = false)
+        if (worldOf(target) != player.world) return ReachFailure("target is in another world", suspicious = false)
         val eye = player.eyeLocation
         val distance = Reach.distanceToBox(eye.toVector(), box)
-        return (TargetCheck.check(distance, binding.range ?: config.defaultRange, inSight(player, target, box)) as? TargetCheck.Result.Failed)?.reason
+        val failed = TargetCheck.check(distance, binding.range ?: config.defaultRange, inSight(player, target, box)) as? TargetCheck.Result.Failed
+        return failed?.let { ReachFailure(it.reason, suspicious = TargetCheck.isImplausible(distance)) }
+    }
+
+    /**
+     * Logs a failing condition: with its stack trace at most once per minute for each behaviour or
+     * entry, and without it otherwise.
+     *
+     * @param what what kind of condition owner failed
+     * @param key the key of the behaviour or entry
+     * @param error the failure
+     */
+    private fun conditionFailed(what: String, key: String, error: Throwable) {
+        if (conditionLog.shouldLog("$what $key")) {
+            log.atWarning().withCause(error).log("Condition of %s %s failed", what, key)
+        } else {
+            log.atFine().log("Condition of %s %s failed: %s", what, key, error)
+        }
     }
 
     /**
@@ -340,7 +369,7 @@ class PaperInteractionService : InteractionService, Listener {
      * @param player the player
      */
     private fun radialRequest(player: Player) {
-        val built = RadialTreeBuilder.build(radial.toList(), player, ScreenMapper::text) { key, error -> log.atWarning().withCause(error).log("Radial condition of %s failed", key) }
+        val built = RadialTreeBuilder.build(radial.toList(), player, ScreenMapper::text) { key, error -> conditionFailed("radial entry", key, error) }
         if (built.dropped > 0) log.atWarning().log("Radial menu of %s cut at %d nodes, %d dropped", player.name, InteractionLimits.MAX_RADIAL_NODES, built.dropped)
         if (built.nodes.isEmpty()) {
             offers.clear(player.uniqueId)
@@ -358,14 +387,14 @@ class PaperInteractionService : InteractionService, Listener {
      */
     private fun execute(player: Player, packet: InteractionExecute) {
         val pending = when (val claim = offers.claim(player.uniqueId, packet.offerId)) {
-            is OfferBook.Claim.Rejected -> return reject(player, "execute: ${claim.reason}")
+            is OfferBook.Claim.Rejected -> return reject(player, "execute: ${claim.reason}", suspicious = packet.offerId !in 1..offers.lastIssued())
             is OfferBook.Claim.Accepted -> claim.payload
         }
         when (pending) {
             is Pending.Target -> {
                 val bound = pending.options.getOrNull(packet.index) ?: return reject(player, "execute: option ${packet.index} was never offered")
                 onOwner(pending.target, retired = { player.scheduler.run(plugin, { denied(player) }, null) }) {
-                    val failure = reachFailure(player, pending.target, pending.binding)
+                    val failure = reachFailure(player, pending.target, pending.binding)?.reason
                         ?: "interaction is blocked".takeIf { isBlocked(player) }
                         ?: runCatching { bound.passes(player, pending.target) }.getOrDefault(false).let { if (it) null else "conditions no longer pass" }
                     if (failure != null) {
