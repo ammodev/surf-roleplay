@@ -55,6 +55,9 @@ object RadialMenuLayer {
     /** Whether a request was sent and its answer is awaited. */
     private var requested: Boolean = false
 
+    /** When the awaited request was sent, in milliseconds; meaningful while [requested] is set. */
+    private var requestedAt: Long = 0
+
     /**
      * Whether the radial menu is shown.
      */
@@ -116,7 +119,8 @@ object RadialMenuLayer {
 
     /**
      * Applies the key: requests the menu on press, and closes it on release (hold) or on the next
-     * press (toggle). Ignored while the HUD cursor is on, a screen is open or interaction is not
+     * press (toggle). A request unanswered for [RequestTimeout.MILLIS] is given up so that the key
+     * works again. Ignored while the HUD cursor is on, a screen is open or interaction is not
      * available.
      *
      * @param mc the Minecraft client
@@ -126,12 +130,14 @@ object RadialMenuLayer {
         val pressed = key.consumeClick()
         val usable = active && mc.player != null && mc.gui.screen() == null && InteractionClientState.available
         if (!usable) return close()
+        if (requested && RequestTimeout.expired(requestedAt, System.currentTimeMillis())) requested = false
         val mode = RoleplayClient.settings.current.radialKeyMode
         when {
             isOpen && mode == KeyMode.HOLD && !key.isDown -> close()
             isOpen && mode == KeyMode.TOGGLE && pressed -> close()
             !isOpen && !requested && pressed && !HudCursor.active -> {
                 requested = ClientPackets.send(Packets.INTERACTION_RADIAL_REQUEST, InteractionRadialRequest)
+                requestedAt = System.currentTimeMillis()
             }
         }
     }
