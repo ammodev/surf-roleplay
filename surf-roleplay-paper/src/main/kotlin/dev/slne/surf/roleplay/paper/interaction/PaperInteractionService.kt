@@ -41,6 +41,7 @@ import org.bukkit.FluidCollisionMode
 import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.block.Block
+import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -217,10 +218,10 @@ class PaperInteractionService : InteractionService, Listener {
                 val uuid = EntityTargetId.parse(packet.id) ?: return reject(player, "malformed entity id ${packet.id}")
                 val reach = InteractionLimits.MAX_RANGE
                 val entity = player.getNearbyEntities(reach, reach, reach).firstOrNull { it.uniqueId == uuid } ?: return reject(player, "no entity ${packet.id} near the player")
-                entity.scheduler.run(plugin, {
-                    val binding = bindings.forEntity(entity) ?: return@run noOptions()
+                runOnEntity(entity, work = {
+                    val binding = bindings.forEntity(entity) ?: return@runOnEntity noOptions()
                     offer(player, EntityTarget(entity), binding, packet)
-                }, retired)
+                }, retired = retired)
             }
             else -> reject(player, "unknown target kind ${packet.kind}")
         }
@@ -425,9 +426,21 @@ class PaperInteractionService : InteractionService, Listener {
     private fun onOwner(target: InteractionTarget, retired: () -> Unit, work: () -> Unit) {
         when (target) {
             is BlockTarget -> Bukkit.getRegionScheduler().run(plugin, target.block.location) { work() }
-            is EntityTarget -> target.entity.scheduler.run(plugin, { work() }, retired)
+            is EntityTarget -> runOnEntity(target.entity, work, retired)
             else -> Unit
         }
+    }
+
+    /**
+     * Runs work on the thread that owns an entity. If the entity is already removed, [retired]
+     * runs instead, on the calling thread.
+     *
+     * @param entity the entity
+     * @param work the work
+     * @param retired run instead of [work] if the entity was removed before the work could run
+     */
+    private fun runOnEntity(entity: Entity, work: () -> Unit, retired: () -> Unit) {
+        if (entity.scheduler.run(plugin, { work() }, retired) == null) retired()
     }
 
     /**
