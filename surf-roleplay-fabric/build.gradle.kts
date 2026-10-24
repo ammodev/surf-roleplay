@@ -7,7 +7,7 @@ val minecraftVersion = "26.2"
 val fabricLoaderVersion = "0.19.5"
 val fabricApiVersion = "0.161.0+26.2"
 val fabricLanguageKotlinVersion = "1.14.1+kotlin.2.4.20"
-val serializationVersion = "1.11.0"
+val serializationVersion = "1.12.0"
 
 repositories {
     mavenCentral()
