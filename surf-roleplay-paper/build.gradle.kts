@@ -22,7 +22,7 @@ dependencies {
     testImplementation("it.unimi.dsi:fastutil:8.5.19")
     testRuntimeOnly("com.google.flogger:flogger:0.9")
     testRuntimeOnly("com.google.flogger:flogger-system-backend:0.9")
-    testImplementation("io.mockk:mockk:1.14.11")
+    testImplementation("io.mockk:mockk:1.14.12")
 }
 
 evaluationDependsOn(":surf-roleplay-fabric")
