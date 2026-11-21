@@ -17,7 +17,7 @@ kotlin {
 dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-protobuf-jvm:1.11.0") {
+    api("org.jetbrains.kotlinx:kotlinx-serialization-protobuf-jvm:1.13.0") {
         isTransitive = false
     }
 
